@@ -9,7 +9,25 @@ void EnNiw_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnNiw_Update(Actor* thisx, GlobalContext* globalCtx);
 void EnNiw_Draw(Actor* thisx, GlobalContext* globalCtx);
 
+
+void func_808916B0(EnNiw* this, GlobalContext* globalCtx);
+void func_80891974(EnNiw* this);
+void func_808919E8(EnNiw* this, GlobalContext* globalCtx);
+void func_80891F60(EnNiw* this, GlobalContext* globalCtx);
+
+
+void func_80892390(EnNiw* this, GlobalContext* globalCtx);
+
 void func_80891D78(EnNiw* this, GlobalContext* globalCtx);
+void func_80892E70(EnNiw* this, GlobalContext* globalCtx);
+void func_80892248(EnNiw* this, GlobalContext* globalCtx);
+void func_80892274(EnNiw* this, GlobalContext* globalCtx);
+void func_808922D0(EnNiw* this, GlobalContext* globalCtx);
+void func_808930FC(EnNiw* this, GlobalContext* globalCtx);
+void func_80891320(EnNiw* this, GlobalContext* globalCtx, s16 arg2);
+
+// the limb function
+void func_80893008(EnNiw* this, Vec3f* pos, Vec3f* vel, Vec3f* accel, f32 scale);
 
 u32 D_80893460 = 0x0; // padding?
 
@@ -27,85 +45,50 @@ const ActorInit En_Niw_InitVars = {
 };
 */
 
-u32 D_80893484[] = {
- 0x459C4000,
- 0xC59C4000,
-};
+u32 D_80893484[] = { 0x459C4000, 0xC59C4000 };
 
-u32 D_8089348C = 0x459C4000; 
-
-u32 D_80893490[] = {
- 0x453B8000,
- 0x457A0000,
-};
+u32 D_8089348C[] = { 0x459C4000, 0x453B8000, 0x457A0000,};
 
 u32 D_80893498[] = { // collider
- 0x0500093D,
- 0x20010000,
- 0x00000000,
- 0x00000000,
- 0x00000000,
- 0xF7CFFFFF,
- 0x00000000,
- 0x00010100,
- 0x000F0019,
- 0x00040000,
- 0x00000000,
-};
+ 0x0500093D, 0x20010000, 0x00000000, 0x00000000,
+ 0x00000000, 0xF7CFFFFF, 0x00000000, 0x00010100,
+ 0x000F0019, 0x00040000, 0x00000000, };
 
-Vec3f D_808934C4 = {
- 90000.0f,
- 90000.0f,
- 90000.0f,
-};
+Vec3f D_808934C4 = { 90000.0f, 90000.0f, 90000.0f, };
 
-u32 D_808934D0[] = {
- 0x801F0006,
- 0xB874F830,
- 0x30540000,
-};
+u32 D_808934D0[] = { 0x801F0006, 0xB874F830, 0x30540000, };
 
-u32 D_808934DC[] = {
- 0x47AFC800,
- 0x47AFC800,
- 0x47AFC800,
-};
+Vec3f  D_808934DC = { 0x47AFC800, 0x47AFC800, 0x47AFC800, };
 
 u32 D_808934E8[] = {
- 0x47AFC800,
- 0x47AFC800,
- 0x47AFC800,
- 0x00000000,
- 0x00000000,
- 0x00000000,
+ 0x47AFC800, 0x47AFC800, 0x47AFC800, 0x00000000, 0x00000000, 0x00000000,
 };
 
+#if NON-MATCHING
 void EnNiw_Init(Actor *thisx, GlobalContext *globalCtx) {
-    // NON matching: one stack offset issue and struct is wrong
+    // NON matching: worldPosRotTemp is being stored to the wrong spot of stack
 
     EnNiw* this = THIS;
-    PosRot *worldPosRotTemp;
     Vec3f D_Temp = D_808934C4;
+    //s8 pad;
+    PosRot *worldPosRotTemp;
+    worldPosRotTemp = &this->actor.world;
 
     if ( this->actor.params < 0) { //no bit 16 I guess
         this->actor.params = 0;
     }
 
-
     Math_Vec3f_Copy( &this->unk2BC, &D_Temp);
 
-
     this->paramsCopy = this->actor.params;
-    Actor_ProcessInitChain(thisx, &D_808934D0);
-    thisx->flags |= 1;
-    Actor_SetDrawParams(&thisx->shape, 0.0f, func_800B3FC0, 25.0f);
+    Actor_ProcessInitChain(&this->actor, &D_808934D0);
+    this->actor.flags |= 1;
+    Actor_SetDrawParams(&this->actor.shape, 0.0f, func_800B3FC0, 25.0f);
 
     SkelAnime_InitSV(globalCtx, &this->skelanime,  
         &D_6002530, &D_60000E8,
          &this->limbDrawTbl, &this->transitionDrawtable, 0x10);
-    worldPosRotTemp = &this->actor.world;
     Math_Vec3f_Copy(&this->unk2A4, &worldPosRotTemp->pos);
-    //Math_Vec3f_Copy(&this->unk2B0, worldPosRotTemp.rot);
     Math_Vec3f_Copy(&this->unk2B0, &worldPosRotTemp->pos);
 
     this->unk308 = 10.0f;
@@ -114,52 +97,216 @@ void EnNiw_Init(Actor *thisx, GlobalContext *globalCtx) {
     if (this->paramsCopy == 1) {
         Actor_SetScale(&this->actor, ((f32) gStaticContext->data[2486] / D_80893500) + D_80893504);
     }
-    thisx->colChkInfo.health = (u8) (u32) (randZeroOneScaled(D_80893508) + 10.0f);
-    thisx->colChkInfo.mass = 0xFF;
+
+    this->actor.colChkInfo.health = (u8) (u32) (randZeroOneScaled(D_80893508) + 10.0f);
+    this->actor.colChkInfo.mass = 0xFF;
     if (this->paramsCopy == 0) {
         Collision_InitCylinder(globalCtx, &this->collider, &this->actor, &D_80893498);
     }
+
     if (this->paramsCopy == 2) {
-        func_800B8EC8(thisx, 0x2813U);
+        func_800B8EC8(&this->actor, 0x2813U);
         this->unk256 = (u16)0x1E;
         this->unk250 = (u16)0x1E;
-        thisx->flags &= ~1;
+        this->actor.flags &= ~1;
         this->unk28E = (u16)4;
         this->actionFunc = func_80891D78;
-        thisx->speedXZ = 0.0f;
+        this->actor.speedXZ = 0.0f;
         this->unk2BC.z = 0.0f;
-        thisx->velocity.y = 0.0f;
-        thisx->gravity = 0.0f;
+        this->actor.velocity.y = 0.0f;
+        this->actor.gravity = 0.0f;
         return;
     }
-    func_80891974(thisx);
+    func_80891974(&this->actor);
+}
+#else
+    #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/EnNiw_Init.asm")
+#endif
+
+void EnNiw_Destroy(Actor *thisx, GlobalContext *globalCtx) {
+    EnNiw* this = THIS;
+
+    if (this->paramsCopy == 0) {
+        Collision_FiniCylinder(globalCtx, &this->collider);
+    }
 }
 
-//#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/EnNiw_Init.asm")
-
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/EnNiw_Destroy.asm")
-
+// mips 2 c needs jump table
+// also action function
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80891320.asm")
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808916B0.asm")
+// spawn attack cucco
+void func_808916B0(EnNiw *this, GlobalContext *globalCtx) {
+    f32 xView;
+    f32 yView;
+    f32 zView;
+    Vec3f newNiwPos;
+    Actor* attackNiw;
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808917F8.asm")
+    if (this->unk252 == 0) {
+        if ((s32) this->unk290 < 7) {
+            xView = globalCtx->view.focalPoint.x - globalCtx->view.eye.x;
+            yView = globalCtx->view.focalPoint.y - globalCtx->view.eye.y;
+            zView = globalCtx->view.focalPoint.z - globalCtx->view.eye.z;
+            newNiwPos.x = ((randZeroOne() - 0.5f) * xView) + globalCtx->view.eye.x;
+            newNiwPos.y = randPlusMinusPoint5Scaled(D_8089354C) 
+                 + (globalCtx->view.eye.y + 50.0f + (yView * 0.5f));
+            newNiwPos.z = ((randZeroOne() - 0.5f) * zView) + globalCtx->view.eye.z;
+            attackNiw = Actor_SpawnWithParent(&globalCtx->actorCtx, &this->actor, globalCtx,
+                  (u16)0xAA, newNiwPos.x, newNiwPos.y, newNiwPos.z, 0, 0, 0, 0);
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80891974.asm")
+            if (attackNiw != NULL) {
+                this->unk290 += 1;
+                this->unk252 = 10;
+            }
+        }
+    }
+}
+
+void func_808917F8(EnNiw *this, GlobalContext *globalCtx, s32 arg2) {
+    f32 phi_f2;
+    f32 targetRotY;
+    f32* D_8089348CPtr = &D_8089348C;
+
+
+    if ( this->unk250 == 0) {
+        this->unk250 = 3;
+        if ((this->actor.bgCheckFlags & 1) ) {
+            this->actor.velocity.y = 3.5f;
+        }
+    }
+    if (this->unk252 == 0) {
+        this->unk29A++;
+        this->unk29A &= 1;
+        this->unk252 = 5;
+    }
+    if (this->unk29A == 0) {
+        phi_f2 = D_8089348CPtr[arg2];
+    } else {
+        phi_f2 = -D_8089348CPtr[arg2];
+    }
+    if (arg2 == 1) {
+        if (( this->unk254 == 0) || ((this->actor.bgCheckFlags & 8))) {
+            this->unk254 = 150;
+            if (this->unk25C == 0) {
+                this->unk25C = 70;
+                this->unk2E8 = this->actor.yawTowardsPlayer;
+            }
+        }
+    }
+    targetRotY = this->unk2E8 + phi_f2;
+    Math_SmoothScaleMaxMinS(&this->actor.world.rot.y, targetRotY, 3, (s16) this->unk300, 0);
+    Math_SmoothScaleMaxF(&this->unk300, 3000.0f, 1.0f, 500.0f);
+    func_80891320(this, globalCtx, 5);
+}
+
+
+void func_80891974(EnNiw *this) {
+    SkelAnime_ChangeAnim(&this->skelanime, &D_60000E8, 1.0f, 0.0f,
+         (f32) SkelAnime_GetFrameCount(&D_60000E8), 0, -10.0f);
+    this->unk28E = 0;
+    this->actionFunc = func_808919E8;
+}
 
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808919E8.asm")
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80891D78.asm")
+// action func
+void func_80891D78(EnNiw *this, GlobalContext *globalCtx) {
+    Vec3f vec3fcopy;
+    s16 rotZ;
+
+    vec3fcopy = D_808934DC;
+    if (this->unk250 == 0) {
+        this->unk29E = 2;
+        this->unk250 = (s32) (randZeroOneScaled(1.0f) * 10.0f) + 0xA;
+    }
+    this->actor.shape.rot.x = ((s16) randPlusMinusPoint5Scaled(D_80893558)) + this->actor.world.rot.x;
+    this->actor.shape.rot.y = ((s16) randPlusMinusPoint5Scaled(D_8089355C)) + this->actor.world.rot.y;
+    this->actor.shape.rot.z = ((s16) randPlusMinusPoint5Scaled(D_80893560)) + this->actor.world.rot.z;
+    if (this->paramsCopy == 0) {
+        if (func_800B8BFC( &this->actor, globalCtx) != 0) {
+            this->actor.shape.rot.z = 0;
+            rotZ = this->actor.shape.rot.z;
+            this->unk28E = 5;
+            this->actor.flags |= 1;
+            this->actionFunc = func_80891F60;
+            this->actor.shape.rot.y = rotZ;
+            this->actor.shape.rot.x = rotZ;
+        }
+    } else if (this->unk2BC.z != 0.0f) {
+        this->actor.shape.rot.z = 0;
+        rotZ = this->actor.shape.rot.z;
+        this->actor.velocity.y = 8.0f;
+        this->actor.speedXZ = 4.0f;
+        this->actor.gravity = -2.0f;
+        this->unk28E = 5;
+        this->unk2EC = 0;
+        this->paramsCopy = 0;
+        this->actor.shape.rot.y = rotZ;
+        this->actor.shape.rot.x = rotZ;
+        Collision_InitCylinder(globalCtx, &this->collider, &this->actor,  &D_80893498);
+        Math_Vec3f_Copy(&this->unk2BC, &vec3fcopy);
+        this->actor.flags |= 1;
+        this->actionFunc = func_80891F60;
+    }
+    func_80891320(this, globalCtx, (u16)2);
+}
 
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80891F60.asm")
 
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808920A0.asm")
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80892248.asm")
+void func_80892248(EnNiw *this, GlobalContext *globalCtx) {
+    this->unk252 = 0xA;
+    this->unk29C = 1;
+    this->unk28E = 1;
+    this->actionFunc = func_80892274;
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80892274.asm")
+// action func
+void func_80892274(EnNiw *this, GlobalContext *globalCtx) {
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808922D0.asm")
+    this->unk256 = 100;
+    if ( this->unk252 == 0) {
+        this->unk252 = 60; // reset timers, change action
+        this->unk24C = 10;
+        this->unk29C = 4;
+        this->unk28E = 2;
+        this->actionFunc = func_808922D0;
+    }
+  
+    func_80891320( this, globalCtx, this->unk29C);
+}
+
+//action func
+void func_808922D0(EnNiw *this, GlobalContext *globalCtx) {
+    f32 temp_f2;
+
+    this->unk256 = 100;
+    if (this->unk252 == 0x28) {
+        temp_f2 = D_80893564;
+        this->unk264 = D_80893568;
+        this->unk280 = temp_f2;
+        if (0) {}
+        this->unk278 = temp_f2;
+        this->unk27C = 0.0f;
+        this->unk284 = 0.0f;
+        this->unk268 = 0.0f;
+        this->unk26C = 0.0f;
+        this->unk24C = 0xA;
+        func_800B8EC8(&this->actor, 0x2813U); //play actor sound 2 chicken cry m
+    }
+    if (this->unk252 == 0) {
+        this->unk252 = 0xA;
+        this->unk2E8 = this->actor.yawTowardsPlayer;
+        this->actor.flags &= ~1;
+        this->unk28E = 3;
+        this->actionFunc = func_80892390;
+    }
+    func_80891320(this, globalCtx, this->unk29C);
+}
+
+//#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808922D0.asm")
 
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80892390.asm")
 
@@ -175,10 +322,73 @@ void EnNiw_Init(Actor *thisx, GlobalContext *globalCtx) {
 
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80892E70.asm")
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/EnNiw_Draw.asm")
+void EnNiw_Draw(Actor *thisx, GlobalContext *globalCtx) {
+    EnNiw* this = THIS;
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80893008.asm")
+    func_8012C28C(globalCtx->state.gfxCtx);
+    SkelAnime_DrawSV(globalCtx, this->skelanime.skeleton, this->skelanime.limbDrawTbl,
+         this->skelanime.dListCount, func_80892E70, NULL, &this->actor);
+    func_808932B0(&this->actor, globalCtx);
+}
 
+// "FeatherSpawn" in OOT
+void func_80893008(EnNiw *this, Vec3f *pos, Vec3f *vel, Vec3f *accel, f32 scale) {
+    s16 i;
+    EnNiwFeather* feather = this->feathers;
+
+    for (i = 0; i < ARRAY_COUNT(this->feathers); i++, feather++) {
+        if (feather->type == 0) {
+            feather->type = 1;
+            feather->pos = *pos;
+            feather->vel = *vel;
+            feather->accel = *accel;
+            feather->timer = 0;
+            feather->scale = scale / 1000.0f;
+            feather->life = (s16) (randZeroOneScaled(20.0f) + 40.0f);
+            feather->unk_2A = (s16) randZeroOneScaled(1000.0f);
+            break;
+        }
+    }
+}
+
+#if NON-MATCHING
+//featherupdate in oot
+void func_808930FC(EnNiw *this, GlobalContext *globalCtx) {
+    // non-matching: regaloc, and two floats are loaded swapped
+    EnNiwFeather *feather = this->feathers;
+    f32 dtemp80 = D_80893580;
+    f32 dtemp84 = D_80893584;
+    f32 dtemp88 = D_80893588;
+    s16 i;
+
+    for (i = 0; i < ARRAY_COUNT(this->feathers); i++, feather++) {
+        if (feather->type != 0) {
+            if (1) {}
+            feather->timer++;
+            feather->pos.x += feather->vel.x;
+            feather->pos.y += feather->vel.y;
+            feather->pos.z += feather->vel.z;
+            feather->vel.x += feather->accel.x;
+            feather->vel.y += feather->accel.y;
+            feather->vel.z += feather->accel.z;
+            if (feather->type == 1) {
+                feather->unk_2A++;
+                Math_SmoothScaleMaxF(&feather->vel.x, 0.0f, 1.0f, dtemp88);
+                Math_SmoothScaleMaxF(&feather->vel.z, 0.0f, 1.0f, dtemp88);
+                if (feather->vel.y < -0.5f) {
+                    feather->vel.y = -0.5f;
+                }
+
+                feather->unk_30 = Math_Sins( (s16) (feather->unk_2A * 0xBB8)) * dtemp84 * dtemp80;
+
+                if (feather->life < feather->timer) {
+                    feather->type = 0;
+                }
+            }
+        }
+    }
+}
+#else
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808930FC.asm")
-
+#endif
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808932B0.asm")
