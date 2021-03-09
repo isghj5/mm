@@ -32,7 +32,7 @@ typedef struct EnNiw {
     /* 0x250 */ s16 unk250;
     /* 0x252 */ s16 unk252;// used by func_80892248
     /* 0x254 */ s16 unk254; // changed in func_808917F8 unsure
-    /* 0x256 */ u16 unk256; //sfxtimer?
+    /* 0x256 */ s16 unk256; //sfxtimer?
     /* 0x258 */ s16 unk258;
     /* 0x25A */ s16 unk25A;
     /* 0x25C */ s16 unk25C;
@@ -51,18 +51,19 @@ typedef struct EnNiw {
     /* 0x28C */ s16 unk28C; // used in EnNiw_Update
     /* 0x28E */ u16 unk28E;
     /* 0x290 */ s16 unk290;
-    /* 0x292 */ u8  unk292[0x8]; // pad
+    /* 0x292 */ u8  unk292[0x6]; // pad
+    /* 0x298 */ s16 unk298; // func_8089262C 
     /* 0x29C */ s16 unk29A; // changed by func_808917F8
     /* 0x29C */ u16 unk29C; // changed by func_80892248
     /* 0x29E */ s16 unk29E; // func_80891D78 
-    /* 0x2A0 */ u16 unk2A0; // pad
+    /* 0x2A0 */ s16 unk2A0; // func_808920A0
     /* 0x2A2 */ s16 paramsCopy;
     /* 0x2A4 */ Vec3f unk2A4; // this actors starting position
     /* 0x2B0 */ Vec3f unk2B0;// this actors starting position
     /* 0x2BC */ Vec3f unk2BC; // init
     /* 0x2C8 */ u8  unk2C8[0x20]; // pad
     /* 0x2E8 */ s16 unk2E8;
-    /* 0x2EA */ u16 unk2EA; // pad
+    /* 0x2EA */ s16 unk2EA; // func_808919E8
     /* 0x2EC */ u16 unk2EC; // used in func_80891D78 
     /* 0x2EE */ u8  unk2EE[0x12]; // pad
     /* 0x300 */ f32 unk300; // used func_808917F8
@@ -78,6 +79,8 @@ extern const ActorInit En_Niw_InitVars;
 
 extern SkeletonHeader D_6002530;
 extern AnimationHeader D_60000E8;
+
+// most of these are not actually defined anywhere yet because I suspect they are late rodata, will fix later
 
 extern f32 D_80893500;
 extern f32 D_80893504;
@@ -97,5 +100,16 @@ extern f32 D_80893588;
 extern f32 D_80893558;
 extern f32 D_8089355C;
 extern f32 D_80893560;
+
+extern f32 D_80893578; // func_8089262C
+
+extern f32 D_8089356C;
+
+extern f32 D_80893570; // func_80892414
+
+extern f32 D_80893574; // func_808924B0
+
+extern f32 D_80893550; //func_808919E8
+extern f32 D_80893554;
 
 #endif // Z_EN_NIW_H

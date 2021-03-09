@@ -12,11 +12,13 @@ void EnNiw_Draw(Actor* thisx, GlobalContext* globalCtx);
 
 void func_808916B0(EnNiw* this, GlobalContext* globalCtx);
 void func_80891974(EnNiw* this);
-void func_808919E8(EnNiw* this, GlobalContext* globalCtx);
+s16 func_808919E8(EnNiw* this, GlobalContext* globalCtx);
 void func_80891F60(EnNiw* this, GlobalContext* globalCtx);
+void func_80892414(EnNiw* this);
 
 
-void func_80892390(EnNiw* this, GlobalContext* globalCtx);
+void func_808920A0(EnNiw* this, GlobalContext* globalCtx);
+s16 func_80892390(EnNiw* this, GlobalContext* globalCtx);
 
 void func_80891D78(EnNiw* this, GlobalContext* globalCtx);
 void func_80892E70(EnNiw* this, GlobalContext* globalCtx);
@@ -24,7 +26,12 @@ void func_80892248(EnNiw* this, GlobalContext* globalCtx);
 void func_80892274(EnNiw* this, GlobalContext* globalCtx);
 void func_808922D0(EnNiw* this, GlobalContext* globalCtx);
 void func_808930FC(EnNiw* this, GlobalContext* globalCtx);
-void func_80891320(EnNiw* this, GlobalContext* globalCtx, s16 arg2);
+
+void func_808924B0(EnNiw* this, GlobalContext* globalCtx);
+
+
+void func_8089262C(EnNiw* this, GlobalContext* globalCtx);
+s16 func_80891320(EnNiw* this, GlobalContext* globalCtx, s16 arg2);
 
 // the limb function
 void func_80893008(EnNiw* this, Vec3f* pos, Vec3f* vel, Vec3f* accel, f32 scale);
@@ -44,10 +51,9 @@ const ActorInit En_Niw_InitVars = {
     (ActorFunc)EnNiw_Draw
 };
 */
+//D_8089348C
+f32 D_80893484[] = { 0x459C4000, 0xC59C4000, 0x459C4000, 0x453B8000, 0x457A0000,};
 
-u32 D_80893484[] = { 0x459C4000, 0xC59C4000 };
-
-u32 D_8089348C[] = { 0x459C4000, 0x453B8000, 0x457A0000,};
 
 u32 D_80893498[] = { // collider
  0x0500093D, 0x20010000, 0x00000000, 0x00000000,
@@ -58,11 +64,11 @@ Vec3f D_808934C4 = { 90000.0f, 90000.0f, 90000.0f, };
 
 u32 D_808934D0[] = { 0x801F0006, 0xB874F830, 0x30540000, };
 
-Vec3f  D_808934DC = { 0x47AFC800, 0x47AFC800, 0x47AFC800, };
+Vec3f D_808934DC = { 0x47AFC800, 0x47AFC800, 0x47AFC800, };
 
-u32 D_808934E8[] = {
- 0x47AFC800, 0x47AFC800, 0x47AFC800, 0x00000000, 0x00000000, 0x00000000,
-};
+Vec3f D_808934E8 = { 0x47AFC800, 0x47AFC800, 0x47AFC800, };
+
+s32 padding3[] = {0x00000000, 0x00000000, 0x00000000, };
 
 #if NON-MATCHING
 void EnNiw_Init(Actor *thisx, GlobalContext *globalCtx) {
@@ -166,7 +172,7 @@ void func_808916B0(EnNiw *this, GlobalContext *globalCtx) {
 void func_808917F8(EnNiw *this, GlobalContext *globalCtx, s32 arg2) {
     f32 phi_f2;
     f32 targetRotY;
-    f32* D_8089348CPtr = &D_8089348C;
+    f32* D_8089348CPtr = &D_80893484[2];
 
 
     if ( this->unk250 == 0) {
@@ -208,7 +214,108 @@ void func_80891974(EnNiw *this) {
     this->actionFunc = func_808919E8;
 }
 
+// action func
+#if NON-MATCHING
+// regalloc: float register after posZ
+s16 func_808919E8(EnNiw *this, GlobalContext *globalCtx) {
+    s32 pad;
+    s32 pad2;
+    f32 posY;
+    f32 posZ;
+    s16 s16tmp;
+
+    posY  = randPlusMinusPoint5Scaled(100.0f);
+    posZ  = randPlusMinusPoint5Scaled(100.0f);
+    if (this->paramsCopy == 0) {
+        if (Actor_HasParent( &this->actor, globalCtx) != 0) {
+            func_800B8EC8(&this->actor, 0x2813U); // chicken cry m sfx
+            this->unk256 = 30;
+            this->unk250 = 30;
+            this->actor.flags &= ~1;
+            this->unk28E = 4;
+            this->actor.speedXZ = 0.0f;
+            this->actionFunc = func_80891D78;
+            return 0x1E;
+        }
+        func_800B8BB0( &this->actor, globalCtx);
+    } else {
+        this->unk252 = 0xA;
+    }
+
+    s16tmp = 0;
+    if (this->unk252 != 0) {
+        if (randZeroOneScaled(D_80893550) < 1.0f) {
+            this->unk2EA = this->unk2EA + 1;
+            this->unk2EA = this->unk2EA & 1;
+        }
+        Math_SmoothScaleMaxF((f32 *) this->unk288, D_80893484[this->unk2EA], 0.5f, 4000.0f);
+    }
+
+    if ((this->unk252 == 0) && (this->unk250 == 0)) {
+        this->unk298 += 1;
+
+        if (this->unk298 >= 8) {
+            this->unk252 = (s16) (s32) randZeroOneScaled(30.0f);
+            this->unk298 = (u16) (s32) randZeroOneScaled(D_80893554);
+            if (posY < 0.0f) {
+                posY -= 100.0f;
+            } else {
+                posY += 100.0f;
+            }
+            if (posZ < 0.0f) {
+                posZ -= 100.0f;
+            } else {
+                posZ += 100.0f;
+            }
+            this->unk2B0.x = this->unk2A4.x + posY;
+            this->unk2B0.z = this->unk2A4.z + posZ;
+        } else {
+            this->unk250 = 4;
+            if ((this->actor.bgCheckFlags & 1) != 0) {
+                this->actor.speedXZ = 0.0f;
+                this->actor.velocity.y = 3.5f;
+            }
+        }
+    }
+
+    if (this->unk250 != 0) {
+        Math_SmoothDownscaleMaxF(&this->unk288, 0.5f, 4000.0f);
+        s16tmp = 1;
+        pad = 0.0f;
+        pad2 = 0.0f;
+        Math_SmoothScaleMaxF(&this->actor.world.pos.x, this->unk2B0.x, 1.0f, this->unk300);
+        Math_SmoothScaleMaxF(&this->actor.world.pos.z, this->unk2B0.z, 1.0f, this->unk300);
+        Math_SmoothScaleMaxF(&this->unk300, 3.0f, 1.0f, 0.3f);
+
+        posY = this->unk2B0.x - this->actor.world.pos.x;
+        posZ = this->unk2B0.z - this->actor.world.pos.z;
+
+        if (fabsf(posY) < 10.0f) {
+            //posY = pad2; 
+            //posY = 0.0f; 
+            posY = 0.0; 
+            //posY = (double) 0.0f; // double: reduces regalloc alot, but fake match?
+        }
+        if (fabsf(posZ) < 10.0f) {
+            //posZ = pad2;
+            //posZ = 0.0f;
+            posZ = 0.0;
+        }
+
+        //if ((posY == 0.0f) && (posZ == 0.0f)) {
+        if ((posY == pad) && (posZ == pad)) {
+            this->unk250 = 0;
+            this->unk298 = 7;
+        }
+        Math_SmoothScaleMaxMinS(&this->actor.world.rot.y, atans(posY, posZ),
+           (u16)3, (s16) (s32) this->unk304, 0);
+        Math_SmoothScaleMaxF(&this->unk304, 10000.0f, 1.0f, 1000.0f);
+    }
+    return func_80891320(this, globalCtx, s16tmp);
+}
+#else
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808919E8.asm")
+#endif
 
 // action func
 void func_80891D78(EnNiw *this, GlobalContext *globalCtx) {
@@ -220,6 +327,7 @@ void func_80891D78(EnNiw *this, GlobalContext *globalCtx) {
         this->unk29E = 2;
         this->unk250 = (s32) (randZeroOneScaled(1.0f) * 10.0f) + 0xA;
     }
+
     this->actor.shape.rot.x = ((s16) randPlusMinusPoint5Scaled(D_80893558)) + this->actor.world.rot.x;
     this->actor.shape.rot.y = ((s16) randPlusMinusPoint5Scaled(D_8089355C)) + this->actor.world.rot.y;
     this->actor.shape.rot.z = ((s16) randPlusMinusPoint5Scaled(D_80893560)) + this->actor.world.rot.z;
@@ -252,9 +360,95 @@ void func_80891D78(EnNiw *this, GlobalContext *globalCtx) {
     func_80891320(this, globalCtx, (u16)2);
 }
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80891F60.asm")
+void func_80891F60(EnNiw *this, GlobalContext *globalCtx) {
+    if ((s16) this->unk2EC == 0) {
+        if ((this->actor.bgCheckFlags & 1)) {
+            this->unk2EC = 1;
+            this->unk252 = 0x50;
+            this->actor.speedXZ = 0.0f;
+            this->actor.velocity.y = 4.0f;
+        } else{
+            return;
+        }
+      } else {
+          if ((this->actor.bgCheckFlags & 1)) {
+            this->unk256 = 0;
+            this->actor.velocity.y = 4.0f;
+            this->unk29E = 1;
+        }
+        if (this->unk252 == 0) {
+            this->unk254 = 100;
+            this->unk250 = 0;
+            this->unk2EC = 0;
+            func_80892414(this);
+            return;
+        }
+    }
+    if (Actor_HasParent( &this->actor, globalCtx) != 0) {
+        func_800B8EC8( &this->actor, 0x2813U);
+        this->unk256 = 30;
+        this->unk2EC = 0;
+        this->unk250 = 30;
+        this->actor.flags &= ~1;
+        this->unk28E = 4;
+        this->actionFunc = func_80891D78;
+        this->actor.speedXZ = 0.0f;
+        return;
+    }
+    if ((s32) this->unk252 >= 6) {
+        func_800B8BB0(&this->actor, globalCtx);
+    }
+    func_80891320(this, globalCtx, 2);
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808920A0.asm")
+void func_808920A0(EnNiw *this, GlobalContext *globalCtx) {
+    Vec3f ripplePos;
+
+    if ((s16) this->unk2A0 != 0) {
+        func_808916B0(this, globalCtx); // spawn attack niw 
+    }
+
+    this->actor.speedXZ = 2.0f;
+    if ((this->actor.bgCheckFlags & 0x20) != 0) {
+        this->actor.gravity = 0.0f;
+        if (this->actor.yDistToWater > 15.0f) {
+            this->actor.world.pos.y = this->actor.world.pos.y + 2.0f;
+        }
+        if (this->unk250 == 0) {
+            this->unk250 = 30;
+            Math_Vec3f_Copy(&ripplePos, &this->actor.world);
+            ripplePos.y += this->actor.yDistToWater;
+            
+            EffectSS_SpawnGRipple( globalCtx, &ripplePos, 100, 500, 30);
+        }
+        if ((this->actor.bgCheckFlags & 8) != 0) {
+            this->actor.velocity.y = 10.0f;
+            this->actor.speedXZ = 1.0f;
+        }
+    } else {
+        this->actor.gravity = -2.0f;
+        if ((this->actor.bgCheckFlags & 8) != 0) {
+            this->actor.velocity.y = 10.0f;
+            this->actor.speedXZ = 1.0f;
+            this->actor.gravity = 0.0f;
+        } else {
+            this->actor.speedXZ = 4.0f;
+        }
+        if ((this->actor.bgCheckFlags & 1) != 0) {
+            this->actor.gravity = -2.0f;
+            this->unk254 = 100;
+            this->unk250 = 0;
+            this->actor.velocity.y = 0.0f;
+            if ( this->unk2A0 == 0) {
+                func_80892414(this);
+            } else {
+                this->unk28E = 3;
+                this->actionFunc = func_80892390;
+            }
+        }
+    }
+    func_80891320(this, globalCtx, 2);
+}
 
 void func_80892248(EnNiw *this, GlobalContext *globalCtx) {
     this->unk252 = 0xA;
@@ -306,20 +500,105 @@ void func_808922D0(EnNiw *this, GlobalContext *globalCtx) {
     func_80891320(this, globalCtx, this->unk29C);
 }
 
-//#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808922D0.asm")
+s16 func_80892390(EnNiw *this, GlobalContext *globalCtx) {
+    s16 returnValue;
+    s32 temp_f6;
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80892390.asm")
+    func_808916B0(this, globalCtx);
+    if (this->unk252 == 1) {
+        this->actor.speedXZ = 3.0f;
+        this = this;
+        temp_f6 = randZeroOneScaled(D_8089356C);
+        this->unk250 = 0;
+        returnValue = this->unk250;
+        this->unk24E = (u16) returnValue;
+        this->unk24C = (u16) returnValue;
+        this->unk29A = (s16) temp_f6;
+        return returnValue;
+    }
+    func_808917F8(this, globalCtx, 1);
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80892414.asm")
+void func_80892414(EnNiw *this) {
+    s32 temp_t7;
 
+    SkelAnime_ChangeAnim(&this->skelanime, &D_60000E8, 1.0f, 0.0f, 
+          (f32) SkelAnime_GetFrameCount(&D_60000E8), 0, -10.0f);
+    temp_t7 = (s32) randZeroOneScaled(D_80893570);
+    this->unk29A = (s16) temp_t7;
+    this->unk28E = 7;
+    this->actionFunc = func_808924B0;
+    this->actor.speedXZ = 4.0f;
+}
+
+#if NON-MATCHING
+// bad regalloc, center of first if block
+void func_808924B0(EnNiw *this, GlobalContext *globalCtx) {
+    Actor* player= PLAYER;
+    Vec3f sp38;
+    f32 zeroTempf;
+    s16 zeroTemp;
+    f32 dX;
+    f32 dZ;
+    //wants a lot of temps
+
+    sp38 = D_808934E8;
+    if (this->unk254 == 0) {
+        zeroTempf = 0;
+        if (zeroTempf){}
+
+        //this->unk2A4 = this->actor.world.pos;
+        //this->unk2B0 = this->actor.world.pos;
+        this->unk2B0.x = this->actor.world.pos.x;
+        this->unk2B0.y = this->actor.world.pos.y;
+        this->unk2B0.z = this->actor.world.pos.z;
+        this->unk2A4.x = this->actor.world.pos.x;
+        this->unk2A4.y = this->actor.world.pos.y;
+        this->unk2A4.z = this->actor.world.pos.z;
+        // req to put 298 load earlier
+        if (0){} 
+
+        //this->unk250 = zeroTemp;
+        //this->unk252 = zeroTemp;
+        this->unk250 = this->unk298;
+        this->unk252 = this->unk298;
+        this->unk304 = zeroTempf;
+        this->unk300 = zeroTempf;
+        this->actor.speedXZ = zeroTempf;
+        this->unk284 = zeroTempf;
+        this->unk298 = 0;
+        this->unk27C = zeroTempf;
+        this->unk278 = zeroTempf;
+        this->unk280 = zeroTempf;
+        Math_Vec3f_Copy(&this->unk2BC, &sp38);
+        func_80891974(&this->actor);
+        return;
+    }
+    //if (D_80893574 != temp_f0) {
+    if (D_80893574 != this->unk2BC.x) {
+        dX = this->actor.world.pos.x - this->unk2BC.x;
+        dZ = this->actor.world.pos.z - this->unk2BC.z;
+    } else {
+        dX = this->actor.world.pos.x - player->world.pos.x;
+        dZ = this->actor.world.pos.z - player->world.pos.z;
+    }
+    this->unk2E8 = atans(dX, dZ);
+    func_808917F8(this, globalCtx, 0);
+    func_80891320(this, globalCtx, 2);
+}
+#else 
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808924B0.asm")
+#endif
 
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808925F8.asm")
 
+// I think this requires more collider decomp
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_8089262C.asm")
 
+// is huge, if above requires collider so does this
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/EnNiw_Update.asm")
 
+// bleh, completely wild paramers and return confuses mips2c
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_80892E70.asm")
 
 void EnNiw_Draw(Actor *thisx, GlobalContext *globalCtx) {
@@ -356,14 +635,14 @@ void func_80893008(EnNiw *this, Vec3f *pos, Vec3f *vel, Vec3f *accel, f32 scale)
 void func_808930FC(EnNiw *this, GlobalContext *globalCtx) {
     // non-matching: regaloc, and two floats are loaded swapped
     EnNiwFeather *feather = this->feathers;
-    f32 dtemp80 = D_80893580;
-    f32 dtemp84 = D_80893584;
     f32 dtemp88 = D_80893588;
+    f32 dtemp84 = D_80893584;
+    f32 dtemp80 = D_80893580;
     s16 i;
 
     for (i = 0; i < ARRAY_COUNT(this->feathers); i++, feather++) {
         if (feather->type != 0) {
-            if (1) {}
+            //if (1) {} // helps with reg alloc, but might obscure the real solution
             feather->timer++;
             feather->pos.x += feather->vel.x;
             feather->pos.y += feather->vel.y;
@@ -391,4 +670,6 @@ void func_808930FC(EnNiw *this, GlobalContext *globalCtx) {
 #else
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808930FC.asm")
 #endif
+
+
 #pragma GLOBAL_ASM("asm/non_matchings/ovl_En_Niw_0x80891060/func_808932B0.asm")
