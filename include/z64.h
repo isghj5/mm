@@ -356,7 +356,9 @@ typedef struct {
     /* 0x0002 */ u8 unk2;
     /* 0x0003 */ UNK_TYPE1 pad3[0x2];
     /* 0x0005 */ u8 unk5;
-    /* 0x0006 */ UNK_TYPE1 pad6[0x2C8E];
+    /* 0x0006 */ UNK_TYPE1 pad6[2];
+    /* 0x0008 */ u8 unk8;
+    /* 0x000A */ UNK_TYPE1 pad9[0x2C8D];
 } SaveContextOwl; // size = 0x2C94
 
 typedef struct {
