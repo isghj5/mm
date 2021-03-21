@@ -27,8 +27,8 @@ typedef struct EnNiw {
     /* 0x1E8 */ Vec3s transitionDrawtable[0x10];
     /* 0x248 */ EnNiwActionFunc* actionFunc;
 
-    /* 0x24C */ u16 unk24C;// used in func_808922D0
-    /* 0x24E */ u16 unk24E; // pad
+    /* 0x24C */ s16 unk24C;// used in func_808922D0
+    /* 0x24E */ s16 unk24E;
     /* 0x250 */ s16 unk250;
     /* 0x252 */ s16 unk252;// used by func_80892248
     /* 0x254 */ s16 unk254; // changed in func_808917F8 unsure
@@ -47,11 +47,13 @@ typedef struct EnNiw {
     /* 0x27C */ f32 unk27C; // used in func_808922D0
     /* 0x280 */ f32 unk280; // used in func_808922D0
     /* 0x284 */ f32 unk284; // used in func_808922D0
-    /* 0x288 */ u8  unk288[0x4]; // pad
+    /* 0x288 */ f32 unk288; 
     /* 0x28C */ s16 unk28C; // used in EnNiw_Update
     /* 0x28E */ u16 unk28E;
     /* 0x290 */ s16 unk290;
-    /* 0x292 */ u8  unk292[0x6]; // pad
+    /* 0x292 */ s16 unk292;
+    /* 0x294 */ s16 unk294; // padd
+    /* 0x296 */ s16 unk296; // func_80891320
     /* 0x298 */ s16 unk298; // func_8089262C 
     /* 0x29C */ s16 unk29A; // changed by func_808917F8
     /* 0x29C */ u16 unk29C; // changed by func_80892248
@@ -61,7 +63,14 @@ typedef struct EnNiw {
     /* 0x2A4 */ Vec3f unk2A4; // this actors starting position
     /* 0x2B0 */ Vec3f unk2B0;// this actors starting position
     /* 0x2BC */ Vec3f unk2BC; // init
-    /* 0x2C8 */ u8  unk2C8[0x20]; // pad
+    /* 0x2C8 */ f32 unk2C8; //func_80891320
+    /* 0x2CC */ f32 unk2CC; //func_80891320
+    /* 0x2D0 */ f32 unk2D0; //func_80891320
+    /* 0x2D4 */ f32 unk2D4; //func_80891320
+    /* 0x2D8 */ f32 unk2D8; //func_80891320
+    /* 0x2DC */ f32 unk2DC; //func_80891320
+    /* 0x2E0 */ f32 unk2E0; //func_80891320
+    /* 0x2E4 */ f32 unk2E4; //func_80891320
     /* 0x2E8 */ s16 unk2E8;
     /* 0x2EA */ s16 unk2EA; // func_808919E8
     /* 0x2EC */ u16 unk2EC; // used in func_80891D78 
@@ -107,7 +116,6 @@ extern f32 D_8089356C;
 
 extern f32 D_80893570; // func_80892414
 
-extern f32 D_80893574; // func_808924B0
 
 extern f32 D_80893550; //func_808919E8
 extern f32 D_80893554;
