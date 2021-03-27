@@ -2533,7 +2533,7 @@ SECTIONS
     ovl_En_Mm : AT(RomLocation)
     {
         build/src/overlays/actors/ovl_En_Mm/z_en_mm.o(.text)
-        build/asm/overlays/ovl_En_Mm_data.o(.data)
+        build/src/overlays/actors/ovl_En_Mm/z_en_mm.o(.data)
         build/src/overlays/actors/ovl_En_Mm/z_en_mm.o(.rodata)
         build/asm/overlays/ovl_En_Mm_rodata.o(.rodata)
     }

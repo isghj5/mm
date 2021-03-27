@@ -17,10 +17,6 @@ typedef struct EnMm {
     
 } EnMm; // size = 0x198
 
-extern InitChainEntry D_8096636C;//&D_8096636C
-
-extern u32 D_80966340;
-
 extern u32 D_04055628;//0x04055628
 
 extern f32 D_80966380; // velocity modifier used in func_80965DB4

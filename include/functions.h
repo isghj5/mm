@@ -805,7 +805,7 @@ s32 func_800B8708(GlobalContext* ctxt);
 void func_800B8898(GlobalContext* ctxt, Actor* actor, UNK_PTR param_3, UNK_PTR param_4);
 // void func_800B8934(void);
 u32 Actor_HasParent(Actor* actor, GlobalContext* ctxt);
-// UNK_TYPE4 func_800B8A1C(Actor* actor, GlobalContext* ctxt, s32 iParm3, f32 fParm4, f32 param_5);
+void func_800B8A1C(Actor* actor, GlobalContext* ctxt, s32 iParm3, f32 fParm4, f32 param_5);
 // void func_800B8B84(void);
 // void func_800B8BB0(void);
 // void func_800B8BD0(void);

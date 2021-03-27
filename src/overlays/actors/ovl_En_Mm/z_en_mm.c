@@ -13,7 +13,7 @@ void func_80965DB4(EnMm* this, GlobalContext* globalCtx);
 void func_80965D3C(EnMm* this, GlobalContext* globalCtx);
 void func_8096611C(EnMm* this, GlobalContext* globalCtx);
 
-/*
+
 const ActorInit En_Mm_InitVars = {
     ACTOR_EN_MM,
     ACTORCAT_ITEMACTION,
@@ -25,16 +25,27 @@ const ActorInit En_Mm_InitVars = {
     (ActorFunc)EnMm_Update,
     (ActorFunc)EnMm_Draw
 };
-*/
 
-//#pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Mm_0x80965BB0/func_80965BB0.asm")
+//D_80966340[] = {
+static ColliderCylinderInit sCylinderInit = {
+    { COLTYPE_METAL, AT_NONE, AC_NONE, OC1_ON | OC1_TYPE_ALL, OC2_TYPE_2, COLSHAPE_CYLINDER, },
+    { ELEMTYPE_UNK2, { 0x00100000, 0x00, 0x00 }, { 0x01000202, 0x00, 0x00 }, TOUCH_NONE | TOUCH_SFX_NORMAL, BUMP_NONE, OCELEM_ON, },
+    { 6, 30, 0, { 0, 0, 0 } },
+};
 
+//u32 D_8096636C[] = {
+static InitChainEntry sInitChain[] = {
+    ICHAIN_F32_DIV1000(gravity, -1200, ICHAIN_CONTINUE),
+    ICHAIN_VEC3F_DIV1000(scale, 270, ICHAIN_STOP),
+};
+
+// setup actionfunc
 void func_80965BB0(EnMm* this, EnMmActionFunc* newActionFunc) {
     this->actionFunc = newActionFunc;
 }
 
 void func_80965BBC(EnMm *this) {
-    func_80965BB0(this, &func_8096611C);
+    func_80965BB0(this, &func_8096611C); //set actionfunc
     this->actor.room = -1;
     if (this->actor.parent->id == 0) {
         gSaveContext.owl.unk8 = 1;
@@ -43,7 +54,6 @@ void func_80965BBC(EnMm *this) {
 
 void EnMm_Init(Actor *thisx, GlobalContext *globalCtx) {
     EnMm* this = THIS;
-
     EnMmActionFunc *actionFunc;
 
     if (this->actor.params >= 0) {
@@ -55,17 +65,17 @@ void EnMm_Init(Actor *thisx, GlobalContext *globalCtx) {
         }
     }
 
-    Actor_ProcessInitChain(&this->actor, &D_8096636C);
+    Actor_ProcessInitChain(&this->actor, &sInitChain);
     Actor_SetDrawParams(&this->actor.shape, 50.0f, &func_800B3FC0, 1.2f);
     Collider_InitCylinder(globalCtx,  &this->collider);
-    Collider_SetCylinder(globalCtx, &this->collider, &this->actor, &D_80966340);
+    Collider_SetCylinder(globalCtx, &this->collider, &this->actor, &sCylinderInit);
 
     if (this->actor.parent != 0) {
         func_80965BBC(&this->actor);
         return;
     }
     actionFunc = (this->actor.cutscene >= 0) ? func_80965D3C : func_80965DB4;
-    func_80965BB0(&this->actor, actionFunc);
+    func_80965BB0(&this->actor, actionFunc); //set actionfunc
 }
 
 void EnMm_Destroy(Actor *thisx, GlobalContext *globalCtx) {
@@ -73,13 +83,14 @@ void EnMm_Destroy(Actor *thisx, GlobalContext *globalCtx) {
     Collider_DestroyCylinder(globalCtx, &this->collider);
 }
 
+// action func
 void func_80965D3C(EnMm *this, GlobalContext *globalCtx) {
     s16 cutscene;
 
     cutscene = ActorCutscene_GetAdditionalCutscene( this->actor.cutscene);
     if (ActorCutscene_GetCanPlayNext(cutscene) != 0) {
         ActorCutscene_StartAndSetUnkLinkFields(cutscene, &this->actor);
-        func_80965BB0(&this->actor, func_80965DB4);
+        func_80965BB0(&this->actor, func_80965DB4); //set actionfunc
         return;
     }
     ActorCutscene_SetIntentToPlay(cutscene);
@@ -90,6 +101,8 @@ void func_80965D3C(EnMm *this, GlobalContext *globalCtx) {
 #if NON-MATCHING
 // the math at the 0x8000 is wrong, other issues
 void func_80965DB4(EnMm *this, GlobalContext *globalCtx) {
+    //const static f32 D_80966380[] = { -0.3, 0.0, 0.0, 0.0, };
+    
     Vec3f sp50;
     s16 sp4E;
     f32 sinsSpeed;
@@ -110,13 +123,13 @@ void func_80965DB4(EnMm *this, GlobalContext *globalCtx) {
 
         if ((this->actor.speedXZ != 0.0f) && ((this->actor.bgCheckFlags & 8) != 0)) {
             //overflowtemp = 0x8000;
+            dRot = this->actor.wallYaw + 0x8000;
+            //if(overflowtemp){}
+            //this->actor.world.rot.y += (s16)(0x8000 - (this->actor.world.rot.y - (this->actor.wallYaw + 0x8000)) * 2);
+            this->actor.world.rot.y += (0x8000 - (this->actor.world.rot.y - dRot) * 2);
+            //this->actor.world.rot.y += (overflowtemp - (s16)(this->actor.world.rot.y - (this->actor.wallYaw + overflowtemp)) * 2);
             this->actor.speedXZ *= 0.5f;
-            //if(1){}
-            //this->actor.world.rot.y += (overflowtemp 
-            this->actor.world.rot.y += (0x8000
-                 - (s16)(this->actor.world.rot.y 
-                    - ((s32)this->actor.wallYaw + (u32)0x8000)) * 2);
-            func_800E85D4(globalCtx,  &this->actor.world);
+            CollisionCheck_SpawnShieldParticles(globalCtx,  &this->actor.world);
             Audio_PlayActorSound2(&this->actor, 0x2896);
         }
 
@@ -166,19 +179,20 @@ void func_80965DB4(EnMm *this, GlobalContext *globalCtx) {
             if ((this->actor.bgCheckFlags & 2) != 0) {
                 if (this->actor.velocity.y < -6.0f) {
 
-                    this->actor.velocity.y *= (f32) D_80966380;
-                    this->actor.bgCheckFlags & ~0x1;
+                    //this->actor.velocity.y *= D_80966380[0];
+                    this->actor.velocity.y *= -0.3f;
+                    this->actor.bgCheckFlags &= ~0x1;
                 }
 
-                Audio_PlayActorSound2(&this->actor, 0x2896U);
+                Audio_PlayActorSound2(&this->actor, 0x2896);
             } else {
                 func_800B8A1C(&this->actor, globalCtx, 0, 50.0f, 30.0f);
             }
         }
         Actor_SetVelocityAndMoveYRotationAndGravity(&this->actor);
     }
-    Collision_CylinderMoveToActor(&this->actor, &this->collider);
-    Collision_AddOT(globalCtx, &globalCtx->colCheckCtx,  &this->collider);
+    Collider_UpdateCylinder(&this->actor, &this->collider);
+    CollisionCheck_SetOC(globalCtx, &globalCtx->colCheckCtx,  &this->collider);
 }
 #else
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Mm_0x80965BB0/func_80965DB4.asm")
@@ -187,7 +201,7 @@ void func_80965DB4(EnMm *this, GlobalContext *globalCtx) {
 // actor func
 void func_8096611C(EnMm *this, GlobalContext *globalCtx) {
     if (func_800B8BFC(&this->actor, globalCtx) != 0) {
-        func_80965BB0(&this->actor, func_80965DB4);
+        func_80965BB0(&this->actor, func_80965DB4); //set actionfunc
         this->actor.room = globalCtx->roomContext.currRoom.num;
         this->actor.bgCheckFlags &= ~0x1;
         Math_Vec3s_ToVec3f(&this->actor.prevPos, &this->actor.home.rot);
