@@ -506,1435 +506,1435 @@ _ovl_Bg_F40_SwliftSegmentRomStart = 0x00DE1F20;
 _ovl_Bg_F40_SwliftSegmentRomEnd = 0x00DE2390;
 
 _ovl_En_KakasiSegmentRomStart = 0x00DE2390;
-_ovl_En_KakasiSegmentRomEnd = 0x00DE5100;
+_ovl_En_KakasiSegmentRomEnd = 0x00DE5110;
 
-_ovl_Obj_MakeoshihikiSegmentRomStart = 0x00DE5100;
-_ovl_Obj_MakeoshihikiSegmentRomEnd = 0x00DE5430;
+_ovl_Obj_MakeoshihikiSegmentRomStart = 0x00DE5110;
+_ovl_Obj_MakeoshihikiSegmentRomEnd = 0x00DE5440;
 
-_ovl_Oceff_SpotSegmentRomStart = 0x00DE5430;
-_ovl_Oceff_SpotSegmentRomEnd = 0x00DE6300;
+_ovl_Oceff_SpotSegmentRomStart = 0x00DE5440;
+_ovl_Oceff_SpotSegmentRomEnd = 0x00DE6310;
 
-_ovl_En_TorchSegmentRomStart = 0x00DE6300;
-_ovl_En_TorchSegmentRomEnd = 0x00DE63F0;
+_ovl_En_TorchSegmentRomStart = 0x00DE6310;
+_ovl_En_TorchSegmentRomEnd = 0x00DE6400;
 
-_ovl_Shot_SunSegmentRomStart = 0x00DE63F0;
-_ovl_Shot_SunSegmentRomEnd = 0x00DE6A00;
+_ovl_Shot_SunSegmentRomStart = 0x00DE6400;
+_ovl_Shot_SunSegmentRomEnd = 0x00DE6A10;
 
-_ovl_Obj_RoomtimerSegmentRomStart = 0x00DE6A00;
-_ovl_Obj_RoomtimerSegmentRomEnd = 0x00DE6CA0;
+_ovl_Obj_RoomtimerSegmentRomStart = 0x00DE6A10;
+_ovl_Obj_RoomtimerSegmentRomEnd = 0x00DE6CB0;
 
-_ovl_En_SshSegmentRomStart = 0x00DE6CA0;
-_ovl_En_SshSegmentRomEnd = 0x00DE9260;
+_ovl_En_SshSegmentRomStart = 0x00DE6CB0;
+_ovl_En_SshSegmentRomEnd = 0x00DE9270;
 
-_ovl_Oceff_WipeSegmentRomStart = 0x00DE9260;
-_ovl_Oceff_WipeSegmentRomEnd = 0x00DE9FB0;
+_ovl_Oceff_WipeSegmentRomStart = 0x00DE9270;
+_ovl_Oceff_WipeSegmentRomEnd = 0x00DE9FC0;
 
-_ovl_Effect_Ss_DustSegmentRomStart = 0x00DE9FB0;
-_ovl_Effect_Ss_DustSegmentRomEnd = 0x00DEA7A0;
+_ovl_Effect_Ss_DustSegmentRomStart = 0x00DE9FC0;
+_ovl_Effect_Ss_DustSegmentRomEnd = 0x00DEA7B0;
 
-_ovl_Effect_Ss_KirakiraSegmentRomStart = 0x00DEA7A0;
-_ovl_Effect_Ss_KirakiraSegmentRomEnd = 0x00DEAE10;
+_ovl_Effect_Ss_KirakiraSegmentRomStart = 0x00DEA7B0;
+_ovl_Effect_Ss_KirakiraSegmentRomEnd = 0x00DEAE20;
 
-_ovl_Effect_Ss_Bomb2SegmentRomStart = 0x00DEAE10;
-_ovl_Effect_Ss_Bomb2SegmentRomEnd = 0x00DEB670;
+_ovl_Effect_Ss_Bomb2SegmentRomStart = 0x00DEAE20;
+_ovl_Effect_Ss_Bomb2SegmentRomEnd = 0x00DEB680;
 
-_ovl_Effect_Ss_BlastSegmentRomStart = 0x00DEB670;
-_ovl_Effect_Ss_BlastSegmentRomEnd = 0x00DEB9D0;
+_ovl_Effect_Ss_BlastSegmentRomStart = 0x00DEB680;
+_ovl_Effect_Ss_BlastSegmentRomEnd = 0x00DEB9E0;
 
-_ovl_Effect_Ss_G_SpkSegmentRomStart = 0x00DEB9D0;
-_ovl_Effect_Ss_G_SpkSegmentRomEnd = 0x00DEBF50;
+_ovl_Effect_Ss_G_SpkSegmentRomStart = 0x00DEB9E0;
+_ovl_Effect_Ss_G_SpkSegmentRomEnd = 0x00DEBF60;
 
-_ovl_Effect_Ss_D_FireSegmentRomStart = 0x00DEBF50;
-_ovl_Effect_Ss_D_FireSegmentRomEnd = 0x00DEC360;
+_ovl_Effect_Ss_D_FireSegmentRomStart = 0x00DEBF60;
+_ovl_Effect_Ss_D_FireSegmentRomEnd = 0x00DEC370;
 
-_ovl_Effect_Ss_BubbleSegmentRomStart = 0x00DEC360;
-_ovl_Effect_Ss_BubbleSegmentRomEnd = 0x00DEC8D0;
+_ovl_Effect_Ss_BubbleSegmentRomStart = 0x00DEC370;
+_ovl_Effect_Ss_BubbleSegmentRomEnd = 0x00DEC8E0;
 
-_ovl_Effect_Ss_G_RippleSegmentRomStart = 0x00DEC8D0;
-_ovl_Effect_Ss_G_RippleSegmentRomEnd = 0x00DECDF0;
+_ovl_Effect_Ss_G_RippleSegmentRomStart = 0x00DEC8E0;
+_ovl_Effect_Ss_G_RippleSegmentRomEnd = 0x00DECE00;
 
-_ovl_Effect_Ss_G_SplashSegmentRomStart = 0x00DECDF0;
-_ovl_Effect_Ss_G_SplashSegmentRomEnd = 0x00DED210;
+_ovl_Effect_Ss_G_SplashSegmentRomStart = 0x00DECE00;
+_ovl_Effect_Ss_G_SplashSegmentRomEnd = 0x00DED220;
 
-_ovl_Effect_Ss_G_FireSegmentRomStart = 0x00DED210;
-_ovl_Effect_Ss_G_FireSegmentRomEnd = 0x00DED420;
+_ovl_Effect_Ss_G_FireSegmentRomStart = 0x00DED220;
+_ovl_Effect_Ss_G_FireSegmentRomEnd = 0x00DED430;
 
-_ovl_Effect_Ss_LightningSegmentRomStart = 0x00DED420;
-_ovl_Effect_Ss_LightningSegmentRomEnd = 0x00DEDB00;
+_ovl_Effect_Ss_LightningSegmentRomStart = 0x00DED430;
+_ovl_Effect_Ss_LightningSegmentRomEnd = 0x00DEDB10;
 
-_ovl_Effect_Ss_Dt_BubbleSegmentRomStart = 0x00DEDB00;
-_ovl_Effect_Ss_Dt_BubbleSegmentRomEnd = 0x00DEE010;
+_ovl_Effect_Ss_Dt_BubbleSegmentRomStart = 0x00DEDB10;
+_ovl_Effect_Ss_Dt_BubbleSegmentRomEnd = 0x00DEE020;
 
-_ovl_Effect_Ss_HahenSegmentRomStart = 0x00DEE010;
-_ovl_Effect_Ss_HahenSegmentRomEnd = 0x00DEE5B0;
+_ovl_Effect_Ss_HahenSegmentRomStart = 0x00DEE020;
+_ovl_Effect_Ss_HahenSegmentRomEnd = 0x00DEE5C0;
 
-_ovl_Effect_Ss_StickSegmentRomStart = 0x00DEE5B0;
-_ovl_Effect_Ss_StickSegmentRomEnd = 0x00DEE870;
+_ovl_Effect_Ss_StickSegmentRomStart = 0x00DEE5C0;
+_ovl_Effect_Ss_StickSegmentRomEnd = 0x00DEE880;
 
-_ovl_Effect_Ss_SibukiSegmentRomStart = 0x00DEE870;
-_ovl_Effect_Ss_SibukiSegmentRomEnd = 0x00DEEED0;
+_ovl_Effect_Ss_SibukiSegmentRomStart = 0x00DEE880;
+_ovl_Effect_Ss_SibukiSegmentRomEnd = 0x00DEEEE0;
 
-_ovl_Effect_Ss_Stone1SegmentRomStart = 0x00DEEED0;
-_ovl_Effect_Ss_Stone1SegmentRomEnd = 0x00DEF230;
+_ovl_Effect_Ss_Stone1SegmentRomStart = 0x00DEEEE0;
+_ovl_Effect_Ss_Stone1SegmentRomEnd = 0x00DEF240;
 
-_ovl_Effect_Ss_HitmarkSegmentRomStart = 0x00DEF230;
-_ovl_Effect_Ss_HitmarkSegmentRomEnd = 0x00DEF730;
+_ovl_Effect_Ss_HitmarkSegmentRomStart = 0x00DEF240;
+_ovl_Effect_Ss_HitmarkSegmentRomEnd = 0x00DEF740;
 
-_ovl_Effect_Ss_Fhg_FlashSegmentRomStart = 0x00DEF730;
-_ovl_Effect_Ss_Fhg_FlashSegmentRomEnd = 0x00DF01B0;
+_ovl_Effect_Ss_Fhg_FlashSegmentRomStart = 0x00DEF740;
+_ovl_Effect_Ss_Fhg_FlashSegmentRomEnd = 0x00DF01C0;
 
-_ovl_Effect_Ss_K_FireSegmentRomStart = 0x00DF01B0;
-_ovl_Effect_Ss_K_FireSegmentRomEnd = 0x00DF05F0;
+_ovl_Effect_Ss_K_FireSegmentRomStart = 0x00DF01C0;
+_ovl_Effect_Ss_K_FireSegmentRomEnd = 0x00DF0600;
 
-_ovl_Effect_Ss_Solder_Srch_BallSegmentRomStart = 0x00DF05F0;
-_ovl_Effect_Ss_Solder_Srch_BallSegmentRomEnd = 0x00DF0A40;
+_ovl_Effect_Ss_Solder_Srch_BallSegmentRomStart = 0x00DF0600;
+_ovl_Effect_Ss_Solder_Srch_BallSegmentRomEnd = 0x00DF0A50;
 
-_ovl_Effect_Ss_KakeraSegmentRomStart = 0x00DF0A40;
-_ovl_Effect_Ss_KakeraSegmentRomEnd = 0x00DF1A70;
+_ovl_Effect_Ss_KakeraSegmentRomStart = 0x00DF0A50;
+_ovl_Effect_Ss_KakeraSegmentRomEnd = 0x00DF1A80;
 
-_ovl_Effect_Ss_Ice_PieceSegmentRomStart = 0x00DF1A70;
-_ovl_Effect_Ss_Ice_PieceSegmentRomEnd = 0x00DF1E70;
+_ovl_Effect_Ss_Ice_PieceSegmentRomStart = 0x00DF1A80;
+_ovl_Effect_Ss_Ice_PieceSegmentRomEnd = 0x00DF1E80;
 
-_ovl_Effect_Ss_En_IceSegmentRomStart = 0x00DF1E70;
-_ovl_Effect_Ss_En_IceSegmentRomEnd = 0x00DF2620;
+_ovl_Effect_Ss_En_IceSegmentRomStart = 0x00DF1E80;
+_ovl_Effect_Ss_En_IceSegmentRomEnd = 0x00DF2630;
 
-_ovl_Effect_Ss_Fire_TailSegmentRomStart = 0x00DF2620;
-_ovl_Effect_Ss_Fire_TailSegmentRomEnd = 0x00DF2D00;
+_ovl_Effect_Ss_Fire_TailSegmentRomStart = 0x00DF2630;
+_ovl_Effect_Ss_Fire_TailSegmentRomEnd = 0x00DF2D10;
 
-_ovl_Effect_Ss_En_FireSegmentRomStart = 0x00DF2D00;
-_ovl_Effect_Ss_En_FireSegmentRomEnd = 0x00DF3370;
+_ovl_Effect_Ss_En_FireSegmentRomStart = 0x00DF2D10;
+_ovl_Effect_Ss_En_FireSegmentRomEnd = 0x00DF3380;
 
-_ovl_Effect_Ss_ExtraSegmentRomStart = 0x00DF3370;
-_ovl_Effect_Ss_ExtraSegmentRomEnd = 0x00DF36E0;
+_ovl_Effect_Ss_ExtraSegmentRomStart = 0x00DF3380;
+_ovl_Effect_Ss_ExtraSegmentRomEnd = 0x00DF36F0;
 
-_ovl_Effect_Ss_Dead_DbSegmentRomStart = 0x00DF36E0;
-_ovl_Effect_Ss_Dead_DbSegmentRomEnd = 0x00DF3AF0;
+_ovl_Effect_Ss_Dead_DbSegmentRomStart = 0x00DF36F0;
+_ovl_Effect_Ss_Dead_DbSegmentRomEnd = 0x00DF3B00;
 
-_ovl_Effect_Ss_Dead_DdSegmentRomStart = 0x00DF3AF0;
-_ovl_Effect_Ss_Dead_DdSegmentRomEnd = 0x00DF4080;
+_ovl_Effect_Ss_Dead_DdSegmentRomStart = 0x00DF3B00;
+_ovl_Effect_Ss_Dead_DdSegmentRomEnd = 0x00DF4090;
 
-_ovl_Effect_Ss_Dead_DsSegmentRomStart = 0x00DF4080;
-_ovl_Effect_Ss_Dead_DsSegmentRomEnd = 0x00DF4500;
+_ovl_Effect_Ss_Dead_DsSegmentRomStart = 0x00DF4090;
+_ovl_Effect_Ss_Dead_DsSegmentRomEnd = 0x00DF4510;
 
-_ovl_Oceff_StormSegmentRomStart = 0x00DF4500;
-_ovl_Oceff_StormSegmentRomEnd = 0x00DF62C0;
+_ovl_Oceff_StormSegmentRomStart = 0x00DF4510;
+_ovl_Oceff_StormSegmentRomEnd = 0x00DF62D0;
 
-_ovl_Obj_DemoSegmentRomStart = 0x00DF62C0;
-_ovl_Obj_DemoSegmentRomEnd = 0x00DF6690;
+_ovl_Obj_DemoSegmentRomStart = 0x00DF62D0;
+_ovl_Obj_DemoSegmentRomEnd = 0x00DF66A0;
 
-_ovl_En_MinislimeSegmentRomStart = 0x00DF6690;
-_ovl_En_MinislimeSegmentRomEnd = 0x00DF89E0;
+_ovl_En_MinislimeSegmentRomStart = 0x00DF66A0;
+_ovl_En_MinislimeSegmentRomEnd = 0x00DF89F0;
 
-_ovl_En_NutsballSegmentRomStart = 0x00DF89E0;
-_ovl_En_NutsballSegmentRomEnd = 0x00DF9010;
+_ovl_En_NutsballSegmentRomStart = 0x00DF89F0;
+_ovl_En_NutsballSegmentRomEnd = 0x00DF9020;
 
-_ovl_Oceff_Wipe2SegmentRomStart = 0x00DF9010;
-_ovl_Oceff_Wipe2SegmentRomEnd = 0x00DFA770;
+_ovl_Oceff_Wipe2SegmentRomStart = 0x00DF9020;
+_ovl_Oceff_Wipe2SegmentRomEnd = 0x00DFA780;
 
-_ovl_Oceff_Wipe3SegmentRomStart = 0x00DFA770;
-_ovl_Oceff_Wipe3SegmentRomEnd = 0x00DFBEC0;
+_ovl_Oceff_Wipe3SegmentRomStart = 0x00DFA780;
+_ovl_Oceff_Wipe3SegmentRomEnd = 0x00DFBED0;
 
-_ovl_En_DgSegmentRomStart = 0x00DFBEC0;
-_ovl_En_DgSegmentRomEnd = 0x00DFF7A0;
+_ovl_En_DgSegmentRomStart = 0x00DFBED0;
+_ovl_En_DgSegmentRomEnd = 0x00DFF7B0;
 
-_ovl_En_SiSegmentRomStart = 0x00DFF7A0;
-_ovl_En_SiSegmentRomEnd = 0x00DFFBC0;
+_ovl_En_SiSegmentRomStart = 0x00DFF7B0;
+_ovl_En_SiSegmentRomEnd = 0x00DFFBD0;
 
-_ovl_Obj_CombSegmentRomStart = 0x00DFFBC0;
-_ovl_Obj_CombSegmentRomEnd = 0x00E01340;
+_ovl_Obj_CombSegmentRomStart = 0x00DFFBD0;
+_ovl_Obj_CombSegmentRomEnd = 0x00E01350;
 
-_ovl_Obj_Kibako2SegmentRomStart = 0x00E01340;
-_ovl_Obj_Kibako2SegmentRomEnd = 0x00E01CE0;
+_ovl_Obj_Kibako2SegmentRomStart = 0x00E01350;
+_ovl_Obj_Kibako2SegmentRomEnd = 0x00E01CF0;
 
-_ovl_En_Hs2SegmentRomStart = 0x00E01CE0;
-_ovl_En_Hs2SegmentRomEnd = 0x00E01DC0;
+_ovl_En_Hs2SegmentRomStart = 0x00E01CF0;
+_ovl_En_Hs2SegmentRomEnd = 0x00E01DD0;
 
-_ovl_Obj_Mure3SegmentRomStart = 0x00E01DC0;
-_ovl_Obj_Mure3SegmentRomEnd = 0x00E02580;
+_ovl_Obj_Mure3SegmentRomStart = 0x00E01DD0;
+_ovl_Obj_Mure3SegmentRomEnd = 0x00E02590;
 
-_ovl_En_TgSegmentRomStart = 0x00E02580;
-_ovl_En_TgSegmentRomEnd = 0x00E03090;
+_ovl_En_TgSegmentRomStart = 0x00E02590;
+_ovl_En_TgSegmentRomEnd = 0x00E030A0;
 
-_ovl_En_WfSegmentRomStart = 0x00E03090;
-_ovl_En_WfSegmentRomEnd = 0x00E07530;
+_ovl_En_WfSegmentRomStart = 0x00E030A0;
+_ovl_En_WfSegmentRomEnd = 0x00E07540;
 
-_ovl_En_SkbSegmentRomStart = 0x00E07530;
-_ovl_En_SkbSegmentRomEnd = 0x00E0A810;
+_ovl_En_SkbSegmentRomStart = 0x00E07540;
+_ovl_En_SkbSegmentRomEnd = 0x00E0A820;
 
-_ovl_En_GsSegmentRomStart = 0x00E0A810;
-_ovl_En_GsSegmentRomEnd = 0x00E0D6A0;
+_ovl_En_GsSegmentRomStart = 0x00E0A820;
+_ovl_En_GsSegmentRomEnd = 0x00E0D6B0;
 
-_ovl_Obj_SoundSegmentRomStart = 0x00E0D6A0;
-_ovl_Obj_SoundSegmentRomEnd = 0x00E0D8B0;
+_ovl_Obj_SoundSegmentRomStart = 0x00E0D6B0;
+_ovl_Obj_SoundSegmentRomEnd = 0x00E0D8C0;
 
-_ovl_En_CrowSegmentRomStart = 0x00E0D8B0;
-_ovl_En_CrowSegmentRomEnd = 0x00E0F010;
+_ovl_En_CrowSegmentRomStart = 0x00E0D8C0;
+_ovl_En_CrowSegmentRomEnd = 0x00E0F020;
 
-_ovl_En_CowSegmentRomStart = 0x00E0F010;
-_ovl_En_CowSegmentRomEnd = 0x00E10500;
+_ovl_En_CowSegmentRomStart = 0x00E0F020;
+_ovl_En_CowSegmentRomEnd = 0x00E10510;
 
-_ovl_Oceff_Wipe4SegmentRomStart = 0x00E10500;
-_ovl_Oceff_Wipe4SegmentRomEnd = 0x00E11500;
+_ovl_Oceff_Wipe4SegmentRomStart = 0x00E10510;
+_ovl_Oceff_Wipe4SegmentRomEnd = 0x00E11510;
 
-_ovl_En_ZoSegmentRomStart = 0x00E11500;
-_ovl_En_ZoSegmentRomEnd = 0x00E124A0;
+_ovl_En_ZoSegmentRomStart = 0x00E11510;
+_ovl_En_ZoSegmentRomEnd = 0x00E124B0;
 
-_ovl_Effect_Ss_Ice_SmokeSegmentRomStart = 0x00E124A0;
-_ovl_Effect_Ss_Ice_SmokeSegmentRomEnd = 0x00E127B0;
+_ovl_Effect_Ss_Ice_SmokeSegmentRomStart = 0x00E124B0;
+_ovl_Effect_Ss_Ice_SmokeSegmentRomEnd = 0x00E127C0;
 
-_ovl_Obj_MakekinsutaSegmentRomStart = 0x00E127B0;
-_ovl_Obj_MakekinsutaSegmentRomEnd = 0x00E12C20;
+_ovl_Obj_MakekinsutaSegmentRomStart = 0x00E127C0;
+_ovl_Obj_MakekinsutaSegmentRomEnd = 0x00E12C30;
 
-_ovl_En_Ge3SegmentRomStart = 0x00E12C20;
-_ovl_En_Ge3SegmentRomEnd = 0x00E13C90;
+_ovl_En_Ge3SegmentRomStart = 0x00E12C30;
+_ovl_En_Ge3SegmentRomEnd = 0x00E13CA0;
 
-_ovl_Obj_HamishiSegmentRomStart = 0x00E13C90;
-_ovl_Obj_HamishiSegmentRomEnd = 0x00E14920;
+_ovl_Obj_HamishiSegmentRomStart = 0x00E13CA0;
+_ovl_Obj_HamishiSegmentRomEnd = 0x00E14930;
 
-_ovl_En_Zl4SegmentRomStart = 0x00E14920;
-_ovl_En_Zl4SegmentRomEnd = 0x00E14DA0;
+_ovl_En_Zl4SegmentRomStart = 0x00E14930;
+_ovl_En_Zl4SegmentRomEnd = 0x00E14DB0;
 
-_ovl_En_Mm2SegmentRomStart = 0x00E14DA0;
-_ovl_En_Mm2SegmentRomEnd = 0x00E158D0;
+_ovl_En_Mm2SegmentRomStart = 0x00E14DB0;
+_ovl_En_Mm2SegmentRomEnd = 0x00E158E0;
 
-_ovl_Door_SpiralSegmentRomStart = 0x00E158D0;
-_ovl_Door_SpiralSegmentRomEnd = 0x00E16150;
+_ovl_Door_SpiralSegmentRomStart = 0x00E158E0;
+_ovl_Door_SpiralSegmentRomEnd = 0x00E16160;
 
-_ovl_Obj_PzlblockSegmentRomStart = 0x00E16150;
-_ovl_Obj_PzlblockSegmentRomEnd = 0x00E16F30;
+_ovl_Obj_PzlblockSegmentRomStart = 0x00E16160;
+_ovl_Obj_PzlblockSegmentRomEnd = 0x00E16F40;
 
-_ovl_Obj_TogeSegmentRomStart = 0x00E16F30;
-_ovl_Obj_TogeSegmentRomEnd = 0x00E17B70;
+_ovl_Obj_TogeSegmentRomStart = 0x00E16F40;
+_ovl_Obj_TogeSegmentRomEnd = 0x00E17B80;
 
-_ovl_Obj_ArmosSegmentRomStart = 0x00E17B70;
-_ovl_Obj_ArmosSegmentRomEnd = 0x00E18A80;
+_ovl_Obj_ArmosSegmentRomStart = 0x00E17B80;
+_ovl_Obj_ArmosSegmentRomEnd = 0x00E18A90;
 
-_ovl_Obj_BoyoSegmentRomStart = 0x00E18A80;
-_ovl_Obj_BoyoSegmentRomEnd = 0x00E18FF0;
+_ovl_Obj_BoyoSegmentRomStart = 0x00E18A90;
+_ovl_Obj_BoyoSegmentRomEnd = 0x00E19000;
 
-_ovl_En_GrasshopperSegmentRomStart = 0x00E18FF0;
-_ovl_En_GrasshopperSegmentRomEnd = 0x00E1BE80;
+_ovl_En_GrasshopperSegmentRomStart = 0x00E19000;
+_ovl_En_GrasshopperSegmentRomEnd = 0x00E1BE90;
 
-_ovl_Obj_GrassSegmentRomStart = 0x00E1BE80;
-_ovl_Obj_GrassSegmentRomEnd = 0x00E1DB10;
+_ovl_Obj_GrassSegmentRomStart = 0x00E1BE90;
+_ovl_Obj_GrassSegmentRomEnd = 0x00E1DB20;
 
-_ovl_Obj_Grass_CarrySegmentRomStart = 0x00E1DB10;
-_ovl_Obj_Grass_CarrySegmentRomEnd = 0x00E1EA90;
+_ovl_Obj_Grass_CarrySegmentRomStart = 0x00E1DB20;
+_ovl_Obj_Grass_CarrySegmentRomEnd = 0x00E1EAA0;
 
-_ovl_Obj_Grass_UnitSegmentRomStart = 0x00E1EA90;
-_ovl_Obj_Grass_UnitSegmentRomEnd = 0x00E1F160;
+_ovl_Obj_Grass_UnitSegmentRomStart = 0x00E1EAA0;
+_ovl_Obj_Grass_UnitSegmentRomEnd = 0x00E1F170;
 
-_ovl_Bg_Fire_WallSegmentRomStart = 0x00E1F160;
-_ovl_Bg_Fire_WallSegmentRomEnd = 0x00E1FA40;
+_ovl_Bg_Fire_WallSegmentRomStart = 0x00E1F170;
+_ovl_Bg_Fire_WallSegmentRomEnd = 0x00E1FA50;
 
-_ovl_En_BuSegmentRomStart = 0x00E1FA40;
-_ovl_En_BuSegmentRomEnd = 0x00E1FBF0;
+_ovl_En_BuSegmentRomStart = 0x00E1FA50;
+_ovl_En_BuSegmentRomEnd = 0x00E1FC00;
 
-_ovl_En_Encount3SegmentRomStart = 0x00E1FBF0;
-_ovl_En_Encount3SegmentRomEnd = 0x00E20590;
+_ovl_En_Encount3SegmentRomStart = 0x00E1FC00;
+_ovl_En_Encount3SegmentRomEnd = 0x00E205A0;
 
-_ovl_En_JsoSegmentRomStart = 0x00E20590;
-_ovl_En_JsoSegmentRomEnd = 0x00E24200;
+_ovl_En_JsoSegmentRomStart = 0x00E205A0;
+_ovl_En_JsoSegmentRomEnd = 0x00E24210;
 
-_ovl_Obj_ChikuwaSegmentRomStart = 0x00E24200;
-_ovl_Obj_ChikuwaSegmentRomEnd = 0x00E24DA0;
+_ovl_Obj_ChikuwaSegmentRomStart = 0x00E24210;
+_ovl_Obj_ChikuwaSegmentRomEnd = 0x00E24DB0;
 
-_ovl_En_KnightSegmentRomStart = 0x00E24DA0;
-_ovl_En_KnightSegmentRomEnd = 0x00E31C80;
+_ovl_En_KnightSegmentRomStart = 0x00E24DB0;
+_ovl_En_KnightSegmentRomEnd = 0x00E31C90;
 
-_ovl_En_Warp_tagSegmentRomStart = 0x00E31C80;
-_ovl_En_Warp_tagSegmentRomEnd = 0x00E325D0;
+_ovl_En_Warp_tagSegmentRomStart = 0x00E31C90;
+_ovl_En_Warp_tagSegmentRomEnd = 0x00E325E0;
 
-_ovl_En_Aob_01SegmentRomStart = 0x00E325D0;
-_ovl_En_Aob_01SegmentRomEnd = 0x00E352A0;
+_ovl_En_Aob_01SegmentRomStart = 0x00E325E0;
+_ovl_En_Aob_01SegmentRomEnd = 0x00E352B0;
 
-_ovl_En_Boj_01SegmentRomStart = 0x00E352A0;
-_ovl_En_Boj_01SegmentRomEnd = 0x00E35330;
+_ovl_En_Boj_01SegmentRomStart = 0x00E352B0;
+_ovl_En_Boj_01SegmentRomEnd = 0x00E35340;
 
-_ovl_En_Boj_02SegmentRomStart = 0x00E35330;
-_ovl_En_Boj_02SegmentRomEnd = 0x00E353C0;
+_ovl_En_Boj_02SegmentRomStart = 0x00E35340;
+_ovl_En_Boj_02SegmentRomEnd = 0x00E353D0;
 
-_ovl_En_Boj_03SegmentRomStart = 0x00E353C0;
-_ovl_En_Boj_03SegmentRomEnd = 0x00E35450;
+_ovl_En_Boj_03SegmentRomStart = 0x00E353D0;
+_ovl_En_Boj_03SegmentRomEnd = 0x00E35460;
 
-_ovl_En_Encount4SegmentRomStart = 0x00E35450;
-_ovl_En_Encount4SegmentRomEnd = 0x00E35CB0;
+_ovl_En_Encount4SegmentRomStart = 0x00E35460;
+_ovl_En_Encount4SegmentRomEnd = 0x00E35CC0;
 
-_ovl_En_Bom_Bowl_ManSegmentRomStart = 0x00E35CB0;
-_ovl_En_Bom_Bowl_ManSegmentRomEnd = 0x00E379E0;
+_ovl_En_Bom_Bowl_ManSegmentRomStart = 0x00E35CC0;
+_ovl_En_Bom_Bowl_ManSegmentRomEnd = 0x00E379F0;
 
-_ovl_En_Syateki_ManSegmentRomStart = 0x00E379E0;
-_ovl_En_Syateki_ManSegmentRomEnd = 0x00E3AF80;
+_ovl_En_Syateki_ManSegmentRomStart = 0x00E379F0;
+_ovl_En_Syateki_ManSegmentRomEnd = 0x00E3AF90;
 
-_ovl_Bg_IcicleSegmentRomStart = 0x00E3AF80;
-_ovl_Bg_IcicleSegmentRomEnd = 0x00E3B910;
+_ovl_Bg_IcicleSegmentRomStart = 0x00E3AF90;
+_ovl_Bg_IcicleSegmentRomEnd = 0x00E3B920;
 
-_ovl_En_Syateki_CrowSegmentRomStart = 0x00E3B910;
-_ovl_En_Syateki_CrowSegmentRomEnd = 0x00E3C720;
+_ovl_En_Syateki_CrowSegmentRomStart = 0x00E3B920;
+_ovl_En_Syateki_CrowSegmentRomEnd = 0x00E3C730;
 
-_ovl_En_Boj_04SegmentRomStart = 0x00E3C720;
-_ovl_En_Boj_04SegmentRomEnd = 0x00E3C7B0;
+_ovl_En_Boj_04SegmentRomStart = 0x00E3C730;
+_ovl_En_Boj_04SegmentRomEnd = 0x00E3C7C0;
 
-_ovl_En_Cne_01SegmentRomStart = 0x00E3C7B0;
-_ovl_En_Cne_01SegmentRomEnd = 0x00E3D580;
+_ovl_En_Cne_01SegmentRomStart = 0x00E3C7C0;
+_ovl_En_Cne_01SegmentRomEnd = 0x00E3D590;
 
-_ovl_En_Bba_01SegmentRomStart = 0x00E3D580;
-_ovl_En_Bba_01SegmentRomEnd = 0x00E3E300;
+_ovl_En_Bba_01SegmentRomStart = 0x00E3D590;
+_ovl_En_Bba_01SegmentRomEnd = 0x00E3E310;
 
-_ovl_En_Bji_01SegmentRomStart = 0x00E3E300;
-_ovl_En_Bji_01SegmentRomEnd = 0x00E3F3E0;
+_ovl_En_Bji_01SegmentRomStart = 0x00E3E310;
+_ovl_En_Bji_01SegmentRomEnd = 0x00E3F3F0;
 
-_ovl_Bg_SpdwebSegmentRomStart = 0x00E3F3E0;
-_ovl_Bg_SpdwebSegmentRomEnd = 0x00E40870;
+_ovl_Bg_SpdwebSegmentRomStart = 0x00E3F3F0;
+_ovl_Bg_SpdwebSegmentRomEnd = 0x00E40880;
 
-_ovl_En_Mt_tagSegmentRomStart = 0x00E40870;
-_ovl_En_Mt_tagSegmentRomEnd = 0x00E41A50;
+_ovl_En_Mt_tagSegmentRomStart = 0x00E40880;
+_ovl_En_Mt_tagSegmentRomEnd = 0x00E41A60;
 
-_ovl_Boss_01SegmentRomStart = 0x00E41A50;
-_ovl_Boss_01SegmentRomEnd = 0x00E49F30;
+_ovl_Boss_01SegmentRomStart = 0x00E41A60;
+_ovl_Boss_01SegmentRomEnd = 0x00E49F40;
 
-_ovl_Boss_02SegmentRomStart = 0x00E49F30;
-_ovl_Boss_02SegmentRomEnd = 0x00E50180;
+_ovl_Boss_02SegmentRomStart = 0x00E49F40;
+_ovl_Boss_02SegmentRomEnd = 0x00E50190;
 
-_ovl_Boss_03SegmentRomStart = 0x00E50180;
-_ovl_Boss_03SegmentRomEnd = 0x00E57260;
+_ovl_Boss_03SegmentRomStart = 0x00E50190;
+_ovl_Boss_03SegmentRomEnd = 0x00E57270;
 
-_ovl_Boss_04SegmentRomStart = 0x00E57260;
-_ovl_Boss_04SegmentRomEnd = 0x00E596F0;
+_ovl_Boss_04SegmentRomStart = 0x00E57270;
+_ovl_Boss_04SegmentRomEnd = 0x00E59700;
 
-_ovl_Boss_05SegmentRomStart = 0x00E596F0;
-_ovl_Boss_05SegmentRomEnd = 0x00E5D320;
+_ovl_Boss_05SegmentRomStart = 0x00E59700;
+_ovl_Boss_05SegmentRomEnd = 0x00E5D330;
 
-_ovl_Boss_06SegmentRomStart = 0x00E5D320;
-_ovl_Boss_06SegmentRomEnd = 0x00E5F570;
+_ovl_Boss_06SegmentRomStart = 0x00E5D330;
+_ovl_Boss_06SegmentRomEnd = 0x00E5F580;
 
-_ovl_Boss_07SegmentRomStart = 0x00E5F570;
-_ovl_Boss_07SegmentRomEnd = 0x00E74630;
+_ovl_Boss_07SegmentRomStart = 0x00E5F580;
+_ovl_Boss_07SegmentRomEnd = 0x00E74640;
 
-_ovl_Bg_Dy_YoseizoSegmentRomStart = 0x00E74630;
-_ovl_Bg_Dy_YoseizoSegmentRomEnd = 0x00E76510;
+_ovl_Bg_Dy_YoseizoSegmentRomStart = 0x00E74640;
+_ovl_Bg_Dy_YoseizoSegmentRomEnd = 0x00E76520;
 
-_ovl_En_Boj_05SegmentRomStart = 0x00E76510;
-_ovl_En_Boj_05SegmentRomEnd = 0x00E765A0;
+_ovl_En_Boj_05SegmentRomStart = 0x00E76520;
+_ovl_En_Boj_05SegmentRomEnd = 0x00E765B0;
 
-_ovl_En_Sob1SegmentRomStart = 0x00E765A0;
-_ovl_En_Sob1SegmentRomEnd = 0x00E7AD60;
+_ovl_En_Sob1SegmentRomStart = 0x00E765B0;
+_ovl_En_Sob1SegmentRomEnd = 0x00E7AD70;
 
-_ovl_En_GoSegmentRomStart = 0x00E7AD60;
-_ovl_En_GoSegmentRomEnd = 0x00E80AD0;
+_ovl_En_GoSegmentRomStart = 0x00E7AD70;
+_ovl_En_GoSegmentRomEnd = 0x00E80AE0;
 
-_ovl_En_RafSegmentRomStart = 0x00E80AD0;
-_ovl_En_RafSegmentRomEnd = 0x00E834D0;
+_ovl_En_RafSegmentRomStart = 0x00E80AE0;
+_ovl_En_RafSegmentRomEnd = 0x00E834E0;
 
-_ovl_Obj_FunenSegmentRomStart = 0x00E834D0;
-_ovl_Obj_FunenSegmentRomEnd = 0x00E836A0;
+_ovl_Obj_FunenSegmentRomStart = 0x00E834E0;
+_ovl_Obj_FunenSegmentRomEnd = 0x00E836B0;
 
-_ovl_Obj_RailliftSegmentRomStart = 0x00E836A0;
-_ovl_Obj_RailliftSegmentRomEnd = 0x00E84290;
+_ovl_Obj_RailliftSegmentRomStart = 0x00E836B0;
+_ovl_Obj_RailliftSegmentRomEnd = 0x00E842A0;
 
-_ovl_Bg_Numa_HanaSegmentRomStart = 0x00E84290;
-_ovl_Bg_Numa_HanaSegmentRomEnd = 0x00E85160;
+_ovl_Bg_Numa_HanaSegmentRomStart = 0x00E842A0;
+_ovl_Bg_Numa_HanaSegmentRomEnd = 0x00E85170;
 
-_ovl_Obj_FlowerpotSegmentRomStart = 0x00E85160;
-_ovl_Obj_FlowerpotSegmentRomEnd = 0x00E875C0;
+_ovl_Obj_FlowerpotSegmentRomStart = 0x00E85170;
+_ovl_Obj_FlowerpotSegmentRomEnd = 0x00E875D0;
 
-_ovl_Obj_SpinyrollSegmentRomStart = 0x00E875C0;
-_ovl_Obj_SpinyrollSegmentRomEnd = 0x00E88F80;
+_ovl_Obj_SpinyrollSegmentRomStart = 0x00E875D0;
+_ovl_Obj_SpinyrollSegmentRomEnd = 0x00E88F90;
 
-_ovl_Dm_HinaSegmentRomStart = 0x00E88F80;
-_ovl_Dm_HinaSegmentRomEnd = 0x00E899C0;
+_ovl_Dm_HinaSegmentRomStart = 0x00E88F90;
+_ovl_Dm_HinaSegmentRomEnd = 0x00E899D0;
 
-_ovl_En_Syateki_WfSegmentRomStart = 0x00E899C0;
-_ovl_En_Syateki_WfSegmentRomEnd = 0x00E8ACC0;
+_ovl_En_Syateki_WfSegmentRomStart = 0x00E899D0;
+_ovl_En_Syateki_WfSegmentRomEnd = 0x00E8ACD0;
 
-_ovl_Obj_SkateblockSegmentRomStart = 0x00E8ACC0;
-_ovl_Obj_SkateblockSegmentRomEnd = 0x00E8C8B0;
+_ovl_Obj_SkateblockSegmentRomStart = 0x00E8ACD0;
+_ovl_Obj_SkateblockSegmentRomEnd = 0x00E8C8C0;
 
-_ovl_Effect_En_Ice_BlockSegmentRomStart = 0x00E8C8B0;
-_ovl_Effect_En_Ice_BlockSegmentRomEnd = 0x00E8CC00;
+_ovl_Effect_En_Ice_BlockSegmentRomStart = 0x00E8C8C0;
+_ovl_Effect_En_Ice_BlockSegmentRomEnd = 0x00E8CC10;
 
-_ovl_Obj_IceblockSegmentRomStart = 0x00E8CC00;
-_ovl_Obj_IceblockSegmentRomEnd = 0x00E91090;
+_ovl_Obj_IceblockSegmentRomStart = 0x00E8CC10;
+_ovl_Obj_IceblockSegmentRomEnd = 0x00E910A0;
 
-_ovl_En_BigpametSegmentRomStart = 0x00E91090;
-_ovl_En_BigpametSegmentRomEnd = 0x00E935F0;
+_ovl_En_BigpametSegmentRomStart = 0x00E910A0;
+_ovl_En_BigpametSegmentRomEnd = 0x00E93600;
 
-_ovl_Bg_Dblue_MovebgSegmentRomStart = 0x00E935F0;
-_ovl_Bg_Dblue_MovebgSegmentRomEnd = 0x00E95760;
+_ovl_Bg_Dblue_MovebgSegmentRomStart = 0x00E93600;
+_ovl_Bg_Dblue_MovebgSegmentRomEnd = 0x00E95770;
 
-_ovl_En_Syateki_DekunutsSegmentRomStart = 0x00E95760;
-_ovl_En_Syateki_DekunutsSegmentRomEnd = 0x00E96870;
+_ovl_En_Syateki_DekunutsSegmentRomStart = 0x00E95770;
+_ovl_En_Syateki_DekunutsSegmentRomEnd = 0x00E96880;
 
-_ovl_Elf_Msg3SegmentRomStart = 0x00E96870;
-_ovl_Elf_Msg3SegmentRomEnd = 0x00E96DE0;
+_ovl_Elf_Msg3SegmentRomStart = 0x00E96880;
+_ovl_Elf_Msg3SegmentRomEnd = 0x00E96DF0;
 
-_ovl_En_FgSegmentRomStart = 0x00E96DE0;
-_ovl_En_FgSegmentRomEnd = 0x00E98300;
+_ovl_En_FgSegmentRomStart = 0x00E96DF0;
+_ovl_En_FgSegmentRomEnd = 0x00E98310;
 
-_ovl_Dm_RavineSegmentRomStart = 0x00E98300;
-_ovl_Dm_RavineSegmentRomEnd = 0x00E984C0;
+_ovl_Dm_RavineSegmentRomStart = 0x00E98310;
+_ovl_Dm_RavineSegmentRomEnd = 0x00E984D0;
 
-_ovl_Dm_SaSegmentRomStart = 0x00E984C0;
-_ovl_Dm_SaSegmentRomEnd = 0x00E98900;
+_ovl_Dm_SaSegmentRomStart = 0x00E984D0;
+_ovl_Dm_SaSegmentRomEnd = 0x00E98910;
 
-_ovl_En_SlimeSegmentRomStart = 0x00E98900;
-_ovl_En_SlimeSegmentRomEnd = 0x00E9BD60;
+_ovl_En_SlimeSegmentRomStart = 0x00E98910;
+_ovl_En_SlimeSegmentRomEnd = 0x00E9BD70;
 
-_ovl_En_PrSegmentRomStart = 0x00E9BD60;
-_ovl_En_PrSegmentRomEnd = 0x00E9D650;
+_ovl_En_PrSegmentRomStart = 0x00E9BD70;
+_ovl_En_PrSegmentRomEnd = 0x00E9D660;
 
-_ovl_Obj_ToudaiSegmentRomStart = 0x00E9D650;
-_ovl_Obj_ToudaiSegmentRomEnd = 0x00E9E250;
+_ovl_Obj_ToudaiSegmentRomStart = 0x00E9D660;
+_ovl_Obj_ToudaiSegmentRomEnd = 0x00E9E260;
 
-_ovl_Obj_EntotuSegmentRomStart = 0x00E9E250;
-_ovl_Obj_EntotuSegmentRomEnd = 0x00E9F060;
+_ovl_Obj_EntotuSegmentRomStart = 0x00E9E260;
+_ovl_Obj_EntotuSegmentRomEnd = 0x00E9F070;
 
-_ovl_Obj_BellSegmentRomStart = 0x00E9F060;
-_ovl_Obj_BellSegmentRomEnd = 0x00E9FB40;
+_ovl_Obj_BellSegmentRomStart = 0x00E9F070;
+_ovl_Obj_BellSegmentRomEnd = 0x00E9FB50;
 
-_ovl_En_Syateki_OkutaSegmentRomStart = 0x00E9FB40;
-_ovl_En_Syateki_OkutaSegmentRomEnd = 0x00EA1A20;
+_ovl_En_Syateki_OkutaSegmentRomStart = 0x00E9FB50;
+_ovl_En_Syateki_OkutaSegmentRomEnd = 0x00EA1A30;
 
-_ovl_Obj_ShutterSegmentRomStart = 0x00EA1A20;
-_ovl_Obj_ShutterSegmentRomEnd = 0x00EA1CE0;
+_ovl_Obj_ShutterSegmentRomStart = 0x00EA1A30;
+_ovl_Obj_ShutterSegmentRomEnd = 0x00EA1CF0;
 
-_ovl_Dm_ZlSegmentRomStart = 0x00EA1CE0;
-_ovl_Dm_ZlSegmentRomEnd = 0x00EA24F0;
+_ovl_Dm_ZlSegmentRomStart = 0x00EA1CF0;
+_ovl_Dm_ZlSegmentRomEnd = 0x00EA2500;
 
-_ovl_En_RuSegmentRomStart = 0x00EA24F0;
-_ovl_En_RuSegmentRomEnd = 0x00EA3200;
+_ovl_En_RuSegmentRomStart = 0x00EA2500;
+_ovl_En_RuSegmentRomEnd = 0x00EA3210;
 
-_ovl_En_ElfgrpSegmentRomStart = 0x00EA3200;
-_ovl_En_ElfgrpSegmentRomEnd = 0x00EA47B0;
+_ovl_En_ElfgrpSegmentRomStart = 0x00EA3210;
+_ovl_En_ElfgrpSegmentRomEnd = 0x00EA47C0;
 
-_ovl_Dm_TsgSegmentRomStart = 0x00EA47B0;
-_ovl_Dm_TsgSegmentRomEnd = 0x00EA4BD0;
+_ovl_Dm_TsgSegmentRomStart = 0x00EA47C0;
+_ovl_Dm_TsgSegmentRomEnd = 0x00EA4BE0;
 
-_ovl_En_BaguoSegmentRomStart = 0x00EA4BD0;
-_ovl_En_BaguoSegmentRomEnd = 0x00EA6030;
+_ovl_En_BaguoSegmentRomStart = 0x00EA4BE0;
+_ovl_En_BaguoSegmentRomEnd = 0x00EA6040;
 
-_ovl_Obj_VspinyrollSegmentRomStart = 0x00EA6030;
-_ovl_Obj_VspinyrollSegmentRomEnd = 0x00EA71D0;
+_ovl_Obj_VspinyrollSegmentRomStart = 0x00EA6040;
+_ovl_Obj_VspinyrollSegmentRomEnd = 0x00EA71E0;
 
-_ovl_Obj_SmorkSegmentRomStart = 0x00EA71D0;
-_ovl_Obj_SmorkSegmentRomEnd = 0x00EA7EE0;
+_ovl_Obj_SmorkSegmentRomStart = 0x00EA71E0;
+_ovl_Obj_SmorkSegmentRomEnd = 0x00EA7EF0;
 
-_ovl_En_Test2SegmentRomStart = 0x00EA7EE0;
-_ovl_En_Test2SegmentRomEnd = 0x00EA8330;
+_ovl_En_Test2SegmentRomStart = 0x00EA7EF0;
+_ovl_En_Test2SegmentRomEnd = 0x00EA8340;
 
-_ovl_En_Test3SegmentRomStart = 0x00EA8330;
-_ovl_En_Test3SegmentRomEnd = 0x00EAB870;
+_ovl_En_Test3SegmentRomStart = 0x00EA8340;
+_ovl_En_Test3SegmentRomEnd = 0x00EAB880;
 
-_ovl_En_Test4SegmentRomStart = 0x00EAB870;
-_ovl_En_Test4SegmentRomEnd = 0x00EACFD0;
+_ovl_En_Test4SegmentRomStart = 0x00EAB880;
+_ovl_En_Test4SegmentRomEnd = 0x00EACFE0;
 
-_ovl_En_BatSegmentRomStart = 0x00EACFD0;
-_ovl_En_BatSegmentRomEnd = 0x00EAE760;
+_ovl_En_BatSegmentRomStart = 0x00EACFE0;
+_ovl_En_BatSegmentRomEnd = 0x00EAE770;
 
-_ovl_En_SekihiSegmentRomStart = 0x00EAE760;
-_ovl_En_SekihiSegmentRomEnd = 0x00EAEE40;
+_ovl_En_SekihiSegmentRomStart = 0x00EAE770;
+_ovl_En_SekihiSegmentRomEnd = 0x00EAEE50;
 
-_ovl_En_WizSegmentRomStart = 0x00EAEE40;
-_ovl_En_WizSegmentRomEnd = 0x00EB2AC0;
+_ovl_En_WizSegmentRomStart = 0x00EAEE50;
+_ovl_En_WizSegmentRomEnd = 0x00EB2AD0;
 
-_ovl_En_Wiz_BrockSegmentRomStart = 0x00EB2AC0;
-_ovl_En_Wiz_BrockSegmentRomEnd = 0x00EB3180;
+_ovl_En_Wiz_BrockSegmentRomStart = 0x00EB2AD0;
+_ovl_En_Wiz_BrockSegmentRomEnd = 0x00EB3190;
 
-_ovl_En_Wiz_FireSegmentRomStart = 0x00EB3180;
-_ovl_En_Wiz_FireSegmentRomEnd = 0x00EB5F70;
+_ovl_En_Wiz_FireSegmentRomStart = 0x00EB3190;
+_ovl_En_Wiz_FireSegmentRomEnd = 0x00EB5F80;
 
-_ovl_Eff_ChangeSegmentRomStart = 0x00EB5F70;
-_ovl_Eff_ChangeSegmentRomEnd = 0x00EB6490;
+_ovl_Eff_ChangeSegmentRomStart = 0x00EB5F80;
+_ovl_Eff_ChangeSegmentRomEnd = 0x00EB64A0;
 
-_ovl_Dm_StatueSegmentRomStart = 0x00EB6490;
-_ovl_Dm_StatueSegmentRomEnd = 0x00EB6570;
+_ovl_Dm_StatueSegmentRomStart = 0x00EB64A0;
+_ovl_Dm_StatueSegmentRomEnd = 0x00EB6580;
 
-_ovl_Obj_FireshieldSegmentRomStart = 0x00EB6570;
-_ovl_Obj_FireshieldSegmentRomEnd = 0x00EB74D0;
+_ovl_Obj_FireshieldSegmentRomStart = 0x00EB6580;
+_ovl_Obj_FireshieldSegmentRomEnd = 0x00EB74E0;
 
-_ovl_Bg_LadderSegmentRomStart = 0x00EB74D0;
-_ovl_Bg_LadderSegmentRomEnd = 0x00EB79B0;
+_ovl_Bg_LadderSegmentRomStart = 0x00EB74E0;
+_ovl_Bg_LadderSegmentRomEnd = 0x00EB79C0;
 
-_ovl_En_MkkSegmentRomStart = 0x00EB79B0;
-_ovl_En_MkkSegmentRomEnd = 0x00EB9520;
+_ovl_En_MkkSegmentRomStart = 0x00EB79C0;
+_ovl_En_MkkSegmentRomEnd = 0x00EB9530;
 
-_ovl_Demo_GetitemSegmentRomStart = 0x00EB9520;
-_ovl_Demo_GetitemSegmentRomEnd = 0x00EB98B0;
+_ovl_Demo_GetitemSegmentRomStart = 0x00EB9530;
+_ovl_Demo_GetitemSegmentRomEnd = 0x00EB98C0;
 
-_ovl_En_DnbSegmentRomStart = 0x00EB98B0;
-_ovl_En_DnbSegmentRomEnd = 0x00EBA820;
+_ovl_En_DnbSegmentRomStart = 0x00EB98C0;
+_ovl_En_DnbSegmentRomEnd = 0x00EBA830;
 
-_ovl_En_DnhSegmentRomStart = 0x00EBA820;
-_ovl_En_DnhSegmentRomEnd = 0x00EBAFD0;
+_ovl_En_DnhSegmentRomStart = 0x00EBA830;
+_ovl_En_DnhSegmentRomEnd = 0x00EBAFE0;
 
-_ovl_En_DnkSegmentRomStart = 0x00EBAFD0;
-_ovl_En_DnkSegmentRomEnd = 0x00EBC010;
+_ovl_En_DnkSegmentRomStart = 0x00EBAFE0;
+_ovl_En_DnkSegmentRomEnd = 0x00EBC020;
 
-_ovl_En_DnqSegmentRomStart = 0x00EBC010;
-_ovl_En_DnqSegmentRomEnd = 0x00EBD2B0;
+_ovl_En_DnqSegmentRomStart = 0x00EBC020;
+_ovl_En_DnqSegmentRomEnd = 0x00EBD2C0;
 
-_ovl_Bg_Keikoku_SakuSegmentRomStart = 0x00EBD2B0;
-_ovl_Bg_Keikoku_SakuSegmentRomEnd = 0x00EBD6C0;
+_ovl_Bg_Keikoku_SakuSegmentRomStart = 0x00EBD2C0;
+_ovl_Bg_Keikoku_SakuSegmentRomEnd = 0x00EBD6D0;
 
-_ovl_Obj_HugebombiwaSegmentRomStart = 0x00EBD6C0;
-_ovl_Obj_HugebombiwaSegmentRomEnd = 0x00EBFBA0;
+_ovl_Obj_HugebombiwaSegmentRomStart = 0x00EBD6D0;
+_ovl_Obj_HugebombiwaSegmentRomEnd = 0x00EBFBB0;
 
-_ovl_En_Firefly2SegmentRomStart = 0x00EBFBA0;
-_ovl_En_Firefly2SegmentRomEnd = 0x00EBFC30;
+_ovl_En_Firefly2SegmentRomStart = 0x00EBFBB0;
+_ovl_En_Firefly2SegmentRomEnd = 0x00EBFC40;
 
-_ovl_En_RatSegmentRomStart = 0x00EBFC30;
-_ovl_En_RatSegmentRomEnd = 0x00EC2280;
+_ovl_En_RatSegmentRomStart = 0x00EBFC40;
+_ovl_En_RatSegmentRomEnd = 0x00EC2290;
 
-_ovl_En_Water_EffectSegmentRomStart = 0x00EC2280;
-_ovl_En_Water_EffectSegmentRomEnd = 0x00EC4C40;
+_ovl_En_Water_EffectSegmentRomStart = 0x00EC2290;
+_ovl_En_Water_EffectSegmentRomEnd = 0x00EC4C50;
 
-_ovl_En_Kusa2SegmentRomStart = 0x00EC4C40;
-_ovl_En_Kusa2SegmentRomEnd = 0x00EC8CA0;
+_ovl_En_Kusa2SegmentRomStart = 0x00EC4C50;
+_ovl_En_Kusa2SegmentRomEnd = 0x00EC8CB0;
 
-_ovl_Bg_Spout_FireSegmentRomStart = 0x00EC8CA0;
-_ovl_Bg_Spout_FireSegmentRomEnd = 0x00EC9430;
+_ovl_Bg_Spout_FireSegmentRomStart = 0x00EC8CB0;
+_ovl_Bg_Spout_FireSegmentRomEnd = 0x00EC9440;
 
-_ovl_En_Dy_ExtraSegmentRomStart = 0x00EC9430;
-_ovl_En_Dy_ExtraSegmentRomEnd = 0x00EC9990;
+_ovl_En_Dy_ExtraSegmentRomStart = 0x00EC9440;
+_ovl_En_Dy_ExtraSegmentRomEnd = 0x00EC99A0;
 
-_ovl_En_BalSegmentRomStart = 0x00EC9990;
-_ovl_En_BalSegmentRomEnd = 0x00ECC620;
+_ovl_En_BalSegmentRomStart = 0x00EC99A0;
+_ovl_En_BalSegmentRomEnd = 0x00ECC630;
 
-_ovl_En_Ginko_ManSegmentRomStart = 0x00ECC620;
-_ovl_En_Ginko_ManSegmentRomEnd = 0x00ECE300;
+_ovl_En_Ginko_ManSegmentRomStart = 0x00ECC630;
+_ovl_En_Ginko_ManSegmentRomEnd = 0x00ECE310;
 
-_ovl_En_Warp_UzuSegmentRomStart = 0x00ECE300;
-_ovl_En_Warp_UzuSegmentRomEnd = 0x00ECE6F0;
+_ovl_En_Warp_UzuSegmentRomStart = 0x00ECE310;
+_ovl_En_Warp_UzuSegmentRomEnd = 0x00ECE700;
 
-_ovl_Obj_DrifticeSegmentRomStart = 0x00ECE6F0;
-_ovl_Obj_DrifticeSegmentRomEnd = 0x00ECFA30;
+_ovl_Obj_DrifticeSegmentRomStart = 0x00ECE700;
+_ovl_Obj_DrifticeSegmentRomEnd = 0x00ECFA40;
 
-_ovl_En_Look_NutsSegmentRomStart = 0x00ECFA30;
-_ovl_En_Look_NutsSegmentRomEnd = 0x00ED0920;
+_ovl_En_Look_NutsSegmentRomStart = 0x00ECFA40;
+_ovl_En_Look_NutsSegmentRomEnd = 0x00ED0930;
 
-_ovl_En_Mushi2SegmentRomStart = 0x00ED0920;
-_ovl_En_Mushi2SegmentRomEnd = 0x00ED4110;
+_ovl_En_Mushi2SegmentRomStart = 0x00ED0930;
+_ovl_En_Mushi2SegmentRomEnd = 0x00ED4120;
 
-_ovl_En_FallSegmentRomStart = 0x00ED4110;
-_ovl_En_FallSegmentRomEnd = 0x00ED6B10;
+_ovl_En_FallSegmentRomStart = 0x00ED4120;
+_ovl_En_FallSegmentRomEnd = 0x00ED6B20;
 
-_ovl_En_Mm3SegmentRomStart = 0x00ED6B10;
-_ovl_En_Mm3SegmentRomEnd = 0x00ED8160;
+_ovl_En_Mm3SegmentRomStart = 0x00ED6B20;
+_ovl_En_Mm3SegmentRomEnd = 0x00ED8170;
 
-_ovl_Bg_Crace_MovebgSegmentRomStart = 0x00ED8160;
-_ovl_Bg_Crace_MovebgSegmentRomEnd = 0x00ED8C20;
+_ovl_Bg_Crace_MovebgSegmentRomStart = 0x00ED8170;
+_ovl_Bg_Crace_MovebgSegmentRomEnd = 0x00ED8C30;
 
-_ovl_En_DnoSegmentRomStart = 0x00ED8C20;
-_ovl_En_DnoSegmentRomEnd = 0x00EDB9F0;
+_ovl_En_DnoSegmentRomStart = 0x00ED8C30;
+_ovl_En_DnoSegmentRomEnd = 0x00EDBA00;
 
-_ovl_En_Pr2SegmentRomStart = 0x00EDB9F0;
-_ovl_En_Pr2SegmentRomEnd = 0x00EDD810;
+_ovl_En_Pr2SegmentRomStart = 0x00EDBA00;
+_ovl_En_Pr2SegmentRomEnd = 0x00EDD820;
 
-_ovl_En_PrzSegmentRomStart = 0x00EDD810;
-_ovl_En_PrzSegmentRomEnd = 0x00EDEE10;
+_ovl_En_PrzSegmentRomStart = 0x00EDD820;
+_ovl_En_PrzSegmentRomEnd = 0x00EDEE20;
 
-_ovl_En_Jso2SegmentRomStart = 0x00EDEE10;
-_ovl_En_Jso2SegmentRomEnd = 0x00EE36C0;
+_ovl_En_Jso2SegmentRomStart = 0x00EDEE20;
+_ovl_En_Jso2SegmentRomEnd = 0x00EE36D0;
 
-_ovl_Obj_EtceteraSegmentRomStart = 0x00EE36C0;
-_ovl_Obj_EtceteraSegmentRomEnd = 0x00EE43E0;
+_ovl_Obj_EtceteraSegmentRomStart = 0x00EE36D0;
+_ovl_Obj_EtceteraSegmentRomEnd = 0x00EE43F0;
 
-_ovl_En_EgolSegmentRomStart = 0x00EE43E0;
-_ovl_En_EgolSegmentRomEnd = 0x00EE8C20;
+_ovl_En_EgolSegmentRomStart = 0x00EE43F0;
+_ovl_En_EgolSegmentRomEnd = 0x00EE8C30;
 
-_ovl_Obj_MineSegmentRomStart = 0x00EE8C20;
-_ovl_Obj_MineSegmentRomEnd = 0x00EEC420;
+_ovl_Obj_MineSegmentRomStart = 0x00EE8C30;
+_ovl_Obj_MineSegmentRomEnd = 0x00EEC430;
 
-_ovl_Obj_PurifySegmentRomStart = 0x00EEC420;
-_ovl_Obj_PurifySegmentRomEnd = 0x00EECD70;
+_ovl_Obj_PurifySegmentRomStart = 0x00EEC430;
+_ovl_Obj_PurifySegmentRomEnd = 0x00EECD80;
 
-_ovl_En_TruSegmentRomStart = 0x00EECD70;
-_ovl_En_TruSegmentRomEnd = 0x00EF2EC0;
+_ovl_En_TruSegmentRomStart = 0x00EECD80;
+_ovl_En_TruSegmentRomEnd = 0x00EF2ED0;
 
-_ovl_En_TrtSegmentRomStart = 0x00EF2EC0;
-_ovl_En_TrtSegmentRomEnd = 0x00EF7B00;
+_ovl_En_TrtSegmentRomStart = 0x00EF2ED0;
+_ovl_En_TrtSegmentRomEnd = 0x00EF7B10;
 
-_ovl_En_Test5SegmentRomStart = 0x00EF7B00;
-_ovl_En_Test5SegmentRomEnd = 0x00EF7E80;
+_ovl_En_Test5SegmentRomStart = 0x00EF7B10;
+_ovl_En_Test5SegmentRomEnd = 0x00EF7E90;
 
-_ovl_En_Test6SegmentRomStart = 0x00EF7E80;
-_ovl_En_Test6SegmentRomEnd = 0x00EFC060;
+_ovl_En_Test6SegmentRomStart = 0x00EF7E90;
+_ovl_En_Test6SegmentRomEnd = 0x00EFC070;
 
-_ovl_En_AzSegmentRomStart = 0x00EFC060;
-_ovl_En_AzSegmentRomEnd = 0x00F014B0;
+_ovl_En_AzSegmentRomStart = 0x00EFC070;
+_ovl_En_AzSegmentRomEnd = 0x00F014C0;
 
-_ovl_En_EstoneSegmentRomStart = 0x00F014B0;
-_ovl_En_EstoneSegmentRomEnd = 0x00F022E0;
+_ovl_En_EstoneSegmentRomStart = 0x00F014C0;
+_ovl_En_EstoneSegmentRomEnd = 0x00F022F0;
 
-_ovl_Bg_Hakugin_PostSegmentRomStart = 0x00F022E0;
-_ovl_Bg_Hakugin_PostSegmentRomEnd = 0x00F053D0;
+_ovl_Bg_Hakugin_PostSegmentRomStart = 0x00F022F0;
+_ovl_Bg_Hakugin_PostSegmentRomEnd = 0x00F053E0;
 
-_ovl_Dm_OpstageSegmentRomStart = 0x00F053D0;
-_ovl_Dm_OpstageSegmentRomEnd = 0x00F05830;
+_ovl_Dm_OpstageSegmentRomStart = 0x00F053E0;
+_ovl_Dm_OpstageSegmentRomEnd = 0x00F05840;
 
-_ovl_Dm_StkSegmentRomStart = 0x00F05830;
-_ovl_Dm_StkSegmentRomEnd = 0x00F0B000;
+_ovl_Dm_StkSegmentRomStart = 0x00F05840;
+_ovl_Dm_StkSegmentRomEnd = 0x00F0B010;
 
-_ovl_Dm_Char00SegmentRomStart = 0x00F0B000;
-_ovl_Dm_Char00SegmentRomEnd = 0x00F0DC60;
+_ovl_Dm_Char00SegmentRomStart = 0x00F0B010;
+_ovl_Dm_Char00SegmentRomEnd = 0x00F0DC70;
 
-_ovl_Dm_Char01SegmentRomStart = 0x00F0DC60;
-_ovl_Dm_Char01SegmentRomEnd = 0x00F108A0;
+_ovl_Dm_Char01SegmentRomStart = 0x00F0DC70;
+_ovl_Dm_Char01SegmentRomEnd = 0x00F108B0;
 
-_ovl_Dm_Char02SegmentRomStart = 0x00F108A0;
-_ovl_Dm_Char02SegmentRomEnd = 0x00F10F10;
+_ovl_Dm_Char02SegmentRomStart = 0x00F108B0;
+_ovl_Dm_Char02SegmentRomEnd = 0x00F10F20;
 
-_ovl_Dm_Char03SegmentRomStart = 0x00F10F10;
-_ovl_Dm_Char03SegmentRomEnd = 0x00F116B0;
+_ovl_Dm_Char03SegmentRomStart = 0x00F10F20;
+_ovl_Dm_Char03SegmentRomEnd = 0x00F116C0;
 
-_ovl_Dm_Char04SegmentRomStart = 0x00F116B0;
-_ovl_Dm_Char04SegmentRomEnd = 0x00F12010;
+_ovl_Dm_Char04SegmentRomStart = 0x00F116C0;
+_ovl_Dm_Char04SegmentRomEnd = 0x00F12020;
 
-_ovl_Dm_Char05SegmentRomStart = 0x00F12010;
-_ovl_Dm_Char05SegmentRomEnd = 0x00F140F0;
+_ovl_Dm_Char05SegmentRomStart = 0x00F12020;
+_ovl_Dm_Char05SegmentRomEnd = 0x00F14100;
 
-_ovl_Dm_Char06SegmentRomStart = 0x00F140F0;
-_ovl_Dm_Char06SegmentRomEnd = 0x00F14430;
+_ovl_Dm_Char06SegmentRomStart = 0x00F14100;
+_ovl_Dm_Char06SegmentRomEnd = 0x00F14440;
 
-_ovl_Dm_Char07SegmentRomStart = 0x00F14430;
-_ovl_Dm_Char07SegmentRomEnd = 0x00F14AC0;
+_ovl_Dm_Char07SegmentRomStart = 0x00F14440;
+_ovl_Dm_Char07SegmentRomEnd = 0x00F14AD0;
 
-_ovl_Dm_Char08SegmentRomStart = 0x00F14AC0;
-_ovl_Dm_Char08SegmentRomEnd = 0x00F17880;
+_ovl_Dm_Char08SegmentRomStart = 0x00F14AD0;
+_ovl_Dm_Char08SegmentRomEnd = 0x00F17890;
 
-_ovl_Dm_Char09SegmentRomStart = 0x00F17880;
-_ovl_Dm_Char09SegmentRomEnd = 0x00F18200;
+_ovl_Dm_Char09SegmentRomStart = 0x00F17890;
+_ovl_Dm_Char09SegmentRomEnd = 0x00F18210;
 
-_ovl_Obj_TokeidaiSegmentRomStart = 0x00F18200;
-_ovl_Obj_TokeidaiSegmentRomEnd = 0x00F1A780;
+_ovl_Obj_TokeidaiSegmentRomStart = 0x00F18210;
+_ovl_Obj_TokeidaiSegmentRomEnd = 0x00F1A790;
 
-_ovl_En_MnkSegmentRomStart = 0x00F1A780;
-_ovl_En_MnkSegmentRomEnd = 0x00F20210;
+_ovl_En_MnkSegmentRomStart = 0x00F1A790;
+_ovl_En_MnkSegmentRomEnd = 0x00F20220;
 
-_ovl_En_EgblockSegmentRomStart = 0x00F20210;
-_ovl_En_EgblockSegmentRomEnd = 0x00F20B50;
+_ovl_En_EgblockSegmentRomStart = 0x00F20220;
+_ovl_En_EgblockSegmentRomEnd = 0x00F20B60;
 
-_ovl_En_Guard_NutsSegmentRomStart = 0x00F20B50;
-_ovl_En_Guard_NutsSegmentRomEnd = 0x00F21A30;
+_ovl_En_Guard_NutsSegmentRomStart = 0x00F20B60;
+_ovl_En_Guard_NutsSegmentRomEnd = 0x00F21A40;
 
-_ovl_Bg_Hakugin_BombwallSegmentRomStart = 0x00F21A30;
-_ovl_Bg_Hakugin_BombwallSegmentRomEnd = 0x00F22C40;
+_ovl_Bg_Hakugin_BombwallSegmentRomStart = 0x00F21A40;
+_ovl_Bg_Hakugin_BombwallSegmentRomEnd = 0x00F22C50;
 
-_ovl_Obj_Tokei_TobiraSegmentRomStart = 0x00F22C40;
-_ovl_Obj_Tokei_TobiraSegmentRomEnd = 0x00F232A0;
+_ovl_Obj_Tokei_TobiraSegmentRomStart = 0x00F22C50;
+_ovl_Obj_Tokei_TobiraSegmentRomEnd = 0x00F232B0;
 
-_ovl_Bg_Hakugin_ElvpoleSegmentRomStart = 0x00F232A0;
-_ovl_Bg_Hakugin_ElvpoleSegmentRomEnd = 0x00F23710;
+_ovl_Bg_Hakugin_ElvpoleSegmentRomStart = 0x00F232B0;
+_ovl_Bg_Hakugin_ElvpoleSegmentRomEnd = 0x00F23720;
 
-_ovl_En_Ma4SegmentRomStart = 0x00F23710;
-_ovl_En_Ma4SegmentRomEnd = 0x00F262A0;
+_ovl_En_Ma4SegmentRomStart = 0x00F23720;
+_ovl_En_Ma4SegmentRomEnd = 0x00F262B0;
 
-_ovl_En_TwigSegmentRomStart = 0x00F262A0;
-_ovl_En_TwigSegmentRomEnd = 0x00F26CA0;
+_ovl_En_TwigSegmentRomStart = 0x00F262B0;
+_ovl_En_TwigSegmentRomEnd = 0x00F26CB0;
 
-_ovl_En_Po_FusenSegmentRomStart = 0x00F26CA0;
-_ovl_En_Po_FusenSegmentRomEnd = 0x00F27900;
+_ovl_En_Po_FusenSegmentRomStart = 0x00F26CB0;
+_ovl_En_Po_FusenSegmentRomEnd = 0x00F27910;
 
-_ovl_En_Door_EtcSegmentRomStart = 0x00F27900;
-_ovl_En_Door_EtcSegmentRomEnd = 0x00F28120;
+_ovl_En_Door_EtcSegmentRomStart = 0x00F27910;
+_ovl_En_Door_EtcSegmentRomEnd = 0x00F28130;
 
-_ovl_En_BigokutaSegmentRomStart = 0x00F28120;
-_ovl_En_BigokutaSegmentRomEnd = 0x00F2A320;
+_ovl_En_BigokutaSegmentRomStart = 0x00F28130;
+_ovl_En_BigokutaSegmentRomEnd = 0x00F2A330;
 
-_ovl_Bg_IcefloeSegmentRomStart = 0x00F2A320;
-_ovl_Bg_IcefloeSegmentRomEnd = 0x00F2AA90;
+_ovl_Bg_IcefloeSegmentRomStart = 0x00F2A330;
+_ovl_Bg_IcefloeSegmentRomEnd = 0x00F2AAA0;
 
-__385_0x00cfc450SegmentRomStart = 0x00F2AA90;
-__385_0x00cfc450SegmentRomEnd = 0x00F2B1D0;
+__385_0x00cfc450SegmentRomStart = 0x00F2AAA0;
+__385_0x00cfc450SegmentRomEnd = 0x00F2B1E0;
 
-__386_0x00cfc970SegmentRomStart = 0x00F2B1D0;
-__386_0x00cfc970SegmentRomEnd = 0x00F2C160;
+__386_0x00cfc970SegmentRomStart = 0x00F2B1E0;
+__386_0x00cfc970SegmentRomEnd = 0x00F2C170;
 
-__387_0x00cfd400SegmentRomStart = 0x00F2C160;
-__387_0x00cfd400SegmentRomEnd = 0x00F2DE50;
+__387_0x00cfd400SegmentRomStart = 0x00F2C170;
+__387_0x00cfd400SegmentRomEnd = 0x00F2DE60;
 
-__388_0x00cfdf10SegmentRomStart = 0x00F2DE50;
-__388_0x00cfdf10SegmentRomEnd = 0x00F2E110;
+__388_0x00cfdf10SegmentRomStart = 0x00F2DE60;
+__388_0x00cfdf10SegmentRomEnd = 0x00F2E120;
 
-__389_0x00cfe150SegmentRomStart = 0x00F2E110;
-__389_0x00cfe150SegmentRomEnd = 0x00F2E570;
+__389_0x00cfe150SegmentRomStart = 0x00F2E120;
+__389_0x00cfe150SegmentRomEnd = 0x00F2E580;
 
-_ovl_Effect_Ss_SbnSegmentRomStart = 0x00F2E570;
-_ovl_Effect_Ss_SbnSegmentRomEnd = 0x00F2EEE0;
+_ovl_Effect_Ss_SbnSegmentRomStart = 0x00F2E580;
+_ovl_Effect_Ss_SbnSegmentRomEnd = 0x00F2EEF0;
 
-_ovl_Obj_OcarinaliftSegmentRomStart = 0x00F2EEE0;
-_ovl_Obj_OcarinaliftSegmentRomEnd = 0x00F2F8C0;
+_ovl_Obj_OcarinaliftSegmentRomStart = 0x00F2EEF0;
+_ovl_Obj_OcarinaliftSegmentRomEnd = 0x00F2F8D0;
 
-_ovl_En_Time_TagSegmentRomStart = 0x00F2F8C0;
-_ovl_En_Time_TagSegmentRomEnd = 0x00F30530;
+_ovl_En_Time_TagSegmentRomStart = 0x00F2F8D0;
+_ovl_En_Time_TagSegmentRomEnd = 0x00F30540;
 
-_ovl_Bg_Open_ShutterSegmentRomStart = 0x00F30530;
-_ovl_Bg_Open_ShutterSegmentRomEnd = 0x00F30C00;
+_ovl_Bg_Open_ShutterSegmentRomStart = 0x00F30540;
+_ovl_Bg_Open_ShutterSegmentRomEnd = 0x00F30C10;
 
-_ovl_Bg_Open_SpotSegmentRomStart = 0x00F30C00;
-_ovl_Bg_Open_SpotSegmentRomEnd = 0x00F30E20;
+_ovl_Bg_Open_SpotSegmentRomStart = 0x00F30C10;
+_ovl_Bg_Open_SpotSegmentRomEnd = 0x00F30E30;
 
-_ovl_Bg_Fu_KaitenSegmentRomStart = 0x00F30E20;
-_ovl_Bg_Fu_KaitenSegmentRomEnd = 0x00F310C0;
+_ovl_Bg_Fu_KaitenSegmentRomStart = 0x00F30E30;
+_ovl_Bg_Fu_KaitenSegmentRomEnd = 0x00F310D0;
 
-_ovl_Obj_AquaSegmentRomStart = 0x00F310C0;
-_ovl_Obj_AquaSegmentRomEnd = 0x00F31E90;
+_ovl_Obj_AquaSegmentRomStart = 0x00F310D0;
+_ovl_Obj_AquaSegmentRomEnd = 0x00F31EA0;
 
-_ovl_En_ElforgSegmentRomStart = 0x00F31E90;
-_ovl_En_ElforgSegmentRomEnd = 0x00F336F0;
+_ovl_En_ElforgSegmentRomStart = 0x00F31EA0;
+_ovl_En_ElforgSegmentRomEnd = 0x00F33700;
 
-_ovl_En_ElfbubSegmentRomStart = 0x00F336F0;
-_ovl_En_ElfbubSegmentRomEnd = 0x00F33D50;
+_ovl_En_ElfbubSegmentRomStart = 0x00F33700;
+_ovl_En_ElfbubSegmentRomEnd = 0x00F33D60;
 
-_ovl_En_Fu_MatoSegmentRomStart = 0x00F33D50;
-_ovl_En_Fu_MatoSegmentRomEnd = 0x00F351A0;
+_ovl_En_Fu_MatoSegmentRomStart = 0x00F33D60;
+_ovl_En_Fu_MatoSegmentRomEnd = 0x00F351B0;
 
-_ovl_En_Fu_KagoSegmentRomStart = 0x00F351A0;
-_ovl_En_Fu_KagoSegmentRomEnd = 0x00F36250;
+_ovl_En_Fu_KagoSegmentRomStart = 0x00F351B0;
+_ovl_En_Fu_KagoSegmentRomEnd = 0x00F36260;
 
-_ovl_En_OsnSegmentRomStart = 0x00F36250;
-_ovl_En_OsnSegmentRomEnd = 0x00F38590;
+_ovl_En_OsnSegmentRomStart = 0x00F36260;
+_ovl_En_OsnSegmentRomEnd = 0x00F385A0;
 
-_ovl_Bg_Ctower_GearSegmentRomStart = 0x00F38590;
-_ovl_Bg_Ctower_GearSegmentRomEnd = 0x00F38DA0;
+_ovl_Bg_Ctower_GearSegmentRomStart = 0x00F385A0;
+_ovl_Bg_Ctower_GearSegmentRomEnd = 0x00F38DB0;
 
-_ovl_En_Trt2SegmentRomStart = 0x00F38DA0;
-_ovl_En_Trt2SegmentRomEnd = 0x00F3B5D0;
+_ovl_En_Trt2SegmentRomStart = 0x00F38DB0;
+_ovl_En_Trt2SegmentRomEnd = 0x00F3B5E0;
 
-_ovl_Obj_Tokei_StepSegmentRomStart = 0x00F3B5D0;
-_ovl_Obj_Tokei_StepSegmentRomEnd = 0x00F3C180;
+_ovl_Obj_Tokei_StepSegmentRomStart = 0x00F3B5E0;
+_ovl_Obj_Tokei_StepSegmentRomEnd = 0x00F3C190;
 
-_ovl_Bg_LotusSegmentRomStart = 0x00F3C180;
-_ovl_Bg_LotusSegmentRomEnd = 0x00F3C7F0;
+_ovl_Bg_LotusSegmentRomStart = 0x00F3C190;
+_ovl_Bg_LotusSegmentRomEnd = 0x00F3C800;
 
-_ovl_En_KameSegmentRomStart = 0x00F3C7F0;
-_ovl_En_KameSegmentRomEnd = 0x00F3EC60;
+_ovl_En_KameSegmentRomStart = 0x00F3C800;
+_ovl_En_KameSegmentRomEnd = 0x00F3EC70;
 
-_ovl_Obj_Takaraya_WallSegmentRomStart = 0x00F3EC60;
-_ovl_Obj_Takaraya_WallSegmentRomEnd = 0x00F3FE70;
+_ovl_Obj_Takaraya_WallSegmentRomStart = 0x00F3EC70;
+_ovl_Obj_Takaraya_WallSegmentRomEnd = 0x00F3FE80;
 
-_ovl_Bg_Fu_MizuSegmentRomStart = 0x00F3FE70;
-_ovl_Bg_Fu_MizuSegmentRomEnd = 0x00F40150;
+_ovl_Bg_Fu_MizuSegmentRomStart = 0x00F3FE80;
+_ovl_Bg_Fu_MizuSegmentRomEnd = 0x00F40160;
 
-_ovl_En_SellnutsSegmentRomStart = 0x00F40150;
-_ovl_En_SellnutsSegmentRomEnd = 0x00F435B0;
+_ovl_En_SellnutsSegmentRomStart = 0x00F40160;
+_ovl_En_SellnutsSegmentRomEnd = 0x00F435C0;
 
-_ovl_Bg_Dkjail_IvySegmentRomStart = 0x00F435B0;
-_ovl_Bg_Dkjail_IvySegmentRomEnd = 0x00F43DF0;
+_ovl_Bg_Dkjail_IvySegmentRomStart = 0x00F435C0;
+_ovl_Bg_Dkjail_IvySegmentRomEnd = 0x00F43E00;
 
-_ovl_Obj_VisiblockSegmentRomStart = 0x00F43DF0;
-_ovl_Obj_VisiblockSegmentRomEnd = 0x00F43F10;
+_ovl_Obj_VisiblockSegmentRomStart = 0x00F43E00;
+_ovl_Obj_VisiblockSegmentRomEnd = 0x00F43F20;
 
-_ovl_En_TakarayaSegmentRomStart = 0x00F43F10;
-_ovl_En_TakarayaSegmentRomEnd = 0x00F45020;
+_ovl_En_TakarayaSegmentRomStart = 0x00F43F20;
+_ovl_En_TakarayaSegmentRomEnd = 0x00F45030;
 
-_ovl_En_TsnSegmentRomStart = 0x00F45020;
-_ovl_En_TsnSegmentRomEnd = 0x00F469D0;
+_ovl_En_TsnSegmentRomStart = 0x00F45030;
+_ovl_En_TsnSegmentRomEnd = 0x00F469E0;
 
-_ovl_En_Ds2nSegmentRomStart = 0x00F469D0;
-_ovl_En_Ds2nSegmentRomEnd = 0x00F46EF0;
+_ovl_En_Ds2nSegmentRomStart = 0x00F469E0;
+_ovl_En_Ds2nSegmentRomEnd = 0x00F46F00;
 
-_ovl_En_FsnSegmentRomStart = 0x00F46EF0;
-_ovl_En_FsnSegmentRomEnd = 0x00F4B4B0;
+_ovl_En_FsnSegmentRomStart = 0x00F46F00;
+_ovl_En_FsnSegmentRomEnd = 0x00F4B4C0;
 
-_ovl_En_ShnSegmentRomStart = 0x00F4B4B0;
-_ovl_En_ShnSegmentRomEnd = 0x00F4C720;
+_ovl_En_ShnSegmentRomStart = 0x00F4B4C0;
+_ovl_En_ShnSegmentRomEnd = 0x00F4C730;
 
-_ovl_En_Stop_heishiSegmentRomStart = 0x00F4C720;
-_ovl_En_Stop_heishiSegmentRomEnd = 0x00F4DEF0;
+_ovl_En_Stop_heishiSegmentRomStart = 0x00F4C730;
+_ovl_En_Stop_heishiSegmentRomEnd = 0x00F4DF00;
 
-_ovl_Obj_BigicicleSegmentRomStart = 0x00F4DEF0;
-_ovl_Obj_BigicicleSegmentRomEnd = 0x00F4EDA0;
+_ovl_Obj_BigicicleSegmentRomStart = 0x00F4DF00;
+_ovl_Obj_BigicicleSegmentRomEnd = 0x00F4EDB0;
 
-_ovl_En_Lift_NutsSegmentRomStart = 0x00F4EDA0;
-_ovl_En_Lift_NutsSegmentRomEnd = 0x00F517E0;
+_ovl_En_Lift_NutsSegmentRomStart = 0x00F4EDB0;
+_ovl_En_Lift_NutsSegmentRomEnd = 0x00F517F0;
 
-_ovl_En_TkSegmentRomStart = 0x00F517E0;
-_ovl_En_TkSegmentRomEnd = 0x00F553D0;
+_ovl_En_TkSegmentRomStart = 0x00F517F0;
+_ovl_En_TkSegmentRomEnd = 0x00F553E0;
 
-_ovl_Bg_Market_StepSegmentRomStart = 0x00F553D0;
-_ovl_Bg_Market_StepSegmentRomEnd = 0x00F554E0;
+_ovl_Bg_Market_StepSegmentRomStart = 0x00F553E0;
+_ovl_Bg_Market_StepSegmentRomEnd = 0x00F554F0;
 
-_ovl_Obj_LupygameliftSegmentRomStart = 0x00F554E0;
-_ovl_Obj_LupygameliftSegmentRomEnd = 0x00F55B90;
+_ovl_Obj_LupygameliftSegmentRomStart = 0x00F554F0;
+_ovl_Obj_LupygameliftSegmentRomEnd = 0x00F55BA0;
 
-_ovl_En_Test7SegmentRomStart = 0x00F55B90;
-_ovl_En_Test7SegmentRomEnd = 0x00F58C20;
+_ovl_En_Test7SegmentRomStart = 0x00F55BA0;
+_ovl_En_Test7SegmentRomEnd = 0x00F58C30;
 
-_ovl_Obj_LightblockSegmentRomStart = 0x00F58C20;
-_ovl_Obj_LightblockSegmentRomEnd = 0x00F59280;
+_ovl_Obj_LightblockSegmentRomStart = 0x00F58C30;
+_ovl_Obj_LightblockSegmentRomEnd = 0x00F59290;
 
-_ovl_Mir_Ray2SegmentRomStart = 0x00F59280;
-_ovl_Mir_Ray2SegmentRomEnd = 0x00F59700;
+_ovl_Mir_Ray2SegmentRomStart = 0x00F59290;
+_ovl_Mir_Ray2SegmentRomEnd = 0x00F59710;
 
-_ovl_En_WdhandSegmentRomStart = 0x00F59700;
-_ovl_En_WdhandSegmentRomEnd = 0x00F5BA70;
+_ovl_En_WdhandSegmentRomStart = 0x00F59710;
+_ovl_En_WdhandSegmentRomEnd = 0x00F5BA80;
 
-_ovl_En_GamelupySegmentRomStart = 0x00F5BA70;
-_ovl_En_GamelupySegmentRomEnd = 0x00F5C0F0;
+_ovl_En_GamelupySegmentRomStart = 0x00F5BA80;
+_ovl_En_GamelupySegmentRomEnd = 0x00F5C100;
 
-_ovl_Bg_Danpei_MovebgSegmentRomStart = 0x00F5C0F0;
-_ovl_Bg_Danpei_MovebgSegmentRomEnd = 0x00F5C950;
+_ovl_Bg_Danpei_MovebgSegmentRomStart = 0x00F5C100;
+_ovl_Bg_Danpei_MovebgSegmentRomEnd = 0x00F5C960;
 
-_ovl_En_SnowwdSegmentRomStart = 0x00F5C950;
-_ovl_En_SnowwdSegmentRomEnd = 0x00F5CE50;
+_ovl_En_SnowwdSegmentRomStart = 0x00F5C960;
+_ovl_En_SnowwdSegmentRomEnd = 0x00F5CE60;
 
-_ovl_En_PmSegmentRomStart = 0x00F5CE50;
-_ovl_En_PmSegmentRomEnd = 0x00F61C70;
+_ovl_En_PmSegmentRomStart = 0x00F5CE60;
+_ovl_En_PmSegmentRomEnd = 0x00F61C80;
 
-_ovl_En_GakufuSegmentRomStart = 0x00F61C70;
-_ovl_En_GakufuSegmentRomEnd = 0x00F62690;
+_ovl_En_GakufuSegmentRomStart = 0x00F61C80;
+_ovl_En_GakufuSegmentRomEnd = 0x00F626A0;
 
-_ovl_Elf_Msg4SegmentRomStart = 0x00F62690;
-_ovl_Elf_Msg4SegmentRomEnd = 0x00F62CA0;
+_ovl_Elf_Msg4SegmentRomStart = 0x00F626A0;
+_ovl_Elf_Msg4SegmentRomEnd = 0x00F62CB0;
 
-_ovl_Elf_Msg5SegmentRomStart = 0x00F62CA0;
-_ovl_Elf_Msg5SegmentRomEnd = 0x00F62F50;
+_ovl_Elf_Msg5SegmentRomStart = 0x00F62CB0;
+_ovl_Elf_Msg5SegmentRomEnd = 0x00F62F60;
 
-_ovl_En_Col_ManSegmentRomStart = 0x00F62F50;
-_ovl_En_Col_ManSegmentRomEnd = 0x00F63BB0;
+_ovl_En_Col_ManSegmentRomStart = 0x00F62F60;
+_ovl_En_Col_ManSegmentRomEnd = 0x00F63BC0;
 
-_ovl_En_Talk_GibudSegmentRomStart = 0x00F63BB0;
-_ovl_En_Talk_GibudSegmentRomEnd = 0x00F66CA0;
+_ovl_En_Talk_GibudSegmentRomStart = 0x00F63BC0;
+_ovl_En_Talk_GibudSegmentRomEnd = 0x00F66CB0;
 
-_ovl_En_GiantSegmentRomStart = 0x00F66CA0;
-_ovl_En_GiantSegmentRomEnd = 0x00F67FE0;
+_ovl_En_GiantSegmentRomStart = 0x00F66CB0;
+_ovl_En_GiantSegmentRomEnd = 0x00F67FF0;
 
-_ovl_Obj_SnowballSegmentRomStart = 0x00F67FE0;
-_ovl_Obj_SnowballSegmentRomEnd = 0x00F6A5A0;
+_ovl_Obj_SnowballSegmentRomStart = 0x00F67FF0;
+_ovl_Obj_SnowballSegmentRomEnd = 0x00F6A5B0;
 
-_ovl_Boss_HakuginSegmentRomStart = 0x00F6A5A0;
-_ovl_Boss_HakuginSegmentRomEnd = 0x00F748F0;
+_ovl_Boss_HakuginSegmentRomStart = 0x00F6A5B0;
+_ovl_Boss_HakuginSegmentRomEnd = 0x00F74900;
 
-_ovl_En_Gb2SegmentRomStart = 0x00F748F0;
-_ovl_En_Gb2SegmentRomEnd = 0x00F77170;
+_ovl_En_Gb2SegmentRomStart = 0x00F74900;
+_ovl_En_Gb2SegmentRomEnd = 0x00F77180;
 
-_ovl_En_OnpumanSegmentRomStart = 0x00F77170;
-_ovl_En_OnpumanSegmentRomEnd = 0x00F77740;
+_ovl_En_OnpumanSegmentRomStart = 0x00F77180;
+_ovl_En_OnpumanSegmentRomEnd = 0x00F77750;
 
-_ovl_Bg_Tobira01SegmentRomStart = 0x00F77740;
-_ovl_Bg_Tobira01SegmentRomEnd = 0x00F77B80;
+_ovl_Bg_Tobira01SegmentRomStart = 0x00F77750;
+_ovl_Bg_Tobira01SegmentRomEnd = 0x00F77B90;
 
-_ovl_En_Tag_ObjSegmentRomStart = 0x00F77B80;
-_ovl_En_Tag_ObjSegmentRomEnd = 0x00F77C90;
+_ovl_En_Tag_ObjSegmentRomStart = 0x00F77B90;
+_ovl_En_Tag_ObjSegmentRomEnd = 0x00F77CA0;
 
-_ovl_Obj_DhouseSegmentRomStart = 0x00F77C90;
-_ovl_Obj_DhouseSegmentRomEnd = 0x00F79490;
+_ovl_Obj_DhouseSegmentRomStart = 0x00F77CA0;
+_ovl_Obj_DhouseSegmentRomEnd = 0x00F794A0;
 
-_ovl_Obj_HakaisiSegmentRomStart = 0x00F79490;
-_ovl_Obj_HakaisiSegmentRomEnd = 0x00F7AAA0;
+_ovl_Obj_HakaisiSegmentRomStart = 0x00F794A0;
+_ovl_Obj_HakaisiSegmentRomEnd = 0x00F7AAB0;
 
-_ovl_Bg_Hakugin_SwitchSegmentRomStart = 0x00F7AAA0;
-_ovl_Bg_Hakugin_SwitchSegmentRomEnd = 0x00F7BE00;
+_ovl_Bg_Hakugin_SwitchSegmentRomStart = 0x00F7AAB0;
+_ovl_Bg_Hakugin_SwitchSegmentRomEnd = 0x00F7BE10;
 
-_ovl_En_SnowmanSegmentRomStart = 0x00F7BE00;
-_ovl_En_SnowmanSegmentRomEnd = 0x00F7F260;
+_ovl_En_SnowmanSegmentRomStart = 0x00F7BE10;
+_ovl_En_SnowmanSegmentRomEnd = 0x00F7F270;
 
-_ovl_TG_SwSegmentRomStart = 0x00F7F260;
-_ovl_TG_SwSegmentRomEnd = 0x00F7F6B0;
+_ovl_TG_SwSegmentRomStart = 0x00F7F270;
+_ovl_TG_SwSegmentRomEnd = 0x00F7F6C0;
 
-_ovl_En_Po_SistersSegmentRomStart = 0x00F7F6B0;
-_ovl_En_Po_SistersSegmentRomEnd = 0x00F831B0;
+_ovl_En_Po_SistersSegmentRomStart = 0x00F7F6C0;
+_ovl_En_Po_SistersSegmentRomEnd = 0x00F831C0;
 
-_ovl_En_PpSegmentRomStart = 0x00F831B0;
-_ovl_En_PpSegmentRomEnd = 0x00F86E00;
+_ovl_En_PpSegmentRomStart = 0x00F831C0;
+_ovl_En_PpSegmentRomEnd = 0x00F86E10;
 
-_ovl_En_HakurockSegmentRomStart = 0x00F86E00;
-_ovl_En_HakurockSegmentRomEnd = 0x00F87F00;
+_ovl_En_HakurockSegmentRomStart = 0x00F86E10;
+_ovl_En_HakurockSegmentRomEnd = 0x00F87F10;
 
-_ovl_En_HanabiSegmentRomStart = 0x00F87F00;
-_ovl_En_HanabiSegmentRomEnd = 0x00F89050;
+_ovl_En_HanabiSegmentRomStart = 0x00F87F10;
+_ovl_En_HanabiSegmentRomEnd = 0x00F89060;
 
-_ovl_Obj_DowsingSegmentRomStart = 0x00F89050;
-_ovl_Obj_DowsingSegmentRomEnd = 0x00F891D0;
+_ovl_Obj_DowsingSegmentRomStart = 0x00F89060;
+_ovl_Obj_DowsingSegmentRomEnd = 0x00F891E0;
 
-_ovl_Obj_WindSegmentRomStart = 0x00F891D0;
-_ovl_Obj_WindSegmentRomEnd = 0x00F89930;
+_ovl_Obj_WindSegmentRomStart = 0x00F891E0;
+_ovl_Obj_WindSegmentRomEnd = 0x00F89940;
 
-_ovl_En_RacedogSegmentRomStart = 0x00F89930;
-_ovl_En_RacedogSegmentRomEnd = 0x00F8B5A0;
+_ovl_En_RacedogSegmentRomStart = 0x00F89940;
+_ovl_En_RacedogSegmentRomEnd = 0x00F8B5B0;
 
-_ovl_En_Kendo_JsSegmentRomStart = 0x00F8B5A0;
-_ovl_En_Kendo_JsSegmentRomEnd = 0x00F8D380;
+_ovl_En_Kendo_JsSegmentRomStart = 0x00F8B5B0;
+_ovl_En_Kendo_JsSegmentRomEnd = 0x00F8D390;
 
-_ovl_Bg_BotihasiraSegmentRomStart = 0x00F8D380;
-_ovl_Bg_BotihasiraSegmentRomEnd = 0x00F8D670;
+_ovl_Bg_BotihasiraSegmentRomStart = 0x00F8D390;
+_ovl_Bg_BotihasiraSegmentRomEnd = 0x00F8D680;
 
-_ovl_En_Fish2SegmentRomStart = 0x00F8D670;
-_ovl_En_Fish2SegmentRomEnd = 0x00F90B30;
+_ovl_En_Fish2SegmentRomStart = 0x00F8D680;
+_ovl_En_Fish2SegmentRomEnd = 0x00F90B40;
 
-_ovl_En_PstSegmentRomStart = 0x00F90B30;
-_ovl_En_PstSegmentRomEnd = 0x00F919F0;
+_ovl_En_PstSegmentRomStart = 0x00F90B40;
+_ovl_En_PstSegmentRomEnd = 0x00F91A00;
 
-_ovl_En_PohSegmentRomStart = 0x00F919F0;
-_ovl_En_PohSegmentRomEnd = 0x00F94E10;
+_ovl_En_PohSegmentRomStart = 0x00F91A00;
+_ovl_En_PohSegmentRomEnd = 0x00F94E20;
 
-_ovl_Obj_SpidertentSegmentRomStart = 0x00F94E10;
-_ovl_Obj_SpidertentSegmentRomEnd = 0x00F96890;
+_ovl_Obj_SpidertentSegmentRomStart = 0x00F94E20;
+_ovl_Obj_SpidertentSegmentRomEnd = 0x00F968A0;
 
-_ovl_En_ZoraeggSegmentRomStart = 0x00F96890;
-_ovl_En_ZoraeggSegmentRomEnd = 0x00F99030;
+_ovl_En_ZoraeggSegmentRomStart = 0x00F968A0;
+_ovl_En_ZoraeggSegmentRomEnd = 0x00F99040;
 
-_ovl_En_KbtSegmentRomStart = 0x00F99030;
-_ovl_En_KbtSegmentRomEnd = 0x00F9A270;
+_ovl_En_KbtSegmentRomStart = 0x00F99040;
+_ovl_En_KbtSegmentRomEnd = 0x00F9A280;
 
-_ovl_En_GgSegmentRomStart = 0x00F9A270;
-_ovl_En_GgSegmentRomEnd = 0x00F9C380;
+_ovl_En_GgSegmentRomStart = 0x00F9A280;
+_ovl_En_GgSegmentRomEnd = 0x00F9C390;
 
-_ovl_En_MarutaSegmentRomStart = 0x00F9C380;
-_ovl_En_MarutaSegmentRomEnd = 0x00F9E120;
+_ovl_En_MarutaSegmentRomStart = 0x00F9C390;
+_ovl_En_MarutaSegmentRomEnd = 0x00F9E130;
 
-_ovl_Obj_Snowball2SegmentRomStart = 0x00F9E120;
-_ovl_Obj_Snowball2SegmentRomEnd = 0x00F9FF50;
+_ovl_Obj_Snowball2SegmentRomStart = 0x00F9E130;
+_ovl_Obj_Snowball2SegmentRomEnd = 0x00F9FF60;
 
-_ovl_En_Gg2SegmentRomStart = 0x00F9FF50;
-_ovl_En_Gg2SegmentRomEnd = 0x00FA1560;
+_ovl_En_Gg2SegmentRomStart = 0x00F9FF60;
+_ovl_En_Gg2SegmentRomEnd = 0x00FA1570;
 
-_ovl_Obj_GhakaSegmentRomStart = 0x00FA1560;
-_ovl_Obj_GhakaSegmentRomEnd = 0x00FA1D20;
+_ovl_Obj_GhakaSegmentRomStart = 0x00FA1570;
+_ovl_Obj_GhakaSegmentRomEnd = 0x00FA1D30;
 
-_ovl_En_DnpSegmentRomStart = 0x00FA1D20;
-_ovl_En_DnpSegmentRomEnd = 0x00FA32F0;
+_ovl_En_DnpSegmentRomStart = 0x00FA1D30;
+_ovl_En_DnpSegmentRomEnd = 0x00FA3300;
 
-_ovl_En_DaiSegmentRomStart = 0x00FA32F0;
-_ovl_En_DaiSegmentRomEnd = 0x00FA5380;
+_ovl_En_DaiSegmentRomStart = 0x00FA3300;
+_ovl_En_DaiSegmentRomEnd = 0x00FA5390;
 
-_ovl_Bg_Goron_OyuSegmentRomStart = 0x00FA5380;
-_ovl_Bg_Goron_OyuSegmentRomEnd = 0x00FA5B00;
+_ovl_Bg_Goron_OyuSegmentRomStart = 0x00FA5390;
+_ovl_Bg_Goron_OyuSegmentRomEnd = 0x00FA5B10;
 
-_ovl_En_KgySegmentRomStart = 0x00FA5B00;
-_ovl_En_KgySegmentRomEnd = 0x00FA8CB0;
+_ovl_En_KgySegmentRomStart = 0x00FA5B10;
+_ovl_En_KgySegmentRomEnd = 0x00FA8CC0;
 
-_ovl_En_InvadepohSegmentRomStart = 0x00FA8CB0;
-_ovl_En_InvadepohSegmentRomEnd = 0x00FB55A0;
+_ovl_En_InvadepohSegmentRomStart = 0x00FA8CC0;
+_ovl_En_InvadepohSegmentRomEnd = 0x00FB55B0;
 
-_ovl_En_GkSegmentRomStart = 0x00FB55A0;
-_ovl_En_GkSegmentRomEnd = 0x00FB89D0;
+_ovl_En_GkSegmentRomStart = 0x00FB55B0;
+_ovl_En_GkSegmentRomEnd = 0x00FB89E0;
 
-_ovl_En_AnSegmentRomStart = 0x00FB89D0;
-_ovl_En_AnSegmentRomEnd = 0x00FBF8B0;
+_ovl_En_AnSegmentRomStart = 0x00FB89E0;
+_ovl_En_AnSegmentRomEnd = 0x00FBF8C0;
 
-_ovl_En_BeeSegmentRomStart = 0x00FBF8B0;
-_ovl_En_BeeSegmentRomEnd = 0x00FC0470;
+_ovl_En_BeeSegmentRomStart = 0x00FBF8C0;
+_ovl_En_BeeSegmentRomEnd = 0x00FC0480;
 
-_ovl_En_OtSegmentRomStart = 0x00FC0470;
-_ovl_En_OtSegmentRomEnd = 0x00FC3A10;
+_ovl_En_OtSegmentRomStart = 0x00FC0480;
+_ovl_En_OtSegmentRomEnd = 0x00FC3A20;
 
-_ovl_En_DragonSegmentRomStart = 0x00FC3A10;
-_ovl_En_DragonSegmentRomEnd = 0x00FC5C50;
+_ovl_En_DragonSegmentRomStart = 0x00FC3A20;
+_ovl_En_DragonSegmentRomEnd = 0x00FC5C60;
 
-_ovl_Obj_DoraSegmentRomStart = 0x00FC5C50;
-_ovl_Obj_DoraSegmentRomEnd = 0x00FC6760;
+_ovl_Obj_DoraSegmentRomStart = 0x00FC5C60;
+_ovl_Obj_DoraSegmentRomEnd = 0x00FC6770;
 
-_ovl_En_BigpoSegmentRomStart = 0x00FC6760;
-_ovl_En_BigpoSegmentRomEnd = 0x00FCA640;
+_ovl_En_BigpoSegmentRomStart = 0x00FC6770;
+_ovl_En_BigpoSegmentRomEnd = 0x00FCA650;
 
-_ovl_Obj_Kendo_KanbanSegmentRomStart = 0x00FCA640;
-_ovl_Obj_Kendo_KanbanSegmentRomEnd = 0x00FCBBA0;
+_ovl_Obj_Kendo_KanbanSegmentRomStart = 0x00FCA650;
+_ovl_Obj_Kendo_KanbanSegmentRomEnd = 0x00FCBBB0;
 
-_ovl_Obj_HarikoSegmentRomStart = 0x00FCBBA0;
-_ovl_Obj_HarikoSegmentRomEnd = 0x00FCBEB0;
+_ovl_Obj_HarikoSegmentRomStart = 0x00FCBBB0;
+_ovl_Obj_HarikoSegmentRomEnd = 0x00FCBEC0;
 
-_ovl_En_SthSegmentRomStart = 0x00FCBEB0;
-_ovl_En_SthSegmentRomEnd = 0x00FD27E0;
+_ovl_En_SthSegmentRomStart = 0x00FCBEC0;
+_ovl_En_SthSegmentRomEnd = 0x00FD27F0;
 
-_ovl_Bg_Sinkai_KabeSegmentRomStart = 0x00FD27E0;
-_ovl_Bg_Sinkai_KabeSegmentRomEnd = 0x00FD2D60;
+_ovl_Bg_Sinkai_KabeSegmentRomStart = 0x00FD27F0;
+_ovl_Bg_Sinkai_KabeSegmentRomEnd = 0x00FD2D70;
 
-_ovl_Bg_Haka_CurtainSegmentRomStart = 0x00FD2D60;
-_ovl_Bg_Haka_CurtainSegmentRomEnd = 0x00FD31A0;
+_ovl_Bg_Haka_CurtainSegmentRomStart = 0x00FD2D70;
+_ovl_Bg_Haka_CurtainSegmentRomEnd = 0x00FD31B0;
 
-_ovl_Bg_Kin2_BombwallSegmentRomStart = 0x00FD31A0;
-_ovl_Bg_Kin2_BombwallSegmentRomEnd = 0x00FD39A0;
+_ovl_Bg_Kin2_BombwallSegmentRomStart = 0x00FD31B0;
+_ovl_Bg_Kin2_BombwallSegmentRomEnd = 0x00FD39B0;
 
-_ovl_Bg_Kin2_FenceSegmentRomStart = 0x00FD39A0;
-_ovl_Bg_Kin2_FenceSegmentRomEnd = 0x00FD4120;
+_ovl_Bg_Kin2_FenceSegmentRomStart = 0x00FD39B0;
+_ovl_Bg_Kin2_FenceSegmentRomEnd = 0x00FD4130;
 
-_ovl_Bg_Kin2_PictureSegmentRomStart = 0x00FD4120;
-_ovl_Bg_Kin2_PictureSegmentRomEnd = 0x00FD4CB0;
+_ovl_Bg_Kin2_PictureSegmentRomStart = 0x00FD4130;
+_ovl_Bg_Kin2_PictureSegmentRomEnd = 0x00FD4CC0;
 
-_ovl_Bg_Kin2_ShelfSegmentRomStart = 0x00FD4CB0;
-_ovl_Bg_Kin2_ShelfSegmentRomEnd = 0x00FD5A40;
+_ovl_Bg_Kin2_ShelfSegmentRomStart = 0x00FD4CC0;
+_ovl_Bg_Kin2_ShelfSegmentRomEnd = 0x00FD5A50;
 
-_ovl_En_Rail_SkbSegmentRomStart = 0x00FD5A40;
-_ovl_En_Rail_SkbSegmentRomEnd = 0x00FD8C10;
+_ovl_En_Rail_SkbSegmentRomStart = 0x00FD5A50;
+_ovl_En_Rail_SkbSegmentRomEnd = 0x00FD8C20;
 
-_ovl_En_JgSegmentRomStart = 0x00FD8C10;
-_ovl_En_JgSegmentRomEnd = 0x00FDB1B0;
+_ovl_En_JgSegmentRomStart = 0x00FD8C20;
+_ovl_En_JgSegmentRomEnd = 0x00FDB1C0;
 
-_ovl_En_Tru_MtSegmentRomStart = 0x00FDB1B0;
-_ovl_En_Tru_MtSegmentRomEnd = 0x00FDC8F0;
+_ovl_En_Tru_MtSegmentRomStart = 0x00FDB1C0;
+_ovl_En_Tru_MtSegmentRomEnd = 0x00FDC900;
 
-_ovl_Obj_UmSegmentRomStart = 0x00FDC8F0;
-_ovl_Obj_UmSegmentRomEnd = 0x00FE1A10;
+_ovl_Obj_UmSegmentRomStart = 0x00FDC900;
+_ovl_Obj_UmSegmentRomEnd = 0x00FE1A20;
 
-_ovl_En_Neo_ReebaSegmentRomStart = 0x00FE1A10;
-_ovl_En_Neo_ReebaSegmentRomEnd = 0x00FE3AB0;
+_ovl_En_Neo_ReebaSegmentRomStart = 0x00FE1A20;
+_ovl_En_Neo_ReebaSegmentRomEnd = 0x00FE3AC0;
 
-_ovl_Bg_Mbar_ChairSegmentRomStart = 0x00FE3AB0;
-_ovl_Bg_Mbar_ChairSegmentRomEnd = 0x00FE3BE0;
+_ovl_Bg_Mbar_ChairSegmentRomStart = 0x00FE3AC0;
+_ovl_Bg_Mbar_ChairSegmentRomEnd = 0x00FE3BF0;
 
-_ovl_Bg_Ikana_BlockSegmentRomStart = 0x00FE3BE0;
-_ovl_Bg_Ikana_BlockSegmentRomEnd = 0x00FE48B0;
+_ovl_Bg_Ikana_BlockSegmentRomStart = 0x00FE3BF0;
+_ovl_Bg_Ikana_BlockSegmentRomEnd = 0x00FE48C0;
 
-_ovl_Bg_Ikana_MirrorSegmentRomStart = 0x00FE48B0;
-_ovl_Bg_Ikana_MirrorSegmentRomEnd = 0x00FE5460;
+_ovl_Bg_Ikana_MirrorSegmentRomStart = 0x00FE48C0;
+_ovl_Bg_Ikana_MirrorSegmentRomEnd = 0x00FE5470;
 
-_ovl_Bg_Ikana_RotaryroomSegmentRomStart = 0x00FE5460;
-_ovl_Bg_Ikana_RotaryroomSegmentRomEnd = 0x00FE7530;
+_ovl_Bg_Ikana_RotaryroomSegmentRomStart = 0x00FE5470;
+_ovl_Bg_Ikana_RotaryroomSegmentRomEnd = 0x00FE7540;
 
-_ovl_Bg_Dblue_BalanceSegmentRomStart = 0x00FE7530;
-_ovl_Bg_Dblue_BalanceSegmentRomEnd = 0x00FE8DF0;
+_ovl_Bg_Dblue_BalanceSegmentRomStart = 0x00FE7540;
+_ovl_Bg_Dblue_BalanceSegmentRomEnd = 0x00FE8E00;
 
-_ovl_Bg_Dblue_WaterfallSegmentRomStart = 0x00FE8DF0;
-_ovl_Bg_Dblue_WaterfallSegmentRomEnd = 0x00FEA700;
+_ovl_Bg_Dblue_WaterfallSegmentRomStart = 0x00FE8E00;
+_ovl_Bg_Dblue_WaterfallSegmentRomEnd = 0x00FEA710;
 
-_ovl_En_KaizokuSegmentRomStart = 0x00FEA700;
-_ovl_En_KaizokuSegmentRomEnd = 0x00FF0440;
+_ovl_En_KaizokuSegmentRomStart = 0x00FEA710;
+_ovl_En_KaizokuSegmentRomEnd = 0x00FF0450;
 
-_ovl_En_Ge2SegmentRomStart = 0x00FF0440;
-_ovl_En_Ge2SegmentRomEnd = 0x00FF21A0;
+_ovl_En_Ge2SegmentRomStart = 0x00FF0450;
+_ovl_En_Ge2SegmentRomEnd = 0x00FF21B0;
 
-_ovl_En_Ma_YtsSegmentRomStart = 0x00FF21A0;
-_ovl_En_Ma_YtsSegmentRomEnd = 0x00FF3690;
+_ovl_En_Ma_YtsSegmentRomStart = 0x00FF21B0;
+_ovl_En_Ma_YtsSegmentRomEnd = 0x00FF36A0;
 
-_ovl_En_Ma_YtoSegmentRomStart = 0x00FF3690;
-_ovl_En_Ma_YtoSegmentRomEnd = 0x00FF6E30;
+_ovl_En_Ma_YtoSegmentRomStart = 0x00FF36A0;
+_ovl_En_Ma_YtoSegmentRomEnd = 0x00FF6E40;
 
-_ovl_Obj_Tokei_TurretSegmentRomStart = 0x00FF6E30;
-_ovl_Obj_Tokei_TurretSegmentRomEnd = 0x00FF7090;
+_ovl_Obj_Tokei_TurretSegmentRomStart = 0x00FF6E40;
+_ovl_Obj_Tokei_TurretSegmentRomEnd = 0x00FF70A0;
 
-_ovl_Bg_Dblue_ElevatorSegmentRomStart = 0x00FF7090;
-_ovl_Bg_Dblue_ElevatorSegmentRomEnd = 0x00FF7C80;
+_ovl_Bg_Dblue_ElevatorSegmentRomStart = 0x00FF70A0;
+_ovl_Bg_Dblue_ElevatorSegmentRomEnd = 0x00FF7C90;
 
-_ovl_Obj_WarpstoneSegmentRomStart = 0x00FF7C80;
-_ovl_Obj_WarpstoneSegmentRomEnd = 0x00FF8480;
+_ovl_Obj_WarpstoneSegmentRomStart = 0x00FF7C90;
+_ovl_Obj_WarpstoneSegmentRomEnd = 0x00FF8490;
 
-_ovl_En_ZogSegmentRomStart = 0x00FF8480;
-_ovl_En_ZogSegmentRomEnd = 0x00FFAF80;
+_ovl_En_ZogSegmentRomStart = 0x00FF8490;
+_ovl_En_ZogSegmentRomEnd = 0x00FFAF90;
 
-_ovl_Obj_RotliftSegmentRomStart = 0x00FFAF80;
-_ovl_Obj_RotliftSegmentRomEnd = 0x00FFB340;
+_ovl_Obj_RotliftSegmentRomStart = 0x00FFAF90;
+_ovl_Obj_RotliftSegmentRomEnd = 0x00FFB350;
 
-_ovl_Obj_Jg_GakkiSegmentRomStart = 0x00FFB340;
-_ovl_Obj_Jg_GakkiSegmentRomEnd = 0x00FFB570;
+_ovl_Obj_Jg_GakkiSegmentRomStart = 0x00FFB350;
+_ovl_Obj_Jg_GakkiSegmentRomEnd = 0x00FFB580;
 
-_ovl_Bg_Inibs_MovebgSegmentRomStart = 0x00FFB570;
-_ovl_Bg_Inibs_MovebgSegmentRomEnd = 0x00FFB730;
+_ovl_Bg_Inibs_MovebgSegmentRomStart = 0x00FFB580;
+_ovl_Bg_Inibs_MovebgSegmentRomEnd = 0x00FFB740;
 
-_ovl_En_ZotSegmentRomStart = 0x00FFB730;
-_ovl_En_ZotSegmentRomEnd = 0x00FFF210;
+_ovl_En_ZotSegmentRomStart = 0x00FFB740;
+_ovl_En_ZotSegmentRomEnd = 0x00FFF220;
 
-_ovl_Obj_TreeSegmentRomStart = 0x00FFF210;
-_ovl_Obj_TreeSegmentRomEnd = 0x00FFF7B0;
+_ovl_Obj_TreeSegmentRomStart = 0x00FFF220;
+_ovl_Obj_TreeSegmentRomEnd = 0x00FFF7C0;
 
-_ovl_Obj_Y2liftSegmentRomStart = 0x00FFF7B0;
-_ovl_Obj_Y2liftSegmentRomEnd = 0x00FFFAE0;
+_ovl_Obj_Y2liftSegmentRomStart = 0x00FFF7C0;
+_ovl_Obj_Y2liftSegmentRomEnd = 0x00FFFAF0;
 
-_ovl_Obj_Y2shutterSegmentRomStart = 0x00FFFAE0;
-_ovl_Obj_Y2shutterSegmentRomEnd = 0x010000B0;
+_ovl_Obj_Y2shutterSegmentRomStart = 0x00FFFAF0;
+_ovl_Obj_Y2shutterSegmentRomEnd = 0x010000C0;
 
-_ovl_Obj_BoatSegmentRomStart = 0x010000B0;
-_ovl_Obj_BoatSegmentRomEnd = 0x01000840;
+_ovl_Obj_BoatSegmentRomStart = 0x010000C0;
+_ovl_Obj_BoatSegmentRomEnd = 0x01000850;
 
-_ovl_Obj_TaruSegmentRomStart = 0x01000840;
-_ovl_Obj_TaruSegmentRomEnd = 0x010015B0;
+_ovl_Obj_TaruSegmentRomStart = 0x01000850;
+_ovl_Obj_TaruSegmentRomEnd = 0x010015C0;
 
-_ovl_Obj_HunsuiSegmentRomStart = 0x010015B0;
-_ovl_Obj_HunsuiSegmentRomEnd = 0x01003030;
+_ovl_Obj_HunsuiSegmentRomStart = 0x010015C0;
+_ovl_Obj_HunsuiSegmentRomEnd = 0x01003040;
 
-_ovl_En_Jc_MatoSegmentRomStart = 0x01003030;
-_ovl_En_Jc_MatoSegmentRomEnd = 0x01003410;
+_ovl_En_Jc_MatoSegmentRomStart = 0x01003040;
+_ovl_En_Jc_MatoSegmentRomEnd = 0x01003420;
 
-_ovl_Mir_Ray3SegmentRomStart = 0x01003410;
-_ovl_Mir_Ray3SegmentRomEnd = 0x010046C0;
+_ovl_Mir_Ray3SegmentRomStart = 0x01003420;
+_ovl_Mir_Ray3SegmentRomEnd = 0x010046D0;
 
-_ovl_En_ZobSegmentRomStart = 0x010046C0;
-_ovl_En_ZobSegmentRomEnd = 0x010066F0;
+_ovl_En_ZobSegmentRomStart = 0x010046D0;
+_ovl_En_ZobSegmentRomEnd = 0x01006700;
 
-_ovl_Elf_Msg6SegmentRomStart = 0x010066F0;
-_ovl_Elf_Msg6SegmentRomEnd = 0x01007570;
+_ovl_Elf_Msg6SegmentRomStart = 0x01006700;
+_ovl_Elf_Msg6SegmentRomEnd = 0x01007580;
 
-_ovl_Obj_NozokiSegmentRomStart = 0x01007570;
-_ovl_Obj_NozokiSegmentRomEnd = 0x01008800;
+_ovl_Obj_NozokiSegmentRomStart = 0x01007580;
+_ovl_Obj_NozokiSegmentRomEnd = 0x01008810;
 
-_ovl_En_TotoSegmentRomStart = 0x01008800;
-_ovl_En_TotoSegmentRomEnd = 0x0100A540;
+_ovl_En_TotoSegmentRomStart = 0x01008810;
+_ovl_En_TotoSegmentRomEnd = 0x0100A550;
 
-_ovl_En_RailgibudSegmentRomStart = 0x0100A540;
-_ovl_En_RailgibudSegmentRomEnd = 0x0100D960;
+_ovl_En_RailgibudSegmentRomStart = 0x0100A550;
+_ovl_En_RailgibudSegmentRomEnd = 0x0100D970;
 
-_ovl_En_BabaSegmentRomStart = 0x0100D960;
-_ovl_En_BabaSegmentRomEnd = 0x0100F810;
+_ovl_En_BabaSegmentRomStart = 0x0100D970;
+_ovl_En_BabaSegmentRomEnd = 0x0100F820;
 
-_ovl_En_SuttariSegmentRomStart = 0x0100F810;
-_ovl_En_SuttariSegmentRomEnd = 0x010140B0;
+_ovl_En_SuttariSegmentRomStart = 0x0100F820;
+_ovl_En_SuttariSegmentRomEnd = 0x010140C0;
 
-_ovl_En_ZodSegmentRomStart = 0x010140B0;
-_ovl_En_ZodSegmentRomEnd = 0x01015A20;
+_ovl_En_ZodSegmentRomStart = 0x010140C0;
+_ovl_En_ZodSegmentRomEnd = 0x01015A30;
 
-_ovl_En_KujiyaSegmentRomStart = 0x01015A20;
-_ovl_En_KujiyaSegmentRomEnd = 0x01016810;
+_ovl_En_KujiyaSegmentRomStart = 0x01015A30;
+_ovl_En_KujiyaSegmentRomEnd = 0x01016820;
 
-_ovl_En_GegSegmentRomStart = 0x01016810;
-_ovl_En_GegSegmentRomEnd = 0x01019840;
+_ovl_En_GegSegmentRomStart = 0x01016820;
+_ovl_En_GegSegmentRomEnd = 0x01019850;
 
-_ovl_Obj_KinokoSegmentRomStart = 0x01019840;
-_ovl_Obj_KinokoSegmentRomEnd = 0x01019C30;
+_ovl_Obj_KinokoSegmentRomStart = 0x01019850;
+_ovl_Obj_KinokoSegmentRomEnd = 0x01019C40;
 
-_ovl_Obj_YasiSegmentRomStart = 0x01019C30;
-_ovl_Obj_YasiSegmentRomEnd = 0x01019F40;
+_ovl_Obj_YasiSegmentRomStart = 0x01019C40;
+_ovl_Obj_YasiSegmentRomEnd = 0x01019F50;
 
-_ovl_En_Tanron1SegmentRomStart = 0x01019F40;
-_ovl_En_Tanron1SegmentRomEnd = 0x0101B910;
+_ovl_En_Tanron1SegmentRomStart = 0x01019F50;
+_ovl_En_Tanron1SegmentRomEnd = 0x0101B920;
 
-_ovl_En_Tanron2SegmentRomStart = 0x0101B910;
-_ovl_En_Tanron2SegmentRomEnd = 0x0101D590;
+_ovl_En_Tanron2SegmentRomStart = 0x0101B920;
+_ovl_En_Tanron2SegmentRomEnd = 0x0101D5A0;
 
-_ovl_En_Tanron3SegmentRomStart = 0x0101D590;
-_ovl_En_Tanron3SegmentRomEnd = 0x0101E8D0;
+_ovl_En_Tanron3SegmentRomStart = 0x0101D5A0;
+_ovl_En_Tanron3SegmentRomEnd = 0x0101E8E0;
 
-_ovl_Obj_ChanSegmentRomStart = 0x0101E8D0;
-_ovl_Obj_ChanSegmentRomEnd = 0x0101FC80;
+_ovl_Obj_ChanSegmentRomStart = 0x0101E8E0;
+_ovl_Obj_ChanSegmentRomEnd = 0x0101FC90;
 
-_ovl_En_ZosSegmentRomStart = 0x0101FC80;
-_ovl_En_ZosSegmentRomEnd = 0x01021A60;
+_ovl_En_ZosSegmentRomStart = 0x0101FC90;
+_ovl_En_ZosSegmentRomEnd = 0x01021A70;
 
-_ovl_En_S_GoroSegmentRomStart = 0x01021A60;
-_ovl_En_S_GoroSegmentRomEnd = 0x01024D90;
+_ovl_En_S_GoroSegmentRomStart = 0x01021A70;
+_ovl_En_S_GoroSegmentRomEnd = 0x01024DA0;
 
-_ovl_En_NbSegmentRomStart = 0x01024D90;
-_ovl_En_NbSegmentRomEnd = 0x010268E0;
+_ovl_En_NbSegmentRomStart = 0x01024DA0;
+_ovl_En_NbSegmentRomEnd = 0x010268F0;
 
-_ovl_En_JaSegmentRomStart = 0x010268E0;
-_ovl_En_JaSegmentRomEnd = 0x01028960;
+_ovl_En_JaSegmentRomStart = 0x010268F0;
+_ovl_En_JaSegmentRomEnd = 0x01028970;
 
-_ovl_Bg_F40_BlockSegmentRomStart = 0x01028960;
-_ovl_Bg_F40_BlockSegmentRomEnd = 0x01029790;
+_ovl_Bg_F40_BlockSegmentRomStart = 0x01028970;
+_ovl_Bg_F40_BlockSegmentRomEnd = 0x010297A0;
 
-_ovl_Bg_F40_SwitchSegmentRomStart = 0x01029790;
-_ovl_Bg_F40_SwitchSegmentRomEnd = 0x01029F00;
+_ovl_Bg_F40_SwitchSegmentRomStart = 0x010297A0;
+_ovl_Bg_F40_SwitchSegmentRomEnd = 0x01029F10;
 
-_ovl_En_Po_ComposerSegmentRomStart = 0x01029F00;
-_ovl_En_Po_ComposerSegmentRomEnd = 0x0102BBC0;
+_ovl_En_Po_ComposerSegmentRomStart = 0x01029F10;
+_ovl_En_Po_ComposerSegmentRomEnd = 0x0102BBD0;
 
-_ovl_En_GuruguruSegmentRomStart = 0x0102BBC0;
-_ovl_En_GuruguruSegmentRomEnd = 0x0102CAA0;
+_ovl_En_GuruguruSegmentRomStart = 0x0102BBD0;
+_ovl_En_GuruguruSegmentRomEnd = 0x0102CAB0;
 
-_ovl_Oceff_Wipe5SegmentRomStart = 0x0102CAA0;
-_ovl_Oceff_Wipe5SegmentRomEnd = 0x0102E230;
+_ovl_Oceff_Wipe5SegmentRomStart = 0x0102CAB0;
+_ovl_Oceff_Wipe5SegmentRomEnd = 0x0102E240;
 
-_ovl_En_Stone_heishiSegmentRomStart = 0x0102E230;
-_ovl_En_Stone_heishiSegmentRomEnd = 0x0102F560;
+_ovl_En_Stone_heishiSegmentRomStart = 0x0102E240;
+_ovl_En_Stone_heishiSegmentRomEnd = 0x0102F570;
 
-_ovl_Oceff_Wipe6SegmentRomStart = 0x0102F560;
-_ovl_Oceff_Wipe6SegmentRomEnd = 0x0102FBB0;
+_ovl_Oceff_Wipe6SegmentRomStart = 0x0102F570;
+_ovl_Oceff_Wipe6SegmentRomEnd = 0x0102FBC0;
 
-_ovl_En_ScopenutsSegmentRomStart = 0x0102FBB0;
-_ovl_En_ScopenutsSegmentRomEnd = 0x01031FC0;
+_ovl_En_ScopenutsSegmentRomStart = 0x0102FBC0;
+_ovl_En_ScopenutsSegmentRomEnd = 0x01031FD0;
 
-_ovl_En_ScopecrowSegmentRomStart = 0x01031FC0;
-_ovl_En_ScopecrowSegmentRomEnd = 0x01032C70;
+_ovl_En_ScopecrowSegmentRomStart = 0x01031FD0;
+_ovl_En_ScopecrowSegmentRomEnd = 0x01032C80;
 
-_ovl_Oceff_Wipe7SegmentRomStart = 0x01032C70;
-_ovl_Oceff_Wipe7SegmentRomEnd = 0x01033AD0;
+_ovl_Oceff_Wipe7SegmentRomStart = 0x01032C80;
+_ovl_Oceff_Wipe7SegmentRomEnd = 0x01033AE0;
 
-_ovl_Eff_Kamejima_WaveSegmentRomStart = 0x01033AD0;
-_ovl_Eff_Kamejima_WaveSegmentRomEnd = 0x01034170;
+_ovl_Eff_Kamejima_WaveSegmentRomStart = 0x01033AE0;
+_ovl_Eff_Kamejima_WaveSegmentRomEnd = 0x01034180;
 
-_ovl_En_HgSegmentRomStart = 0x01034170;
-_ovl_En_HgSegmentRomEnd = 0x01035250;
+_ovl_En_HgSegmentRomStart = 0x01034180;
+_ovl_En_HgSegmentRomEnd = 0x01035260;
 
-_ovl_En_HgoSegmentRomStart = 0x01035250;
-_ovl_En_HgoSegmentRomEnd = 0x01036180;
+_ovl_En_HgoSegmentRomStart = 0x01035260;
+_ovl_En_HgoSegmentRomEnd = 0x01036190;
 
-_ovl_En_ZovSegmentRomStart = 0x01036180;
-_ovl_En_ZovSegmentRomEnd = 0x010379D0;
+_ovl_En_ZovSegmentRomStart = 0x01036190;
+_ovl_En_ZovSegmentRomEnd = 0x010379E0;
 
-_ovl_En_AhSegmentRomStart = 0x010379D0;
-_ovl_En_AhSegmentRomEnd = 0x01039030;
+_ovl_En_AhSegmentRomStart = 0x010379E0;
+_ovl_En_AhSegmentRomEnd = 0x01039040;
 
-_ovl_Obj_HgdoorSegmentRomStart = 0x01039030;
-_ovl_Obj_HgdoorSegmentRomEnd = 0x010396C0;
+_ovl_Obj_HgdoorSegmentRomStart = 0x01039040;
+_ovl_Obj_HgdoorSegmentRomEnd = 0x010396D0;
 
-_ovl_Bg_Ikana_BombwallSegmentRomStart = 0x010396C0;
-_ovl_Bg_Ikana_BombwallSegmentRomEnd = 0x0103A360;
+_ovl_Bg_Ikana_BombwallSegmentRomStart = 0x010396D0;
+_ovl_Bg_Ikana_BombwallSegmentRomEnd = 0x0103A370;
 
-_ovl_Bg_Ikana_RaySegmentRomStart = 0x0103A360;
-_ovl_Bg_Ikana_RaySegmentRomEnd = 0x0103A630;
+_ovl_Bg_Ikana_RaySegmentRomStart = 0x0103A370;
+_ovl_Bg_Ikana_RaySegmentRomEnd = 0x0103A640;
 
-_ovl_Bg_Ikana_ShutterSegmentRomStart = 0x0103A630;
-_ovl_Bg_Ikana_ShutterSegmentRomEnd = 0x0103ADA0;
+_ovl_Bg_Ikana_ShutterSegmentRomStart = 0x0103A640;
+_ovl_Bg_Ikana_ShutterSegmentRomEnd = 0x0103ADB0;
 
-_ovl_Bg_Haka_BombwallSegmentRomStart = 0x0103ADA0;
-_ovl_Bg_Haka_BombwallSegmentRomEnd = 0x0103B520;
+_ovl_Bg_Haka_BombwallSegmentRomStart = 0x0103ADB0;
+_ovl_Bg_Haka_BombwallSegmentRomEnd = 0x0103B530;
 
-_ovl_Bg_Haka_TombSegmentRomStart = 0x0103B520;
-_ovl_Bg_Haka_TombSegmentRomEnd = 0x0103B8B0;
+_ovl_Bg_Haka_TombSegmentRomStart = 0x0103B530;
+_ovl_Bg_Haka_TombSegmentRomEnd = 0x0103B8C0;
 
-_ovl_En_Sc_RuppeSegmentRomStart = 0x0103B8B0;
-_ovl_En_Sc_RuppeSegmentRomEnd = 0x0103BEB0;
+_ovl_En_Sc_RuppeSegmentRomStart = 0x0103B8C0;
+_ovl_En_Sc_RuppeSegmentRomEnd = 0x0103BEC0;
 
-_ovl_Bg_Iknv_DoukutuSegmentRomStart = 0x0103BEB0;
-_ovl_Bg_Iknv_DoukutuSegmentRomEnd = 0x0103CA50;
+_ovl_Bg_Iknv_DoukutuSegmentRomStart = 0x0103BEC0;
+_ovl_Bg_Iknv_DoukutuSegmentRomEnd = 0x0103CA60;
 
-_ovl_Bg_Iknv_ObjSegmentRomStart = 0x0103CA50;
-_ovl_Bg_Iknv_ObjSegmentRomEnd = 0x0103D250;
+_ovl_Bg_Iknv_ObjSegmentRomStart = 0x0103CA60;
+_ovl_Bg_Iknv_ObjSegmentRomEnd = 0x0103D260;
 
-_ovl_En_PameraSegmentRomStart = 0x0103D250;
-_ovl_En_PameraSegmentRomEnd = 0x0103F9D0;
+_ovl_En_PameraSegmentRomStart = 0x0103D260;
+_ovl_En_PameraSegmentRomEnd = 0x0103F9E0;
 
-_ovl_Obj_HsStumpSegmentRomStart = 0x0103F9D0;
-_ovl_Obj_HsStumpSegmentRomEnd = 0x0103FFE0;
+_ovl_Obj_HsStumpSegmentRomStart = 0x0103F9E0;
+_ovl_Obj_HsStumpSegmentRomEnd = 0x0103FFF0;
 
-_ovl_En_Hidden_NutsSegmentRomStart = 0x0103FFE0;
-_ovl_En_Hidden_NutsSegmentRomEnd = 0x01041210;
+_ovl_En_Hidden_NutsSegmentRomStart = 0x0103FFF0;
+_ovl_En_Hidden_NutsSegmentRomEnd = 0x01041220;
 
-_ovl_En_ZowSegmentRomStart = 0x01041210;
-_ovl_En_ZowSegmentRomEnd = 0x01042F80;
+_ovl_En_ZowSegmentRomStart = 0x01041220;
+_ovl_En_ZowSegmentRomEnd = 0x01042F90;
 
-_ovl_En_TalkSegmentRomStart = 0x01042F80;
-_ovl_En_TalkSegmentRomEnd = 0x01043140;
+_ovl_En_TalkSegmentRomStart = 0x01042F90;
+_ovl_En_TalkSegmentRomEnd = 0x01043150;
 
-_ovl_En_AlSegmentRomStart = 0x01043140;
-_ovl_En_AlSegmentRomEnd = 0x01045480;
+_ovl_En_AlSegmentRomStart = 0x01043150;
+_ovl_En_AlSegmentRomEnd = 0x01045490;
 
-_ovl_En_TabSegmentRomStart = 0x01045480;
-_ovl_En_TabSegmentRomEnd = 0x01046C20;
+_ovl_En_TabSegmentRomStart = 0x01045490;
+_ovl_En_TabSegmentRomEnd = 0x01046C30;
 
-_ovl_En_NimotsuSegmentRomStart = 0x01046C20;
-_ovl_En_NimotsuSegmentRomEnd = 0x01046FD0;
+_ovl_En_NimotsuSegmentRomStart = 0x01046C30;
+_ovl_En_NimotsuSegmentRomEnd = 0x01046FE0;
 
-_ovl_En_Hit_TagSegmentRomStart = 0x01046FD0;
-_ovl_En_Hit_TagSegmentRomEnd = 0x01047200;
+_ovl_En_Hit_TagSegmentRomStart = 0x01046FE0;
+_ovl_En_Hit_TagSegmentRomEnd = 0x01047210;
 
-_ovl_En_RuppecrowSegmentRomStart = 0x01047200;
-_ovl_En_RuppecrowSegmentRomEnd = 0x01048B20;
+_ovl_En_RuppecrowSegmentRomStart = 0x01047210;
+_ovl_En_RuppecrowSegmentRomEnd = 0x01048B30;
 
-_ovl_En_Tanron4SegmentRomStart = 0x01048B20;
-_ovl_En_Tanron4SegmentRomEnd = 0x010498D0;
+_ovl_En_Tanron4SegmentRomStart = 0x01048B30;
+_ovl_En_Tanron4SegmentRomEnd = 0x010498E0;
 
-_ovl_En_Tanron5SegmentRomStart = 0x010498D0;
-_ovl_En_Tanron5SegmentRomEnd = 0x0104AFE0;
+_ovl_En_Tanron5SegmentRomStart = 0x010498E0;
+_ovl_En_Tanron5SegmentRomEnd = 0x0104AFF0;
 
-_ovl_En_Tanron6SegmentRomStart = 0x0104AFE0;
-_ovl_En_Tanron6SegmentRomEnd = 0x0104B170;
+_ovl_En_Tanron6SegmentRomStart = 0x0104AFF0;
+_ovl_En_Tanron6SegmentRomEnd = 0x0104B180;
 
-_ovl_En_Daiku2SegmentRomStart = 0x0104B170;
-_ovl_En_Daiku2SegmentRomEnd = 0x0104CAA0;
+_ovl_En_Daiku2SegmentRomStart = 0x0104B180;
+_ovl_En_Daiku2SegmentRomEnd = 0x0104CAB0;
 
-_ovl_En_MutoSegmentRomStart = 0x0104CAA0;
-_ovl_En_MutoSegmentRomEnd = 0x0104D490;
+_ovl_En_MutoSegmentRomStart = 0x0104CAB0;
+_ovl_En_MutoSegmentRomEnd = 0x0104D4A0;
 
-_ovl_En_BaisenSegmentRomStart = 0x0104D490;
-_ovl_En_BaisenSegmentRomEnd = 0x0104DEC0;
+_ovl_En_BaisenSegmentRomStart = 0x0104D4A0;
+_ovl_En_BaisenSegmentRomEnd = 0x0104DED0;
 
-_ovl_En_HeishiSegmentRomStart = 0x0104DEC0;
-_ovl_En_HeishiSegmentRomEnd = 0x0104E4B0;
+_ovl_En_HeishiSegmentRomStart = 0x0104DED0;
+_ovl_En_HeishiSegmentRomEnd = 0x0104E4C0;
 
-_ovl_En_Demo_heishiSegmentRomStart = 0x0104E4B0;
-_ovl_En_Demo_heishiSegmentRomEnd = 0x0104EAC0;
+_ovl_En_Demo_heishiSegmentRomStart = 0x0104E4C0;
+_ovl_En_Demo_heishiSegmentRomEnd = 0x0104EAD0;
 
-_ovl_En_DtSegmentRomStart = 0x0104EAC0;
-_ovl_En_DtSegmentRomEnd = 0x010504C0;
+_ovl_En_DtSegmentRomStart = 0x0104EAD0;
+_ovl_En_DtSegmentRomEnd = 0x010504D0;
 
-_ovl_En_ChaSegmentRomStart = 0x010504C0;
-_ovl_En_ChaSegmentRomEnd = 0x010508E0;
+_ovl_En_ChaSegmentRomStart = 0x010504D0;
+_ovl_En_ChaSegmentRomEnd = 0x010508F0;
 
-_ovl_Obj_DinnerSegmentRomStart = 0x010508E0;
-_ovl_Obj_DinnerSegmentRomEnd = 0x01050A60;
+_ovl_Obj_DinnerSegmentRomStart = 0x010508F0;
+_ovl_Obj_DinnerSegmentRomEnd = 0x01050A70;
 
-_ovl_Eff_LastdaySegmentRomStart = 0x01050A60;
-_ovl_Eff_LastdaySegmentRomEnd = 0x010511E0;
+_ovl_Eff_LastdaySegmentRomStart = 0x01050A70;
+_ovl_Eff_LastdaySegmentRomEnd = 0x010511F0;
 
-_ovl_Bg_Ikana_DharmaSegmentRomStart = 0x010511E0;
-_ovl_Bg_Ikana_DharmaSegmentRomEnd = 0x01051B70;
+_ovl_Bg_Ikana_DharmaSegmentRomStart = 0x010511F0;
+_ovl_Bg_Ikana_DharmaSegmentRomEnd = 0x01051B80;
 
-_ovl_En_AkindonutsSegmentRomStart = 0x01051B70;
-_ovl_En_AkindonutsSegmentRomEnd = 0x01055D20;
+_ovl_En_AkindonutsSegmentRomStart = 0x01051B80;
+_ovl_En_AkindonutsSegmentRomEnd = 0x01055D30;
 
-_ovl_Eff_StkSegmentRomStart = 0x01055D20;
-_ovl_Eff_StkSegmentRomEnd = 0x010560E0;
+_ovl_Eff_StkSegmentRomStart = 0x01055D30;
+_ovl_Eff_StkSegmentRomEnd = 0x010560F0;
 
-_ovl_En_IgSegmentRomStart = 0x010560E0;
-_ovl_En_IgSegmentRomEnd = 0x010588B0;
+_ovl_En_IgSegmentRomStart = 0x010560F0;
+_ovl_En_IgSegmentRomEnd = 0x010588C0;
 
-_ovl_En_RgSegmentRomStart = 0x010588B0;
-_ovl_En_RgSegmentRomEnd = 0x0105ABA0;
+_ovl_En_RgSegmentRomStart = 0x010588C0;
+_ovl_En_RgSegmentRomEnd = 0x0105ABB0;
 
-_ovl_En_OskSegmentRomStart = 0x0105ABA0;
-_ovl_En_OskSegmentRomEnd = 0x0105C460;
+_ovl_En_OskSegmentRomStart = 0x0105ABB0;
+_ovl_En_OskSegmentRomEnd = 0x0105C470;
 
-_ovl_En_Sth2SegmentRomStart = 0x0105C460;
-_ovl_En_Sth2SegmentRomEnd = 0x0105F080;
+_ovl_En_Sth2SegmentRomStart = 0x0105C470;
+_ovl_En_Sth2SegmentRomEnd = 0x0105F090;
 
-_ovl_En_YbSegmentRomStart = 0x0105F080;
-_ovl_En_YbSegmentRomEnd = 0x01060400;
+_ovl_En_YbSegmentRomStart = 0x0105F090;
+_ovl_En_YbSegmentRomEnd = 0x01060410;
 
-_ovl_En_RzSegmentRomStart = 0x01060400;
-_ovl_En_RzSegmentRomEnd = 0x01061F20;
+_ovl_En_RzSegmentRomStart = 0x01060410;
+_ovl_En_RzSegmentRomEnd = 0x01061F30;
 
-_ovl_En_ScopecoinSegmentRomStart = 0x01061F20;
-_ovl_En_ScopecoinSegmentRomEnd = 0x01062260;
+_ovl_En_ScopecoinSegmentRomStart = 0x01061F30;
+_ovl_En_ScopecoinSegmentRomEnd = 0x01062270;
 
-_ovl_En_BjtSegmentRomStart = 0x01062260;
-_ovl_En_BjtSegmentRomEnd = 0x010630F0;
+_ovl_En_BjtSegmentRomStart = 0x01062270;
+_ovl_En_BjtSegmentRomEnd = 0x01063100;
 
-_ovl_En_BomjimaSegmentRomStart = 0x010630F0;
-_ovl_En_BomjimaSegmentRomEnd = 0x01065E20;
+_ovl_En_BomjimaSegmentRomStart = 0x01063100;
+_ovl_En_BomjimaSegmentRomEnd = 0x01065E30;
 
-_ovl_En_BomjimbSegmentRomStart = 0x01065E20;
-_ovl_En_BomjimbSegmentRomEnd = 0x010684B0;
+_ovl_En_BomjimbSegmentRomStart = 0x01065E30;
+_ovl_En_BomjimbSegmentRomEnd = 0x010684C0;
 
-_ovl_En_BombersSegmentRomStart = 0x010684B0;
-_ovl_En_BombersSegmentRomEnd = 0x010698B0;
+_ovl_En_BombersSegmentRomStart = 0x010684C0;
+_ovl_En_BombersSegmentRomEnd = 0x010698C0;
 
-_ovl_En_Bombers2SegmentRomStart = 0x010698B0;
-_ovl_En_Bombers2SegmentRomEnd = 0x0106A9F0;
+_ovl_En_Bombers2SegmentRomStart = 0x010698C0;
+_ovl_En_Bombers2SegmentRomEnd = 0x0106AA00;
 
-_ovl_En_BombalSegmentRomStart = 0x0106A9F0;
-_ovl_En_BombalSegmentRomEnd = 0x0106B490;
+_ovl_En_BombalSegmentRomStart = 0x0106AA00;
+_ovl_En_BombalSegmentRomEnd = 0x0106B4A0;
 
-_ovl_Obj_Moon_StoneSegmentRomStart = 0x0106B490;
-_ovl_Obj_Moon_StoneSegmentRomEnd = 0x0106BA20;
+_ovl_Obj_Moon_StoneSegmentRomStart = 0x0106B4A0;
+_ovl_Obj_Moon_StoneSegmentRomEnd = 0x0106BA30;
 
-_ovl_Obj_Mu_PictSegmentRomStart = 0x0106BA20;
-_ovl_Obj_Mu_PictSegmentRomEnd = 0x0106C090;
+_ovl_Obj_Mu_PictSegmentRomStart = 0x0106BA30;
+_ovl_Obj_Mu_PictSegmentRomEnd = 0x0106C0A0;
 
-_ovl_Bg_IkninsideSegmentRomStart = 0x0106C090;
-_ovl_Bg_IkninsideSegmentRomEnd = 0x0106C6C0;
+_ovl_Bg_IkninsideSegmentRomStart = 0x0106C0A0;
+_ovl_Bg_IkninsideSegmentRomEnd = 0x0106C6D0;
 
-_ovl_Eff_ZorabandSegmentRomStart = 0x0106C6C0;
-_ovl_Eff_ZorabandSegmentRomEnd = 0x0106CAA0;
+_ovl_Eff_ZorabandSegmentRomStart = 0x0106C6D0;
+_ovl_Eff_ZorabandSegmentRomEnd = 0x0106CAB0;
 
-_ovl_Obj_Kepn_KoyaSegmentRomStart = 0x0106CAA0;
-_ovl_Obj_Kepn_KoyaSegmentRomEnd = 0x0106CC00;
+_ovl_Obj_Kepn_KoyaSegmentRomStart = 0x0106CAB0;
+_ovl_Obj_Kepn_KoyaSegmentRomEnd = 0x0106CC10;
 
-_ovl_Obj_UsiyaneSegmentRomStart = 0x0106CC00;
-_ovl_Obj_UsiyaneSegmentRomEnd = 0x0106D6E0;
+_ovl_Obj_UsiyaneSegmentRomStart = 0x0106CC10;
+_ovl_Obj_UsiyaneSegmentRomEnd = 0x0106D6F0;
 
-_ovl_En_NnhSegmentRomStart = 0x0106D6E0;
-_ovl_En_NnhSegmentRomEnd = 0x0106DA00;
+_ovl_En_NnhSegmentRomStart = 0x0106D6F0;
+_ovl_En_NnhSegmentRomEnd = 0x0106DA10;
 
-_ovl_Obj_KzsakuSegmentRomStart = 0x0106DA00;
-_ovl_Obj_KzsakuSegmentRomEnd = 0x0106DDC0;
+_ovl_Obj_KzsakuSegmentRomStart = 0x0106DA10;
+_ovl_Obj_KzsakuSegmentRomEnd = 0x0106DDD0;
 
-_ovl_Obj_Milk_BinSegmentRomStart = 0x0106DDC0;
-_ovl_Obj_Milk_BinSegmentRomEnd = 0x0106E050;
+_ovl_Obj_Milk_BinSegmentRomStart = 0x0106DDD0;
+_ovl_Obj_Milk_BinSegmentRomEnd = 0x0106E060;
 
-_ovl_En_KitanSegmentRomStart = 0x0106E050;
-_ovl_En_KitanSegmentRomEnd = 0x0106EE50;
+_ovl_En_KitanSegmentRomStart = 0x0106E060;
+_ovl_En_KitanSegmentRomEnd = 0x0106EE60;
 
-_ovl_Bg_Astr_BombwallSegmentRomStart = 0x0106EE50;
-_ovl_Bg_Astr_BombwallSegmentRomEnd = 0x0106F6C0;
+_ovl_Bg_Astr_BombwallSegmentRomStart = 0x0106EE60;
+_ovl_Bg_Astr_BombwallSegmentRomEnd = 0x0106F6D0;
 
-_ovl_Bg_Iknin_SusceilSegmentRomStart = 0x0106F6C0;
-_ovl_Bg_Iknin_SusceilSegmentRomEnd = 0x01070210;
+_ovl_Bg_Iknin_SusceilSegmentRomStart = 0x0106F6D0;
+_ovl_Bg_Iknin_SusceilSegmentRomEnd = 0x01070220;
 
-_ovl_En_BsbSegmentRomStart = 0x01070210;
-_ovl_En_BsbSegmentRomEnd = 0x01074F50;
+_ovl_En_BsbSegmentRomStart = 0x01070220;
+_ovl_En_BsbSegmentRomEnd = 0x01074F60;
 
-_ovl_En_RecepgirlSegmentRomStart = 0x01074F50;
-_ovl_En_RecepgirlSegmentRomEnd = 0x010756F0;
+_ovl_En_RecepgirlSegmentRomStart = 0x01074F60;
+_ovl_En_RecepgirlSegmentRomEnd = 0x01075700;
 
-_ovl_En_ThiefbirdSegmentRomStart = 0x010756F0;
-_ovl_En_ThiefbirdSegmentRomEnd = 0x010788A0;
+_ovl_En_ThiefbirdSegmentRomStart = 0x01075700;
+_ovl_En_ThiefbirdSegmentRomEnd = 0x010788B0;
 
-_ovl_En_Jgame_TsnSegmentRomStart = 0x010788A0;
-_ovl_En_Jgame_TsnSegmentRomEnd = 0x0107A260;
+_ovl_En_Jgame_TsnSegmentRomStart = 0x010788B0;
+_ovl_En_Jgame_TsnSegmentRomEnd = 0x0107A270;
 
-_ovl_Obj_Jgame_LightSegmentRomStart = 0x0107A260;
-_ovl_Obj_Jgame_LightSegmentRomEnd = 0x0107B150;
+_ovl_Obj_Jgame_LightSegmentRomStart = 0x0107A270;
+_ovl_Obj_Jgame_LightSegmentRomEnd = 0x0107B160;
 
-_ovl_Obj_YadoSegmentRomStart = 0x0107B150;
-_ovl_Obj_YadoSegmentRomEnd = 0x0107B3E0;
+_ovl_Obj_YadoSegmentRomStart = 0x0107B160;
+_ovl_Obj_YadoSegmentRomEnd = 0x0107B3F0;
 
-_ovl_Demo_SyotenSegmentRomStart = 0x0107B3E0;
-_ovl_Demo_SyotenSegmentRomEnd = 0x0107C970;
+_ovl_Demo_SyotenSegmentRomStart = 0x0107B3F0;
+_ovl_Demo_SyotenSegmentRomEnd = 0x0107C980;
 
-_ovl_Demo_MoonendSegmentRomStart = 0x0107C970;
-_ovl_Demo_MoonendSegmentRomEnd = 0x0107D080;
+_ovl_Demo_MoonendSegmentRomStart = 0x0107C980;
+_ovl_Demo_MoonendSegmentRomEnd = 0x0107D090;
 
-_ovl_Bg_LbfshotSegmentRomStart = 0x0107D080;
-_ovl_Bg_LbfshotSegmentRomEnd = 0x0107D1A0;
+_ovl_Bg_LbfshotSegmentRomStart = 0x0107D090;
+_ovl_Bg_LbfshotSegmentRomEnd = 0x0107D1B0;
 
-_ovl_Bg_Last_BwallSegmentRomStart = 0x0107D1A0;
-_ovl_Bg_Last_BwallSegmentRomEnd = 0x0107DAF0;
+_ovl_Bg_Last_BwallSegmentRomStart = 0x0107D1B0;
+_ovl_Bg_Last_BwallSegmentRomEnd = 0x0107DB00;
 
-_ovl_En_AndSegmentRomStart = 0x0107DAF0;
-_ovl_En_AndSegmentRomEnd = 0x0107E200;
+_ovl_En_AndSegmentRomStart = 0x0107DB00;
+_ovl_En_AndSegmentRomEnd = 0x0107E210;
 
-_ovl_En_Invadepoh_DemoSegmentRomStart = 0x0107E200;
-_ovl_En_Invadepoh_DemoSegmentRomEnd = 0x0107FCA0;
+_ovl_En_Invadepoh_DemoSegmentRomStart = 0x0107E210;
+_ovl_En_Invadepoh_DemoSegmentRomEnd = 0x0107FCB0;
 
-_ovl_Obj_DanpeiliftSegmentRomStart = 0x0107FCA0;
-_ovl_Obj_DanpeiliftSegmentRomEnd = 0x01080520;
+_ovl_Obj_DanpeiliftSegmentRomStart = 0x0107FCB0;
+_ovl_Obj_DanpeiliftSegmentRomEnd = 0x01080530;
 
-_ovl_En_Fall2SegmentRomStart = 0x01080520;
-_ovl_En_Fall2SegmentRomEnd = 0x01080C70;
+_ovl_En_Fall2SegmentRomStart = 0x01080530;
+_ovl_En_Fall2SegmentRomEnd = 0x01080C80;
 
-_ovl_Dm_AlSegmentRomStart = 0x01080C70;
-_ovl_Dm_AlSegmentRomEnd = 0x010812F0;
+_ovl_Dm_AlSegmentRomStart = 0x01080C80;
+_ovl_Dm_AlSegmentRomEnd = 0x01081300;
 
-_ovl_Dm_AnSegmentRomStart = 0x010812F0;
-_ovl_Dm_AnSegmentRomEnd = 0x010822F0;
+_ovl_Dm_AnSegmentRomStart = 0x01081300;
+_ovl_Dm_AnSegmentRomEnd = 0x01082300;
 
-_ovl_Dm_AhSegmentRomStart = 0x010822F0;
-_ovl_Dm_AhSegmentRomEnd = 0x01082DB0;
+_ovl_Dm_AhSegmentRomStart = 0x01082300;
+_ovl_Dm_AhSegmentRomEnd = 0x01082DC0;
 
-_ovl_Dm_NbSegmentRomStart = 0x01082DB0;
-_ovl_Dm_NbSegmentRomEnd = 0x01083170;
+_ovl_Dm_NbSegmentRomStart = 0x01082DC0;
+_ovl_Dm_NbSegmentRomEnd = 0x01083180;
 
-_ovl_En_DrsSegmentRomStart = 0x01083170;
-_ovl_En_DrsSegmentRomEnd = 0x01083570;
+_ovl_En_DrsSegmentRomStart = 0x01083180;
+_ovl_En_DrsSegmentRomEnd = 0x01083580;
 
-_ovl_En_Ending_HeroSegmentRomStart = 0x01083570;
-_ovl_En_Ending_HeroSegmentRomEnd = 0x010838C0;
+_ovl_En_Ending_HeroSegmentRomStart = 0x01083580;
+_ovl_En_Ending_HeroSegmentRomEnd = 0x010838D0;
 
-_ovl_Dm_BalSegmentRomStart = 0x010838C0;
-_ovl_Dm_BalSegmentRomEnd = 0x010842B0;
+_ovl_Dm_BalSegmentRomStart = 0x010838D0;
+_ovl_Dm_BalSegmentRomEnd = 0x010842C0;
 
-_ovl_En_PaperSegmentRomStart = 0x010842B0;
-_ovl_En_PaperSegmentRomEnd = 0x01084BD0;
+_ovl_En_PaperSegmentRomStart = 0x010842C0;
+_ovl_En_PaperSegmentRomEnd = 0x01084BE0;
 
-_ovl_En_Hint_SkbSegmentRomStart = 0x01084BD0;
-_ovl_En_Hint_SkbSegmentRomEnd = 0x01087230;
+_ovl_En_Hint_SkbSegmentRomStart = 0x01084BE0;
+_ovl_En_Hint_SkbSegmentRomEnd = 0x01087240;
 
-_ovl_Dm_TagSegmentRomStart = 0x01087230;
-_ovl_Dm_TagSegmentRomEnd = 0x01087C20;
+_ovl_Dm_TagSegmentRomStart = 0x01087240;
+_ovl_Dm_TagSegmentRomEnd = 0x01087C30;
 
-_ovl_En_BhSegmentRomStart = 0x01087C20;
-_ovl_En_BhSegmentRomEnd = 0x01088110;
+_ovl_En_BhSegmentRomStart = 0x01087C30;
+_ovl_En_BhSegmentRomEnd = 0x01088120;
 
-_ovl_En_Ending_Hero2SegmentRomStart = 0x01088110;
-_ovl_En_Ending_Hero2SegmentRomEnd = 0x01088340;
+_ovl_En_Ending_Hero2SegmentRomStart = 0x01088120;
+_ovl_En_Ending_Hero2SegmentRomEnd = 0x01088350;
 
-_ovl_En_Ending_Hero3SegmentRomStart = 0x01088340;
-_ovl_En_Ending_Hero3SegmentRomEnd = 0x01088570;
+_ovl_En_Ending_Hero3SegmentRomStart = 0x01088350;
+_ovl_En_Ending_Hero3SegmentRomEnd = 0x01088580;
 
-_ovl_En_Ending_Hero4SegmentRomStart = 0x01088570;
-_ovl_En_Ending_Hero4SegmentRomEnd = 0x010887A0;
+_ovl_En_Ending_Hero4SegmentRomStart = 0x01088580;
+_ovl_En_Ending_Hero4SegmentRomEnd = 0x010887B0;
 
-_ovl_En_Ending_Hero5SegmentRomStart = 0x010887A0;
-_ovl_En_Ending_Hero5SegmentRomEnd = 0x01088B70;
+_ovl_En_Ending_Hero5SegmentRomStart = 0x010887B0;
+_ovl_En_Ending_Hero5SegmentRomEnd = 0x01088B80;
 
-_ovl_En_Ending_Hero6SegmentRomStart = 0x01088B70;
-_ovl_En_Ending_Hero6SegmentRomEnd = 0x01089240;
+_ovl_En_Ending_Hero6SegmentRomStart = 0x01088B80;
+_ovl_En_Ending_Hero6SegmentRomEnd = 0x01089250;
 
-_ovl_Dm_GmSegmentRomStart = 0x01089240;
-_ovl_Dm_GmSegmentRomEnd = 0x0108A240;
+_ovl_Dm_GmSegmentRomStart = 0x01089250;
+_ovl_Dm_GmSegmentRomEnd = 0x0108A250;
 
-_ovl_Obj_SwprizeSegmentRomStart = 0x0108A240;
-_ovl_Obj_SwprizeSegmentRomEnd = 0x0108A780;
+_ovl_Obj_SwprizeSegmentRomStart = 0x0108A250;
+_ovl_Obj_SwprizeSegmentRomEnd = 0x0108A790;
 
-_ovl_En_Invisible_RuppeSegmentRomStart = 0x0108A780;
-_ovl_En_Invisible_RuppeSegmentRomEnd = 0x0108AAA0;
+_ovl_En_Invisible_RuppeSegmentRomStart = 0x0108A790;
+_ovl_En_Invisible_RuppeSegmentRomEnd = 0x0108AAB0;
 
-_ovl_Obj_EndingSegmentRomStart = 0x0108AAA0;
-_ovl_Obj_EndingSegmentRomEnd = 0x0108AC20;
+_ovl_Obj_EndingSegmentRomStart = 0x0108AAB0;
+_ovl_Obj_EndingSegmentRomEnd = 0x0108AC30;
 
-_ovl_En_RsnSegmentRomStart = 0x0108AC20;
-_ovl_En_RsnSegmentRomEnd = 0x0108AF80;
+_ovl_En_RsnSegmentRomStart = 0x0108AC30;
+_ovl_En_RsnSegmentRomEnd = 0x0108AF90;
 
 _gameplay_keepSegmentRomStart = 0x0108B000;
 _gameplay_keepSegmentRomEnd = 0x0111D5E0;
