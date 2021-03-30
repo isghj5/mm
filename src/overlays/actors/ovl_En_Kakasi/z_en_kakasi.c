@@ -288,7 +288,7 @@ void func_8096FA18(EnKakasi *this, GlobalContext *globalCtx) {
 
 #if NON-MATCHING
 // the end functions lack prototypes, think the remaining non-matching is caused by that
-void func_8096FAAC(EnKakasi *this, GlobalContext* gContext) {
+void func_8096FAAC(EnKakasi *this, GlobalContext* globalCtx) {
     f32 magicNum = 0.40000000596;
     //Vec3f* ptrUnk214 = &this->unk214;
     //Vec3f* ptrUnk220;// = &this->unk214;
@@ -316,19 +316,32 @@ void func_8096FAAC(EnKakasi *this, GlobalContext* gContext) {
         //Math_SmoothScaleMaxF(&ptrUnk220->z, this->unk244.z, magicNum, 4.0f);
         
         Math_SmoothScaleMaxF(&this->unk20C, this->unk210, 0.3f, 10.0f);
-        //func_8016970C(gContext, this->unk208, this->unk220.x, this->unk214.x);
-        func_8016970C(gContext, this->unk208, tempUnk220X, tempUnk214X);
-        //func_8016970C(gContext, this->unk208, ptrUnk220->x, ptrUnk214->x);
-        func_80169940(gContext, this->unk208, this->unk20C);
+        //func_8016970C(globalCtx, this->unk208, this->unk220.x, this->unk214.x);
+        func_8016970C(globalCtx, this->unk208, tempUnk220X, tempUnk214X);
+        //func_8016970C(globalCtx, this->unk208, ptrUnk220->x, ptrUnk214->x);
+        func_80169940(globalCtx, this->unk208, this->unk20C);
     }
 }
 #else
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Kakasi_0x8096F5E0/func_8096FAAC.asm")
 #endif
 
-void func_8096FBB8(EnKakasi* this, GlobalContext* globalCtx);
-    //vecFromData = arg1->unk16950; //unkown
-#pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Kakasi_0x8096F5E0/func_8096FBB8.asm")
+void func_8096FBB8(EnKakasi* this, GlobalContext* globalCtx) {
+    if ((globalCtx->msgCtx.unk12048 == 0) || (globalCtx->msgCtx.unk12048 == 1) || (globalCtx->msgCtx.unk12048 == 2) 
+      || (globalCtx->msgCtx.unk12048 == 3) || (globalCtx->msgCtx.unk12048 == 4)) {
+        this->unk190++;
+    }
+    if ((this->unk190 != 0) && (this->unk1A0 != 1)) {
+        func_8096F800(this, 1);
+    }
+    if (this->unk190 >= 9) {
+        this->unk190 = 8;
+    }
+    if (this->unk190 != 0) {
+        Math_SmoothScaleMaxF(&this->skelanime.animPlaybackSpeed, 1.0f, 0.1f, 0.2f);
+        this->actor.shape.rot.y = this->actor.shape.rot.y + 0x800;
+    }
+}
 
 void func_8096FC8C(EnKakasi *this) {
     func_8096F800(this, 7);
@@ -428,7 +441,7 @@ void func_80970008(EnKakasi *this) {
 // goes off if you cancel a song but kinda big?
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Kakasi_0x8096F5E0/func_8097006C.asm")
 
-void func_809705E4(EnKakasi *this, GlobalContext *globalCtx) {
+void func_809705E4(EnKakasi* this, GlobalContext* globalCtx) {
     this->actor.textId = 0x1646;
     func_801518B0(globalCtx, this->actor.textId, &this->actor);
     this->unk208 = 0;
@@ -440,7 +453,7 @@ void func_809705E4(EnKakasi *this, GlobalContext *globalCtx) {
 }
 
 //action func
-void func_80970658(EnKakasi *this, GlobalContext *globalCtx) {
+void func_80970658(EnKakasi* this, GlobalContext* globalCtx) {
     if ((func_80152498(&globalCtx->msgCtx) == 5) && (func_80147624(globalCtx) != 0)) {
         func_80152434(globalCtx, 0x35);
         this->unk1A8 = 0;
@@ -467,7 +480,7 @@ void func_80970658(EnKakasi *this, GlobalContext *globalCtx) {
 #if NON-MATCHING
 // stack wrong stack offsets
 // action func: each frame of songteaching
-void func_80970740(EnKakasi *this, GlobalContext *globalCtx) {
+void func_80970740(EnKakasi* this, GlobalContext* globalCtx) {
     Vec3f tempVec;
     s32 tempTwo = 2;
 
