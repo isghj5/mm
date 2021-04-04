@@ -15,27 +15,27 @@ void func_8096FC8C(EnKakasi* this);
 void func_8096FDE8(EnKakasi* this);
 
 // lot of action functions
-void func_8096F88C(Actor *thisx, GlobalContext* globalCtx);
-void func_8096FCC4(Actor *thisx, GlobalContext* globalCtx);
-void func_8096FE00(Actor *thisx, GlobalContext* globalCtx);
-void func_80970658(Actor *thisx, GlobalContext* globalCtx);
-void func_80970740(Actor *thisx, GlobalContext* globalCtx);
-void func_80970978(Actor *thisx, GlobalContext* globalCtx);
-void func_80970A9C(Actor *thisx, GlobalContext* globalCtx);
-void func_809714BC(Actor *thisx, GlobalContext* globalCtx);
-void func_80971AD4(Actor *thisx, GlobalContext* globalCtx);
-void func_809717D0(Actor* thisx, GlobalContext* globalCtx);
-void func_80971A64(Actor* thisx, GlobalContext* globalCtx);
-void func_8097185C(Actor* thisx, GlobalContext* globalCtx);
-void func_8097193C(Actor *thisx, GlobalContext *globalCtx);
-void func_80971064(EnKakasi* this, GlobalContext *globalCtx);
-void func_80971430(Actor* thisx, GlobalContext* globalCtx);
-void func_80970F20(Actor *thisx, GlobalContext *globalCtx);
-void func_8097006C(Actor* thisx, GlobalContext* globalCtx);
+void func_8096F88C(EnKakasi* this, GlobalContext* globalCtx);
+void func_8096FCC4(EnKakasi* this, GlobalContext* globalCtx);
+void func_8096FE00(EnKakasi* this, GlobalContext* globalCtx);
+void func_80970658(EnKakasi* this, GlobalContext* globalCtx);
+void func_80970740(EnKakasi* this, GlobalContext* globalCtx);
+void func_80970978(EnKakasi* this, GlobalContext* globalCtx);
+void func_80970A9C(EnKakasi* this, GlobalContext* globalCtx);
+void func_809714BC(EnKakasi* this, GlobalContext* globalCtx);
+void func_80971AD4(EnKakasi* this, GlobalContext* globalCtx);
+void func_809717D0(EnKakasi* this, GlobalContext* globalCtx);
+void func_80971A64(EnKakasi* this, GlobalContext* globalCtx);
+void func_8097185C(EnKakasi* this, GlobalContext* globalCtx);
+void func_8097193C(EnKakasi* this, GlobalContext* globalCtx);
+void func_80971064(EnKakasi* this, GlobalContext* globalCtx);
+void func_80971430(EnKakasi* this, GlobalContext* globalCtx);
+void func_80970F20(EnKakasi* this, GlobalContext* globalCtx);
+void func_8097006C(EnKakasi* this, GlobalContext* globalCtx);
+void func_809705E4(EnKakasi* this, GlobalContext* globalCtx);
 
 void func_80971794(EnKakasi *this);
 void func_80970008(EnKakasi* this);
-void func_809705E4(EnKakasi* this, GlobalContext *arg1);
 void func_80971440(EnKakasi* this);
 void func_80971A38(EnKakasi *this);
 void func_80970FF8(EnKakasi *this);
@@ -178,8 +178,8 @@ void EnKakasi_Init(Actor *thisx, GlobalContext *globalCtx) {
     //s16 getCutsceneReturn;
     //s16 cutsceneTemp2;
 
-    s16 tempCutscene;
-    //int tempCutscene; // permuter swears this is an int, but why
+    //s16 tempCutscene;
+    int tempCutscene; // permuter swears this is an int, but why
     s32 i;// = 0;
 
     Collider_InitAndSetCylinder(globalCtx, &this->collider, &this->actor, &D_80971D80);
@@ -212,9 +212,20 @@ void EnKakasi_Init(Actor *thisx, GlobalContext *globalCtx) {
     Actor_SetScale(thisx, 0.01f);
 
     for(tempCutscene = this->actor.cutscene; tempCutscene != -1; ++i ){
-          this->actorCutscenes[i] = tempCutscene;
-          tempCutscene = ActorCutscene_GetAdditionalCutscene(tempCutscene);
+        //if (!thisx){}
+        this->actorCutscenes[i] = tempCutscene;
+        tempCutscene = ActorCutscene_GetAdditionalCutscene(tempCutscene);
+        //d_label: ;
     }
+    // I'm not entirely convinced it's a for
+    //tempCutscene = this->actor.cutscene;
+    //if (tempCutscene != -1) {
+        //do{
+            //this->actorCutscenes[i++] = tempCutscene;
+            //tempCutscene = ActorCutscene_GetAdditionalCutscene(tempCutscene);
+        //} while( tempCutscene != -1);
+    //}
+
     //tempCutscene = this->actor.cutscene;
     ////cutsceneTemp2 = (s16) tempCutscene;
     //if (tempCutscene != -1) {
@@ -252,6 +263,7 @@ void EnKakasi_Init(Actor *thisx, GlobalContext *globalCtx) {
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Kakasi_0x8096F5E0/EnKakasi_Init.asm")
 #endif
 
+// change dancing animation? maybe all animations?
 void func_8096F800(EnKakasi *this, s32 offset) {   
     this->unk1A0 = offset;
     this->animationFrameTarget = SkelAnime_GetFrameCount(D_80972048[this->unk1A0]);
@@ -261,11 +273,13 @@ void func_8096F800(EnKakasi *this, s32 offset) {
 }
 
 // action func
-void func_8096F88C(Actor *this, GlobalContext *globalCtx) {
+// does NOT go off in the shop
+void func_8096F88C(EnKakasi* this, GlobalContext *globalCtx) {
     func_8013A530( this, globalCtx, 0x7, 
       &globalCtx->state.input[1].press.errno, &globalCtx->view.gfxCtx, 280.0f, 1800.0f, -1);
 }
 
+// goes off every frame of idle if draw is set
 void func_8096F8D8(EnKakasi *this) {
     if ((this->unk1A0 == 1) || (this->unk1A0 == 5)) {
         if ((func_801378B8(&this->skelanime, 1.0f) != 0) 
@@ -294,6 +308,7 @@ void func_8096F8D8(EnKakasi *this) {
     }
 }
 
+// moves the player's position relative to scarecrow during song teach, also each frame of dance the night away
 void func_8096FA18(EnKakasi *this, GlobalContext *globalCtx) {
     Actor* player = PLAYER;
     s16 sceneNum;
@@ -311,7 +326,8 @@ void func_8096FA18(EnKakasi *this, GlobalContext *globalCtx) {
 }
 
 #if NON-MATCHING
-// the end functions lack prototypes, think the remaining non-matching is caused by that
+// this goes off every frame of dancing the night away, and song teaching
+// NON-MATCHING the end functions lack prototypes, think the remaining non-matching is caused by that
 void func_8096FAAC(EnKakasi *this, GlobalContext* globalCtx) {
     f32 magicNum = 0.40000000596;
     //Vec3f* ptrUnk214 = &this->unk214;
@@ -340,6 +356,7 @@ void func_8096FAAC(EnKakasi *this, GlobalContext* globalCtx) {
         //Math_SmoothScaleMaxF(&ptrUnk220->z, this->unk244.z, magicNum, 4.0f);
         
         Math_SmoothScaleMaxF(&this->unk20C, this->unk210, 0.3f, 10.0f);
+        
         //func_8016970C(globalCtx, this->cutsceneCamera, this->unk220.x, this->unk214.x);
         func_8016970C(globalCtx, this->cutsceneCamera, tempUnk220X, tempUnk214X);
         //func_8016970C(globalCtx, this->cutsceneCamera, ptrUnk220->x, ptrUnk214->x);
@@ -350,6 +367,8 @@ void func_8096FAAC(EnKakasi *this, GlobalContext* globalCtx) {
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Kakasi_0x8096F5E0/func_8096FAAC.asm")
 #endif
 
+// only called from func_80970740
+// goes off every frame of song teach
 void func_8096FBB8(EnKakasi* this, GlobalContext* globalCtx) {
     if ((globalCtx->msgCtx.unk12048 == 0) || (globalCtx->msgCtx.unk12048 == 1) || (globalCtx->msgCtx.unk12048 == 2) 
       || (globalCtx->msgCtx.unk12048 == 3) || (globalCtx->msgCtx.unk12048 == 4)) {
@@ -375,9 +394,9 @@ void func_8096FC8C(EnKakasi *this) {
 
 
 // action func
-void func_8096FCC4(Actor* thisx, GlobalContext* globalCtx) {
+// goes off every frame after scene reload after dancing all night action (fade from black, pause for dawn of day text, continue until he starts talking)
+void func_8096FCC4(EnKakasi* this, GlobalContext* globalCtx) {
     ActorPlayer* player = PLAYER;
-    EnKakasi* this = THIS;
 
     if ((gSaveContext.extra.unk10 != -4) && (gSaveContext.extra.unk10 != -8)) {
         if ((gSaveContext.perm.time != 0x4000) && (gSaveContext.perm.time != 0xC000) 
@@ -408,52 +427,52 @@ void func_8096FDE8(EnKakasi* this) {
 }
 
 // action func
-void func_8096FE00(Actor *thisx, GlobalContext *globalCtx) {
-    //EnKakasi* this = THIS; // matches without, with stack is too big
+// goes off while standing perfeclty still, idle standing? does NOT go off while he's gone
+void func_8096FE00(EnKakasi* this, GlobalContext *globalCtx) {
     u32 saveContextDay;
     s16 passedValue1;
     s16 passedValue2;
 
     saveContextDay = gSaveContext.perm.day;
-    thisx->textId = 0x1644;
-    if (func_800B8718(thisx, globalCtx) != 0) {
-        THIS->skelanime.animPlaybackSpeed = 1.0f;
-        func_809705E4(thisx, globalCtx);
+    this->actor.textId = 0x1644;
+    if (func_800B8718(this, globalCtx) != 0) {
+        this->skelanime.animPlaybackSpeed = 1.0f;
+        func_809705E4(this, globalCtx);
         return;
     }
-    if (func_800B84D0(thisx, globalCtx) != 0) {
-        THIS->skelanime.animPlaybackSpeed = 1.0f;
-        func_80970008(THIS);
+    if (func_800B84D0(&this->actor, globalCtx) != 0) {
+        this->skelanime.animPlaybackSpeed = 1.0f;
+        func_80970008(this);
         return;
     }
     if ((globalCtx->actorCtx.unk5 & 4) != 0) {
-        func_800B8898(globalCtx, thisx, &passedValue1, &passedValue2);
-        if ((thisx->projectedPos.z > -20.0f) 
+        func_800B8898(globalCtx, &this->actor, &passedValue1, &passedValue2);
+        if ((this->actor.projectedPos.z > -20.0f) 
           && ((s32) passedValue1 > 0) && ((s32) passedValue1 < 0x140) 
-          && ((s32) passedValue2 > 0) && ((s32) passedValue2 < 0xF0) && (THIS->unk1A0 != 1)) {
-            func_8096F800(thisx, 1);
-            THIS->skelanime.animPlaybackSpeed = 2.0f;
+          && ((s32) passedValue2 > 0) && ((s32) passedValue2 < 0xF0) && (this->unk1A0 != 1)) {
+            func_8096F800(this, 1);
+            this->skelanime.animPlaybackSpeed = 2.0f;
         }
     } else if (func_8012403C(globalCtx) == 0xE) {
-        if (THIS->unk1A0 != 1) {
-            func_8096F800(thisx, 1);
-            THIS->skelanime.animPlaybackSpeed = 2.0f;
+        if (this->unk1A0 != 1) {
+            func_8096F800(this, 1);
+            this->skelanime.animPlaybackSpeed = 2.0f;
         }
     } else if ((saveContextDay == 3) && (gSaveContext.perm.isNight != 0)) {
-        THIS->skelanime.animPlaybackSpeed = 1.0f;
-        if (THIS->unk1A0 != 1) {
-            func_8096F800(thisx, 1);
+        this->skelanime.animPlaybackSpeed = 1.0f;
+        if (this->unk1A0 != 1) {
+            func_8096F800(this, 1);
         }
-    } else if (THIS->unk1A0 != 8) {
-        func_8096F800(thisx, 8);
+    } else if (this->unk1A0 != 8) {
+        func_8096F800(this, 8);
     }
-    if (thisx->xzDistToPlayer < 120.0f) {
-        func_800B8614(thisx, globalCtx, 100.0f);
-        func_800B874C(thisx, globalCtx, 0x42C80000, 0x42A00000);
+    if (this->actor.xzDistToPlayer < 120.0f) {
+        func_800B8614(&this->actor, globalCtx, 100.0f);
+        func_800B874C(&this->actor, globalCtx, 0x42C80000, 0x42A00000);
     }
 }
 
-
+// goes off once when you start talking to him from idle, but NOT from day/night transition
 void func_80970008(EnKakasi *this) {
     if (this->unk1A0 != 1) {
         func_8096F800(this, 1);
@@ -466,11 +485,12 @@ void func_80970008(EnKakasi *this) {
 }
 
 // action func
-// goes off if you cancel a song but kinda big?
+// goes off when just talking to him, includes talking after song teach failure
+
 #if NON_EQUIVALENT
 // there is some out of order instructions around saveContextDay
 // also the control flow gets confused near 70% down
-void func_8097006C(Actor* this, GlobalContext *globalCtx) {
+void func_8097006C(EnKakasi* this, GlobalContext *globalCtx) {
     // prob save context var
     //SaveContext* sCtx;// = &gSaveContext;
     u32 saveContextDay = gSaveContext.perm.day; 
@@ -636,6 +656,7 @@ void func_8097006C(Actor* this, GlobalContext *globalCtx) {
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Kakasi_0x8096F5E0/func_8097006C.asm")
 #endif
 
+
 void func_809705E4(EnKakasi* this, GlobalContext* globalCtx) {
     this->actor.textId = 0x1646;
     func_801518B0(globalCtx, this->actor.textId, &this->actor);
@@ -648,37 +669,36 @@ void func_809705E4(EnKakasi* this, GlobalContext* globalCtx) {
 }
 
 //action func
-void func_80970658(Actor* thisx, GlobalContext* globalCtx) {
-    EnKakasi* this = THIS;
-
+// goes off every frame he notices you have an ocarina and is still talking, not learning notes
+void func_80970658(EnKakasi* this, GlobalContext* globalCtx) {
     if ((func_80152498(&globalCtx->msgCtx) == 5) && (func_80147624(globalCtx) != 0)) {
         func_80152434(globalCtx, 0x35);
         this->unk1A8 = 0;
         if (ActorCutscene_GetCurrentIndex() == 0x7C) {
-            ActorCutscene_Stop((u16)0x7C);
+            ActorCutscene_Stop(0x7C);
+            ActorCutscene_SetIntentToPlay(this->actorCutscenes[0]);
+            this->actionFunc = func_80970740;//songteaching
+
+        } else if (ActorCutscene_GetCanPlayNext((s16) this->actorCutscenes[0]) == 0) {
             ActorCutscene_SetIntentToPlay((s16) this->actorCutscenes[0]);
-            this->actionFunc = func_80970740;
-            return;
+            this->actionFunc = func_80970740;//songteaching
+
+        } else {
+            this->unk1A8 = 1;
+            ActorCutscene_StartAndSetUnkLinkFields((s16) this->actorCutscenes[0], &this->actor);
+            this->cutsceneCamera = ActorCutscene_GetCurrentCamera(this->actor.cutscene);
+            Math_Vec3f_Copy(&this->unk22C, &this->actor.home.pos);
+            this->actionFunc = func_80970740;//songteaching
         }
-        if (ActorCutscene_GetCanPlayNext((s16) this->actorCutscenes[0]) == 0) {
-            ActorCutscene_SetIntentToPlay((s16) this->actorCutscenes[0]);
-            this->actionFunc = func_80970740;
-            return;
-        }
-        this->unk1A8 = 1;
-        ActorCutscene_StartAndSetUnkLinkFields((s16) this->actorCutscenes[0], &this->actor);
-        this->cutsceneCamera = ActorCutscene_GetCurrentCamera(this->actor.cutscene);
-        Math_Vec3f_Copy(&this->unk22C, &this->actor.home.pos);
-        this->actionFunc = func_80970740;
     }
 }
 
-// action func: each frame of songteaching?
-void func_80970740(Actor* thisx, GlobalContext* globalCtx) {
-    EnKakasi* this = THIS;
+// action func: each frame of songteaching
+void func_80970740(EnKakasi* this, GlobalContext* globalCtx) {
+    //EnKakasi* this = THIS;
     Vec3f tempVec;
 
-    func_8096FA18(this, globalCtx);
+    func_8096FA18(this, globalCtx); // move player in front of scarecrow
     Math_SmoothScaleMaxMinS(&this->actor.shape.rot.y, this->actor.home.rot.y, 1, 0xBB8, 0);
     if (this->unk1A8 == 0) {
         if (ActorCutscene_GetCurrentIndex() == 0x7C) {
@@ -729,17 +749,19 @@ void func_80970740(Actor* thisx, GlobalContext* globalCtx) {
             this->unk192 = 0x1E;
             this->skelanime.animPlaybackSpeed = 2.0f;
             func_8096F800(this, 2);
-            this->actionFunc = func_80970978;
+            this->actionFunc = func_80970978;//post-song-teach twirl
         }
     }
 }
 
 // action func
-void func_80970978(Actor* thisx, GlobalContext *globalCtx) {
-    EnKakasi* this= THIS;
+// every frame of his post-song-learn twirl
+// uncompresed rom: 8041D378
+void func_80970978(EnKakasi* this, GlobalContext *globalCtx) {
     f32 tempAnimeFrame;
     s16 temp192;
-
+  
+    // 192 at this spot is 1D and counts down per frame until zero
     temp192 = this->unk192;
     tempAnimeFrame = this->skelanime.animCurrentFrame;
     if ((temp192 == 0) && (this->unk1A0 != 4)) {
@@ -752,6 +774,7 @@ void func_80970978(Actor* thisx, GlobalContext *globalCtx) {
     }
 }
 
+// goes off at the very tail end of song teaching twirl
 void func_80970A10(EnKakasi *this, GlobalContext *globalCtx) {
 
     ActorCutscene_Stop(this->actorCutscenes[0]);
@@ -771,8 +794,7 @@ void func_80970A10(EnKakasi *this, GlobalContext *globalCtx) {
 //  think this is the post-song teaching action func
 // NON-MATCHING: stack too big, bit of regalloc
 #if NON-MATCHING
-void func_80970A9C(Actor* thisx, GlobalContext *globalCtx) {
-    EnKakasi* this = THIS;
+void func_80970A9C(EnKakasi* this, GlobalContext *globalCtx) {
     ActorPlayer* player = PLAYER;
     f32 tempAnimFrame;
     Vec3f vec3fCopy;
@@ -825,7 +847,7 @@ void func_80970A9C(Actor* thisx, GlobalContext *globalCtx) {
     }
     if (this->cutsceneCamera != 0) {
         this->unk22C.y = this->actor.home.pos.y + 50.0f;
-        func_8096FA18(this, globalCtx);
+        func_8096FA18(this, globalCtx); // move player in front of scarecrow
         this->unk238.x = D_80971FA0[this->unk190].x;
         this->unk238.y = D_80971FA0[this->unk190].y;
         this->unk238.z = D_80971FA0[this->unk190].z;
@@ -854,7 +876,7 @@ void func_80970A9C(Actor* thisx, GlobalContext *globalCtx) {
                 func_800B7298(globalCtx, &this->actor, 7);
                 this->actor.textId = 0x1649;
                 if (this->unk1A0 != 0) {
-                    func_8096F800(&this->actor, 0);
+                    func_8096F800(this, 0);
                 }
                 tempTextId = this->actor.textId;
             } else if (tempTextId == 0x1649) {
@@ -897,8 +919,8 @@ void func_80970A9C(Actor* thisx, GlobalContext *globalCtx) {
 
 
 // action func
-void func_80970F20(Actor* thisx, GlobalContext *globalCtx) {
-    EnKakasi* this = THIS;
+// goes off once at the start of dancing the night away, one frame, like a setup action func
+void func_80970F20(EnKakasi* this, GlobalContext *globalCtx) {
     u32 currentDay = gSaveContext.perm.day;
 
     this->unk196 = 3;
@@ -921,6 +943,7 @@ void func_80970F20(Actor* thisx, GlobalContext *globalCtx) {
     func_80970FF8(this);
 }
 
+// never goes off in the shop
 void func_80970FF8(EnKakasi *this) {
     this->unk190 = 0;
     this->unk1A4 = 0;
@@ -934,7 +957,7 @@ void func_80970FF8(EnKakasi *this) {
 
 //action func
 // guessing since this ends with a worthless action func it leads to the actor leaving
-// todo convert this to Actor* thisx
+// no? it never goes off while hes leaving the hell? 8041DA64
 void func_80971064(EnKakasi* this, GlobalContext* globalCtx) {
     //EnKakasi* this= THIS; // matches without, leaving as EnKakasi* this for now
     f32 currentFrame;
@@ -942,7 +965,7 @@ void func_80971064(EnKakasi* this, GlobalContext* globalCtx) {
     ActorPlayer* player;
 
     currentFrame = this->skelanime.animCurrentFrame;
-    func_8096FA18(this, globalCtx);
+    func_8096FA18(this, globalCtx); // move player in front of scarecrow
     Math_SmoothScaleMaxMinS(&this->actor.shape.rot.y, this->actor.home.rot.y, 1, 0xBB8, 0);
     this->unk22C.y = this->actor.home.pos.y + 50.0f;
 
@@ -1054,8 +1077,9 @@ void func_80971064(EnKakasi* this, GlobalContext* globalCtx) {
 }
 
 // ? do nothing action func?
-void func_80971430(Actor* this, GlobalContext* globalCtx) { }
+void func_80971430(EnKakasi* this, GlobalContext* globalCtx) { }
 
+// setup for digging animation
 void func_80971440(EnKakasi *this){
     if (this->unk1A0 != 1) {
         func_8096F800(&this->actor, 1);
@@ -1071,9 +1095,10 @@ void func_80971440(EnKakasi *this){
 
 #if NON-matching
 // action func
+// this is him digging away after song teach
 // NON-MATCHING: stack and regalloc
 // if you use a temp pointer for D_8097203C, the regalloc is gone but can't align stack
-void func_809714BC(Actor* this, GlobalContext *globalCtx) {
+void func_809714BC(EnKakasi* this, GlobalContext *globalCtx) {
     s8 pad1[2];
     Vec3f localVec3f;
     Vec3f* D_8097203CPtr;
@@ -1139,6 +1164,7 @@ void func_809714BC(Actor* this, GlobalContext *globalCtx) {
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Kakasi_0x8096F5E0/func_809714BC.asm")
 #endif
 
+// setup hiding in the ground
 void func_80971794(EnKakasi *this) {
     this->actor.shape.yOffset = -7000.0;
     this->actor.draw = NULL;
@@ -1148,8 +1174,8 @@ void func_80971794(EnKakasi *this) {
 }
 
 // action func
-void func_809717D0(Actor* thisx, GlobalContext* globalCtx) {
-    EnKakasi* this = THIS;
+// resting in the ground after you he leaves having learned a song
+void func_809717D0(EnKakasi* this, GlobalContext* globalCtx) {
     //if (((*(&gSaveContext + 0xF47) & 8) != 0) && (this->actor.xzDistToPlayer < this->unk250)) {
     if (((gSaveContext.perm.weekEventReg[79]  & 8) != 0) 
         && (this->actor.xzDistToPlayer < this->unk250)
@@ -1161,36 +1187,34 @@ void func_809717D0(Actor* thisx, GlobalContext* globalCtx) {
 }
 
 //action func
-void func_8097185C(Actor* thisx, GlobalContext *globalCtx) {
-    //EnKakasi* this = THIS; //matches without, with stack is too big
+void func_8097185C(EnKakasi* this, GlobalContext *globalCtx) {
     s32 cutsceneIndex;
 
     cutsceneIndex = 0;
-    if (THIS->unk194 == 2) {
+    if (this->unk194 == 2) {
         cutsceneIndex = 1;
     }
     
     if (ActorCutscene_GetCurrentIndex() == 0x7C) {
         ActorCutscene_Stop(0x7C);
-        ActorCutscene_SetIntentToPlay(THIS->actorCutscenes[cutsceneIndex]);
+        ActorCutscene_SetIntentToPlay(this->actorCutscenes[cutsceneIndex]);
         return;
     }
-    if (ActorCutscene_GetCanPlayNext(THIS->actorCutscenes[cutsceneIndex]) == 0) {
-        ActorCutscene_SetIntentToPlay(THIS->actorCutscenes[cutsceneIndex]);
+    if (ActorCutscene_GetCanPlayNext(this->actorCutscenes[cutsceneIndex]) == 0) {
+        ActorCutscene_SetIntentToPlay(this->actorCutscenes[cutsceneIndex]);
         return;
     }
-    ActorCutscene_StartAndSetUnkLinkFields(THIS->actorCutscenes[cutsceneIndex], thisx);
+    ActorCutscene_StartAndSetUnkLinkFields(this->actorCutscenes[cutsceneIndex], &this->actor);
     cutsceneIndex = 0; // wat? no longer used by needed to build
-    Audio_PlayActorSound2(&THIS->actor, 0x3987U);
-    thisx->draw = EnKakasi_Draw;
-    THIS->unk196 = 6;
-    THIS->actionFunc = func_8097193C;
+    Audio_PlayActorSound2(&this->actor, 0x3987U);
+    this->actor.draw = EnKakasi_Draw;
+    this->unk196 = 6;
+    this->actionFunc = func_8097193C;
 }
 
 
 //action func
-void func_8097193C(Actor* thisx, GlobalContext *globalCtx) {
-    EnKakasi* this = THIS;
+void func_8097193C(EnKakasi* this, GlobalContext *globalCtx) {
     this->actor.shape.rot.y += 0x3000;
 
     if (this->unk1A0 != 1) {
@@ -1217,8 +1241,7 @@ void func_80971A38(EnKakasi *this) {
 }
 
 // action func
-void func_80971A64(Actor* thisx, GlobalContext* globalCtx) {
-    EnKakasi* this = THIS;
+void func_80971A64(EnKakasi* this, GlobalContext* globalCtx) {
     Math_SmoothScaleMaxMinS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 5, 0x3E8, 0);
     if (func_800B84D0(this, globalCtx) != 0) {
         this->actionFunc = func_80971AD4;
@@ -1228,8 +1251,7 @@ void func_80971A64(Actor* thisx, GlobalContext* globalCtx) {
 }
 
 // action func
-void func_80971AD4(Actor* thisx, GlobalContext *globalCtx) {
-    EnKakasi* this = THIS;
+void func_80971AD4(EnKakasi* this, GlobalContext *globalCtx) {
     Math_SmoothScaleMaxMinS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 5, 0x3E8, 0);
     
     if ((func_80152498(&globalCtx->msgCtx) == 5) && (func_80147624(globalCtx) != 0)) {
