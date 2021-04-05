@@ -9,8 +9,8 @@ typedef void (*EnKakasiActionFunc)(struct EnKakasi*, GlobalContext*);
 
 typedef struct EnKakasi {
     /* 0x000 */ Actor actor;
-    /* 0x144 */ UNK_TYPE unk144; 
-    /* 0x148 */ EnKakasiActionFunc actionFunc; // another function pointer?
+    /* 0x144 */ UNK_TYPE pad144; // this ISN'T the function pointer? weird
+    /* 0x148 */ EnKakasiActionFunc actionFunc;
     /* 0x14C */ SkelAnime skelanime;
     /* 0x190 */ s16 unk190; // max:8, incremented in multiple places
     /* 0x192 */ s16 unk192; // 30 written to here
@@ -18,12 +18,12 @@ typedef struct EnKakasi {
     /* 0x196 */ s16 unk196; // some sort of state?
     /* 0x198 */ s16 unk198;
     /* 0x19A */ UNK_TYPE1 pad19A[0x6];
-    /* 0x1A0 */ s32 unk1A0;
-    /* 0x1A4 */ s32 unk1A4;
+    /* 0x1A0 */ s32 animeIndex;
+    /* 0x1A4 */ s32 unkCounter1A4; // counter, counts up to F while he digs away, used in a different function for something else
     /* 0x1A8 */ s32 unk1A8; // state? set to 0,1,2
     /* 0x1AC */ s16 unk1AC; // might be dialog state, compared against func(msgCtx)
     /* 0x1AE */ s16 actorCutscenes[3];
-    /* 0x1B4 */ f32 animationFrameTarget; // todo need better name 
+    /* 0x1B4 */ f32 animeFrameCount; // todo need better name 
     /* 0x1B8 */ f32 unkHeight;
     /* 0x1BC */ Vec3f unk1BC; // set by post limbdraw func for one limb
     /* 0x1C8 */ UNK_TYPE1 pad1C8[0x3C];
@@ -31,7 +31,7 @@ typedef struct EnKakasi {
     /* 0x208 */ UNK_TYPE1 pad206[2];
     /* 0x208 */ s16 cutsceneCamera;
     /* 0x20A */ UNK_TYPE1 pad20A[2];//padd
-    /* 0x20C */ f32 unk20C;
+    /* 0x20C */ f32 unk20C; // set to 0 or 60 in some setups
     /* 0x210 */ f32 unk210; // gets set to 60 multiple places
     /* 0x214 */ Vec3f unk214; // copied from unk238 regularly
     /* 0x220 */ Vec3f unk220; //func_80970740
