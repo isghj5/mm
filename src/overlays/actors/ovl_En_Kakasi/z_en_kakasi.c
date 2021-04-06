@@ -131,17 +131,11 @@ Vec3f D_80971FE8[] = {
     {0x41A00000, 0x40A00000, 0x40000000,},
     {0x41200000, 0x40A00000, 0x40000000,},
 };
-Vec3f D_80972030 = {
-    0xC0400000,
-    0x42480000,
-    0x42B40000,
-};
 
-Vec3f D_8097203C = {
-    0x41200000,
-    0xC1700000,
-    0x40000000,
-};
+Vec3f D_80972030 = { 0xC0400000, 0x42480000, 0x42B40000, };
+
+// offest possition used for digging action func
+Vec3f D_8097203C = { 0x41200000, 0xC1700000, 0x40000000, };
 
 // rename: animations
 AnimationHeader* D_80972048[] = { 
@@ -151,10 +145,8 @@ AnimationHeader* D_80972048[] = {
 
 // animation mode, passed to SkelAnime_ChangeAnim
 u8  D_8097206C[] = {
-    0x00, 0x00, 0x00, 0x02, 
-    0x02, 0x02, 0x02, 0x02, 
-    0x02, 0x00, 0x00, 0x00, 
-    0x00, 0x00, 0x00, 0x00, 
+    0x00, 0x00, 0x00, 0x02, 0x02, 0x02, 0x02, 0x02, 
+    0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
     0x00, 0x00, 0x00, 0x00, 
 };
 
@@ -299,10 +291,10 @@ void func_8096FA18(EnKakasi *this, GlobalContext *globalCtx) {
     s16 sceneNum;
 
     sceneNum = globalCtx->sceneNum;
-    if (sceneNum == 0x34) {
+    if (sceneNum == SCENE_8ITEMSHOP) {
         player->world.pos.x = -50.0f;
         player->world.pos.z = 155.0f;
-    } else if (sceneNum == 0x29) {
+    } else if (sceneNum == SCENE_TENMON_DAI) {
         player->world.pos.x = 60.0f;
         player->world.pos.z = -190.0f;
     }
@@ -447,19 +439,21 @@ void func_80970008(EnKakasi *this) {
 
 // action func
 // goes off when just talking to him, includes talking after song teach failure
-#if NON_EQUIVALENT
-// there is some out of order instructions around saveContextDay
-// also the control flow gets confused near 70% down
-void func_8097006C(EnKakasi* this, GlobalContext *globalCtx) {
+//#if NON_MATCHING
+// there is some out of order instructions around saveContextDay2
+// also the control flow gets confused near 70% down, but it's only one instruction off
+void func_8097006C(EnKakasi* this, GlobalContext* globalCtx) {
     // prob save context var
     //SaveContext* sCtx;// = &gSaveContext;
     u32 saveContextDay = gSaveContext.perm.day; 
-    u32 saveContextDay2;
     f32 currentAnimeFrame = this->skelanime.animCurrentFrame;
+    u32 saveContextDay2;
 
     Math_SmoothScaleMaxMinS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 5, 0x7D0, 0);
     if ((this->actor.textId != 0x1644) && (this->animeFrameCount <= currentAnimeFrame) && (this->animeIndex == 7)) {
         func_8096F800(this, 3);
+        this->unkCounter1A4 = 0;
+    }
     if ((this->actor.textId == 0x1651) || (this->actor.textId == 0x1659)) {
         if ((this->animeFrameCount <= currentAnimeFrame) && (this->animeIndex != 3)) {
             if (++this->unkCounter1A4 >= 2) {
@@ -486,6 +480,8 @@ void func_8097006C(EnKakasi* this, GlobalContext *globalCtx) {
                 saveContextDay2 = gSaveContext.perm.day; // I hope this is a fake match
 
                 // 1A0 loads AFTER globalcontext from above in vanilla
+                // also delay slot shenanigans
+                //fake_label: ;
                 if (this->animeIndex != 1) {
                     func_8096F800(this, 1);
                 }
@@ -505,7 +501,7 @@ void func_8097006C(EnKakasi* this, GlobalContext *globalCtx) {
             } else if ((this->actor.textId == 0x165D) || (this->actor.textId == 0x165F)
               || (this->actor.textId == 0x1660) || (this->actor.textId == 0x1652)) {
                 goto dummy_label_845001; dummy_label_845001: ;
-                func_800B7298(globalCtx, (Actor *) this, (u8)4U);
+                func_800B7298(globalCtx, &this->actor, 4);
                 if (ActorCutscene_GetCurrentIndex() == 0x7C) {
                     ActorCutscene_Stop(0x7C);
                     ActorCutscene_SetIntentToPlay(this->actorCutscenes[0]);
@@ -520,7 +516,7 @@ void func_8097006C(EnKakasi* this, GlobalContext *globalCtx) {
                         ActorCutscene_StartAndSetUnkLinkFields(this->actorCutscenes[0], &this->actor);
                         this->cutsceneCamera = ActorCutscene_GetCurrentCamera(this->actor.cutscene);
                         this->actionFunc = func_80970F20;
-                        return;
+                        //return;
                     }
                 }
             } else if ((this->actor.textId == 0x1645) || (this->actor.textId == 0x164E)) {
@@ -561,7 +557,7 @@ void func_8097006C(EnKakasi* this, GlobalContext *globalCtx) {
                 this->actor.textId = 0x165C;
                 this->unk1AC = 4;
 
-            // around here the controll flow gets confused
+            // around here the control flow gets confused
             } else if (this->actor.textId == 0x165E) {
                 this->actor.textId = 0x165F;
                 //return;
@@ -577,12 +573,12 @@ void func_8097006C(EnKakasi* this, GlobalContext *globalCtx) {
                     //return;
                 //}
                     //return;
+            return;
         } else {
             this->unk1AC = 5;
 
             if (globalCtx->msgCtx.unk12022 == 1) {
-                func_8019F208(); // play selected sfx and call another function
-                //temp_v1_2 = this->actor.textId;
+                func_8019F208(); // play 0x4808 sfx (decide) and calls func_801A75E8
                 if (this->actor.textId == 0x1656) {
                     this->actor.textId = 0x1658;
                 } else if (this->actor.textId == 0x165C) {
@@ -594,8 +590,7 @@ void func_8097006C(EnKakasi* this, GlobalContext *globalCtx) {
                 }
                 func_8096F800(this, 2);
             } else {
-                func_8019F230();
-                //temp_v1_3 = this->actor.textId;
+                func_8019F230(); // play 0x480A sfx (cancel) and calls func_801A75E8
                 if (this->actor.textId == 0x1656) {
                     this->actor.textId = 0x1657;
                 } else if (this->actor.textId == 0x165C) {
@@ -612,9 +607,9 @@ void func_8097006C(EnKakasi* this, GlobalContext *globalCtx) {
         func_80151938(globalCtx, this->actor.textId);
     }
 }
-#else
-#pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Kakasi_0x8096F5E0/func_8097006C.asm")
-#endif
+//#else
+//#pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Kakasi_0x8096F5E0/func_8097006C.asm")
+//#endif
 
 // setup for.. ?
 void func_809705E4(EnKakasi* this, GlobalContext* globalCtx) {
@@ -858,10 +853,10 @@ void func_80970A9C(EnKakasi* this, GlobalContext *globalCtx) {
             this->unk1AC = 5;
             // 16929 / 4908 / (12021)
             if (globalCtx->msgCtx.unk12022 == 1) {
-                func_8019F208(); // play selected sfx and call another function
+                func_8019F208(); // play 0x4808 sfx (decide) and calls func_801A75E8
                 this->actor.textId = 0x164A;
             } else {
-                func_8019F230();
+                func_8019F230(); // play 0x480A sfx (cancel) and calls func_801A75E8
                 this->actor.textId = 0x1661;
             }
         }
@@ -1045,33 +1040,23 @@ void func_80971440(EnKakasi *this){
     this->actionFunc = func_809714BC;
 }
 
-#if NON-matching
 // action func
 // this is him digging away after song teach
-// NON-MATCHING: stack and regalloc
-// if you use a temp pointer for D_8097203C, the regalloc is gone but can't align stack
 void func_809714BC(EnKakasi* this, GlobalContext *globalCtx) {
-    s8 pad1[2];
-    Vec3f localVec3f;
-    Vec3f* D_8097203CPtr;
-    s8 pad[1];
-    //s8 pad[2];
+    Vec3f tempunk238; // two are required as one is sp40 and one sp4C
+    Vec3f tempWorldPos;
 
     if (this->cutsceneCamera != 0) {
         this->unk22C.y = this->actor.home.pos.y + 50.0f;
         this->unk238.x = D_80972030.x;
         this->unk238.y = D_80972030.y;
         this->unk238.z = D_80972030.z;
-        Math_Vec3f_Copy( &localVec3f, &this->unk238);
-        func_8010CAA0(&this->actor.home.pos,  &localVec3f, &this->unk238, 1);
-        // using ptr fixes regalloc up here
-        D_8097203CPtr = &D_8097203C;
-        this->unk244.x = (*D_8097203CPtr).x + this->unk22C.x;
-        this->unk244.y = (*D_8097203CPtr).y + this->unk22C.y;
-        this->unk244.z = (*D_8097203CPtr).z + this->unk22C.z;
-        //this->unk244.x = D_8097203C.x + this->unk22C.x;
-        //this->unk244.y = D_8097203C.y + this->unk22C.y;
-        //this->unk244.z = D_8097203C.z + this->unk22C.z;
+
+        Math_Vec3f_Copy( &tempunk238, &this->unk238);
+        func_8010CAA0(&this->actor.home.pos, &tempunk238, &this->unk238, 1);
+        this->unk244.x = ((float)D_8097203C.x) + this->unk22C.x; //float cast is req to stop regalloc
+        this->unk244.y = ((float)D_8097203C.y) + this->unk22C.y;
+        this->unk244.z = ((float)D_8097203C.z) + this->unk22C.z;
         Math_Vec3f_Copy(&this->unk214, &this->unk238);
         Math_Vec3f_Copy(&this->unk220, &this->unk244);
         func_8096FAAC(this, globalCtx);
@@ -1085,14 +1070,14 @@ void func_809714BC(EnKakasi* this, GlobalContext *globalCtx) {
     this->actor.shape.rot.y = this->actor.shape.rot.y + 0x3000;
     Math_SmoothScaleMaxMinS(&this->unk190, 0x1F4, 5, 0x32, 0);
     if ((globalCtx->unk18840 & 3) == 0) {
-        Math_Vec3f_Copy( &localVec3f,  &this->actor.world.pos);
-        localVec3f.y = this->actor.floorHeight;
-        localVec3f.x += randPlusMinusPoint5Scaled(2.0f);
-        localVec3f.z += randPlusMinusPoint5Scaled(2.0f);
+        Math_Vec3f_Copy( &tempWorldPos,  &this->actor.world.pos);
+        tempWorldPos.y = this->actor.floorHeight;
+        tempWorldPos.x += randPlusMinusPoint5Scaled(2.0f);
+        tempWorldPos.z += randPlusMinusPoint5Scaled(2.0f);
 
-        if (globalCtx->sceneNum == 0x34) {
-            EffectSS_SpawnGSplash(globalCtx, &localVec3f, 0, 0, 0, (s32) (randPlusMinusPoint5Scaled(100.0f) + 200.0f));
-            func_800F0568(globalCtx, &localVec3f, 0x32, 0x2817); //sfx function
+        if (globalCtx->sceneNum == SCENE_8ITEMSHOP) {
+            EffectSsGSplash_Spawn(globalCtx, &tempWorldPos, 0, 0, 0, (s32) (randPlusMinusPoint5Scaled(100.0f) + 200.0f));
+            func_800F0568(globalCtx, &tempWorldPos, 0x32, 0x2817); //sfx function
 
         } else {
             func_800BBDAC(globalCtx, &this->actor, &this->actor.world.pos,
@@ -1112,9 +1097,6 @@ void func_809714BC(EnKakasi* this, GlobalContext *globalCtx) {
         func_80971794(this); // idle after dig
     }
 }
-#else
-#pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Kakasi_0x8096F5E0/func_809714BC.asm")
-#endif
 
 // setup hiding in the ground
 void func_80971794(EnKakasi *this) {

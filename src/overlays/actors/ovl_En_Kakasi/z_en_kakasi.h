@@ -19,7 +19,7 @@ typedef struct EnKakasi {
     /* 0x198 */ s16 unk198;
     /* 0x19A */ UNK_TYPE1 pad19A[0x6];
     /* 0x1A0 */ s32 animeIndex;
-    /* 0x1A4 */ s32 unkCounter1A4; // counter, counts up to F while he digs away, used in a different function for something else
+    /* 0x1A4 */ s32 unkCounter1A4; // counter, counts up to F while he digs away, reused elsewhere
     /* 0x1A8 */ s32 unk1A8; // state? set to 0,1,2
     /* 0x1AC */ s16 unk1AC; // might be dialog state, compared against func(msgCtx)
     /* 0x1AE */ s16 actorCutscenes[3];

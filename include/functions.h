@@ -2101,7 +2101,7 @@ f32 func_8010C36C(f32 a, f32 b);
 // void func_8010C8C8(void);
 // void func_8010C930(void);
 // void func_8010C9C8(void);
-void func_8010CAA0(Vec3f* param_1, Vec3f* param_2, Vec3f* param_3, UNK_TYPE1);
+void func_8010CAA0(Vec3f* param_1, Vec3f* param_2, Vec3f* param_3, UNK_TYPE param_4);
 // void func_8010CB80(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE2 param_5, UNK_TYPE2 param_6, UNK_TYPE2 param_7, UNK_TYPE2 param_8, UNK_TYPE2 param_9, UNK_TYPE2 param_10);
 // void func_8010CD98(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE2 param_5, UNK_TYPE2 param_6, UNK_TYPE2 param_7, UNK_TYPE2 param_8, UNK_TYPE2 param_9, UNK_TYPE2 param_10);
 // void func_8010CFBC(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE2 param_5, UNK_TYPE2 param_6, UNK_TYPE2 param_7, UNK_TYPE2 param_8, UNK_TYPE2 param_9, UNK_TYPE2 param_10, UNK_TYPE2 param_11, UNK_TYPE2 param_12, UNK_TYPE2 param_13, UNK_TYPE2 param_14);
@@ -3831,11 +3831,11 @@ void func_8019E014(void);
 // void func_8019F024(void);
 // void func_8019F05C(void);
 void play_sound(u16 param_1);
-void func_8019F128(u16 param_1);
-// void func_8019F170(void);
+void func_8019F128(u16 sfxId);
+void func_8019F170(Vec3f* pos, u16 sfxId);
 void func_8019F1C0(Vec3f* pos, u16 sfxId);
-void func_8019F208(void);
-// void func_8019F230(void);
+void func_8019F208(void); // decide
+void func_8019F230(void); // cancel
 // void func_8019F258(void);
 // void func_8019F300(void);
 // void func_8019F420(void);
