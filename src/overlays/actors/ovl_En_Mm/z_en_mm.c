@@ -222,15 +222,15 @@ void EnMm_Update(Actor *thisx, GlobalContext *globalCtx) {
 }
 
 #if NON-MATCHING
-// waiting on improved POLYOPA from upstream
-// regalloc and stack
+// stack offset
 void EnMm_Draw(Actor *thisx, GlobalContext *globalCtx) {
     EnMm* this = THIS;
-
-    GraphicsContext *gfxCtx = globalCtx->state.gfxCtx;
-    Gfx* _polyOpa;
-    s16 dY;
-    s32 padding;
+    s8 pad[4];
+    //s8 pad2[1];
+    s16 dY; // needs to be at 0x2a(sp)
+    //s8 pad3[2];
+    
+    OPEN_DISPS(globalCtx->state.gfxCtx);
 
     func_8012C28C(globalCtx->state.gfxCtx);
     if (this->unkDraw != 0) {
@@ -239,23 +239,12 @@ void EnMm_Draw(Actor *thisx, GlobalContext *globalCtx) {
         SysMatrix_InsertXRotation_s(this->unkDraw, 1);
         SysMatrix_InsertYRotation_s((s16) -(s32) dY, 1);
     }
-    OPEN_DISPS(gfxCtx);
-    //temp_v0 = gfxCtx->polyOpa.p;
-    //gfxCtx->polyOpa.p = temp_v0 + 8;
-    //temp_v0->words.w0 = 0xDA380003;
-    //sp24 = temp_v0;
-    //sp24->words.w1 = SysMatrix_AppendStateToPolyOpaDisp(globalCtx->state.gfxCtx);
-    //gSPMatrix(POLY_OPA_DISP++,
-    gSPMatrix(oGfxCtx->polyOpa.p++,
+    gSPMatrix(POLY_OPA_DISP++,
       SysMatrix_AppendStateToPolyOpaDisp(globalCtx->state.gfxCtx), 
       G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 
-    //temp_v0_2 = gfxCtx->polyOpa.p;
-    //gfxCtx->polyOpa.p = temp_v0_2 + 8;
-    //temp_v0_2->words.w1 = 0x04055628;
-    //temp_v0_2->words.w0 = 0xDE000000;
-    gSPDisplayList(oGfxCtx->polyOpa.p++, &D_04055628);
-    CLOSE_DISPS(gfxCtx);
+    gSPDisplayList(POLY_OPA_DISP++, &D_04055628);
+    CLOSE_DISPS(globalCtx->state.gfxCtx);
 }
 #else
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Mm_0x80965BB0/EnMm_Draw.asm")
