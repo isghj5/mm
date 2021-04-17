@@ -49,7 +49,7 @@ void EnTuboTrap_Init(Actor *thisx, GlobalContext *globalCtx) {
     Actor_ProcessInitChain(&this->actor, sInitChain);
     this->actor.shape.rot.z = 0;
     this->actor.world.rot.z = 0;
-    Actor_SetDrawParams(&this->actor.shape, 0.0f, func_800B3FC0, 1.8f);
+    ActorShape_Init(&this->actor.shape, 0.0f, func_800B3FC0, 1.8f);
     Collider_InitCylinder(globalCtx, &this->collider);
     Collider_SetCylinder(globalCtx, &this->collider, &this->actor, &sCylinderInit);
     this->actionFunc = func_80931004; // idle
@@ -67,10 +67,9 @@ void func_8093089C(EnTuboTrap *this, GlobalContext *globalCtx) {
     s32 dropCount = func_800A8150(itemParam);
 
     if (dropCount >= 0) {
-        // in OOT this is Item_DropCollectible
-        func_800A7730(globalCtx, 
-                      &this->actor.world, 
-                      ((this->actor.params & 0x7F) << 8) | dropCount);
+        Item_DropCollectible(globalCtx,
+                             &this->actor.world,
+                             ((this->actor.params & 0x7F) << 8) | dropCount);
     }
 }
 
@@ -90,21 +89,21 @@ void func_809308F4(EnTuboTrap *this, GlobalContext *globalCtx) {
     Vec3f *actorPos = &this->actor.world.pos;
 
     for (i = 0, var = 0; i < 15; i++, var += 20000){
-        sin = Math_Sins(var);
-        cos = Math_Coss(var);
+        sin = Math_SinS(var);
+        cos = Math_CosS(var);
         pos.x = sin * 8.0f;
-        pos.y = (randZeroOne() * 5.0f) + 2.0f;
+        pos.y = (Rand_ZeroOne() * 5.0f) + 2.0f;
         pos.z = cos * 8.0f;
 
         vel.x = pos.x * 0.23f;
-        vel.y = (randZeroOne() * 5.0f) + 2.0f;
+        vel.y = (Rand_ZeroOne() * 5.0f) + 2.0f;
         vel.z = pos.z * 0.23f;
 
         pos.x += actorPos->x;
         pos.y += actorPos->y;
         pos.z += actorPos->z;
 
-        rand = randZeroOne();
+        rand = Rand_ZeroOne();
         if (rand < 0.2f) {
             arg5 = 0x60;
         }else if (rand < 0.6f){
@@ -112,7 +111,7 @@ void func_809308F4(EnTuboTrap *this, GlobalContext *globalCtx) {
         }else {
             arg5 = 0x20;
         }
-        EffectSS_SpawnShard(globalCtx,
+        EffectSsKakera_Spawn(globalCtx,
                             &pos,
                             &vel,
                             actorPos,
@@ -120,10 +119,10 @@ void func_809308F4(EnTuboTrap *this, GlobalContext *globalCtx) {
                             arg5,
                             0x14,
                             0,
-                            0, 
-                            ((randZeroOne() * 85.0f) + 15.0f), 
                             0,
-                            0, 
+                            ((Rand_ZeroOne() * 85.0f) + 15.0f),
+                            0,
+                            0,
                             0x3C,
                             -1,
                             GAMEPLAY_DANGEON_KEEP,
@@ -150,41 +149,41 @@ void func_80930B60(EnTuboTrap *this, GlobalContext *globalCtx) {
 
     pos = *actorPos;
     pos.y += this->actor.yDistToWater;
-    
-    EffectSS_SpawnGSplash(globalCtx, &pos, NULL, NULL, 0, 0x190);
+
+    EffectSsGSplash_Spawn(globalCtx, &pos, NULL, NULL, 0, 0x190);
 
     for (i = 0, var = 0; i < 15; i++, var += 20000) {
-        sin = Math_Sins(var);
-        cos = Math_Coss(var);
+        sin = Math_SinS(var);
+        cos = Math_CosS(var);
         pos.x = sin * 8.0f;
-        pos.y = (randZeroOne() * 5.0f) + 2.0f;
+        pos.y = (Rand_ZeroOne() * 5.0f) + 2.0f;
         pos.z = cos * 8.0f;
 
         vel.x = pos.x * 0.20f;
-        vel.y = (randZeroOne() * 4.0f) + 2.0f;
+        vel.y = (Rand_ZeroOne() * 4.0f) + 2.0f;
         vel.z = pos.z * 0.20f;
 
         pos.x += actorPos->x;
         pos.y += actorPos->y;
         pos.z += actorPos->z;
 
-        rand = randZeroOne();
+        rand = Rand_ZeroOne();
         if (rand < 0.2f) {
             arg5 = 64;
         } else {
             arg5 = 32;
         }
 
-       EffectSS_SpawnShard(globalCtx,
-                          &pos, 
-                          &vel, 
+       EffectSsKakera_Spawn(globalCtx,
+                          &pos,
+                          &vel,
                           actorPos,
-                          -0xAA, 
+                          -0xAA,
                           arg5,
-                          0x32, 5, 0, 
-                          ((randZeroOne() * 85.0f) + 15.0f),
-                          0, 0, 0x46, 
-                          -1, 
+                          0x32, 5, 0,
+                          ((Rand_ZeroOne() * 85.0f) + 15.0f),
+                          0, 0, 0x46,
+                          -1,
                           GAMEPLAY_DANGEON_KEEP,
                           &D_05018090);
 
@@ -195,7 +194,7 @@ void func_80930B60(EnTuboTrap *this, GlobalContext *globalCtx) {
 void func_80930DDC(EnTuboTrap *this, GlobalContext *globalCtx) {
     Actor *player = PLAYER;
     Actor *player2 = PLAYER;
-    
+
     // in oot func_800F0568 is Audio_PlaySoundAtPosition
 
     if (((this->actor.bgCheckFlags & 0x20) != 0) && (this->actor.yDistToWater > 15.0f)) {
@@ -240,13 +239,13 @@ void func_80930DDC(EnTuboTrap *this, GlobalContext *globalCtx) {
         func_8093089C(this, globalCtx);
         Actor_MarkForDeath(&this->actor);
     }
-} 
+}
 
 #if NON-MATCHING
 // Wait For Proximity (idle)
   // NON-MATCHING: wrong register used, v instead of t for the weirdValues[] pointer
 void func_80931004(EnTuboTrap *this, GlobalContext *globalCtx) {
-    Actor *player = PLAYER; 
+    Actor *player = PLAYER;
     f32 currentHeight;
     s8 weirdvalue;
     s16 startingRotation;
@@ -261,7 +260,7 @@ void func_80931004(EnTuboTrap *this, GlobalContext *globalCtx) {
             func_800BC154(globalCtx, &globalCtx->actorCtx, this, ACTORCAT_ENEMY);
             currentHeight = this->actor.world.pos.y;
             this->actor.flags |= 0x11; // always update and can target
-            
+
             // hard to know what this value is even used for without knowing what ActorPlayer::unk14B is
             // wild guess: this is player animation state, height is modified to always point at center of link model
             weirdvalue = D_8093146C[ ((ActorPlayer*) player)->unk14B & 0xFF];
@@ -284,7 +283,7 @@ void func_80931004(EnTuboTrap *this, GlobalContext *globalCtx) {
 // levitate
 void func_80931138(EnTuboTrap *this, GlobalContext *globalCtx) {
     this->actor.shape.rot.y += 5000;
-    Math_SmoothScaleMaxF(&this->actor.world.pos.y, this->targetHeight, 0.8f, 3.0f);
+    Math_ApproachF(&this->actor.world.pos.y, this->targetHeight, 0.8f, 3.0f);
 
     if (fabsf(this->actor.world.pos.y - this->targetHeight) < 10.0f) {
         this->actor.speedXZ = 10.0f;
@@ -302,7 +301,7 @@ void func_809311C4(EnTuboTrap *this, GlobalContext *globalCtx) {
     Audio_PlayActorSound2(&this->actor, 0x3037);
 
     if ((SQ(dX) + SQ(dY) + SQ(dZ) > 57600.0f)) { //240.0f ^ 2
-        Math_SmoothScaleMaxF(&this->actor.gravity, -3.0f, 0.2f, 0.5f);
+        Math_ApproachF(&this->actor.gravity, -3.0f, 0.2f, 0.5f);
     }
 
     this->actor.shape.rot.y += 5000;

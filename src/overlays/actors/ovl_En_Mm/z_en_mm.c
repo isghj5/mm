@@ -61,7 +61,6 @@ void EnMm_Init(Actor* thisx, GlobalContext* globalCtx) {
     }
 
     Actor_ProcessInitChain(&this->actor, &sInitChain);
-    //Actor_SetDrawParams(&this->actor.shape, 50.0f, &func_800B3FC0, 1.2f);
     ActorShape_Init(&this->actor.shape, 50.0f, &func_800B3FC0, 1.2f);
     Collider_InitCylinder(globalCtx,  &this->collider);
     Collider_SetCylinder(globalCtx, &this->collider, &this->actor, &sCylinderInit);
@@ -129,7 +128,7 @@ void func_80965DB4(EnMm* this, GlobalContext* globalCtx) {
         }
 
         if ((this->actor.bgCheckFlags & 1) == 0) {
-            Lib_StepTowardsCheck_f(&this->actor.speedXZ, 0.0f, 0.08f);
+            Math_StepToF(&this->actor.speedXZ, 0.0f, 0.08f);
         } else {
             sinsSpeed = Math_Sins(this->actor.world.rot.y) * this->actor.speedXZ;
             cossSpeed = Math_Coss(this->actor.world.rot.y) * this->actor.speedXZ;
@@ -150,11 +149,10 @@ void func_80965DB4(EnMm* this, GlobalContext* globalCtx) {
                 }
 
                 // lots of temps loaded/added here that shouldn't be
-                //this->actor.world.rot.y = atans_flip(sinsSpeed, cossSpeed);
                 this->actor.world.rot.y = Math_FAtan2F(sinsSpeed, cossSpeed);
             }
 
-            if (Lib_StepTowardsCheck_f(&this->actor.speedXZ, 0.0f, 1.0f) == 0) {
+            if (Math_StepToF(&this->actor.speedXZ, 0.0f, 1.0f) == 0) {
                 dRot = this->actor.world.rot.y - this->actor.shape.rot.y;
                 if ((s32) dRot < 0) {
                     dRot32 = -(s32) dRot;
@@ -207,7 +205,7 @@ void func_8096611C(EnMm* this, GlobalContext* globalCtx) {
     } else {
         Math_Vec3f_ToVec3s(&this->actor.home.rot, &this->actor.parent->world);
     }
-    Lib_StepTowardsCheckFramerateScaled_s(&this->xRot, 0, 0x7D0);
+    Math_ScaledStepToS(&this->xRot, 0, 0x7D0);
 }
 
 void EnMm_Update(Actor* thisx, GlobalContext* globalCtx) {
