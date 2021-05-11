@@ -2706,7 +2706,7 @@ void func_8013AED4(u16* param_1, u16 param_2, u16 param_3);
 // void func_8013D768(void);
 // void func_8013D83C(void);
 // void func_8013D8DC(void);
-// void func_8013D924(void);
+s8 func_8013D924(UNK_TYPE param1, GlobalContext* gCtx);
 Actor* func_ActorCategoryIterateById(GlobalContext* globalCtx, struct Actor* actorListStart, s32 actorCategory, s32 actorId);
 // void func_8013D9C8(void);
 // void func_8013DB90(void);
