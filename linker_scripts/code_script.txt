@@ -1522,7 +1522,7 @@ SECTIONS
     ovl_Demo_Kankyo : AT(RomLocation)
     {
         build/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.o(.text)
-        build/asm/overlays/ovl_Demo_Kankyo_data.o(.data)
+        build/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.o(.data)
         build/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.o(.rodata)
         build/asm/overlays/ovl_Demo_Kankyo_rodata.o(.rodata)
     }
