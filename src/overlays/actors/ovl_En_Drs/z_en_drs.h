@@ -19,6 +19,9 @@ typedef struct EnDrs {
 
 extern const ActorInit En_Drs_InitVars;
 
-extern UNK_PTR D_06005A78; //0x6005A78
+extern AnimationHeader D_0600001C[];
+extern SkeletonHeader D_06005A78[];
+
+extern Gfx D_06000E70[];
 
 #endif // Z_EN_DRS_H

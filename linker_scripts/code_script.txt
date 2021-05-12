@@ -9140,7 +9140,7 @@ SECTIONS
     ovl_En_Drs : AT(RomLocation)
     {
         build/src/overlays/actors/ovl_En_Drs/z_en_drs.o(.text)
-        build/asm/overlays/ovl_En_Drs_data.o(.data)
+        build/src/overlays/actors/ovl_En_Drs/z_en_drs.o(.data)
         build/src/overlays/actors/ovl_En_Drs/z_en_drs.o(.rodata)
         build/asm/overlays/ovl_En_Drs_rodata.o(.rodata)
     }
