@@ -2705,8 +2705,8 @@ void func_8013BC6C(SkelAnime* skelAnim, ActorAnimationEntry animations[], UNK_TY
 // void func_8013D720(void);
 // void func_8013D768(void);
 // void func_8013D83C(void);
-UNK_TYPE func_8013D8DC(s8 param1, GlobalContext* gCtx);
-s8 func_8013D924(UNK_TYPE param1, GlobalContext* gCtx);
+s8 func_8013D8DC(s8 objectID, GlobalContext* gCtx); // wrapper for Object_IsLoaded
+s8 func_8013D924(ObjectID oID, GlobalContext* gCtx);
 Actor* func_ActorCategoryIterateById(GlobalContext* globalCtx, struct Actor* actorListStart, s32 actorCategory, s32 actorId);
 // void func_8013D9C8(void);
 // void func_8013DB90(void);

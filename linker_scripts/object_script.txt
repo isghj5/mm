@@ -204,9 +204,9 @@ D_06012B70 = 0x06012B70;
 D_06013EA8 = 0x06013EA8;
 
 /* z_en_drs */
-D_0600001C = 0x0600001C;
-D_06005A78 = 0x06005A78;
-D_06000E70 = 0x06000E70;
+object_drs_posing_anim  = 0x0600001C;
+object_drs_skeleton     = 0x06005A78;
+object_drs_dlist        = 0x06000E70;
 
 /* z_obj_visiblock */
 D_06000AD0 = 0x06000AD0;

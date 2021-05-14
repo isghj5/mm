@@ -14,14 +14,13 @@ typedef struct EnDrs {
     /* 0x18C */ ColliderCylinder collider;
     /* 0x1D8 */ Vec3s limbDrawTable[0x4];
     /* 0x1F0 */ Vec3s transitionDrawTable[0x4];
-    /* 0x208 */ s8 unk208;
+    /* 0x208 */ s8 moonMaskObjId;
 } EnDrs; // size = 0x20C
 
 extern const ActorInit En_Drs_InitVars;
 
-extern AnimationHeader D_0600001C[];
-extern SkeletonHeader D_06005A78[];
-
-extern Gfx D_06000E70[];
+extern AnimationHeader object_drs_posing_anim[];
+extern SkeletonHeader object_drs_skeleton[];
+extern Gfx object_drs_dlist[];
 
 #endif // Z_EN_DRS_H

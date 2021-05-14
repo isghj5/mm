@@ -9142,7 +9142,7 @@ SECTIONS
         build/src/overlays/actors/ovl_En_Drs/z_en_drs.o(.text)
         build/src/overlays/actors/ovl_En_Drs/z_en_drs.o(.data)
         build/src/overlays/actors/ovl_En_Drs/z_en_drs.o(.rodata)
-        build/asm/overlays/ovl_En_Drs_rodata.o(.rodata)
+        build/src/overlays/actors/ovl_En_Drs/z_en_drs_overlay.o(.ovl)
     }
     SegmentEnd = .;
     SegmentSize = SegmentEnd - SegmentStart;
