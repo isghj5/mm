@@ -3308,7 +3308,7 @@ SECTIONS
     ovl_En_Tg : AT(RomLocation)
     {
         build/src/overlays/actors/ovl_En_Tg/z_en_tg.o(.text)
-        build/asm/overlays/ovl_En_Tg_data.o(.data)
+        build/src/overlays/actors/ovl_En_Tg/z_en_tg.o(.data)
         build/src/overlays/actors/ovl_En_Tg/z_en_tg.o(.rodata)
         build/asm/overlays/ovl_En_Tg_rodata.o(.rodata)
     }
