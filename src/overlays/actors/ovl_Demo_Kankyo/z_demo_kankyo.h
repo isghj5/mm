@@ -24,7 +24,6 @@ typedef struct {
   /* 0x052 */ u16 pad52;
 
 } DemoKankyoParticle; // size = 0x54
-// clearly not that big, need to figure out real size
 
 #define DEMOKANKYO_PARTICLE_COUNT 0x40
 
