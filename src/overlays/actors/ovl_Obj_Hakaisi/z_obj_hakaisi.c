@@ -9,7 +9,7 @@ void ObjHakaisi_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void ObjHakaisi_Update(Actor* thisx, GlobalContext* globalCtx);
 void ObjHakaisi_Draw(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit Obj_Hakaisi_InitVars = {
     ACTOR_OBJ_HAKAISI,
     ACTORCAT_PROP,
@@ -19,9 +19,10 @@ const ActorInit Obj_Hakaisi_InitVars = {
     (ActorFunc)ObjHakaisi_Init,
     (ActorFunc)ObjHakaisi_Destroy,
     (ActorFunc)ObjHakaisi_Update,
-    (ActorFunc)ObjHakaisi_Draw
+    (ActorFunc)ObjHakaisi_Draw,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Obj_Hakaisi_0x80B14180/ObjHakaisi_Init.asm")
 

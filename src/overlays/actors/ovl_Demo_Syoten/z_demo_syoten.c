@@ -9,7 +9,7 @@ void DemoSyoten_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void DemoSyoten_Update(Actor* thisx, GlobalContext* globalCtx);
 void DemoSyoten_Draw(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit Demo_Syoten_InitVars = {
     ACTOR_DEMO_SYOTEN,
     ACTORCAT_ITEMACTION,
@@ -19,9 +19,10 @@ const ActorInit Demo_Syoten_InitVars = {
     (ActorFunc)DemoSyoten_Init,
     (ActorFunc)DemoSyoten_Destroy,
     (ActorFunc)DemoSyoten_Update,
-    (ActorFunc)DemoSyoten_Draw
+    (ActorFunc)DemoSyoten_Draw,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Demo_Syoten_0x80C16480/DemoSyoten_Init.asm")
 

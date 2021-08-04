@@ -8,15 +8,9 @@ void ObjFunen_Init(Actor* thisx, GlobalContext* globalCtx);
 void ObjFunen_Draw(Actor* thisx, GlobalContext* globalCtx);
 
 const ActorInit Obj_Funen_InitVars = {
-    ACTOR_OBJ_FUNEN,
-    ACTORCAT_PROP,
-    FLAGS,
-    OBJECT_FUNEN,
-    sizeof(ObjFunen),
-    (ActorFunc)ObjFunen_Init,
-    (ActorFunc)func_800BDFB0,
-    (ActorFunc)func_800BDFB0,
-    (ActorFunc)ObjFunen_Draw
+    ACTOR_OBJ_FUNEN,       ACTORCAT_PROP,         FLAGS,
+    OBJECT_FUNEN,          sizeof(ObjFunen),      (ActorFunc)ObjFunen_Init,
+    (ActorFunc)Actor_Noop, (ActorFunc)Actor_Noop, (ActorFunc)ObjFunen_Draw,
 };
 
 extern Gfx D_060000D0[];
@@ -40,7 +34,7 @@ void ObjFunen_Draw(Actor* thisx, GlobalContext* globalCtx) {
 
     gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(globalCtx->state.gfxCtx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
 
-    temp = -(globalCtx->unk18840 & 0x7FFFFFFF) & 0x7F;
+    temp = -(globalCtx->gameplayFrames & 0x7FFFFFFF) & 0x7F;
 
     gSPSegment(POLY_XLU_DISP++, 0x08,
                Gfx_TwoTexScroll(globalCtx->state.gfxCtx, 0, 0, temp, 0x20, 0x20, 1, 0, temp, 0x20, 0x20));

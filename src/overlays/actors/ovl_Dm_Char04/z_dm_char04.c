@@ -9,7 +9,7 @@ void DmChar04_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void DmChar04_Update(Actor* thisx, GlobalContext* globalCtx);
 void DmChar04_Draw(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit Dm_Char04_InitVars = {
     ACTOR_DM_CHAR04,
     ACTORCAT_ITEMACTION,
@@ -19,9 +19,10 @@ const ActorInit Dm_Char04_InitVars = {
     (ActorFunc)DmChar04_Init,
     (ActorFunc)DmChar04_Destroy,
     (ActorFunc)DmChar04_Update,
-    (ActorFunc)DmChar04_Draw
+    (ActorFunc)DmChar04_Draw,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Dm_Char04_0x80AABC40/func_80AABC40.asm")
 

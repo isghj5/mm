@@ -8,7 +8,7 @@ void EnHanabi_Init(Actor* thisx, GlobalContext* globalCtx);
 void EnHanabi_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnHanabi_Update(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit En_Hanabi_InitVars = {
     ACTOR_EN_HANABI,
     ACTORCAT_ITEMACTION,
@@ -18,9 +18,10 @@ const ActorInit En_Hanabi_InitVars = {
     (ActorFunc)EnHanabi_Init,
     (ActorFunc)EnHanabi_Destroy,
     (ActorFunc)EnHanabi_Update,
-    (ActorFunc)NULL
+    (ActorFunc)NULL,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Hanabi_0x80B22C00/func_80B22C00.asm")
 

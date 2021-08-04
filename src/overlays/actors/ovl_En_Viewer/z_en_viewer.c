@@ -9,7 +9,7 @@ void EnViewer_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnViewer_Update(Actor* thisx, GlobalContext* globalCtx);
 void EnViewer_Draw(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit En_Viewer_InitVars = {
     ACTOR_EN_VIEWER,
     ACTORCAT_ITEMACTION,
@@ -19,9 +19,10 @@ const ActorInit En_Viewer_InitVars = {
     (ActorFunc)EnViewer_Init,
     (ActorFunc)EnViewer_Destroy,
     (ActorFunc)EnViewer_Update,
-    (ActorFunc)EnViewer_Draw
+    (ActorFunc)EnViewer_Draw,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Viewer_0x8089EE20/func_8089EE20.asm")
 

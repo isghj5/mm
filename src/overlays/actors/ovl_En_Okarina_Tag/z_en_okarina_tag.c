@@ -8,7 +8,7 @@ void EnOkarinaTag_Init(Actor* thisx, GlobalContext* globalCtx);
 void EnOkarinaTag_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnOkarinaTag_Update(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit En_Okarina_Tag_InitVars = {
     ACTOR_EN_OKARINA_TAG,
     ACTORCAT_SWITCH,
@@ -18,9 +18,10 @@ const ActorInit En_Okarina_Tag_InitVars = {
     (ActorFunc)EnOkarinaTag_Init,
     (ActorFunc)EnOkarinaTag_Destroy,
     (ActorFunc)EnOkarinaTag_Update,
-    (ActorFunc)NULL
+    (ActorFunc)NULL,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Okarina_Tag_0x8093E420/EnOkarinaTag_Destroy.asm")
 

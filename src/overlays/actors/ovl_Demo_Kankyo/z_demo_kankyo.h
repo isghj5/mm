@@ -34,7 +34,7 @@ typedef struct DemoKankyo {
     /* 0x0144 */ DemoKankyoParticle unk144[DEMOKANKYO_PARTICLE_COUNT];
     /* 0x1644 */ DemoKankyoActionFunc actionFunc;
     /* 0x1648 */ s32 objBankIndex;
-    /* 0x164C */ char unk164C[0x4];
+    /* 0x164C */ char unk164C[0x4]; // padding?
 } DemoKankyo; // size = 0x1650
 
 extern const ActorInit Demo_Kankyo_InitVars;

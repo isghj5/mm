@@ -8,7 +8,7 @@ void EnTest3_Init(Actor* thisx, GlobalContext* globalCtx);
 void EnTest3_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnTest3_Update(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit En_Test3_InitVars = {
     ACTOR_EN_TEST3,
     ACTORCAT_NPC,
@@ -18,9 +18,10 @@ const ActorInit En_Test3_InitVars = {
     (ActorFunc)EnTest3_Init,
     (ActorFunc)EnTest3_Destroy,
     (ActorFunc)EnTest3_Update,
-    (ActorFunc)NULL
+    (ActorFunc)NULL,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Test3_0x80A3E7E0/func_80A3E7E0.asm")
 

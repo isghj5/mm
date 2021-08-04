@@ -7,7 +7,7 @@
 void ObjDemo_Init(Actor* thisx, GlobalContext* globalCtx);
 void ObjDemo_Update(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit Obj_Demo_InitVars = {
     ACTOR_OBJ_DEMO,
     ACTORCAT_PROP,
@@ -15,11 +15,12 @@ const ActorInit Obj_Demo_InitVars = {
     GAMEPLAY_KEEP,
     sizeof(ObjDemo),
     (ActorFunc)ObjDemo_Init,
-    (ActorFunc)func_800BDFB0,
+    (ActorFunc)Actor_Noop,
     (ActorFunc)ObjDemo_Update,
-    (ActorFunc)NULL
+    (ActorFunc)NULL,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Obj_Demo_0x80983520/ObjDemo_Init.asm")
 

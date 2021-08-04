@@ -8,7 +8,7 @@ void DemoGetitem_Init(Actor* thisx, GlobalContext* globalCtx);
 void DemoGetitem_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void DemoGetitem_Update(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit Demo_Getitem_InitVars = {
     ACTOR_DEMO_GETITEM,
     ACTORCAT_BG,
@@ -18,9 +18,10 @@ const ActorInit Demo_Getitem_InitVars = {
     (ActorFunc)DemoGetitem_Init,
     (ActorFunc)DemoGetitem_Destroy,
     (ActorFunc)DemoGetitem_Update,
-    (ActorFunc)NULL
+    (ActorFunc)NULL,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Demo_Getitem_0x80A4FA40/DemoGetitem_Init.asm")
 

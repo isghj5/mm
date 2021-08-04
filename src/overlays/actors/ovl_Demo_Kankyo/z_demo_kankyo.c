@@ -19,6 +19,7 @@ void func_808CF0CC(DemoKankyo* this, GlobalContext* globalCtx);
 void func_808CF970(DemoKankyo* this, GlobalContext* globalCtx);
 void func_808CFE04(DemoKankyo* this, GlobalContext* globalCtx);
 
+
 u8 D_808D03C0 = 0; // actually gets changed as a value
 UNK_TYPE D_808D03C4 = 0;
 
@@ -31,18 +32,19 @@ const ActorInit Demo_Kankyo_InitVars = {
     (ActorFunc)DemoKankyo_Init,
     (ActorFunc)DemoKankyo_Destroy,
     (ActorFunc)DemoKankyo_Update,
-    (ActorFunc)DemoKankyo_Draw
+    (ActorFunc)DemoKankyo_Draw,
 };
 
 // passed to Scene_FindSceneObjectIndex as the ID
 s16 D_808D03EA = 0xE;
+
 
 void func_808CE450(DemoKankyo* this, DemoKankyoActionFunc func) {
     this->actionFunc = func;
 }
 
 // action function: fairy particles
-///*
+/*
 void func_808CE45C(DemoKankyo *this, GlobalContext *globalCtx) {
     Vec3f spCC;
     Vec3f spBC;
@@ -361,7 +363,7 @@ void func_808CE45C(DemoKankyo *this, GlobalContext *globalCtx) {
 //#pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Demo_Kankyo_0x808CE450/func_808CE45C.asm")
 
 void func_808CF06C(DemoKankyo *this, GlobalContext *globalCtx) {
-    if (Scene_IsObjectLoaded(&globalCtx->sceneContext, this->objBankIndex) != 0) {
+    if (Object_IsLoaded(&globalCtx->objectCtx, this->objBankIndex) != 0) {
         this->unk164C[0] = 1;
         this->actor.objBankIndex = (s8) this->objBankIndex;
         func_808CE450(this, func_808CF0CC);
@@ -370,78 +372,66 @@ void func_808CF06C(DemoKankyo *this, GlobalContext *globalCtx) {
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Demo_Kankyo_0x808CE450/func_808CF0CC.asm")
 
-#if NON_EQUIVELENT
+//#if NON_EQUIVELENT
 // 
 void DemoKankyo_Init(DemoKankyo *this, GlobalContext *globalCtx) {
     s32 pad;
-    s32 oId;
+    s32 objID;
     s32 oId2; // trying to convince oid into sp20
     s32 i;
     s32 pad2[9];
-    //DemoKankyoParticle* patrPtr;
 
-    if (1){
-    // issue: this is automatically being unrolled incorrectly
-    for (i = 0; i < DEMOKANKYO_PARTICLE_COUNT; ++i){
-        this->unk144[i].unk0 = 0;
+    // vanilla code wants to increment i first...? two instructions out of order
+    //for (i = 0; i < DEMOKANKYO_PARTICLE_COUNT; i++){
+    i = 0;
+    while (i < DEMOKANKYO_PARTICLE_COUNT) {
+      DemoKankyoParticle* particlePtr = &this->unk144[i]; 
+      particlePtr->unk0 = 0;
+      i++;
     }
-    }
-    /*
-    DemoKankyo phi_v0 = this;
-    phi_v1 = 0;
-    loop_1:
-        temp_v1 = phi_v1 + 4;
-        phi_v0->unk144 = 0;
-        phi_v0->unk198 = (u8)0;
-        phi_v0->unk1EC = (u8)0;
-        phi_v0->unk240 = (u8)0;
-        phi_v0 = phi_v0 + 0x150;
-        phi_v1 = temp_v1;
-      if (temp_v1 != 0x40) {
-          goto loop_1;
-      }
-    */
 
+    // control flow is wrong here, at leasst two branches to wrong locations
     switch (this->actor.params) {
-    
         case 0:
-            oId = 0;
+            objID = 0;
             this->actor.room = -1;
             // check if another of this actor already exist, if so kill
             if (D_808D03C0 == 0) {
                 func_808CE450(this, func_808CE45C);
                 D_808D03C0 = 1;
+                //break;
             } else {
                 Actor_MarkForDeath(&this->actor);
+                //break;
             }
             break;
 
         case 1:
             this->unk164C[0] = 0;
-            oId = Scene_FindSceneObjectIndex(&globalCtx->sceneContext, D_808D03EA);
+            objID = Object_GetIndex(&globalCtx->objectCtx, D_808D03EA);
             func_808CE450(this, func_808CF06C);
             break;
 
         case 2:
-            oId = 1;
-            //oId = 0;
+            objID = 1;
+            //objID = 0;
             this->unk164C[0] = 1;
             func_808CE450(this, func_808CF0CC);
             break;
 
         default:
-            oId = -1;
+            objID = -1;
             //do { } while (0);
             break;
     }
 
-    if (oId >= 0) {
-        this->objBankIndex = oId;
+    if (objID >= 0) {
+        this->objBankIndex = objID;
     }
 }
-#else
-#pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Demo_Kankyo_0x808CE450/DemoKankyo_Init.asm")
-#endif
+//#else
+//#pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Demo_Kankyo_0x808CE450/DemoKankyo_Init.asm")
+//#endif
 
 void DemoKankyo_Destroy(Actor *thisx, GlobalContext *globalCtx) {
     DemoKankyo* this = THIS;

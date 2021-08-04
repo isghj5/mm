@@ -9,7 +9,7 @@ void EnEncount3_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnEncount3_Update(Actor* thisx, GlobalContext* globalCtx);
 void EnEncount3_Draw(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit En_Encount3_InitVars = {
     ACTOR_EN_ENCOUNT3,
     ACTORCAT_ENEMY,
@@ -19,9 +19,10 @@ const ActorInit En_Encount3_InitVars = {
     (ActorFunc)EnEncount3_Init,
     (ActorFunc)EnEncount3_Destroy,
     (ActorFunc)EnEncount3_Update,
-    (ActorFunc)EnEncount3_Draw
+    (ActorFunc)EnEncount3_Draw,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Encount3_0x809ACF40/EnEncount3_Init.asm")
 

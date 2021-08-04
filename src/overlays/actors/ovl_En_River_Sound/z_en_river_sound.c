@@ -8,7 +8,7 @@ void EnRiverSound_Init(Actor* thisx, GlobalContext* globalCtx);
 void EnRiverSound_Update(Actor* thisx, GlobalContext* globalCtx);
 void EnRiverSound_Draw(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit En_River_Sound_InitVars = {
     ACTOR_EN_RIVER_SOUND,
     ACTORCAT_ITEMACTION,
@@ -16,11 +16,12 @@ const ActorInit En_River_Sound_InitVars = {
     GAMEPLAY_KEEP,
     sizeof(EnRiverSound),
     (ActorFunc)EnRiverSound_Init,
-    (ActorFunc)func_800BDFB0,
+    (ActorFunc)Actor_Noop,
     (ActorFunc)EnRiverSound_Update,
-    (ActorFunc)EnRiverSound_Draw
+    (ActorFunc)EnRiverSound_Draw,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_River_Sound_0x808A7E30/EnRiverSound_Init.asm")
 

@@ -9,7 +9,7 @@ void EnEgblock_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnEgblock_Update(Actor* thisx, GlobalContext* globalCtx);
 void EnEgblock_Draw(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit En_Egblock_InitVars = {
     ACTOR_EN_EGBLOCK,
     ACTORCAT_PROP,
@@ -19,9 +19,10 @@ const ActorInit En_Egblock_InitVars = {
     (ActorFunc)EnEgblock_Init,
     (ActorFunc)EnEgblock_Destroy,
     (ActorFunc)EnEgblock_Update,
-    (ActorFunc)EnEgblock_Draw
+    (ActorFunc)EnEgblock_Draw,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_En_Egblock_0x80ABA7A0/EnEgblock_Init.asm")
 

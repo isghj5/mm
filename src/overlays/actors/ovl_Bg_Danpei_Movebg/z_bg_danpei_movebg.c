@@ -8,7 +8,7 @@ void BgDanpeiMovebg_Init(Actor* thisx, GlobalContext* globalCtx);
 void BgDanpeiMovebg_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void BgDanpeiMovebg_Update(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit Bg_Danpei_Movebg_InitVars = {
     ACTOR_BG_DANPEI_MOVEBG,
     ACTORCAT_BG,
@@ -18,9 +18,21 @@ const ActorInit Bg_Danpei_Movebg_InitVars = {
     (ActorFunc)BgDanpeiMovebg_Init,
     (ActorFunc)BgDanpeiMovebg_Destroy,
     (ActorFunc)BgDanpeiMovebg_Update,
-    (ActorFunc)NULL
+    (ActorFunc)NULL,
 };
-*/
+
+
+// static InitChainEntry sInitChain[] = {
+static InitChainEntry D_80AF753C[] = {
+    ICHAIN_F32(uncullZoneScale, 1500, ICHAIN_CONTINUE),
+    ICHAIN_F32(uncullZoneDownward, 1100, ICHAIN_CONTINUE),
+    ICHAIN_F32(uncullZoneForward, 1000, ICHAIN_CONTINUE),
+    ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_STOP),
+};
+
+
+extern InitChainEntry D_80AF753C[];
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Bg_Danpei_Movebg_0x80AF6DE0/func_80AF6DE0.asm")
 

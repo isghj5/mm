@@ -9,7 +9,7 @@ void DmAh_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void DmAh_Update(Actor* thisx, GlobalContext* globalCtx);
 void DmAh_Draw(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit Dm_Ah_InitVars = {
     ACTOR_DM_AH,
     ACTORCAT_NPC,
@@ -19,9 +19,10 @@ const ActorInit Dm_Ah_InitVars = {
     (ActorFunc)DmAh_Init,
     (ActorFunc)DmAh_Destroy,
     (ActorFunc)DmAh_Update,
-    (ActorFunc)DmAh_Draw
+    (ActorFunc)DmAh_Draw,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Dm_Ah_0x80C1D410/func_80C1D410.asm")
 

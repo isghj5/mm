@@ -9,7 +9,7 @@ void OceffStorm_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void OceffStorm_Update(Actor* thisx, GlobalContext* globalCtx);
 void OceffStorm_Draw(Actor* thisx, GlobalContext* globalCtx);
 
-/*
+#if 0
 const ActorInit Oceff_Storm_InitVars = {
     ACTOR_OCEFF_STORM,
     ACTORCAT_ITEMACTION,
@@ -19,9 +19,10 @@ const ActorInit Oceff_Storm_InitVars = {
     (ActorFunc)OceffStorm_Init,
     (ActorFunc)OceffStorm_Destroy,
     (ActorFunc)OceffStorm_Update,
-    (ActorFunc)OceffStorm_Draw
+    (ActorFunc)OceffStorm_Draw,
 };
-*/
+
+#endif
 
 #pragma GLOBAL_ASM("./asm/non_matchings/overlays/ovl_Oceff_Storm_0x80981760/func_80981760.asm")
 
