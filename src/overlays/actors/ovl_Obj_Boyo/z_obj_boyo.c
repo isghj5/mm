@@ -128,7 +128,12 @@ void ObjBoyo_Update(Actor* thisx, GlobalContext* globalCtx2) {
 
     target = ObjBoyo_GetCollidedActor(this, globalCtx, &num);
 
-    if (target != NULL) {
+    if (target != NULL) { 
+        // new play sound when you touch them
+        // if you want him to sound like sonic: NA_SE_EV_COMICAL_JUMP
+        // cant find the goron jump boing sfx so this will have to do for now
+        Audio_PlayActorSound2(&this->actor, NA_SE_EV_COMICAL_JUMP);
+
         sBumperCollideInfo[num].actorCollideFunc(this, (void*)target);
         this->unk_194 = 100;
         this->unk_196 = 3;
