@@ -134,11 +134,15 @@ void EnNiw_Init(Actor* thisx, GlobalContext* globalCtx) {
     Actor_SetScale(&this->actor, 0.01f);
 
     if (this->niwType == ENNIW_TYPE_UNK1) {
-        Actor_SetScale(&this->actor, (BREG(86) / 10000.0f) + 0.004f);
+        // in OoT the minigame cucco was 0.03f size
+        //Actor_SetScale(&this->actor, (BREG(86) / 10000.0f) + 0.004f);
+        Actor_SetScale(&this->actor, 0.03f);
+        // new: attempted fix by resetting type after getting this far
+        this->niwType = ENNIW_TYPE_REGULAR;
     }
 
-    // random health between 10-20
-    this->actor.colChkInfo.health = Rand_ZeroFloat(9.99f) + 10.0f;
+    // new: reduced health to something reasonable for enemizer
+    this->actor.colChkInfo.health = Rand_ZeroFloat(3.0f) + 1.0f;
     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
 
     if (this->niwType == ENNIW_TYPE_REGULAR) {
