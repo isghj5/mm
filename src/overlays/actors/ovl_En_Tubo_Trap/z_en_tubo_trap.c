@@ -36,7 +36,7 @@ const ActorInit En_Tubo_Trap_InitVars = {
     ACTOR_EN_TUBO_TRAP,
     ACTORCAT_PROP,
     FLAGS,
-    GAMEPLAY_DANGEON_KEEP,
+    OBJECT_TSUBO,
     sizeof(EnTuboTrap),
     (ActorFunc)EnTuboTrap_Init,
     (ActorFunc)EnTuboTrap_Destroy,
@@ -78,6 +78,8 @@ void EnTuboTrap_DropCollectible(EnTuboTrap* this, GlobalContext* globalCtx) {
     }
 }
 
+extern Gfx D_06001960[];
+
 void EnTuboTrap_SpawnEffectsOnLand(EnTuboTrap* this, GlobalContext* globalCtx) {
     f32 rand;
     f32 sin;
@@ -113,11 +115,12 @@ void EnTuboTrap_SpawnEffectsOnLand(EnTuboTrap* this, GlobalContext* globalCtx) {
             arg5 = 0x20;
         }
         EffectSsKakera_Spawn(globalCtx, &pos, &vel, actorPos, -0xF0, arg5, 0x14, 0, 0,
-                             ((Rand_ZeroOne() * 85.0f) + 15.0f), 0, 0, 0x3C, -1, GAMEPLAY_DANGEON_KEEP, D_05018090);
+                             ((Rand_ZeroOne() * 85.0f) + 15.0f), 0, 0, 0x3C, -1, OBJECT_TSUBO, D_06001960);
     }
 
     func_800BBFB0(globalCtx, actorPos, 30.0f, 4, 0x14, 0x32, 0);
 }
+
 
 void EnTuboTrap_SpawnEffectsInWater(EnTuboTrap* this, GlobalContext* globalCtx) {
     f32 rand;
@@ -158,7 +161,7 @@ void EnTuboTrap_SpawnEffectsInWater(EnTuboTrap* this, GlobalContext* globalCtx) 
         }
 
         EffectSsKakera_Spawn(globalCtx, &pos, &vel, actorPos, -0xAA, arg5, 0x32, 5, 0,
-                             ((Rand_ZeroOne() * 85.0f) + 15.0f), 0, 0, 0x46, -1, GAMEPLAY_DANGEON_KEEP, D_05018090);
+                             ((Rand_ZeroOne() * 85.0f) + 15.0f), 0, 0, 0x46, -1, OBJECT_TSUBO, D_06001960);
     }
 }
 
@@ -306,7 +309,10 @@ void EnTuboTrap_Update(Actor* thisx, GlobalContext* globalCtx) {
     CollisionCheck_SetAT(globalCtx, &globalCtx->colChkCtx, &this->collider.base);
 }
 
+extern Gfx D_060017C0[];
+
 void EnTuboTrap_Draw(Actor* thisx, GlobalContext* globalCtx) {
     //  Gfx_DrawDListOpa with a display list
-    func_800BDFC0(globalCtx, D_05017EA0);
+    //func_800BDFC0(globalCtx, D_05017EA0); // vanilla
+    func_800BDFC0(globalCtx, D_060017C0); // uses object_tsubo
 }
