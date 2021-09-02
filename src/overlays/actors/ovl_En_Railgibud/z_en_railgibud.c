@@ -694,7 +694,7 @@ void func_80BA6DF8(EnRailgibud* this, GlobalContext* globalCtx) {
             this->actor.home = this->actor.world;
         }
         this->collider.base.acFlags &= ~AC_HIT;
-        func_800BE22C(&this->actor);
+        Actor_ApplyDamage(&this->actor);
 
         switch (this->actor.colChkInfo.damageEffect) {
             case 15:
