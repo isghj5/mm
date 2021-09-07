@@ -8,6 +8,7 @@ void EnPoSisters_Init(Actor* thisx, GlobalContext* globalCtx);
 //void EnPoSisters_Init(EnPoSisters* this, GlobalContext* globalCtx);
 void EnPoSisters_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnPoSisters_Update(Actor* thisx, GlobalContext* globalCtx);
+//void EnPoSisters_Update(EnPoSisters* this, GlobalContext* globalCtx);
 void EnPoSisters_Draw(Actor* thisx, GlobalContext* globalCtx);
 
 void func_80B1AAE8(EnPoSisters* this, GlobalContext* globalCtx);
@@ -43,7 +44,7 @@ void func_80B1B5B4(EnPoSisters* this);
 void func_80B1B70C(EnPoSisters* this);
 void func_80B1BA3C(EnPoSisters* this);
 void func_80B1BC4C(EnPoSisters* this);
-void func_80B1BE4C(EnPoSisters* this);
+void func_80B1BE4C(EnPoSisters* this, GlobalContext* globalCtx);
 void func_80B1C030(EnPoSisters* this);
 void func_80B1C2E8(EnPoSisters* this);
 // might be s32 return
@@ -115,12 +116,12 @@ static InitChainEntry D_80B1DAC4[] = {
     ICHAIN_F32(targetArrowOffset, 6000, ICHAIN_STOP),
 };
 
-extern UNK_TYPE D_06000114;
+extern AnimationHeader D_06000114;
 extern UNK_TYPE D_060008C0;
-extern UNK_TYPE D_06000A54;
-extern UNK_TYPE D_06000D40;
-extern UNK_TYPE D_0600119C;
-extern UNK_TYPE D_060014CC;
+extern AnimationHeader D_06000A54;
+extern AnimationHeader D_06000D40;
+extern AnimationHeader D_0600119C;
+extern AnimationHeader D_060014CC;
 extern UNK_TYPE D_060027B0;
 extern UNK_TYPE D_060046E0;
 
@@ -180,7 +181,7 @@ void EnPoSisters_Init(Actor* thisx, GlobalContext *globalCtx) {
             this->actor.flags &= -0x4201;
             this->collider.info.bumper.dmgFlags |= 0x40001;
             this->collider.base.ocFlags1 = 0;
-            func_80B1BE4C(this);
+            func_80B1BE4C(this, globalCtx);
         }
     } else {
         func_80B1C2E8(this);
@@ -205,10 +206,10 @@ void EnPoSisters_Destroy(Actor *thisx, GlobalContext *globalCtx) {
 void func_80B1A768(EnPoSisters *this, GlobalContext *globalCtx) {
     f32 sp20;
     Player *player = PLAYER;
-    //u8 temp_v0;
+    //u8 yawDiff;
 
     if (this->unk18D == 0 || this->actionFunc != func_80B1B444) {
-    //temp_v0 = this->unk18D;
+    //yawDiff = this->unk18D;
     // reverse
     ///* 
         if (!(player->swordState == 0 || player->swordAnimation  >= 0x1E) 
@@ -246,23 +247,23 @@ void func_80B1A768(EnPoSisters *this, GlobalContext *globalCtx) {
 void func_80B1A894(EnPoSisters *this, GlobalContext *globalCtx) {
     f32 sp24;
     //u8 temp_t8;
-    //u8 temp_v0;
-    //u8 phi_v0;
+    //u8 yawDiff;
+    //u8 unk190decr;
     //u8 pad;
     Player* player = PLAYER;
 
     Math_ApproachF(&this->actor.world.pos.y, player->actor.world.pos.y + 5.0f, 0.5f, 3.0f);
 
     // this section looks like a timer countdown with DECR but wont match
-    //temp_v0 = this->unk18E;
-    //phi_v0 = temp_v0;
+    //yawDiff = this->unk18E;
+    //unk190decr = yawDiff;
     if (this->unk18E == 0) {
         this->unk18E = 0x20;
-        //phi_v0 = (u8)0x20U & 0xFF;
+        //unk190decr = (u8)0x20U & 0xFF;
     }
-    //phi_v1 = phi_v0;
+    //phi_v1 = unk190decr;
     if (this->unk18E != 0) {
-        ////temp_t8 = phi_v0 - 1;
+        ////temp_t8 = unk190decr - 1;
         this->unk18E--;
         ////phi_v1 = temp_t8 & 0xFF;
     }
@@ -296,7 +297,6 @@ void func_80B1AA88(EnPoSisters *this) {
 }
 
 void func_80B1AAE8(EnPoSisters *this, GlobalContext *globalCtx) {
-
     SkelAnime_FrameUpdateMatrix(&this->skelAnime);
     if (DECR(this->unk192) == 0) {
         this->unk192 = Rand_S16Offset(100, 50);
@@ -304,49 +304,378 @@ void func_80B1AAE8(EnPoSisters *this, GlobalContext *globalCtx) {
     }
 }
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1AB5C.s")
+void func_80B1AB5C(EnPoSisters *this) {
+    SkelAnime_ChangeAnimTransitionRepeat(&this->skelAnime, &D_060014CC, -3.0f);
+    this->unk192 = Rand_S16Offset(2, 3);
+    this->actionFunc = func_80B1ABB8;
+    this->actor.speedXZ = 0.0f;
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1ABB8.s")
+void func_80B1ABB8(EnPoSisters *this, GlobalContext *globalCtx) {
+    SkelAnime_FrameUpdateMatrix(&this->skelAnime);
+    if (func_801378B8(&this->skelAnime, 0.0f) != 0) {
+        DECR(this->unk192);
+    }
+    if (this->unk192 == 0 || (this->actor.xzDistToPlayer < 600.0f)) {
+        func_80B1AC40(this);
+    }
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1AC40.s")
+void func_80B1AC40(EnPoSisters *this) {
+    if (this->actionFunc != func_80B1AE3C) {
+        SkelAnime_ChangeAnimTransitionRepeat(&this->skelAnime, &D_06000D40, -3.0f);
+    }
+    this->unk192 = Rand_S16Offset(15, 3);
+    this->unk191 |= 0x7;
+    this->actionFunc = func_80B1ACB8;
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1ACB8.s")
+void func_80B1ACB8(EnPoSisters *this, GlobalContext *globalCtx) {
+    SkelAnime_FrameUpdateMatrix(&this->skelAnime);
+    Math_StepToF(&this->actor.speedXZ, 1.0f, 0.2f);
+    if (func_801378B8(&this->skelAnime, 0.0f) != 0) {
+        DECR(this->unk192);
+    }
+    if (this->actor.xzDistToPlayer < 600.0f && fabsf(this->actor.yDistToPlayer + 5.0f) < 30.0f) {
+        func_80B1AE28(this);
+    } else if (this->unk192 == 0 && Math_StepToF(&this->actor.speedXZ, 0.0f, 0.2f) != 0) {
+        func_80B1AB5C(this);
+    }
+    if ((this->actor.bgCheckFlags & 0x8) != 0) {
+        // 1820?
+        Math_ScaledStepToS(&this->actor.world.rot.y, 
+            Actor_YawToPoint((Actor *) this, &this->actor.home.pos), 0x71C);
+    } else {
+        if (Actor_XZDistanceToPoint((Actor *) this, &this->actor.home.pos) > 600.0f) {
+            Math_ScaledStepToS(&this->actor.world.rot.y, 
+                Actor_YawToPoint((Actor *) this, &this->actor.home.pos), 0x71C);
+        }
+    }
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1AE28.s")
+void func_80B1AE28(EnPoSisters *this) {
+    this->actionFunc = func_80B1AE3C;
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1AE3C.s")
+void func_80B1AE3C(EnPoSisters *this, GlobalContext *globalCtx) {
+    Player* player = PLAYER; 
+    s16 yawDiff;
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1AF8C.s")
+    SkelAnime_FrameUpdateMatrix(&this->skelAnime);
+    yawDiff = this->actor.yawTowardsPlayer - player->actor.shape.rot.y;
+    Math_StepToF(&this->actor.speedXZ, 2.0f, 0.2f);
+    if (yawDiff >= 0x3001) {
+        Math_ScaledStepToS(&this->actor.world.rot.y, (this->actor.yawTowardsPlayer + 0x3000), 0x71C);
+    } else if ((s32) yawDiff < -0x3000) {
+        Math_ScaledStepToS(&this->actor.world.rot.y, (this->actor.yawTowardsPlayer - 0x3000), 0x71C);
+    } else {
+        Math_ScaledStepToS(&this->actor.world.rot.y, this->actor.yawTowardsPlayer, 0x71C);
+    }
+    if ((this->actor.xzDistToPlayer < 320.0f) && (fabsf(this->actor.yDistToPlayer + 5.0f) < 30.0f)) {
+        func_80B1AF8C(this);
+    } else {
+        if (this->actor.xzDistToPlayer > 720.0f) {
+            func_80B1AC40(this);
+        } 
+    }
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B020.s")
+void func_80B1AF8C(EnPoSisters *this) {
+    if (this->unkColor226.a != 0) {
+        this->collider.base.colType = 9;
+        this->collider.base.acFlags |= 0x4;
+    }
+    SkelAnime_ChangeAnimTransitionRepeat(&this->skelAnime, &D_06000114, -5.0f);
+    this->actor.speedXZ = 0.0f;
+    this->unk192 = (SkelAnime_GetFrameCount((AnimationHeaderCommon *) &D_06000114) * 3) + 3;
+    this->unk191 &= ~0x2;
+    this->actionFunc = func_80B1B020;
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B0E0.s")
+void func_80B1B020(EnPoSisters *this, GlobalContext *globalCtx) {
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B168.s")
+    SkelAnime_FrameUpdateMatrix(&this->skelAnime);
+    DECR(this->unk192);
+    this->actor.shape.rot.y += ((s32) ((this->skelAnime.animFrameCount + 1.0f) * 3.0f) - this->unk192) * 0x180;
+    if (this->unk192 == 0x12 || this->unk192 == 7) {
+        Audio_PlayActorSound2((Actor *) this, NA_SE_EN_PO_ROLL);
+    } else {
+        if (this->unk192 == 0) {
+            func_80B1B0E0(this);
+        }
+    }
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B280.s")
+void func_80B1B0E0(EnPoSisters *this) {
+    //EnPoSisters *temp_a3;
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B2F0.s")
+    this->actor.speedXZ = 5.0f;
+    if (this->sisterType == 0) {
+        this->collider.base.colType = 9;
+        this->collider.base.acFlags |= 0x4;
+        SkelAnime_ChangeAnimTransitionRepeat(&this->skelAnime, &D_06000114, -5.0f);
+    }
+    this->unk192 = 5;
+    this->actor.world.rot.y = this->actor.yawTowardsPlayer;
+    this->unk191 |= 0x8;
+    this->actionFunc = func_80B1B168;
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B3A8.s")
+void func_80B1B168(EnPoSisters *this, GlobalContext *globalCtx) {
+    s16 yawDiff;
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B444.s")
+    SkelAnime_FrameUpdateMatrix(&this->skelAnime);
+    if (func_801378B8(&this->skelAnime, 0.0f) != 0) {
+        DECR(this->unk192);
+    }
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B5B4.s")
+    this->actor.shape.rot.y += (s32) (1152.0f * this->skelAnime.animFrameCount);
+    if (this->unk192 == 0) {
+        yawDiff = this->actor.shape.rot.y - this->actor.world.rot.y;
+        if (ABS_ALT(yawDiff) < 0x1000) {
+            if (this->sisterType != 0) {
+                this->collider.base.colType = 3;
+                this->collider.base.acFlags &= ~0x4;
+                func_80B1AC40(this);
+            } else {
+                Audio_PlayActorSound2((Actor *) this, NA_SE_EN_PO_LAUGH2);
+                func_80B1BE4C(this, globalCtx);
+            }
+        }
+    }
+    if (func_801378B8(&this->skelAnime, 1.0f) != 0) {
+        Audio_PlayActorSound2((Actor *) this, NA_SE_EN_PO_ROLL);
+    }
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B628.s")
+void func_80B1B280(EnPoSisters *this) {
+    SkelAnime_ChangeAnimTransitionRepeat(&this->skelAnime, &D_06000D40, -3.0f);
+    this->actor.world.rot.y = this->actor.yawTowardsPlayer + 0x8000;
+    if (this->sisterType != 0) {
+        this->collider.base.colType = 3;
+        this->collider.base.acFlags &= ~0x4;
+    }
+    this->actionFunc = func_80B1B2F0;
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B70C.s")
+void func_80B1B2F0(EnPoSisters *this, GlobalContext *globalCtx) {
+    SkelAnime_FrameUpdateMatrix(&this->skelAnime);
+    this->actor.shape.rot.y -= (s16)(this->actor.speedXZ * 10.0f * 128.0f);
+    if (Math_StepToF(&this->actor.speedXZ, 0.0f, 0.1f) != 0) {
+        this->actor.world.rot.y = this->actor.shape.rot.y;
+        if (this->sisterType != 0) {
+            func_80B1AC40(this);
+        } else {
+            Audio_PlayActorSound2((Actor *) this, NA_SE_EN_PO_LAUGH2);
+            func_80B1BE4C(this, globalCtx);
+        }
+    }
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B7BC.s")
+void func_80B1B3A8(EnPoSisters *this) {
+    SkelAnime_ChangeAnimTransitionStop(&this->skelAnime, (AnimationHeader *) &D_060008C0, -3.0f);
+    if (this->collider.base.ac != NULL) {
+        func_800BE504((Actor *) this, &this->collider);
+    }
+    if (this->sisterType != 0) {
+        this->actor.speedXZ = 10.0f;
+    }
+    this->unk191 &= ~0xB;
+    func_800BCB70((Actor *) this, (u16)0x4000, (u16)0xFF, (u16)0, 0x10);
+    this->actionFunc = func_80B1B444;
+}
 
+void func_80B1B444(EnPoSisters *this, GlobalContext *globalCtx) {
+    s32 fadePercent;
+
+    if ((SkelAnime_FrameUpdateMatrix(&this->skelAnime) != 0) && ((this->actor.flags & 0x8000) == 0)) {
+        if (this->actor.colChkInfo.health != 0) {
+            if (this->sisterType != 0) {
+                func_80B1B5B4(this);
+            } else if (this->unk18D != 0) {
+                func_80B1BE4C(this, NULL); // wat
+            } else {
+                func_80B1BE4C(this, globalCtx);
+            }
+        } else {
+            func_80B1BA3C(this);
+        }
+    }
+    if (this->unk18D != 0) {
+        Math_ScaledStepToS(&this->actor.shape.rot.y, this->actor.parent->shape.rot.y, (this->unk18D == 2) ? (0x800): (0x400));
+        fadePercent = (s32) (((this->skelAnime.animFrameCount - this->skelAnime.animCurrentFrame) * 255.0f) 
+            / this->skelAnime.animFrameCount);
+        this->unkColor226.a = CLAMP(fadePercent, 0, 0xFF);
+        this->actor.world.pos.y = this->actor.parent->world.pos.y;
+        func_80B1A768(this, globalCtx);
+    } else {
+        if (this->sisterType != 0) {
+            Math_StepToF(&this->actor.speedXZ, 0.0f, 0.5f);
+        }
+    }
+}
+
+void func_80B1B5B4(EnPoSisters *this) {
+    SkelAnime_ChangeAnimTransitionRepeat(&this->skelAnime, &D_06000A54, -3.0f);
+    this->actor.world.rot.y = this->actor.shape.rot.y + 0x8000;
+    this->unk192 = 5;
+    this->unk191 |= 0xB;
+    this->actionFunc = func_80B1B628;
+    this->actor.speedXZ = 5.0f;
+}
+
+void func_80B1B628(EnPoSisters *this, GlobalContext *globalCtx) {
+    SkelAnime_FrameUpdateMatrix(&this->skelAnime);
+    Math_ScaledStepToS(&this->actor.world.rot.y, (this->actor.yawTowardsPlayer + 0x8000), 0x71C);
+    if (func_801378B8(&this->skelAnime, 0.0f) != 0) {
+        DECR(this->unk192);
+    }
+    if ((this->actor.bgCheckFlags & 0x8) != 0) {
+        this->actor.world.rot.y = this->actor.shape.rot.y;
+        this->unk191 |= 0x2;
+        func_80B1B70C(this);
+        return;
+    }
+    if ((this->unk192 == 0) && (this->actor.xzDistToPlayer > 480.0f)) {
+        this->actor.world.rot.y = this->actor.shape.rot.y;
+        func_80B1AC40(this);
+    }
+}
+
+void func_80B1B70C(EnPoSisters *this) {
+    SkelAnime_ChangeAnim(&this->skelAnime, &D_0600119C, 1.5f, 0.0f, 
+          (f32) SkelAnime_GetFrameCount((AnimationHeaderCommon *) &D_0600119C), 2, -3.0f);
+    this->unk194 = 100;
+    this->actor.speedXZ = 0.0f;
+    this->actor.world.rot.y = this->actor.shape.rot.y;
+    this->unk191 &= ~0x5;
+    Audio_PlayActorSound2((Actor *) this, NA_SE_EN_PO_DISAPPEAR);
+    Audio_PlayActorSound2((Actor *) this, NA_SE_EN_PO_LAUGH2);
+    this->actionFunc = func_80B1B7BC;
+}
+
+void func_80B1B7BC(EnPoSisters *this, GlobalContext *globalCtx) {
+    s32 fadePercent;
+
+    if (SkelAnime_FrameUpdateMatrix(&this->skelAnime) != 0) {
+        this->unkColor226.a = 0;
+        this->collider.info.bumper.dmgFlags = 0x40001;
+        func_80B1AC40(this);
+    } else {
+        fadePercent = (s32) (((this->skelAnime.animFrameCount - this->skelAnime.animCurrentFrame) * 255.0f) 
+            / this->skelAnime.animFrameCount);
+        this->unkColor226.a = CLAMP(fadePercent, 0, 0xFF);
+    }
+}
+
+//unk params
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B860.s")
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B940.s")
+void func_80B1B940(EnPoSisters *this, GlobalContext *globalCtx) {
+    s32 fadePercent;
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BA3C.s")
+    if (SkelAnime_FrameUpdateMatrix(&this->skelAnime) != 0) {
+        this->unkColor226.a = 0xFF;
+        if (this->sisterType != 0) {
+            this->unk191 |= 0x1;
+            this->collider.info.bumper.dmgFlags = 0xF7CBFFFE;
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BA90.s")
+            // I know it looks like DECR but wont match
+            if (this->unk192 != 0) {
+                this->unk192--;
+            }
+            if (this->unk192 == 0) {
+                this->unk18F = 0x14;
+                func_80B1AC40(this);
+            }
+        } else {
+            func_80B1C030(this);
+        }
+    } else {
+        fadePercent = (s32) ((this->skelAnime.animCurrentFrame * 255.0f) / this->skelAnime.animFrameCount);
+        this->unkColor226.a = CLAMP(fadePercent, 0, 0xFF);
+        if (this->sisterType == 0) {
+            func_80B1A768(this, globalCtx);
+        }
+    }
+}
+
+void func_80B1BA3C(EnPoSisters *this) {
+    this->actor.speedXZ = 0.0f;
+    this->actor.world.pos.y += 42.0f;
+    this->unk192 = 0;
+    this->actor.shape.yOffset = -6000.0f;
+    this->actor.flags &= -2;
+    this->unk191 = 0;
+    this->actionFunc = func_80B1BA90;
+}
+
+/*
+void func_80B1BA90(EnPoSisters *this, GlobalContext *globalCtx) {
+    //f32 temp_f0;
+    //s16 temp_v0_4;
+    //s32 temp_v0;
+    s32 unk190decr;
+    s32 temp_v0_3;
+    void *temp_a0;
+    void *temp_a1;
+    void *temp_v1;
+    void *phi_a0;
+    void *phi_v1;
+    s32 unk190decr;
+
+    this->unk190 = (++this->unk190 >= 9) : (8) : (this->unk190);
+    //temp_v0 = this->unk190 + 1;
+    //if (temp_v0 >= 9) {
+        //this->unk190 = 8;
+    //} else {
+        //this->unk190 = (u8) temp_v0;
+    //}
+    this->unk192 += 1;
+    unk190decr = this->unk190 - 1;
+    if (unk190decr > 0) {
+        temp_a1 = this + (unk190decr * 0xC);
+        phi_a0 = temp_a1 + 0x220;
+        phi_v1 = temp_a1 + 0x22C;
+        //unk190decr = unk190decr;
+        for()
+loop_5:
+        temp_v0_3 = unk190decr - 1;
+        temp_v1 = phi_v1 - 0xC;
+        temp_v1->unkC = (?32) phi_a0->unk0;
+        temp_a0 = phi_a0 - 0xC;
+        temp_v1->unk10 = (?32) phi_a0->unk4;
+        temp_v1->unk14 = (?32) temp_a0->unk14;
+        phi_a0 = temp_a0;
+        phi_v1 = temp_v1;
+        unk190decr = temp_v0_3;
+        if (temp_v0_3 > 0) {
+            goto loop_5;
+        }
+    }
+    this->unk22C = (Math_SinS((s16) ((this->actor.shape.rot.y + (this->unk192 * 0x3000)) - 0x4000)) 
+        * (3000.0f * this->actor.scale.x)) + this->actor.world.pos.x;
+    //temp_v0_4 = this->unk192;
+    this->unk234 = (Math_CosS((s16) ((this->actor.shape.rot.y + (this->unk192 * 0x3000)) - 0x4000)) 
+        * (3000.0f * this->actor.scale.x)) + this->actor.world.pos.z;
+    if (this->unk192 < 8) {
+        this->unk230 = this->unk23C - 9.0f;
+    } else {
+        this->unk230 = this->unk23C + 2.0f;
+        if (this->unk192 >= 0x10) {
+            if (Math_StepToF(&this->actor.scale, 0.0f, 0.001f) != 0) {
+                func_80B1BC4C(this);
+            }
+            //temp_f0 = this->actor.scale.x;
+            this->actor.scale.z = this->actor.scale.x;
+            this->actor.scale.y = this->actor.scale.x;
+        }
+    }
+    if (this->unk192 == 0x10) {
+        Audio_PlayActorSound2((Actor *) this, (u16)0x3877U);
+    }
+} // */
+//#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BA90.s")
 
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BC4C.s")
 
@@ -366,9 +695,101 @@ void func_80B1AAE8(EnPoSisters *this, GlobalContext *globalCtx) {
 
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C340.s")
 
+void func_80B1C408(EnPoSisters* this, GlobalContext *globalCtx);
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C408.s")
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/EnPoSisters_Update.s")
+// ZZZ
+void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
+    EnPoSisters* this = THIS;
+    Vec3f pos;
+    s32 unuseds32Ptr;
+    s32 pad;
+    //u8 temp_t1;
+
+    if ((this->collider.base.atFlags & 2) != 0) {
+        this->collider.base.atFlags &= ~0x2;
+        func_80B1B280(this);
+    }
+    func_80B1C408(this, globalCtx);
+    if ((this->unk191 & 0x4) != 0) {
+        func_80B1A9B0(this, globalCtx);
+    }
+
+    this->actionFunc(this, globalCtx);
+
+    if ((this->unk191 & 0x8) != 0) {
+        func_80B1A894(this, globalCtx);
+    }
+    Actor_SetVelocityAndMoveYRotationAndGravity((Actor *) this);
+    if ((this->unk191 & 0x10) != 0) {
+        Actor_UpdateBgCheckInfo(globalCtx, (Actor *) this, 20.0f, 20.0f, 0.0f, 5);
+    } else {
+        pos.x = this->actor.world.pos.x;
+        pos.y = this->actor.world.pos.y + 10.0f;
+        pos.z = this->actor.world.pos.z;
+        this->actor.floorHeight = func_800C411C(&globalCtx->colCtx, &this->actor.floorPoly, &unuseds32Ptr, (Actor *) this, &pos);
+    }
+    this->actor.shape.shadowAlpha = this->unkColor226.a;
+    Actor_SetHeight((Actor *) this, 40.0f);
+    if (this->unk2F0 > 0.0f) {
+        Math_StepToF(&this->unk2F0, 0.0f, 0.05f);
+
+        // biggest issue here:
+        // familiar but forgot what this was
+        if (this->unkColor226.a != 0xFF) {
+            f32 colorCheck = ((f32) this->unkColor226.a) * 0.003921569f;
+            if (colorCheck < this->unkColor226.a ){
+                this->unk2F0 = colorCheck;
+            }
+        }
+
+        this->unk2F4 = (this->unk2F0 + 1.0f) * 0.25f;
+        this->unk2F4 = CLAMP_MAX(this->unk2F4, 0.5f); 
+        //if (temp_f0_2 > 0.5f) { //this->unk2F4 = 0.5f;
+        //} else { //this->unk2F4 = this->unk2F4; //}
+    }
+    if ((this->unk191 & 0x1F) != 0) {
+        Collider_UpdateCylinder((Actor *) this, &this->collider);
+        if (this->actionFunc == func_80B1B168  || this->actionFunc == func_80B1B020 ) {
+            //temp_t1 = this->unk190 + 1;
+            //temp_v0_4 = temp_t1 & 0xFF;
+            //this->unk190 = temp_t1;
+            //if (temp_v0_4 >= 9) { //this->unk190 = 8;
+            //} else { //this->unk190 = (u8) temp_v0_4;
+            //}
+            //this->unk190 = (++this->unk190)
+            //this->unk190 = CLAMP_MAX(++this->unk190, 8);
+            this->unk190++;
+            this->unk190 = CLAMP_MAX(this->unk190, 8);
+        } else if (this->actionFunc != func_80B1BA90 ) {
+            this->unk190--;
+            this->unk190 = CLAMP_MIN(this->unk190, 1);
+            //this->unk190 = CLAMP_MIN(--this->unk190, 1);
+            //temp_v1 = this->unk190 - 1;
+            //if (temp_v1 <= 0) { //this->unk190 = 1;
+            //} else { //this->unk190 = (u8) temp_v1;
+            //}
+        }
+        if (this->actionFunc == func_80B1B168 ) {
+            this->actor.flags |= 0x1000000;
+            CollisionCheck_SetAT(globalCtx, &globalCtx->colChkCtx, &this->collider);
+        }
+        if ((this->unk191 & 0x1) != 0) {
+            CollisionCheck_SetAC(globalCtx, &globalCtx->colChkCtx, &this->collider);
+        }
+        if (func_80B1BF2C != this->actionFunc) {
+            CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &this->collider);
+        }
+        if (this->actionFunc == func_80B1B628 ) {
+            this->actor.shape.rot.y = this->actor.world.rot.y + 0x8000;
+        } else {
+            if ((this->unk191 & 0x2) != 0) {
+                this->actor.shape.rot.y = this->actor.world.rot.y;
+            }
+        }
+    }
+}
+//#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/EnPoSisters_Update.s")
 
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C974.s")
 
