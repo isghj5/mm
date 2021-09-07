@@ -49,6 +49,7 @@ void func_80B1C030(EnPoSisters* this);
 void func_80B1C2E8(EnPoSisters* this);
 // might be s32 return
 void func_80B1C974(EnPoSisters* this);
+void func_80B1BCF0(EnPoSisters* this, GlobalContext* globalCtx);
 
 
 
@@ -698,13 +699,12 @@ loop_5:
 void func_80B1C408(EnPoSisters* this, GlobalContext *globalCtx);
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C408.s")
 
-// ZZZ
 void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
     EnPoSisters* this = THIS;
-    Vec3f pos;
-    s32 unuseds32Ptr;
     s32 pad;
-    //u8 temp_t1;
+    s32 temp190;
+    Vec3f pos;
+    s32 unuseds32Ptr; // passed to func_800C411C by address then never used
 
     if ((this->collider.base.atFlags & 2) != 0) {
         this->collider.base.atFlags &= ~0x2;
@@ -734,8 +734,6 @@ void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
     if (this->unk2F0 > 0.0f) {
         Math_StepToF(&this->unk2F0, 0.0f, 0.05f);
 
-        // biggest issue here:
-        // familiar but forgot what this was
         if (this->unkColor226.a != 0xFF) {
             f32 colorCheck = ((f32) this->unkColor226.a) * 0.003921569f;
             if (colorCheck < this->unkColor226.a ){
@@ -745,40 +743,25 @@ void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
 
         this->unk2F4 = (this->unk2F0 + 1.0f) * 0.25f;
         this->unk2F4 = CLAMP_MAX(this->unk2F4, 0.5f); 
-        //if (temp_f0_2 > 0.5f) { //this->unk2F4 = 0.5f;
-        //} else { //this->unk2F4 = this->unk2F4; //}
     }
     if ((this->unk191 & 0x1F) != 0) {
         Collider_UpdateCylinder((Actor *) this, &this->collider);
         if (this->actionFunc == func_80B1B168  || this->actionFunc == func_80B1B020 ) {
-            //temp_t1 = this->unk190 + 1;
-            //temp_v0_4 = temp_t1 & 0xFF;
-            //this->unk190 = temp_t1;
-            //if (temp_v0_4 >= 9) { //this->unk190 = 8;
-            //} else { //this->unk190 = (u8) temp_v0_4;
-            //}
-            //this->unk190 = (++this->unk190)
-            //this->unk190 = CLAMP_MAX(++this->unk190, 8);
             this->unk190++;
             this->unk190 = CLAMP_MAX(this->unk190, 8);
         } else if (this->actionFunc != func_80B1BA90 ) {
-            this->unk190--;
-            this->unk190 = CLAMP_MIN(this->unk190, 1);
-            //this->unk190 = CLAMP_MIN(--this->unk190, 1);
-            //temp_v1 = this->unk190 - 1;
-            //if (temp_v1 <= 0) { //this->unk190 = 1;
-            //} else { //this->unk190 = (u8) temp_v1;
-            //}
+            temp190 = this->unk190 - 1;
+            this->unk190 = CLAMP_MIN(temp190, 1);
         }
         if (this->actionFunc == func_80B1B168 ) {
             this->actor.flags |= 0x1000000;
-            CollisionCheck_SetAT(globalCtx, &globalCtx->colChkCtx, &this->collider);
+            CollisionCheck_SetAT(globalCtx, &globalCtx->colChkCtx, &this->collider.base);
         }
         if ((this->unk191 & 0x1) != 0) {
-            CollisionCheck_SetAC(globalCtx, &globalCtx->colChkCtx, &this->collider);
+            CollisionCheck_SetAC(globalCtx, &globalCtx->colChkCtx, &this->collider.base);
         }
-        if (func_80B1BF2C != this->actionFunc) {
-            CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &this->collider);
+        if (this->actionFunc != func_80B1BF2C ) {
+            CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &this->collider.base);
         }
         if (this->actionFunc == func_80B1B628 ) {
             this->actor.shape.rot.y = this->actor.world.rot.y + 0x8000;
@@ -789,7 +772,6 @@ void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
         }
     }
 }
-//#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/EnPoSisters_Update.s")
 
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C974.s")
 

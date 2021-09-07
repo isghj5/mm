@@ -18,11 +18,13 @@ typedef struct EnPoSisters {
     /* 0x018E */ u8 unk18E;
     /* 0x018F */ u8 unk18F;
     /* 0x0190 */ u8 unk190;
+    ///* 0x0190 */ s8 unk190;
     /* 0x0191 */ u8 unk191;
     /* 0x0192 */ s16 unk192;
     /* 0x0194 */ s16 unk194; // timer?
     /* 0x0196 */ Vec3s limbDrawTbl[PO_SISTER_LIMB_COUNT];
     /* 0x01DE */ Vec3s transitionDrawTable[PO_SISTER_LIMB_COUNT];
+    // 220 is start of
     /* 0x0226 */ Color_RGBA8 unkColor226; 
     /* 0x022C */ f32 unk22C; 
     /* 0x0230 */ f32 unk230; 
