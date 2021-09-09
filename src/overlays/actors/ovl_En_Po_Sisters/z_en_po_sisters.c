@@ -43,13 +43,14 @@ void func_80B1B3A8(EnPoSisters* this);
 void func_80B1B5B4(EnPoSisters* this);
 void func_80B1B70C(EnPoSisters* this);
 void func_80B1BA3C(EnPoSisters* this);
-void func_80B1BC4C(EnPoSisters* this);
+void func_80B1BC4C(EnPoSisters* this, GlobalContext* globalCtx);
 void func_80B1BE4C(EnPoSisters* this, GlobalContext* globalCtx);
 void func_80B1C030(EnPoSisters* this);
 void func_80B1C2E8(EnPoSisters* this);
 // might be s32 return
 void func_80B1C974(EnPoSisters* this);
 void func_80B1BCF0(EnPoSisters* this, GlobalContext* globalCtx);
+void func_80B1B860(EnPoSisters *this, GlobalContext *globalCtx);
 
 
 
@@ -200,6 +201,9 @@ void EnPoSisters_Destroy(Actor *thisx, GlobalContext *globalCtx) {
     Collider_DestroyCylinder(globalCtx, &this->collider);
 }
 
+// loop over struct function, ugh
+// loop over struct function, ugh
+void func_80B1A648(EnPoSisters *this, s16 arg2, Vec3f *pos);
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1A648.s")
 
 // this control flow looks like !A || B but why does it load 2ec twice?
@@ -569,8 +573,24 @@ void func_80B1B7BC(EnPoSisters *this, GlobalContext *globalCtx) {
     }
 }
 
-//unk params
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1B860.s")
+void func_80B1B860(EnPoSisters *this, GlobalContext *globalCtx) {
+    SkelAnime_ChangeAnim(&this->skelAnime, &D_0600119C, 1.5f, 0.0f, 
+        SkelAnime_GetFrameCount((AnimationHeaderCommon *) &D_0600119C), 2, -3.0f);
+    if (this->sisterType == 0) {
+        this->unk2EC = 110.0f;
+        func_80B1A768(this, globalCtx);
+        this->unkColor226.a = 0;
+        this->actor.draw = EnPoSisters_Draw;
+    } else {
+        this->actor.world.rot.y = this->actor.shape.rot.y;
+    }
+    this->unk192 = 0xF;
+    this->actor.speedXZ = 0.0f;
+    Audio_PlayActorSound2((Actor *) this, NA_SE_EN_STALKIDS_APPEAR);
+    this->unk191 &= ~0x1;
+    this->actionFunc = func_80B1B940;
+
+}
 
 void func_80B1B940(EnPoSisters *this, GlobalContext *globalCtx) {
     s32 fadePercent;
@@ -611,6 +631,7 @@ void func_80B1BA3C(EnPoSisters *this) {
     this->actionFunc = func_80B1BA90;
 }
 
+// ah fuck another struct array of weirdness
 /*
 void func_80B1BA90(EnPoSisters *this, GlobalContext *globalCtx) {
     //f32 temp_f0;
@@ -621,7 +642,7 @@ void func_80B1BA90(EnPoSisters *this, GlobalContext *globalCtx) {
     void *temp_a0;
     void *temp_a1;
     void *temp_v1;
-    void *phi_a0;
+    void *t220;
     void *phi_v1;
     s32 unk190decr;
 
@@ -636,19 +657,19 @@ void func_80B1BA90(EnPoSisters *this, GlobalContext *globalCtx) {
     unk190decr = this->unk190 - 1;
     if (unk190decr > 0) {
         temp_a1 = this + (unk190decr * 0xC);
-        phi_a0 = temp_a1 + 0x220;
-        phi_v1 = temp_a1 + 0x22C;
+        t220 = temp_a1 + 0x220;
+        t22C = temp_a1 + 0x22C;
         //unk190decr = unk190decr;
         for()
 loop_5:
         temp_v0_3 = unk190decr - 1;
-        temp_v1 = phi_v1 - 0xC;
-        temp_v1->unkC = (?32) phi_a0->unk0;
-        temp_a0 = phi_a0 - 0xC;
-        temp_v1->unk10 = (?32) phi_a0->unk4;
-        temp_v1->unk14 = (?32) temp_a0->unk14;
-        phi_a0 = temp_a0;
-        phi_v1 = temp_v1;
+        t220_2 = t22C - 0xC;
+        t220_2->unkC = (?32) t220->unk0;
+        beforet220 = t220 - 0xC;
+        t220_2->unk10 = (?32) t220->unk4;
+        t220_2->unk14 = (?32) beforet220->unk14;
+        t220 = beforet220;
+        t22C = t220_2;
         unk190decr = temp_v0_3;
         if (temp_v0_3 > 0) {
             goto loop_5;
@@ -676,17 +697,103 @@ loop_5:
         Audio_PlayActorSound2((Actor *) this, (u16)0x3877U);
     }
 } // */
-//#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BA90.s")
+#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BA90.s")
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BC4C.s")
+void func_80B1BC4C(EnPoSisters *this, GlobalContext *globalCtx) {
+    this->unk192 = 0;
+    this->actor.world.pos.y = this->unk230;
+    Item_DropCollectibleRandom(globalCtx, (Actor *) this, &this->actor.world.pos, (u16)0x80);
+    this->actionFunc = func_80B1BCA0;
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BCA0.s")
+void func_80B1BCA0(EnPoSisters *this, GlobalContext *globalCtx) {
+    this->unk192++;
+    if (this->unk192 == 0x20) {
+        Actor_MarkForDeath((Actor *) this);
+    }else {
+        func_80B1A648(this, this->unk192, &this->actor.world.pos);
+    }
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BCF0.s")
+// this spawns three meg clones, if any failed to spawn the rest die of embarasment
+void func_80B1BCF0(EnPoSisters *this, GlobalContext *globalCtx) {
+    Actor* clone1 = Actor_SpawnAsChild(&globalCtx->actorCtx, (Actor *) this, globalCtx, ACTOR_EN_PO_SISTERS, 
+        this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z, 
+        0, 0, 0, 0x400);
+    Actor* clone2 = Actor_SpawnAsChild(&globalCtx->actorCtx, (Actor *) this, globalCtx, ACTOR_EN_PO_SISTERS, 
+        this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z, 
+        0, 0, 0, 0x800);
+    Actor* clone3 = Actor_SpawnAsChild(&globalCtx->actorCtx, (Actor *) this, globalCtx, ACTOR_EN_PO_SISTERS, 
+        this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z, 
+        0, 0, 0, 0xC00);
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BE4C.s")
+    if ((clone1 == NULL) || (clone2 == NULL) || (clone3 == NULL)) {
+        if (clone1 != 0) {
+            Actor_MarkForDeath(clone1);
+        }
+        if (clone2 != 0) {
+            Actor_MarkForDeath(clone2);
+        }
+        if (clone3 != 0) {
+            Actor_MarkForDeath(clone3);
+        }
+        Actor_MarkForDeath((Actor *) this);
+    }
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BF2C.s")
+
+void func_80B1BE4C(EnPoSisters *this, GlobalContext *globalCtx) {
+    Vec3f newPos;
+
+    this->actor.draw = NULL;
+    this->actor.flags &= -2;
+    this->unk194 = 100;
+    this->unk191 = 32;
+    this->collider.base.colType = 3;
+    this->collider.base.acFlags &= ~0x4;
+    if (globalCtx != NULL) {
+        newPos.x = this->actor.world.pos.x;
+        newPos.y = this->actor.world.pos.y + 45.0f;
+        newPos.z = this->actor.world.pos.z;
+        func_800B3030(globalCtx, &newPos, &D_801D15B0, &D_801D15B0, 150, 0, 3);
+    }
+    Lights_PointSetColorAndRadius(&this->lightInfo, 0, 0, 0, 0);
+    this->actionFunc = func_80B1BF2C;
+}
+
+// wants to load actionFunc too early...?
+void func_80B1BF2C(EnPoSisters *this, GlobalContext *globalCtx) {
+    //s16 temp_v0_2;
+    Actor *parent = this->actor.parent;
+    Actor *player = PLAYER;
+
+    //parent = this->actor.parent;
+    //player = PLAYER;
+    if (this->unk18D == 0) {
+        DECR(this->unk194);
+        //temp_v0_2 = this->unk194;
+        //if (temp_v0_2 != 0) {
+            //this->unk194 = temp_v0_2 - 1;
+        //}
+        if (this->unk194 == 0) {
+            this->actor.shape.rot.y = ((s32) Rand_ZeroFloat(4.0f) << 0xE) + this->actor.yawTowardsPlayer;
+            this->actor.world.pos.y = player->world.pos.y + 5.0f;
+            func_80B1B860(this, globalCtx);
+            return;
+        }
+    } else {
+        if (this->actionFunc == func_80B1B940) {
+            this->actor.shape.rot.y = parent->shape.rot.y + (this->unk18D << 0xE);
+            this->actor.world.pos.y = player->world.pos.y + 5.0f;
+            func_80B1B860(this, globalCtx);
+            return;
+        }
+        if (this->actionFunc == func_80B1BA90) {
+            Actor_MarkForDeath((Actor *) this);
+        }
+    }
+}
+//#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BF2C.s")
 
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C030.s")
 
@@ -729,6 +836,7 @@ void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
         pos.z = this->actor.world.pos.z;
         this->actor.floorHeight = func_800C411C(&globalCtx->colCtx, &this->actor.floorPoly, &unuseds32Ptr, (Actor *) this, &pos);
     }
+
     this->actor.shape.shadowAlpha = this->unkColor226.a;
     Actor_SetHeight((Actor *) this, 40.0f);
     if (this->unk2F0 > 0.0f) {
@@ -744,6 +852,7 @@ void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
         this->unk2F4 = (this->unk2F0 + 1.0f) * 0.25f;
         this->unk2F4 = CLAMP_MAX(this->unk2F4, 0.5f); 
     }
+
     if ((this->unk191 & 0x1F) != 0) {
         Collider_UpdateCylinder((Actor *) this, &this->collider);
         if (this->actionFunc == func_80B1B168  || this->actionFunc == func_80B1B020 ) {
