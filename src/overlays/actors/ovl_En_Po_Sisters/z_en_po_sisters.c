@@ -130,6 +130,7 @@ extern UNK_TYPE D_060046E0;
 extern SkeletonHeader D_060065C8;
 
 #ifdef NON_MATCHING
+// tripple param load what
 void EnPoSisters_Init(Actor* thisx, GlobalContext *globalCtx) {
     EnPoSisters *this = THIS;
     u8 sisType;
@@ -201,7 +202,6 @@ void EnPoSisters_Destroy(Actor *thisx, GlobalContext *globalCtx) {
     Collider_DestroyCylinder(globalCtx, &this->collider);
 }
 
-// loop over struct function, ugh
 // loop over struct function, ugh
 void func_80B1A648(EnPoSisters *this, s16 arg2, Vec3f *pos);
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1A648.s")
@@ -761,47 +761,159 @@ void func_80B1BE4C(EnPoSisters *this, GlobalContext *globalCtx) {
     this->actionFunc = func_80B1BF2C;
 }
 
-// wants to load actionFunc too early...?
+#ifdef NON_MATCHING
+// first branch needs to be likely, ugh
 void func_80B1BF2C(EnPoSisters *this, GlobalContext *globalCtx) {
-    //s16 temp_v0_2;
     Actor *parent = this->actor.parent;
-    Actor *player = PLAYER;
+    Player *player = PLAYER;
+    //GlobalContext* gCtx2 = globalCtx;
 
-    //parent = this->actor.parent;
-    //player = PLAYER;
+    // this branch is likely when it shouldn't be...?
     if (this->unk18D == 0) {
         DECR(this->unk194);
-        //temp_v0_2 = this->unk194;
-        //if (temp_v0_2 != 0) {
-            //this->unk194 = temp_v0_2 - 1;
-        //}
         if (this->unk194 == 0) {
             this->actor.shape.rot.y = ((s32) Rand_ZeroFloat(4.0f) << 0xE) + this->actor.yawTowardsPlayer;
-            this->actor.world.pos.y = player->world.pos.y + 5.0f;
+            this->actor.world.pos.y = player->actor.world.pos.y + 5.0f;
             func_80B1B860(this, globalCtx);
-            return;
         }
     } else {
         if (this->actionFunc == func_80B1B940) {
             this->actor.shape.rot.y = parent->shape.rot.y + (this->unk18D << 0xE);
-            this->actor.world.pos.y = player->world.pos.y + 5.0f;
+            //this->actor.shape.rot.y =  (this->unk18D << 0xE) + parent->shape.rot.y;
+            this->actor.world.pos.y = player->actor.world.pos.y + 5.0f;
             func_80B1B860(this, globalCtx);
             return;
         }
+        if (!parent->shape.rot.y){ }
         if (this->actionFunc == func_80B1BA90) {
             Actor_MarkForDeath((Actor *) this);
         }
     }
 }
-//#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BF2C.s")
+#else
+#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BF2C.s")
+#endif
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C030.s")
+void func_80B1C030(EnPoSisters *this) {
+    SkelAnime_ChangeAnimTransitionRepeat(&this->skelAnime, &D_06000D40, -3.0f);
+    this->unkColor226.a = 0xFF;
+    this->unk192 = 0x12C;
+    this->unk194 = 3;
+    this->unk191 |= 9;
+    this->actor.flags |= 1;
+    this->actionFunc = func_80B1C0A4;
+}
 
+
+#ifdef NON_EQUIVLENT
+// non-matching: its trying some weird cast the input to a sins function
+void func_80B1C0A4(EnPoSisters *this, GlobalContext *globalCtx) {
+    s16 tempunk192;
+    s16 temp_a0_2;
+    s16 old192;
+
+    DECR(this->unk192);
+    if (this->unk194 > 0) {
+        if (this->unk192 >= 0x10) {
+            SkelAnime_FrameUpdateMatrix(&this->skelAnime);
+            if (this->unk18D == 0) {
+                if (ABS_ALT(0x10 - this->unk18E) < 0xE) {
+                    // some casting weirdness leading into Math_SinS, this matches but ugly
+                    this->actor.shape.rot.y += (s32) ((f32) (0x580 - (this->unk194 * 0x180)) 
+                      //* fabsf(Math_SinS( this->unk18E & 0x10)));
+                      //* fabsf(Math_SinS( ((this->unk18E) << 0x1B ) >> 0x10 )));
+                      //* fabsf(Math_SinS( this->unk18E & 0x1F )));
+                      * fabsf(Math_SinS( (s16)this->unk18E & 0xFFFFFFFF)));
+                }
+                if ((this->unk192 >= 0x11C) || (this->unk192 < 0x1F)) {
+                    this->unk191 |= 0x40;
+                } else {
+                    this->unk191 &= 0xFFBF;
+                }
+            } else {
+                this->actor.shape.rot.y = this->actor.parent->shape.rot.y + (this->unk18D << 0xE);
+            }
+        }
+    }
+    if (this->unk18D == 0) {
+        if (! (this->unk192 < 0x11C) || (this->unk192 < 0x1F) && (this->unk192 >= 0x10)) {
+            this->unk191 |= 0x40;
+        } else {
+            this->unk191 &= 0xFFBF;
+        }
+    }
+    if (this->unk192 == 0) {
+        if (this->unk18D == 0) {
+            func_80B1B0E0(this);
+        } else {
+            func_80B1BE4C(this, globalCtx);
+        }
+    } else if (this->unk18D != 0) {
+        // thinking fake match
+        if (((EnPoSisters*)this->actor.parent)->actionFunc == func_80B1B444 ) {
+        //if (func_80B1B444 == ((EnPoSisters*)this->actor.parent)->actionFunc ) {
+            func_80B1B3A8(this);
+        }
+    } else {
+        tempunk192 = this->unk194;
+        if (tempunk192 == 0) {
+            this->unk194 = -0xF;
+        } else {
+            if ((s32) tempunk192 < 0) {
+                this->unk194 = tempunk192 + 1;
+                if (this->unk194 == 0) {
+                    func_80B1B0E0(this);
+                }
+            }
+        }
+    }
+    func_80B1A768(this, globalCtx);
+}
+#else
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C0A4.s")
+#endif
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C2E8.s")
+void func_80B1C2E8(EnPoSisters *this) {
+    SkelAnime_ChangeAnimDefaultStop(&this->skelAnime, &D_0600119C);
+    Audio_PlayActorSound2((Actor *) this, NA_SE_EN_STALKIDS_APPEAR);
+    this->unkColor226.a = 0;
+    this->unk191 = 0x20;
+    this->actionFunc = func_80B1C340;
+}
 
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C340.s")
+// regalloc around temp_f16 calc
+void func_80B1C340(EnPoSisters *this, GlobalContext *globalCtx) {
+    //s32 temp_f16;
+
+    if (SkelAnime_FrameUpdateMatrix(&this->skelAnime) != 0) {
+        this->unkColor226.a = 0xFF;
+        this->actor.flags |= 1;
+        this->unk191 |= 0x18;
+        if (this->sisterType == 0) {
+            func_80B1BE4C(this, globalCtx);
+        } else {
+            func_80B1AC40(this);
+        }
+    }else {
+
+        //temp_f16 = (s32) (255.0f * (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount));
+        f32 ratio = 255.0f * (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount);
+        //f32 ratio = (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount) * 255.0f;
+        s32 temp_f16 = (s32) ratio;
+        //s32 temp_f16 = (s32) ((this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount) * 255.0f);
+        //if (temp_f16 < 0) {
+            //this->unkColor226.a = 0;
+            //return;
+        //}
+        //phi_v1 = (u8) temp_f16;
+        //if (temp_f16 >= 0x100) {
+            //phi_v1 = (u8)0xFFU;
+        //}
+        //this->unkColor226.a = phi_v1;
+        this->unkColor226.a = CLAMP(temp_f16, 0, 0xFF);
+    }
+}
+//#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C340.s")
 
 void func_80B1C408(EnPoSisters* this, GlobalContext *globalCtx);
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C408.s")
@@ -888,4 +1000,5 @@ void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
 
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1CD34.s")
 
+// cannot do draw function until we have our array of struct mapped
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/EnPoSisters_Draw.s")
