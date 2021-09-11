@@ -222,17 +222,17 @@ void func_80B1A768(EnPoSisters *this, GlobalContext *globalCtx) {
             Math_StepToF(&this->unk2EC, 170.0f, 10.0f);
         } else {
             Math_StepToF(&this->unk2EC, 110.0f, 3.0f);
-            sp20 = this->unk2EC;
+            //sp20 = this->unk2EC;
         }
 
     //  */
 
         //if ((player->swordState == 0) || (player->swordAnimation  >= 0x1E)) {
             //if ((player->actor.world.pos.y - player->actor.floorHeight) < 1.0f) {
-                //Math_StepToF(&this->unk2EC, 110.0f, 3.0f);
+                Math_StepToF(&this->unk2EC, 110.0f, 3.0f);
             //} else {
         //block_6:
-                //Math_StepToF(&this->unk2EC, 170.0f, 10.0f);
+                Math_StepToF(&this->unk2EC, 170.0f, 10.0f);
             //}
         //} else {
             //goto block_6;
@@ -253,7 +253,6 @@ void func_80B1A894(EnPoSisters *this, GlobalContext *globalCtx) {
     f32 sp24;
     //u8 temp_t8;
     //u8 yawDiff;
-    //u8 unk190decr;
     //u8 pad;
     Player* player = PLAYER;
 
@@ -477,6 +476,7 @@ void func_80B1B2F0(EnPoSisters *this, GlobalContext *globalCtx) {
     }
 }
 
+// called after death
 void func_80B1B3A8(EnPoSisters *this) {
     SkelAnime_ChangeAnimTransitionStop(&this->skelAnime, (AnimationHeader *) &D_060008C0, -3.0f);
     if (this->collider.base.ac != NULL) {
@@ -490,6 +490,7 @@ void func_80B1B3A8(EnPoSisters *this) {
     this->actionFunc = func_80B1B444;
 }
 
+// fading away after death?
 void func_80B1B444(EnPoSisters *this, GlobalContext *globalCtx) {
     s32 fadePercent;
 
@@ -621,6 +622,7 @@ void func_80B1B940(EnPoSisters *this, GlobalContext *globalCtx) {
     }
 }
 
+// called after actor health == 0
 void func_80B1BA3C(EnPoSisters *this) {
     this->actor.speedXZ = 0.0f;
     this->actor.world.pos.y += 42.0f;
@@ -631,64 +633,31 @@ void func_80B1BA3C(EnPoSisters *this) {
     this->actionFunc = func_80B1BA90;
 }
 
-// ah fuck another struct array of weirdness
-/*
 void func_80B1BA90(EnPoSisters *this, GlobalContext *globalCtx) {
-    //f32 temp_f0;
-    //s16 temp_v0_4;
-    //s32 temp_v0;
-    s32 unk190decr;
-    s32 temp_v0_3;
-    void *temp_a0;
-    void *temp_a1;
-    void *temp_v1;
-    void *t220;
-    void *phi_v1;
-    s32 unk190decr;
+    Vec3f* vec2;
+    Vec3f* vec;
+    s32 i;
 
-    this->unk190 = (++this->unk190 >= 9) : (8) : (this->unk190);
-    //temp_v0 = this->unk190 + 1;
-    //if (temp_v0 >= 9) {
-        //this->unk190 = 8;
-    //} else {
-        //this->unk190 = (u8) temp_v0;
-    //}
-    this->unk192 += 1;
-    unk190decr = this->unk190 - 1;
-    if (unk190decr > 0) {
-        temp_a1 = this + (unk190decr * 0xC);
-        t220 = temp_a1 + 0x220;
-        t22C = temp_a1 + 0x22C;
-        //unk190decr = unk190decr;
-        for()
-loop_5:
-        temp_v0_3 = unk190decr - 1;
-        t220_2 = t22C - 0xC;
-        t220_2->unkC = (?32) t220->unk0;
-        beforet220 = t220 - 0xC;
-        t220_2->unk10 = (?32) t220->unk4;
-        t220_2->unk14 = (?32) beforet220->unk14;
-        t220 = beforet220;
-        t22C = t220_2;
-        unk190decr = temp_v0_3;
-        if (temp_v0_3 > 0) {
-            goto loop_5;
-        }
+    i = this->unk190+1;
+    this->unk192++;
+    this->unk190 = CLAMP_MAX(i, 8);
+
+    for(i = this->unk190 - 1 ; i > 0; i--){
+      this->unk22C[i] = this->unk22C[i-1];
     }
-    this->unk22C = (Math_SinS((s16) ((this->actor.shape.rot.y + (this->unk192 * 0x3000)) - 0x4000)) 
+
+    this->unk22C[0].x = (Math_SinS((s16) ((this->actor.shape.rot.y + (this->unk192 * 0x3000)) - 0x4000)) 
         * (3000.0f * this->actor.scale.x)) + this->actor.world.pos.x;
-    //temp_v0_4 = this->unk192;
-    this->unk234 = (Math_CosS((s16) ((this->actor.shape.rot.y + (this->unk192 * 0x3000)) - 0x4000)) 
+    this->unk22C[0].z = (Math_CosS((s16) ((this->actor.shape.rot.y + (this->unk192 * 0x3000)) - 0x4000)) 
         * (3000.0f * this->actor.scale.x)) + this->actor.world.pos.z;
     if (this->unk192 < 8) {
-        this->unk230 = this->unk23C - 9.0f;
+        this->unk22C[0].y = this->unk22C[1].y - 9.0f;
     } else {
-        this->unk230 = this->unk23C + 2.0f;
+        this->unk22C[0].y = this->unk22C[1].y + 2.0f;
         if (this->unk192 >= 0x10) {
             if (Math_StepToF(&this->actor.scale, 0.0f, 0.001f) != 0) {
-                func_80B1BC4C(this);
+                func_80B1BC4C(this, globalCtx);
             }
-            //temp_f0 = this->actor.scale.x;
             this->actor.scale.z = this->actor.scale.x;
             this->actor.scale.y = this->actor.scale.x;
         }
@@ -696,12 +665,11 @@ loop_5:
     if (this->unk192 == 0x10) {
         Audio_PlayActorSound2((Actor *) this, (u16)0x3877U);
     }
-} // */
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1BA90.s")
+}
 
 void func_80B1BC4C(EnPoSisters *this, GlobalContext *globalCtx) {
     this->unk192 = 0;
-    this->actor.world.pos.y = this->unk230;
+    this->actor.world.pos.y = this->unk22C[0].y;
     Item_DropCollectibleRandom(globalCtx, (Actor *) this, &this->actor.world.pos, (u16)0x80);
     this->actionFunc = func_80B1BCA0;
 }
@@ -915,8 +883,67 @@ void func_80B1C340(EnPoSisters *this, GlobalContext *globalCtx) {
 }
 //#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C340.s")
 
+// only barely attempted
+#ifdef NON_EQ
+void func_80B1C408(EnPoSisters *this, GlobalContext *globalCtx) {
+    Vec3f dropLoc;
+
+    //temp_v0 = this->collider.base.acFlags;
+    if ((this->collider.base.acFlags & 2) != 0) {
+        this->collider.base.acFlags = this->collider.base.acFlags & 0xFFFD;
+        func_800BE258((Actor *) this, (void *) &this->collider.info);
+        if (this->unk18D != 0) {
+            //temp_v0_2 = this->actor.parent;
+            //temp_v0_2->unk194 = (s16) (temp_v0_2->unk194 - 1);
+            ((EnPoSisters*)this->actor.parent)->unk194--;
+            Audio_PlayActorSound2((Actor *) this, (u16)0x38EFU);
+            func_80B1BE4C(this, globalCtx);
+            if (Rand_ZeroOne() < 0.2f) {
+                dropLoc.x = this->actor.world.pos.x;
+                dropLoc.y = this->actor.world.pos.y; 
+                dropLoc.z = this->actor.world.pos.z; 
+                Item_DropCollectible(globalCtx, &dropLoc, 5);
+                return;
+            }
+        // this needs to be likely when it isnt
+        } else if (this->collider.base.colType != 9) {
+            //this->collider.base.colType = this->actor.colChkInfo.damageEffect;
+            if (this->collider.base.colType == 0xF) {
+                this->unk191 |= 2;
+                this->actor.world.rot.y = this->actor.shape.rot.y;
+                func_80B1B860(this, globalCtx);
+                return;
+            }
+            if ((this->sisterType == 0) && (this->collider.base.colType == 0xE) && (this->actionFunc == func_80B1C0A4 )) {
+                if (this->unk194 == 0) {
+                    this->unk194 = -0x2D;
+                    return;
+                }
+            } else {
+                if (Actor_ApplyDamage((Actor *) this) != 0) {
+                    Audio_PlayActorSound2((Actor *) this, (u16)0x3875U);
+                } else {
+                    Enemy_StartFinishingBlow(globalCtx, (Actor *) this);
+                    Audio_PlayActorSound2((Actor *) this, (u16)0x3886U);
+                }
+                if (this->actor.colChkInfo.damageEffect == 4) {
+                    this->unk2F0 = 4.0f;
+                    this->unk2F4 = 0.5f;
+                    Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_CLEAR_TAG,
+                        this->collider.info.bumper.hitPos.x, 
+                        this->collider.info.bumper.hitPos.y,
+                        this->collider.info.bumper.hitPos.z, 
+                        0, 0, 0, 4);
+                }
+                func_80B1B3A8(this);
+            }
+        }
+    }
+}
+#else
 void func_80B1C408(EnPoSisters* this, GlobalContext *globalCtx);
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C408.s")
+#endif
 
 void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
     EnPoSisters* this = THIS;

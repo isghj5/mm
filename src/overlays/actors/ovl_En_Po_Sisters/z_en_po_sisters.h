@@ -7,6 +7,12 @@ struct EnPoSisters;
 
 typedef void (*EnPoSistersActionFunc)(struct EnPoSisters*, GlobalContext*);
 
+typedef struct {
+    /* 0x0000 */ 
+    /* 0x0144 */ SkelAnime skelAnime;
+    /* 0x0188 */ EnPoSistersActionFunc actionFunc;
+} EnPoSistersEffect; // size = 0xC
+
 #define PO_SISTER_LIMB_COUNT 0xC
 
 typedef struct EnPoSisters {
@@ -23,20 +29,20 @@ typedef struct EnPoSisters {
     /* 0x0194 */ s16 unk194; // timer?
     /* 0x0196 */ Vec3s limbDrawTbl[PO_SISTER_LIMB_COUNT];
     /* 0x01DE */ Vec3s transitionDrawTable[PO_SISTER_LIMB_COUNT];
-    // 220 is start of array size 8 of structs
-    // 22C is a value
     // end of trans draw table is 0x226
     /* 0x0226 */ Color_RGBA8 unkColor226;  // unk6 ->unkA
-    /* 0x022C */ f32 unk22C;               // unkC
-    /* 0x0230 */ f32 unk230;               // unk10 
-    /* 0x0234 */ f32 unk234;               // unk14
-    /* 0x0238 */ char unk238[0x4]; 
-    /* 0x023C */ f32 unk23C;
-    /* 0x0240 */ char unk240[0xA0]; 
-    // 0x02E0 end of struct
-    /* 0x02E0 */ char unk2E0[0xC]; 
-    /* 0x02EC */ f32 unk2EC; 
+    /* 0x022C */ Vec3f unk22C[0x10]; //twice as big as OOT
+    ///* 0x022C */ f32 unk22C;               // unkC
+    ///* 0x0230 */ f32 unk230;               // unk10 
+    ///* 0x0234 */ f32 unk234;               // unk14
+    ///* 0x0238 */ char unk238[0x4]; 
+    ///* 0x023C */ f32 unk23C;
+    ///* 0x0240 */ char unk240[0xA0]; 
+    //// 0x02E0 end of struct
+    ///* 0x02E0 */ char unk2E0[0xC]; 
+    ///* 0x02EC */ f32 unk2EC; 
     
+    /* 0x02EC */ f32 unk2EC; 
     /* 0x02F0 */ f32 unk2F0; 
     /* 0x02F4 */ f32 unk2F4; 
     /* 0x02F8 */ LightNode* lightNode; 
