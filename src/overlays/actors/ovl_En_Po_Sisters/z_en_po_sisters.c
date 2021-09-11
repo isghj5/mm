@@ -915,11 +915,7 @@ void func_80B1C2E8(EnPoSisters *this) {
     this->actionFunc = func_80B1C340;
 }
 
-#if NON_MATCHING
-// regalloc around temp_f16 calc
 void func_80B1C340(EnPoSisters *this, GlobalContext *globalCtx) {
-    //s32 temp_f16;
-
     if (SkelAnime_FrameUpdateMatrix(&this->skelAnime) != 0) {
         this->unkColor226.a = 0xFF;
         this->actor.flags |= 1;
@@ -930,29 +926,10 @@ void func_80B1C340(EnPoSisters *this, GlobalContext *globalCtx) {
             func_80B1AC40(this);
         }
     }else {
-
-        //temp_f16 = (s32) (255.0f * (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount));
-        f32 ratio = 255.0f * (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount);
-        //s32 ratio = (s32)(255.0f * (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount));
-        //f32 ratio = (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount) * 255.0f;
-        //s32 temp_f16 = (s32) ratio;
-        //s32 temp_f16 = (s32) ((this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount) * 255.0f);
-        //if (temp_f16 < 0) {
-            //this->unkColor226.a = 0;
-            //return;
-        //}
-        //phi_v1 = (u8) temp_f16;
-        //if (temp_f16 >= 0x100) {
-            //phi_v1 = (u8)0xFFU;
-        //}
-        //this->unkColor226.a = phi_v1;
-        this->unkColor226.a = CLAMP((s32)ratio, 0, 0xFF);
-        //this->unkColor226.a = CLAMP((u8)ratio, 0, 0xFF);
+        f32 ratio = (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount);
+        this->unkColor226.a = CLAMP((s32)( 255.0f * ratio), 0, 0xFF);
     }
 }
-#else
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C340.s")
-#endif
 
 void func_80B1C408(EnPoSisters *this, GlobalContext *globalCtx) {
     Vec3f dropLoc;
@@ -1081,7 +1058,7 @@ void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
     }
 }
 
-#ifdef NON_MATCHING
+//#ifdef NON_MATCHING
 // nonmatching: minor regalloc
 void func_80B1C974(EnPoSisters *this) {
     if (this->skelAnime.animCurrentSeg == &D_06000114 ) {
@@ -1131,9 +1108,9 @@ void func_80B1C974(EnPoSisters *this) {
         }
     }
 }
-#else
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C974.s")
-#endif
+//#else
+//#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C974.s")
+//#endif
 
 extern Gfx D_80B1DACC[];
 extern Gfx D_80B1DADC[];
