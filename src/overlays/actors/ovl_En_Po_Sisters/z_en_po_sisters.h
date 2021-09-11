@@ -31,6 +31,7 @@ typedef struct EnPoSisters {
     /* 0x01DE */ Vec3s transitionDrawTable[PO_SISTER_LIMB_COUNT];
     // end of trans draw table is 0x226
     /* 0x0226 */ Color_RGBA8 unkColor226;  // unk6 ->unkA
+    // this might really only be size 8 with the rest behind it being padding
     /* 0x022C */ Vec3f unk22C[0x10]; //twice as big as OOT
     ///* 0x022C */ f32 unk22C;               // unkC
     ///* 0x0230 */ f32 unk230;               // unk10 
@@ -49,7 +50,7 @@ typedef struct EnPoSisters {
     /* 0x02FC */ LightInfo lightInfo; 
     ///* 0x0300 */ char unk300[0xC]; 
     /* 0x030C */ ColliderCylinder collider; 
-    /* 0x0358 */ char unk358[0x20C];
+    /* 0x0358 */ MtxF mtxf;
 } EnPoSisters; // size = 0x398
 
 extern const ActorInit En_Po_Sisters_InitVars;

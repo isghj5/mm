@@ -10,6 +10,7 @@ void EnPoSisters_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnPoSisters_Update(Actor* thisx, GlobalContext* globalCtx);
 //void EnPoSisters_Update(EnPoSisters* this, GlobalContext* globalCtx);
 void EnPoSisters_Draw(Actor* thisx, GlobalContext* globalCtx);
+//void EnPoSisters_Draw(EnPoSisters* this, GlobalContext* globalCtx);
 
 void func_80B1AAE8(EnPoSisters* this, GlobalContext* globalCtx);
 void func_80B1ABB8(EnPoSisters* this, GlobalContext* globalCtx);
@@ -47,12 +48,23 @@ void func_80B1BC4C(EnPoSisters* this, GlobalContext* globalCtx);
 void func_80B1BE4C(EnPoSisters* this, GlobalContext* globalCtx);
 void func_80B1C030(EnPoSisters* this);
 void func_80B1C2E8(EnPoSisters* this);
-// might be s32 return
 void func_80B1C974(EnPoSisters* this);
 void func_80B1BCF0(EnPoSisters* this, GlobalContext* globalCtx);
 void func_80B1B860(EnPoSisters *this, GlobalContext *globalCtx);
 
+Color_RGBA8 D_80B1DA30[] = {
+    {0xFF,0xAA,0xFF,0xFF},
+    {0xFF,0xC8,0x00,0xFF},
+    {0x00,0xAA,0xFF,0xFF},
+    {0xAA,0xFF,0x00,0xFF},
+};
 
+Color_RGBA8 D_80B1DA40[] = {
+    {0x64,0x00,0xFF,0xFF},
+    {0xFF,0x00,0x00,0xFF},
+    {0x00,0x00,0xFF,0xFF},
+    {0x00,0x96,0x00,0xFF},
+};
 
 const ActorInit En_Po_Sisters_InitVars = {
     ACTOR_EN_PO_SISTERS,
@@ -118,8 +130,39 @@ static InitChainEntry D_80B1DAC4[] = {
     ICHAIN_F32(targetArrowOffset, 6000, ICHAIN_STOP),
 };
 
+//glabel D_80B1DACC
+ //0x06001DE0
+ //0x06002F88
+ //0x06003628
+ //0x06003DC8
+
+//glabel D_80B1DADC
+ //0x06001CB0
+ //0x06002EB8
+ //0x06003880
+ //0x06004020
+
+Color_RGBA8 D_80B1DAEC[] = {
+    {0x50, 0x00, 0x64, 0x00},
+    {0x50, 0x0F, 0x00, 0x00},
+    {0x00, 0x46, 0x32, 0x00},
+    {0x46, 0x46, 0x00, 0x00},
+};
+
+// vec3f?
+u32 D_80B1DAF[] = { 0x447A0000, 0xC4D48000, 0x00000000, };
+
+u32 D_80B1DB08[] = { 0xFFFF0001, 0x02FF03FF};
+
+u8 D_80B1DB10 = 0xFF;
+
+u8 D_80B1DB11 = 0xFF;
+
+u8 D_80B1DB13 = 0xFF;
+
+
 extern AnimationHeader D_06000114;
-extern UNK_TYPE D_060008C0;
+extern AnimationHeader D_060008C0;
 extern AnimationHeader D_06000A54;
 extern AnimationHeader D_06000D40;
 extern AnimationHeader D_0600119C;
@@ -291,7 +334,33 @@ void func_80B1A894(EnPoSisters *this, GlobalContext *globalCtx) {
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1A894.s")
 #endif
 
+
+#ifdef NON_MATCHING
+void func_80B1A9B0(EnPoSisters *this, GlobalContext *globalCtx) {
+    // this third check should be likely but is not
+    if (! ((this->actor.isTargeted != 0) && (this->unkColor226.a == 0xFF)) || (this->unk18F != 0)) {
+        this->unk18F = 0x14;
+    }else{
+        this->unk18F--;
+    }
+
+    if (this->unkColor226.a == 0) {
+        DECR(this->unk194);
+    }
+
+    if (( this->actionFunc != func_80B1B020)
+       && (this->actionFunc != func_80B1B168) 
+       && (this->actionFunc != func_80B1B444)) {
+        if (this->unk18F == 0) {
+            func_80B1B70C(this);
+        } else if ((this->unk194 == 0) && (this->unkColor226.a == 0)) {
+            func_80B1B860(this, globalCtx);
+        }
+    }
+}
+#else
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1A9B0.s")
+#endif
 
 void func_80B1AA88(EnPoSisters *this) {
     SkelAnime_ChangeAnimTransitionRepeat(&this->skelAnime, &D_060014CC, -3.0f);
@@ -411,8 +480,6 @@ void func_80B1B020(EnPoSisters *this, GlobalContext *globalCtx) {
 }
 
 void func_80B1B0E0(EnPoSisters *this) {
-    //EnPoSisters *temp_a3;
-
     this->actor.speedXZ = 5.0f;
     if (this->sisterType == 0) {
         this->collider.base.colType = 9;
@@ -638,9 +705,8 @@ void func_80B1BA90(EnPoSisters *this, GlobalContext *globalCtx) {
     Vec3f* vec;
     s32 i;
 
-    i = this->unk190+1;
     this->unk192++;
-    this->unk190 = CLAMP_MAX(i, 8);
+    this->unk190 = CLAMP_MAX(this->unk190 + 1, 8);
 
     for(i = this->unk190 - 1 ; i > 0; i--){
       this->unk22C[i] = this->unk22C[i-1];
@@ -655,7 +721,7 @@ void func_80B1BA90(EnPoSisters *this, GlobalContext *globalCtx) {
     } else {
         this->unk22C[0].y = this->unk22C[1].y + 2.0f;
         if (this->unk192 >= 0x10) {
-            if (Math_StepToF(&this->actor.scale, 0.0f, 0.001f) != 0) {
+            if (Math_StepToF(&this->actor.scale.x, 0.0f, 0.001f) != 0) {
                 func_80B1BC4C(this, globalCtx);
             }
             this->actor.scale.z = this->actor.scale.x;
@@ -663,7 +729,7 @@ void func_80B1BA90(EnPoSisters *this, GlobalContext *globalCtx) {
         }
     }
     if (this->unk192 == 0x10) {
-        Audio_PlayActorSound2((Actor *) this, (u16)0x3877U);
+        Audio_PlayActorSound2((Actor *) this, NA_SE_EN_WIZ_DISAPPEAR);
     }
 }
 
@@ -849,6 +915,7 @@ void func_80B1C2E8(EnPoSisters *this) {
     this->actionFunc = func_80B1C340;
 }
 
+#if NON_MATCHING
 // regalloc around temp_f16 calc
 void func_80B1C340(EnPoSisters *this, GlobalContext *globalCtx) {
     //s32 temp_f16;
@@ -866,8 +933,9 @@ void func_80B1C340(EnPoSisters *this, GlobalContext *globalCtx) {
 
         //temp_f16 = (s32) (255.0f * (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount));
         f32 ratio = 255.0f * (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount);
+        //s32 ratio = (s32)(255.0f * (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount));
         //f32 ratio = (this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount) * 255.0f;
-        s32 temp_f16 = (s32) ratio;
+        //s32 temp_f16 = (s32) ratio;
         //s32 temp_f16 = (s32) ((this->skelAnime.animCurrentFrame / this->skelAnime.animFrameCount) * 255.0f);
         //if (temp_f16 < 0) {
             //this->unkColor226.a = 0;
@@ -878,23 +946,21 @@ void func_80B1C340(EnPoSisters *this, GlobalContext *globalCtx) {
             //phi_v1 = (u8)0xFFU;
         //}
         //this->unkColor226.a = phi_v1;
-        this->unkColor226.a = CLAMP(temp_f16, 0, 0xFF);
+        this->unkColor226.a = CLAMP((s32)ratio, 0, 0xFF);
+        //this->unkColor226.a = CLAMP((u8)ratio, 0, 0xFF);
     }
 }
-//#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C340.s")
+#else
+#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C340.s")
+#endif
 
-// only barely attempted
-#ifdef NON_EQ
 void func_80B1C408(EnPoSisters *this, GlobalContext *globalCtx) {
     Vec3f dropLoc;
 
-    //temp_v0 = this->collider.base.acFlags;
     if ((this->collider.base.acFlags & 2) != 0) {
         this->collider.base.acFlags = this->collider.base.acFlags & 0xFFFD;
         func_800BE258((Actor *) this, (void *) &this->collider.info);
         if (this->unk18D != 0) {
-            //temp_v0_2 = this->actor.parent;
-            //temp_v0_2->unk194 = (s16) (temp_v0_2->unk194 - 1);
             ((EnPoSisters*)this->actor.parent)->unk194--;
             Audio_PlayActorSound2((Actor *) this, (u16)0x38EFU);
             func_80B1BE4C(this, globalCtx);
@@ -905,16 +971,14 @@ void func_80B1C408(EnPoSisters *this, GlobalContext *globalCtx) {
                 Item_DropCollectible(globalCtx, &dropLoc, 5);
                 return;
             }
-        // this needs to be likely when it isnt
         } else if (this->collider.base.colType != 9) {
-            //this->collider.base.colType = this->actor.colChkInfo.damageEffect;
-            if (this->collider.base.colType == 0xF) {
-                this->unk191 |= 2;
+            if (this->actor.colChkInfo.damageEffect == 0xF) {
                 this->actor.world.rot.y = this->actor.shape.rot.y;
+                this->unk191 |= 2;
                 func_80B1B860(this, globalCtx);
                 return;
             }
-            if ((this->sisterType == 0) && (this->collider.base.colType == 0xE) && (this->actionFunc == func_80B1C0A4 )) {
+            if ((this->sisterType == 0) && ( this->actor.colChkInfo.damageEffect == 0xE) && (this->actionFunc == func_80B1C0A4 )) {
                 if (this->unk194 == 0) {
                     this->unk194 = -0x2D;
                     return;
@@ -940,10 +1004,6 @@ void func_80B1C408(EnPoSisters *this, GlobalContext *globalCtx) {
         }
     }
 }
-#else
-void func_80B1C408(EnPoSisters* this, GlobalContext *globalCtx);
-#pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C408.s")
-#endif
 
 void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
     EnPoSisters* this = THIS;
@@ -1021,11 +1081,216 @@ void EnPoSisters_Update(Actor* thisx, GlobalContext *globalCtx) {
     }
 }
 
+#ifdef NON_MATCHING
+// nonmatching: minor regalloc
+void func_80B1C974(EnPoSisters *this) {
+    if (this->skelAnime.animCurrentSeg == &D_06000114 ) {
+        this->unkColor226.r = CLAMP_MAX(this->unkColor226.r + 5, 0xFF);
+        this->unkColor226.g = CLAMP_MIN(this->unkColor226.g - 5, 0x32);
+        this->unkColor226.b = CLAMP_MIN(this->unkColor226.b - 5, 0);
+        return;
+    }
+    if (this->skelAnime.animCurrentSeg == &D_06000A54 ) {
+        this->unkColor226.r = CLAMP_MAX(this->unkColor226.r + 5, 0x50);
+        this->unkColor226.g = CLAMP_MAX(this->unkColor226.g + 5, 0xFF);
+        this->unkColor226.b = CLAMP_MAX(this->unkColor226.b + 5, 0xE1);
+        return;
+    }
+    if (this->skelAnime.animCurrentSeg == &D_060008C0 ) {
+        if ((this->actor.colorFilterTimer & 2) != 0) {
+            this->unkColor226.r = 0;
+            this->unkColor226.g = 0;
+            this->unkColor226.b = 0;
+        } else {
+            this->unkColor226.r = 0x50;
+            this->unkColor226.g = 0xFF;
+            this->unkColor226.b = 0xE1;
+        }
+        return;
+    } else {
+        s32 moreBlue;
+        s32 lessBlue;
+        this->unkColor226.r = CLAMP_MAX(this->unkColor226.r + 5, 0xFF);
+        this->unkColor226.g = CLAMP_MAX(this->unkColor226.g + 5, 0xFF);
+
+        //this->unkColor226.b = (this->unkColor226.b > 0xD2) ? (CLAMP_MAX(this->unkColor226.b + 5, 0xD2)) : (CLAMP_MIN(this->unkColor226.b - 5, 0xD2));
+        moreBlue = this->unkColor226.b + 5;
+        if ( this->unkColor226.b > 0xD2) {
+            //this->unkColor226.b = CLAMP_MIN(this->unkColor226.b - 5, 0xD2);
+            lessBlue = this->unkColor226.b - 5;
+            if (lessBlue < 0xD2) {
+                this->unkColor226.b = 0xD2;
+            } else {
+                this->unkColor226.b = (u8) lessBlue;
+            }
+        } else if (moreBlue > 0xD2) {
+            this->unkColor226.b = 0xD2;
+            return;
+        } else {
+            this->unkColor226.b = (u8) moreBlue;
+        }
+    }
+}
+#else
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1C974.s")
+#endif
 
+extern Gfx D_80B1DACC[];
+extern Gfx D_80B1DADC[];
+
+// oh god its horrible
+// overwrite limbdraw
+#ifdef ITSFUCKED
+s32 func_80B1CB44(GlobalContext *globalCtx, s32 limbIndex, Gfx **dList, Vec3f *pos, Vec3s *rot, Actor *actor, Gfx **gfx) {
+    EnPoSisters* this = (EnPoSisters*) actor;
+    Color_RGBA8 *sisterTypeColor;
+
+    OPEN_DISPS(globalCtx->state.gfxCtx);
+
+    if ((limbIndex == 1) && ((this->unk191 & 0x40) != 0)) {
+        //temp_a0 = this->unk192;
+        if ((s32) this->unk192 >= 0x11C) {
+            rot->x = rot->x + (this->unk192 << 0xC) + 0xFFEE4000;
+        } else {
+            rot->x = rot->x + (this->unk192 << 0xC) + 0xFFFF1000;
+        }
+    }
+    if (! ((this->unkColor226.a != 0) && (limbIndex != 8)) || (this->actionFunc == func_80B1BA90 ) && ((s32) this->unk192 >= 8)) {
+//block_9:
+            *dList = NULL;
+    } else if (limbIndex == 9) {
+        dList = &D_80B1DACC[this->sisterType];
+    } else if (limbIndex == 0xA) {
+        dList = &D_80B1DADC[this->sisterType];
+        //temp_a1->words.w1 = 0;
+        //temp_a1->words.w0 = 0xE7000000;
+        gDPPipeSync(gfx++);
+
+        //temp_a1_2->words.w0 = 0xFB000000;
+        //temp_a1_2->words.w1 = (this->unkColor226 << 0x18) | (this->unk227 << 0x10) | (this->unk228 << 8) | this->unk229;
+        gDPSetEnvColor(gfx++, this->unkColor226.r, this->unkColor226.g, this->unkColor226.b, this->unkColor226.a);
+        
+    } else if (limbIndex == 0xB) {
+        sisterTypeColor = &D_80B1DAEC[this->sisterType];
+
+        //temp_a1_3->words.w1 = 0;
+        //temp_a1_3->words.w0 = 0xE7000000;
+        gDPPipeSync(gfx++);
+
+        //temp_a1_4->words.w0 = 0xFB000000;
+        //temp_a1_4->words.w1 = (sisterTypeColor->unk0 << 0x18) | (sisterTypeColor->unk1 << 0x10) | (sisterTypeColor->unk2 << 8) | this->unk229;
+        gDPSetEnvColor(gfx++, sisterTypeColor->r, sisterTypeColor->g, sisterTypeColor->b, this->unkColor226.a);
+    }
+    //} else {
+        //goto block_9;
+    //}
+    CLOSE_DISPS(globalCtx->state.gfxCtx);
+    return 0;
+}
+#else
+s32 func_80B1CB44(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* actor, Gfx** gfx);
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1CB44.s")
+#endif
 
+// postlimbraw
+void func_80B1CD34(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* actor, Gfx** gfx);
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/func_80B1CD34.s")
 
-// cannot do draw function until we have our array of struct mapped
+// lots of little things wrong
+#ifdef NON_EQUIVELENT
+void EnPoSisters_Draw(Actor* thisx, GlobalContext *globalCtx) {
+    EnPoSisters* this = THIS;
+    //Gfx *sp74;
+    Color_RGBA8* unkColor1;
+    Color_RGBA8* unkColor2;
+    //Gfx *temp_v0_9;
+    GraphicsContext *temp_s3;
+    f32 temp_f20;
+    s32 temp_s2;
+    s32 afterImageAlpha;
+    s32 i;
+    f32 scale;
+    //f32 phi_f0;
+    //f32 phi_f2;
+
+    unkColor1 = &D_80B1DA40[this->sisterType];
+    unkColor2 = &D_80B1DA30[this->sisterType];
+    OPEN_DISPS(globalCtx->state.gfxCtx);
+    func_80B1C974(this);
+    func_8012C28C(globalCtx->state.gfxCtx);
+    func_8012C2DC(globalCtx->state.gfxCtx);
+    if ((this->unkColor226.a == 0xFF) || (this->unkColor226.a == 0)) {
+        gDPSetEnvColor(POLY_OPA_DISP++, this->unkColor226.r, this->unkColor226.g, this->unkColor226.b, this->unkColor226.a);
+
+        gSPSegment(POLY_OPA_DISP++, 0x09, D_801AEFA0);
+
+        POLY_OPA_DISP = SkelAnime_Draw2(globalCtx, this->skelAnime.skeleton, this->skelAnime.limbDrawTbl, func_80B1CB44, func_80B1CD34, &this->actor, POLY_OPA_DISP++);
+    } else {
+        gDPSetEnvColor(POLY_XLU_DISP++, 0xFF, 0xFF, 0xFF, this->unkColor226.a);
+
+        gSPSegment(POLY_XLU_DISP++, 0x09, D_801AEF88);
+
+        POLY_XLU_DISP = SkelAnime_Draw2(globalCtx, this->skelAnime.skeleton, this->skelAnime.limbDrawTbl, func_80B1CB44, func_80B1CD34, &this->actor, POLY_XLU_DISP++);
+    }
+    if ((this->unk191 & 0x80) == 0) {
+        SysMatrix_SetCurrentState(&this->mtxf);
+
+        gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(globalCtx->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+
+        gSPDisplayList(POLY_OPA_DISP++, &D_060027B0);
+    }
+    //temp_v0_9->words.w0 = 0xDB060020;
+    //temp_v0_9->words.w1 = Gfx_TwoTexScroll(globalCtx->state.gfxCtx, 0, 0U, 0U, 0x20, 0x40, 1, 0, ((s32) globalCtx->gameplayFrames * -0x14) & 0x1FF, 0x20, 0x80);
+    gSPSegment(POLY_XLU_DISP++, 0x08, 
+        Gfx_TwoTexScroll(globalCtx->state.gfxCtx, 0, 0U, 0U, 0x20, 0x40, 1, 0, ((s32) globalCtx->gameplayFrames * -0x14) & 0x1FF, 0x20, 0x80));
+
+    gDPSetEnvColor(POLY_XLU_DISP++, unkColor1->r, unkColor1->g, unkColor1->b, this->unkColor226.a);
+
+    if (func_80B1BCA0 == this->actionFunc) {
+        // its actually using the image count to guage strength of the image
+        afterImageAlpha = ((s32) (((s32) this->unk192 * -0xFF) + 0x1FE0) / 0x20) & 0xFF;
+        scale = 0.0056000003f;
+    } else {
+        afterImageAlpha = 0;
+        scale = this->actor.scale.x * 0.5f;
+    }
+
+    //if ((s32) this->unk190 > 0) {
+        //sp74 = D_0407D590; // what
+    for (i = 0 ; i < 8; i++){
+//loop_11:
+        if (this->actionFunc != func_80B1BCA0) {
+            afterImageAlpha = ((i * -0x1F) + 0xF8) & 0xFF;
+        }
+        //temp_v0_11->words.w1 = 0;
+        //temp_v0_11->words.w0 = 0xE7000000;
+        gDPPipeSync(POLY_XLU_DISP++);
+
+        //temp_v0_12->words.w0 = 0xFA008080;
+        //temp_v0_12->words.w1 = (temp_s7.r << 0x18) | (temp_s7.g << 0x10) | (temp_s7.b << 8) | (afterImageAlpha & 0xFF);
+        gDPSetPrimColor(POLY_OPA_DISP++, 0x80, 0x80, unkColor2->r, unkColor2->g, unkColor2->b, afterImageAlpha);
+
+        SysMatrix_InsertTranslation(this->unk22C[i].x, this->unk22C[i].y, this->unk22C[i].z, 0);
+        SysMatrix_InsertRotation((u16)0, (s16) (func_800DFCDC(globalCtx->cameraPtrs[globalCtx->activeCamera]) + 0x8000), (u16)0, 1);
+        if (this->actionFunc == func_80B1BA90) {
+            temp_f20 = ((f32) (this->unk192 - i) * 0.025f) + 0.5f;
+            scale = CLAMP(temp_f20, 0.5f, 0.8f) * 0.007f;
+        }
+        Matrix_Scale(scale, scale, scale, 1);
+
+        //temp_v0_13->words.w0 = 0xDA380003;
+        //temp_v0_13->words.w1 = Matrix_NewMtx(globalCtx->state.gfxCtx);
+        gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(globalCtx->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+
+        gSPDisplayList(POLY_XLU_DISP++, D_0407D590);
+
+        i++;
+        
+    }
+    
+    CLOSE_DISPS(globalCtx->state.gfxCtx);
+    func_800BE680(globalCtx, (Actor *) this, &this->unk22C[8], 8, this->actor.scale.x * 142.85713f * this->unk2F4, 0.0f, this->unk2F0, 0x14);
+}
+#else
 #pragma GLOBAL_ASM("asm/non_matchings/overlays/ovl_En_Po_Sisters/EnPoSisters_Draw.s")
+#endif
