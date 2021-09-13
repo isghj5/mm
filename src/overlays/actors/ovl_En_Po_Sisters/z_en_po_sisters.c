@@ -336,12 +336,15 @@ void func_80B1A894(EnPoSisters *this, GlobalContext *globalCtx) {
 
 
 #ifdef NON_MATCHING
+// think I need to figure out how to untangle the DECR from the first branch string
 void func_80B1A9B0(EnPoSisters *this, GlobalContext *globalCtx) {
-    // this third check should be likely but is not
-    if (! ((this->actor.isTargeted != 0) && (this->unkColor226.a == 0xFF)) || (this->unk18F != 0)) {
+    s16 newVar = 1;
+    //if (! ((this->actor.isTargeted != 0) && (this->unkColor226.a == 0xFF)) || (this->unk18F != 0)) {
+    if (! ((this->actor.isTargeted != 0) && (this->unkColor226.a != 0xFF))){// || (this->unk18F != 0)) {
         this->unk18F = 0x14;
-    }else{
-        this->unk18F--;
+    }else{// if (newVar){
+        DECR(this->unk18F);
+        //this->unk18F--;
     }
 
     if (this->unkColor226.a == 0) {
