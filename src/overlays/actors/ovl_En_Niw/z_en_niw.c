@@ -134,10 +134,14 @@ void EnNiw_Init(Actor* thisx, GlobalContext* globalCtx) {
     Actor_SetScale(&this->actor, 0.01f);
 
     if (this->niwType == ENNIW_TYPE_UNK1) {
-        // in OoT the minigame cucco was 0.03f size
-        //Actor_SetScale(&this->actor, (BREG(86) / 10000.0f) + 0.004f);
-        Actor_SetScale(&this->actor, 0.03f);
+        // was tiny, not expected
+        Actor_SetScale(&this->actor, (BREG(86) / 10000.0f) + 0.004f);
         // new: attempted fix by resetting type after getting this far
+        this->niwType = ENNIW_TYPE_REGULAR;
+    }
+    if (this->niwType == 3) { // new big version
+        // in OoT the minigame cucco was 0.03f size
+        Actor_SetScale(&this->actor, 0.03f);
         this->niwType = ENNIW_TYPE_REGULAR;
     }
 
