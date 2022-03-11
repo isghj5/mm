@@ -6,13 +6,14 @@
 struct BgCtowerGear;
 
 
-#define BGCTOWERGEAR_GET_TYPE(thisx) ((thisx)->params & 3)
+#define BGCTOWERGEAR_GET_TYPE(thisx) ((thisx)->params)
 
 typedef enum {
     /* 0x00 */ BGCTOWERGEAR_CEILING_COG,
     /* 0x01 */ BGCTOWERGEAR_CENTER_COG,
     /* 0x02 */ BGCTOWERGEAR_WATER_WHEEL,
-    /* 0x03 */ BGCTOWERGEAR_ORGAN
+    /* 0x03 */ BGCTOWERGEAR_ORGAN, // cutscene
+    /* 0x04 */ BGCTOWERGEAR_ORGAN_STANDALONE
 } BgCtowerGearType;
 
 typedef struct BgCtowerGear {

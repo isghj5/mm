@@ -126,13 +126,20 @@ void BgCtowerGear_Init(Actor* thisx, GlobalContext* globalCtx) {
     } else {
         Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
     }
+
     if (type == BGCTOWERGEAR_WATER_WHEEL) {
         DynaPolyActor_Init(&this->dyna, 3);
         DynaPolyActor_LoadMesh(globalCtx, &this->dyna, &gClockTowerWaterWheelCol);
-    } else if (type == BGCTOWERGEAR_ORGAN) {
-        DynaPolyActor_Init(&this->dyna, 0);
-        DynaPolyActor_LoadMesh(globalCtx, &this->dyna, &gClockTowerOrganCol);
-        func_800C62BC(globalCtx, &globalCtx->colCtx.dyna, this->dyna.bgId);
+    } else if (type == BGCTOWERGEAR_ORGAN_STANDALONE) {
+        //DynaPolyActor_Init(&this->dyna, 0);
+        //DynaPolyActor_LoadMesh(globalCtx, &this->dyna, &gClockTowerOrganCol);
+        //func_800C62BC(globalCtx, &globalCtx->colCtx.dyna, this->dyna.bgId);
+
+        CollisionHeader* colHeader = NULL;
+        CollisionHeader_GetVirtual(&gClockTowerOrganCol, &colHeader);
+        this->dyna.bgId = DynaPoly_SetBgActor(globalCtx, &globalCtx->colCtx.dyna, &this->dyna.actor, colHeader);
+        this->dyna.actor.draw = BgCtowerGear_DrawOrgan;
+        this->dyna.actor.update = Actor_Noop;
     }
 }
 
@@ -140,7 +147,7 @@ void BgCtowerGear_Destroy(Actor* thisx, GlobalContext* globalCtx) {
     BgCtowerGear* this = THIS;
     s32 type = BGCTOWERGEAR_GET_TYPE(&this->dyna.actor);
 
-    if ((type == BGCTOWERGEAR_WATER_WHEEL) || (type == BGCTOWERGEAR_ORGAN)) {
+    if ((type == BGCTOWERGEAR_WATER_WHEEL) || (type == BGCTOWERGEAR_ORGAN_STANDALONE)) {
         DynaPoly_DeleteBgActor(globalCtx, &globalCtx->colCtx.dyna, this->dyna.bgId);
     }
 }
@@ -160,6 +167,7 @@ void BgCtowerGear_Update(Actor* thisx, GlobalContext* globalCtx) {
     }
 }
 
+// cutscene only
 void BgCtowerGear_UpdateOrgan(Actor* thisx, GlobalContext* globalCtx) {
     BgCtowerGear* this = THIS;
 
@@ -186,11 +194,13 @@ void BgCtowerGear_Draw(Actor* thisx, GlobalContext* globalCtx) {
 
 void BgCtowerGear_DrawOrgan(Actor* thisx, GlobalContext* globalCtx) {
     OPEN_DISPS(globalCtx->state.gfxCtx);
+
     func_8012C28C(globalCtx->state.gfxCtx);
     gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(globalCtx->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
     gSPDisplayList(POLY_OPA_DISP++, gClockTowerOrganDL);
     func_8012C2DC(globalCtx->state.gfxCtx);
     gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(globalCtx->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
     gSPDisplayList(POLY_XLU_DISP++, gClockTowerOrganPipesDL);
+
     CLOSE_DISPS(globalCtx->state.gfxCtx);
 }
