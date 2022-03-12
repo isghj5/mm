@@ -18,6 +18,7 @@ typedef enum {
 
 typedef struct BgCtowerGear {
     /* 0x000 */ DynaPolyActor dyna;
+                s8 playerOcarinaOut;
 } BgCtowerGear; // size = 0x15C
 
 extern const ActorInit Bg_Ctower_Gear_InitVars;

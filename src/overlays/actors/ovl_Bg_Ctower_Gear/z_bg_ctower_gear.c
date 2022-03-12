@@ -18,6 +18,7 @@ void BgCtowerGear_Draw(Actor* thisx, GlobalContext* globalCtx);
 
 void BgCtowerGear_UpdateOrgan(Actor* thisx, GlobalContext* globalCtx);
 void BgCtowerGear_DrawOrgan(Actor* thisx, GlobalContext* globalCtx);
+void BgCtowerGear_UpdateNewOrgan(Actor* thisx, GlobalContext* globalCtx);
 
 const ActorInit Bg_Ctower_Gear_InitVars = {
     ACTOR_BG_CTOWER_GEAR,
@@ -139,7 +140,9 @@ void BgCtowerGear_Init(Actor* thisx, GlobalContext* globalCtx) {
         CollisionHeader_GetVirtual(&gClockTowerOrganCol, &colHeader);
         this->dyna.bgId = DynaPoly_SetBgActor(globalCtx, &globalCtx->colCtx.dyna, &this->dyna.actor, colHeader);
         this->dyna.actor.draw = BgCtowerGear_DrawOrgan;
-        this->dyna.actor.update = Actor_Noop;
+        this->dyna.actor.update = BgCtowerGear_UpdateNewOrgan;
+        // to catch song of healing, our actor needs to be updating while ocarina is out, this is the flag
+        this->dyna.actor.flags |= ACTOR_FLAG_2000000; 
     }
 }
 
@@ -185,6 +188,33 @@ void BgCtowerGear_UpdateOrgan(Actor* thisx, GlobalContext* globalCtx) {
                 Actor_MarkForDeath(&this->dyna.actor);
                 break;
         }
+    }
+}
+
+void BgCtowerGear_UpdateNewOrgan(Actor* thisx, GlobalContext* globalCtx){
+    BgCtowerGear* this = THIS;
+    Player* player = GET_PLAYER(globalCtx);
+  
+    // listens for player taking our their ocarina, taken from EnYb (kamaro)
+    if (this->playerOcarinaOut == true) {
+        if (!(player->stateFlags2 & 0x8000000)) {
+            this->playerOcarinaOut = false;
+        }
+    } else if ((player->stateFlags2 & 0x8000000) && this->dyna.actor.xzDistToPlayer < 180.0f &&
+               fabsf(this->dyna.actor.playerHeightRel) < 50.0f) {
+        this->playerOcarinaOut = true;
+        Actor_PlaySfxAtPos(&this->dyna.actor, NA_SE_SY_TRE_BOX_APPEAR);
+    }
+
+    // listens for song of healing (again taken from Yb)
+    if (this->dyna.actor.xzDistToPlayer < 180.0f && fabsf(this->dyna.actor.playerHeightRel) < 50.0f &&
+        globalCtx->msgCtx.ocarinaMode == 3 && globalCtx->msgCtx.unk1202E == 7) {
+        // play sfx
+        Actor_PlaySfxAtPos(&this->dyna.actor, NA_SE_EV_BUTTERFRY_TO_FAIRY);
+        // spawn fairy (for some reason this spawns two but that seems fine)
+        Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_ELF, 
+                    this->dyna.actor.world.pos.x, this->dyna.actor.world.pos.y, this->dyna.actor.world.pos.z,
+                     0, 0, 0, 0x7); // 7 is big healing/magic fairy
     }
 }
 
