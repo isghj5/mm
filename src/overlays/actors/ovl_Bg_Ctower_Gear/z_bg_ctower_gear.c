@@ -200,14 +200,14 @@ void BgCtowerGear_UpdateNewOrgan(Actor* thisx, GlobalContext* globalCtx){
         if (!(player->stateFlags2 & 0x8000000)) {
             this->playerOcarinaOut = false;
         }
-    } else if ((player->stateFlags2 & 0x8000000) && this->dyna.actor.xzDistToPlayer < 180.0f &&
-               fabsf(this->dyna.actor.playerHeightRel) < 50.0f) {
+    } else if ((player->stateFlags2 & 0x8000000) && this->dyna.actor.xzDistToPlayer < 180.0f ) {
         this->playerOcarinaOut = true;
         Actor_PlaySfxAtPos(&this->dyna.actor, NA_SE_SY_TRE_BOX_APPEAR);
     }
 
     // listens for song of healing (again taken from Yb)
-    if (this->dyna.actor.xzDistToPlayer < 180.0f && fabsf(this->dyna.actor.playerHeightRel) < 50.0f &&
+    // fabsf(this->dyna.actor.playerHeightRel) < 50.0f // height removed since I want player to be able to spawn fairies at the top
+    if (this->dyna.actor.xzDistToPlayer < 180.0f  &&
         globalCtx->msgCtx.ocarinaMode == 3 && globalCtx->msgCtx.unk1202E == 7) {
         // play sfx
         Actor_PlaySfxAtPos(&this->dyna.actor, NA_SE_EV_BUTTERFRY_TO_FAIRY);
