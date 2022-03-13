@@ -20,7 +20,7 @@ typedef struct EnAni {
     /* 0x2E0 */ Vec3s headRot;
     /* 0x2E6 */ Vec3s chestRot; // unused 
     /* 0x2EC */ u16 stateFlags;
-    /* 0x2EE */ s16 unk2EE; // assigned to zero in init, never used after
+    ///* 0x2EE */ s16 unk2EE; // assigned to zero in init, never used after
     /* 0x2F0 */ s16 treeReachTimer;
     /* 0x2F4 */ EnAniBlinkFunc blinkFunc;
     /* 0x2F8 */ s16 eyeState;
@@ -31,6 +31,8 @@ typedef struct EnAni {
 enum EnAniType {
   /* else */ ANI_TYPE_STANDING,         // unfinshed and unused
   /* 1    */ ANI_TYPE_TREE_HANGING = 1,
+  /* 2    */ ANI_TYPE_SITTING = 2,
+  /* 3    */ ANI_TYPE_SITTING_IN_AIR = 3,
 };
 
 #define GET_ANI_TYPE(thisx) (thisx->params & 0xFF) 

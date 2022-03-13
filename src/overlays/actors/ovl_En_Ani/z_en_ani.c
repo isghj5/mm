@@ -14,7 +14,7 @@
 // clang-format off
 #define ANI_STATE_STANDING  (0)
 #define ANI_STATE_UNK       (1 << 0)
-#define ANI_STATE_WRITHING (1 << 1)
+#define ANI_STATE_WRITHING  (1 << 1)
 #define ANI_STATE_CLIMBING  (1 << 2)
 #define ANI_STATE_FALLING   (1 << 3)
 // clang-format on
@@ -118,13 +118,13 @@ void EnAni_Init(Actor* thisx, GlobalContext* globalCtx) {
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 24.0f);
     SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gAniSkeleton, &gAniStandingNormalAnim, this->jointTable,
                        this->morphTable, ANI_LIMB_MAX);
-    Animation_PlayOnce(&this->skelAnime, &gAniStandingNormalAnim);
+    //Animation_PlayOnce(&this->skelAnime, &gAniStandingNormalAnim);
     Collider_InitAndSetCylinder(globalCtx, &this->collider1, &this->actor, &sCylinderInit);
-    Collider_InitAndSetCylinder(globalCtx, &this->collider2, &this->actor, &sCylinderInit);
-    Collider_UpdateCylinder(&this->actor, &this->collider2);
+    //Collider_InitAndSetCylinder(globalCtx, &this->collider2, &this->actor, &sCylinderInit);
+    //Collider_UpdateCylinder(&this->actor, &this->collider2);
     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
     this->stateFlags = ANI_STATE_STANDING;
-    this->unk2EE = 0;
+    //this->unk2EE = 0;
     this->treeReachTimer = 0;
     this->blinkFunc = EnAni_DefaultBlink;
 
@@ -139,15 +139,29 @@ void EnAni_Init(Actor* thisx, GlobalContext* globalCtx) {
         this->stateFlags |= ANI_STATE_CLIMBING;
         gSaveContext.eventInf[1] &= (u8)~0x10;
 
+        // new: variety that just sits on the ground
+    }else if (GET_ANI_TYPE(thisx) == ANI_TYPE_SITTING) {
+        Animation_Change(&this->skelAnime, &gAniSittingBackAnim, 1.0f, 0.0f,
+                         Animation_GetLastFrame(&gAniSittingBackAnim), 2, 0.0f);
+        this->actionFunc = EnAni_IdleStanding;
+        this->actor.velocity.y = -25.0f;
+        this->actor.terminalVelocity = -25.0f;
+        this->actor.gravity = -1.0f;
+        //this->collider1.dim.height = 5;
+        //this->collider1.dim.yShift = 300;
+
+        // telling you not to take his rupees you knocked from the tree
+        EnAni_SetText(this, globalCtx, 0x6DE);
+
     } else { // ANI_TYPE_STANDING
         // ( unused code )
         // for some reason standing he has a large collider
         // possibly he was meant to be a blocking npc like bomber
-        this->collider2.dim.radius = 60;
+        //this->collider2.dim.radius = 60;
         this->actionFunc = EnAni_IdleStanding;
         this->actor.velocity.y = -25.0f;
         this->actor.terminalVelocity = -25.0f;
-        this->actor.gravity = -5.0f;
+        this->actor.gravity = -1.0f;
     }
 }
 
@@ -155,28 +169,47 @@ void EnAni_Destroy(Actor* thisx, GlobalContext* globalCtx) {
     EnAni* this = THIS;
 
     Collider_DestroyCylinder(globalCtx, &this->collider1);
-    Collider_DestroyCylinder(globalCtx, &this->collider2);
+    //Collider_DestroyCylinder(globalCtx, &this->collider2);
 }
 
 void EnAni_SetText(EnAni* this, GlobalContext* globalCtx, u16 textId) {
     s16 diffAngle = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
 
     this->actor.textId = textId;
-    if ((this->stateFlags & ANI_STATE_WRITHING) || ABS_ALT(diffAngle) <= 0x4300) {
+    //if ((this->stateFlags & ANI_STATE_WRITHING) || ABS_ALT(diffAngle) <= 0x4300) {
         if (this->actor.xzDistToPlayer < 100.0f) {
             func_800B8614(&this->actor, globalCtx, 120.0f);
         }
-    }
+    //}
 }
 
 void EnAni_IdleStanding(EnAni* this, GlobalContext* globalCtx) {
     SkelAnime_Update(&this->skelAnime);
+        // new testing
+    if (Actor_ProcessTalkRequest(&this->actor, globalCtx)) {
+        this->actionFunc = EnAni_Talk;
+    } else {
+        // telling you hes not paid enough for this, stuck
+        //EnAni_SetText(this, globalCtx, 0x6C8);
+
+        // telling you hes in a band too ,stuck
+        //EnAni_SetText(this, globalCtx, 0x6C4);
+
+        // works 
+        EnAni_SetText(this, globalCtx, 0x145C); // .....
+    }
 }
 
 void EnAni_Talk(EnAni* this, GlobalContext* globalCtx) {
     SkelAnime_Update(&this->skelAnime);
     if (Message_GetState(&globalCtx->msgCtx) == 2 && globalCtx->msgCtx.unk11F04 == 0x6DE) {
-        this->actionFunc = EnAni_IdleInPain;
+        //this->actionFunc = EnAni_IdleInPain;
+        if ( globalCtx->msgCtx.unk11F04 == 0x6DE) {
+            this->actionFunc = EnAni_IdleInPain;
+        } else {
+            this->actionFunc = EnAni_IdleStanding;
+        }
+
     }
 }
 
@@ -276,11 +309,11 @@ void EnAni_Update(Actor* thisx, GlobalContext* globalCtx) {
     f32 minVelocity;
 
     Collider_UpdateCylinder(&this->actor, &this->collider1);
-    Collider_UpdateCylinder(&this->actor, &this->collider2);
+    //Collider_UpdateCylinder(&this->actor, &this->collider2);
     CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &this->collider1.base);
-    if (!(this->stateFlags & ANI_STATE_UNK)) {
-        CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &this->collider2.base);
-    }
+    //if (!(this->stateFlags & ANI_STATE_UNK)) {
+        //CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &this->collider2.base);
+    //}
 
     this->actor.velocity.y += this->actor.gravity;
     minVelocity = this->actor.terminalVelocity;
@@ -293,7 +326,7 @@ void EnAni_Update(Actor* thisx, GlobalContext* globalCtx) {
     this->actionFunc(this, globalCtx);
     if (this->actor.xzDistToPlayer < 100.0f && !(this->stateFlags & ANI_STATE_CLIMBING)) {
         func_800E9250(globalCtx, &this->actor, &this->headRot, &this->chestRot, this->actor.focus.pos);
-        this->chestRot.x = this->chestRot.y = this->chestRot.z = 0;
+        //this->chestRot.x = this->chestRot.y = this->chestRot.z = 0; // this broke chest rotation
     } else {
         Math_SmoothStepToS(&this->headRot.x, 0, 0x6, 0x1838, 0x64);
         Math_SmoothStepToS(&this->headRot.y, 0, 0x6, 0x1838, 0x64);
@@ -323,6 +356,12 @@ s32 EnAni_OverrideLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList,
         rot->x += this->headRot.y;
         rot->z += this->headRot.x;
     }
+    // new chest rotation, works
+    if (limbIndex == 8) { // CHEST 
+        rot->x += this->chestRot.y;
+        rot->z += this->chestRot.x;
+    }
+
 
     return false;
 }
