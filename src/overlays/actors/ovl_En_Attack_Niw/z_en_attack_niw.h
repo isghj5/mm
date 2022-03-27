@@ -38,7 +38,7 @@ typedef struct EnAttackNiw {
     /* 0x288 */ UNK_TYPE1 pad288[2];
     /* 0x28A */ s16 unk_28A;
     /* 0x28C */ UNK_TYPE1 pad28C[4];
-    /* 0x290 */ Vec3f unk_290;
+    /* 0x290 */ Vec3f unk_290; // camera 
     /* 0x29C */ f32 leftWingRotZ;
     /* 0x2A0 */ f32 leftWingRotY;
     /* 0x2A4 */ f32 leftWingRotX;
@@ -53,7 +53,7 @@ typedef struct EnAttackNiw {
     /* 0x2D0 */ UNK_TYPE1 pad2D0[4];
     /* 0x2D4 */ f32 rotStep;
     /* 0x2D8 */ f32 targetXZSpeed;
-    /* 0x2DC */ f32 unk_2DC;
+    /* 0x2DC */ f32 targetHeight; // unused: 
 } EnAttackNiw; // size = 0x2E0
 
 extern const ActorInit En_Attack_Niw_InitVars;

@@ -75,10 +75,10 @@ void EnAttackNiw_Destroy(Actor* thisx, GlobalContext* globalCtx) {
     }
 }
 
-// what is arg
+// what is arg 2 and 5 only
 void func_80958228(EnAttackNiw* this, GlobalContext* globalCtx, s16 arg2) {
     if (this->unk_24C == 0) {
-        if (arg2 == 0) {
+        if (arg2 == 0) { // never used
             this->targetBodyRotY = 0.0f;
         } else {
             this->targetBodyRotY = -10000.0f;
@@ -87,7 +87,7 @@ void func_80958228(EnAttackNiw* this, GlobalContext* globalCtx, s16 arg2) {
         this->unk_24C = 3;
         if ((this->unk_286 % 2) == 0) {
             this->targetBodyRotY = 0.0f;
-            if (arg2 == 0) {
+            if (arg2 == 0) { // never used
                 this->unk_24C = Rand_ZeroFloat(30.0f);
             }
         }
@@ -97,6 +97,7 @@ void func_80958228(EnAttackNiw* this, GlobalContext* globalCtx, s16 arg2) {
         this->unk_28A++;
         this->unk_28A &= 1;
 
+        // only case 2 and 5 are ever called
         switch (arg2) {
             case 0:
                 this->targetLeftWingRotZ = 0.0f;
@@ -192,7 +193,7 @@ s32 func_809585B0(EnAttackNiw* this, GlobalContext* globalCtx) {
     s16 posX;
     s16 posY;
 
-    Actor_SetFocus(&this->actor, this->unk_2DC);
+    Actor_SetFocus(&this->actor, this->targetHeight);
     Actor_GetScreenPos(globalCtx, &this->actor, &posX, &posY);
 
     if ((this->actor.projectedPos.z < -20.0f) || (posX < 0) || (posX > SCREEN_WIDTH) || (posY < 0) ||
@@ -202,7 +203,8 @@ s32 func_809585B0(EnAttackNiw* this, GlobalContext* globalCtx) {
     return true;
 }
 
-// first actionfunc for all
+// first actionfunc for all 
+// this is called when they fly in from off screen right?
 void func_80958634(EnAttackNiw* this, GlobalContext* globalCtx) {
     s16 sp4E;
     s16 sp4C;
@@ -212,9 +214,9 @@ void func_80958634(EnAttackNiw* this, GlobalContext* globalCtx) {
 
     this->actor.speedXZ = 10.0f;
 
-    temp.x = (this->unk_290.x + globalCtx->view.at.x) - globalCtx->view.eye.x;
-    temp.y = (this->unk_290.y + globalCtx->view.at.y) - globalCtx->view.eye.y;
-    temp.z = (this->unk_290.z + globalCtx->view.at.z) - globalCtx->view.eye.z;
+    temp.x = this->unk_290.x + globalCtx->view.at.x - globalCtx->view.eye.x;
+    temp.y = this->unk_290.y + globalCtx->view.at.y - globalCtx->view.eye.y;
+    temp.z = this->unk_290.z + globalCtx->view.at.z - globalCtx->view.eye.z;
 
     sp34.x = globalCtx->view.at.x + temp.x;
     sp34.y = globalCtx->view.at.y + temp.y;
@@ -227,7 +229,7 @@ void func_80958634(EnAttackNiw* this, GlobalContext* globalCtx) {
     Math_SmoothStepToS(&this->actor.world.rot.x, this->targetRotX, 5, this->rotStep, 0);
     Math_ApproachF(&this->rotStep, 5000.0f, 1.0f, 100.0f);
 
-    Actor_SetFocus(&this->actor, this->unk_2DC);
+    Actor_SetFocus(&this->actor, this->targetHeight);
     Actor_GetScreenPos(globalCtx, &this->actor, &sp4E, &sp4C);
 
     if (this->actor.bgCheckFlags & 8) { // touching a wall
