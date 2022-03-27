@@ -149,7 +149,8 @@ void EnNiw_Init(Actor* thisx, GlobalContext* globalCtx) {
 
     // random health between 10-20
     // health at zero triggers cucco storm not death
-    this->actor.colChkInfo.health = Rand_ZeroFloat(9.99f) + 10.0f;
+    //this->actor.colChkInfo.health = Rand_ZeroFloat(9.99f) + 10.0f;
+    this->actor.colChkInfo.health = 1.0f;
     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
 
     if (this->niwType == NIW_TYPE_REGULAR) {
@@ -284,7 +285,7 @@ void EnNiw_SpawnAttackNiw(EnNiw* this, GlobalContext* globalCtx) {
     Vec3f newNiwPos;
     Actor* attackNiw;
 
-    if (this->attackNiwSpawnTimer == 0 && this->attackNiwCount < 7) {
+    if (this->attackNiwSpawnTimer == 0 && this->attackNiwCount < 2) {
         xView = globalCtx->view.at.x - globalCtx->view.eye.x;
         yView = globalCtx->view.at.y - globalCtx->view.eye.y;
         zView = globalCtx->view.at.z - globalCtx->view.eye.z;

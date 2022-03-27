@@ -54,6 +54,8 @@ typedef struct EnAttackNiw {
     /* 0x2D4 */ f32 rotStep;
     /* 0x2D8 */ f32 targetXZSpeed;
     /* 0x2DC */ f32 targetHeight; // unused: 
+    // new
+                Vec3f mysterySpot;
 } EnAttackNiw; // size = 0x2E0
 
 extern const ActorInit En_Attack_Niw_InitVars;

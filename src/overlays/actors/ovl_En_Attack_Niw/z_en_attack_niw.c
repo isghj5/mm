@@ -7,6 +7,8 @@
 #include "z_en_attack_niw.h"
 #include "overlays/actors/ovl_En_Niw/z_en_niw.h"
 
+#include "objects/gameplay_keep/gameplay_keep.h"
+
 #define FLAGS (ACTOR_FLAG_10)
 
 #define THIS ((EnAttackNiw*)thisx)
@@ -221,6 +223,7 @@ void func_80958634(EnAttackNiw* this, GlobalContext* globalCtx) {
     sp34.x = globalCtx->view.at.x + temp.x;
     sp34.y = globalCtx->view.at.y + temp.y;
     sp34.z = globalCtx->view.at.z + temp.z;
+    this->mysterySpot = sp34;
 
     this->targetRotY = Math_Vec3f_Yaw(&this->actor.world.pos, &sp34);
     this->targetRotX = Math_Vec3f_Pitch(&this->actor.world.pos, &sp34) * -1.0f;
@@ -430,10 +433,42 @@ s32 EnAttackNiw_OverrideLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** 
     return false;
 }
 
+void DrawDebug(EnAttackNiw* this, GlobalContext* globalCtx, Vec3f* pos){
+    // this was ripped from the effects function
+
+    s32 pad;
+    GraphicsContext* gfxCtx = globalCtx->state.gfxCtx;
+    //f32 scale = this->rgScale / 100.0f;
+    f32 scale = (50 * 2)/100.f;
+
+    func_8012C28C(gfxCtx);
+    func_8012C2DC(globalCtx->state.gfxCtx);
+    
+    OPEN_DISPS(gfxCtx);
+    
+    Matrix_InsertTranslation(pos->x, pos->y, pos->z, MTXMODE_NEW);
+    Matrix_Scale(scale, scale, scale, MTXMODE_APPLY);
+    POLY_XLU_DISP = Gfx_CallSetupDL(POLY_XLU_DISP, 20);
+    gSPSegment(POLY_XLU_DISP++, 0x08, Lib_SegmentedToVirtual(gSun1Tex));
+    gSPDisplayList(POLY_XLU_DISP++, gameplay_keep_DL_07AB10);
+    gDPPipeSync(POLY_XLU_DISP++);
+    //changed to pink
+    gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 102, 255, 255);
+    gDPSetEnvColor(POLY_XLU_DISP++, 250, 180, 255, 255);
+    Matrix_InsertMatrix(&globalCtx->billboardMtxF, MTXMODE_APPLY);
+    Matrix_InsertZRotation_f(DEGF_TO_RADF(20.0f * globalCtx->state.frames), MTXMODE_APPLY);
+    gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(globalCtx->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    gSPDisplayList(POLY_XLU_DISP++, gameplay_keep_DL_07AB58);
+
+    CLOSE_DISPS(gfxCtx);
+}
+
 void EnAttackNiw_Draw(Actor* thisx, GlobalContext* globalCtx) {
     EnAttackNiw* this = THIS;
 
     func_8012C28C(globalCtx->state.gfxCtx);
     SkelAnime_DrawFlexOpa(globalCtx, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                           EnAttackNiw_OverrideLimbDraw, NULL, &this->actor);
+
+    DrawDebug(this, globalCtx, &this->mysterySpot);
 }
