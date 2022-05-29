@@ -20,6 +20,8 @@ void EnNwc_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnNwc_Update(Actor* thisx, GlobalContext* globalCtx);
 void EnNwc_Draw(Actor* thisx, GlobalContext* globalCtx);
 
+void EnNwc_Snooze(EnNwc* this, GlobalContext* globalCtx);
+
 void EnNwc_LoadNiwSkeleton(EnNwc* this, GlobalContext* globalCtx);
 void EnNwc_CrowAtTheEnd(EnNwc* this, GlobalContext* globalCtx);
 void EnNwc_Follow(EnNwc* this, GlobalContext* globalCtx);
@@ -62,7 +64,8 @@ void EnNwc_Init(Actor* thisx, GlobalContext* globalCtx) {
     EnNwc* this = THIS;
 
     niwObjectIndex = Object_GetIndex(&globalCtx->objectCtx, OBJECT_NIW);
-    if (niwObjectIndex < 0) {
+    //if (niwObjectIndex < 0) {
+    if (this->actor.params == NWC_TYPE_VANILLA && niwObjectIndex < 0) {
         // niw object does not exist, we need it for tranformation, despawn
         Actor_MarkForDeath(&this->actor);
         return;
@@ -82,12 +85,23 @@ void EnNwc_Init(Actor* thisx, GlobalContext* globalCtx) {
 
     this->footRotY = this->footRotZ = 0;
     Actor_SetScale(&this->actor, 0.01f);
-    this->actionFunc = EnNwc_LoadNiwSkeleton;
+    //this->actionFunc = EnNwc_LoadNiwSkeleton; // moved down
     this->hasGrownUp = false;
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 6.0f);
     this->actor.velocity.y = 0.0f;
     this->actor.terminalVelocity = -9.0f;
     this->actor.gravity = -1.0f;
+
+    // new
+    if (this->grog == NULL || this->actor.params != NWC_TYPE_VANILLA){
+      this->actionFunc = EnNwc_Snooze;
+      this->stateTimer = 10;
+      this->blinkState = 1; // closed
+    this->actor.gravity = 0;
+    } else{
+      this->actionFunc = EnNwc_LoadNiwSkeleton;
+    }
+    
 }
 
 void EnNwc_Destroy(Actor* thisx, GlobalContext* globalCtx) {
@@ -238,6 +252,43 @@ void EnNwc_CheckFound(EnNwc* this, GlobalContext* globalCtx) {
         EnNwc_ChangeState(this, NWC_STATE_FOLLOWING);
         func_801A0868(&D_801DB4A4, NA_SE_SY_CHICK_JOIN_CHIME, currentChickCount);
     }
+}
+
+void EnNwc_SpawnBubbles(EnNwc* this, GlobalContext* globalCtx) {
+      u8 i = 0;
+      Vec3f newVel = {0.0f, 0.0f, 0.0f};
+      Vec3f newPos;
+      const Color_RGBA8 newColor = {0xFF, 0xFF, 0xFF, 0xE0};
+      const Color_RGBA8 newEnvColor= {0x95, 0x95, 0x95, 0};
+
+      newVel.y = 0.5 + Rand_ZeroFloat(0.5f);
+      Math_Vec3f_Copy(&newPos, &this->actor.world.pos);
+      // bubbles come out of beak,
+      newPos.x += Math_SinS(this->actor.world.rot.y) * 4.0f;
+      newPos.z += Math_CosS(this->actor.world.rot.y) * 4.0f;
+      newPos.y += 4.0f;
+
+      for (i = 0; i < 2; ++i){
+        newVel.y = 0.25 + Rand_ZeroFloat(0.5f);
+        // gZeroVec3f = accel
+        EffectSsDtBubble_SpawnCustomColor(globalCtx, &newPos, &newVel, &gZeroVec3f, &newColor, &newEnvColor, Rand_S16Offset(21, 6), 20, 1);
+      }
+}
+
+
+void EnNwc_Snooze(EnNwc* this, GlobalContext* globalCtx) {
+    if (DECR(this->stateTimer) == 0){  
+      this->stateTimer = Rand_S16Offset(60, 5);
+
+      EnNwc_SpawnBubbles(this, globalCtx);
+
+      //Actor_PlaySfxAtPos(&this->actor, NA_SE_EV_CHICK_SONG); // debugging
+    } 
+    // can we make them cheep really slow to snore?
+
+    //if (this->stateTimer == 0){
+        //Actor_PlaySfxAtPos(&this->actor, ); // debugging
+    //}
 }
 
 void EnNwc_LoadNiwSkeleton(EnNwc* this, GlobalContext* globalCtx) {
@@ -470,14 +521,16 @@ void EnNwc_Update(Actor* thisx, GlobalContext* globalCtx) {
         this->actor.shape.shadowScale = 6.0f;
     }
 
-    if (DECR(this->blinkTimer) == 0) {
-        this->blinkTimer = Rand_S16Offset(0x3C, 0x3C);
-    }
+    if (this->actionFunc != EnNwc_Snooze){
+      if (DECR(this->blinkTimer) == 0) {
+          this->blinkTimer = Rand_S16Offset(0x3C, 0x3C);
+      }
 
-    if (this->blinkTimer == 1 || this->blinkTimer == 3) {
-        this->blinkState = true;
-    } else {
-        this->blinkState = false;
+      if (this->blinkTimer == 1 || this->blinkTimer == 3) {
+          this->blinkState = true;
+      } else {
+          this->blinkState = false;
+      }
     }
 }
 

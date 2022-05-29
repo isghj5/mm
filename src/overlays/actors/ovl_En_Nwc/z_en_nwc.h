@@ -35,6 +35,12 @@ typedef struct EnNwc {
     /* 0x264 */ EnNwcActionFunc actionFunc;
 } EnNwc; // size = 0x268
 
+// vanilla has no params, all chicks are equal
+typedef enum EnNwcType{
+ NWC_TYPE_SLEEPING = 0,
+ NWC_TYPE_VANILLA = 0xFFF,
+} EnNwcType; 
+
 extern const ActorInit En_Nwc_InitVars;
 
 #endif // Z_EN_NWC_H
