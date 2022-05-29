@@ -294,15 +294,15 @@ void EnHs_Update(Actor* thisx, GlobalContext* globalCtx) {
 
     if (this->stateFlags & 4) {
         Math_SmoothStepToS(&this->headRot.x, 0, 6, 0x1838, 0x64);
-        Math_SmoothStepToS(&this->unusedRot.x, 0, 6, 0x1838, 0x64);
-        Math_SmoothStepToS(&this->unusedRot.y, 0, 6, 0x1838, 0x64);
+        //Math_SmoothStepToS(&this->unusedRot.x, 0, 6, 0x1838, 0x64);
+        //Math_SmoothStepToS(&this->unusedRot.y, 0, 6, 0x1838, 0x64);
     } else if (this->stateFlags & 1) {
-        func_800E9250(globalCtx, &this->actor, &this->headRot, &this->unusedRot, this->actor.focus.pos);
+        //func_800E9250(globalCtx, &this->actor, &this->headRot, &this->unusedRot, this->actor.focus.pos);
     } else {
         Math_SmoothStepToS(&this->headRot.x, 0x3200, 6, 0x1838, 0x64);
         Math_SmoothStepToS(&this->headRot.y, 0, 6, 0x1838, 0x64);
-        Math_SmoothStepToS(&this->unusedRot.x, 0, 6, 0x1838, 0x64);
-        Math_SmoothStepToS(&this->unusedRot.y, 0, 6, 0x1838, 0x64);
+        //Math_SmoothStepToS(&this->unusedRot.x, 0, 6, 0x1838, 0x64);
+        //Math_SmoothStepToS(&this->unusedRot.y, 0, 6, 0x1838, 0x64);
     }
 }
 
@@ -323,7 +323,12 @@ s32 EnHs_OverrideLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, 
         case HS_LIMB_HIDDEN_HAIR:
             // for some reason this hair is always removed here in the Override limb
             // if you do re-enable, make sure you add the head rot like above
-            *dList = NULL;
+            if (this->actor.params == 0xFE01){
+                *dList = NULL;
+            } else {
+                rot->x += this->headRot.y;
+                rot->z += this->headRot.x;
+            }
             return false;
 
         // these two limbs both have empty enddisplaylist, they do nothing
@@ -348,7 +353,7 @@ s32 EnHs_OverrideLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, 
 void EnHs_PostLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
     EnHs* this = THIS;
 
-    if (limbIndex == HS_LIMB_HEAD) {
+    if (limbIndex == HS_LIMB_HEAD || limbIndex == HS_LIMB_HIDDEN_HAIR) {
         Matrix_MultVec3f(&D_8095393C, &this->actor.focus.pos);
     }
 }
