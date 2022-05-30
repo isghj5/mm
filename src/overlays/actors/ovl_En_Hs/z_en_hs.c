@@ -323,7 +323,7 @@ s32 EnHs_OverrideLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, 
         case HS_LIMB_HIDDEN_HAIR:
             // for some reason this hair is always removed here in the Override limb
             // if you do re-enable, make sure you add the head rot like above
-            if (this->actor.params == 0xFE01){
+            if (this->actor.params == (s16) 0xFE01){
                 *dList = NULL;
             } else {
                 rot->x += this->headRot.y;
