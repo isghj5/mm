@@ -18,6 +18,14 @@ typedef struct EnFamosRock {
 #define GET_FAMOS_PATH(thisx) (thisx->params)
 #define GET_FAMOS_AGGRO_DISTANCE(thisx) (thisx->shape.rot.x)
 
+// new 
+#define GET_FAMOS_SPIN(thisx) ((thisx->params & 0x300) >> 8)
+typedef enum {
+  NO_SPIN = 0, // vanilla
+  PORT_SPIN = 1,
+  STRBRD_SPIN = 2,
+} EnFamosSpinDirection;
+
 // stateTimer gets reused:
 //   after spotting player, counts frames until first attack (8)
 //   after lost aggro, measures frames looking around before returning to home (60)
@@ -36,6 +44,7 @@ typedef struct EnFamos {
     /* 0x1D6 */ u8 pathNodeCount;
     /* 0x1D7 */ u8 currentPathNode;
     /* 0x1D8 */ u8 isCalm; // is NOT aware of player
+    /* 0x1D8 */ u8 pathlessSpin; // NEW
     /* 0x1DA */ s16 hoverTimer; // start 30, decr to 0, repeat: for trig height adjustment when hovering
     /* 0x1DC */ s16 stateTimer; // reused for different actionFunc
     /* 0x1DE */ s16 debrisTimer; // also counts frames until despawning bom after death

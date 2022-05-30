@@ -164,6 +164,10 @@ void EnFamos_Init(Actor* thisx, GlobalContext* globalCtx) {
     Path* path;
     s32 i;
 
+    // new
+    this->pathlessSpin = GET_FAMOS_SPIN(thisx);
+    thisx->params &= 0xFF;
+
     Actor_ProcessInitChain(&this->actor, sInitChain);
     if (GET_FAMOS_PATH(thisx) != 0xFF) {
         path = &globalCtx->setupPathList[this->actor.params];
@@ -354,6 +358,12 @@ void EnFamos_StillIdle(EnFamos* this, GlobalContext* globalCtx) {
     EnFamos_UpdateBobbingHeight(this);
     if (this->isCalm) {
         Math_Vec3f_Copy(&this->calmPos, &this->actor.world.pos);
+        // if we have a spin, turn the actor
+        if (this->pathlessSpin == PORT_SPIN){
+            this->actor.shape.rot.y += 200;
+        } else if (this->pathlessSpin == STRBRD_SPIN){
+            this->actor.shape.rot.y -= 200;
+        }
     }
     if (EnFamos_IsPlayerSeen(this, globalCtx)) {
         EnFamos_SetupAlert(this);
