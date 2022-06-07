@@ -245,6 +245,7 @@ u8 D_8090CD4C = 0;
 u8 D_8090CD50 = 0;
 u8 D_8090CD54 = 0;
 
+/*
 static ColliderJntSphElementInit sJntSphElementsInit[] = {
     {
         {
@@ -379,7 +380,6 @@ static ColliderJntSphElementInit sJntSphElementsInit[] = {
         { 0, { { 0, 0, 0 }, 30 }, 100 },
     },
 };
-
 static ColliderJntSphInit sJntSphInit = {
     {
         COLTYPE_NONE,
@@ -391,7 +391,7 @@ static ColliderJntSphInit sJntSphInit = {
     },
     ARRAY_COUNT(sJntSphElementsInit),
     sJntSphElementsInit,
-};
+}; // */
 
 u8 D_8090CF18 = 0;
 static Vec3f sZeroVec = { 0.0f, 0.0f, 0.0f };
@@ -815,10 +815,10 @@ static ColliderSphereInit sSphereInit = {
         { 0xF7CFFFFF, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
         TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        BUMP_NONE,
         OCELEM_ON,
     },
-    { 0, { { 0, 0, 0 }, 200 }, 10 },
+    { 0, { { 0, 0, 0 }, 10}, 1 },
 };
 
 void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
@@ -847,6 +847,7 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
 
         thisx->update = EnFishing_UpdateOwner;
         thisx->draw = NULL;
+        thisx->flags & ~1;
 
         //thisx->shape.rot.y = -0x6000;
         //thisx->world.pos.x = 160.0f;
@@ -2907,8 +2908,7 @@ s32 EnFishing2_CheckBottleRange(Actor* thisx, GlobalContext* globalCtx) {
     return false;
 }
 
-
-
+// HERE WE GOOO
 void EnFishing_UpdateFish(Actor* thisx, GlobalContext* globalCtx2) {
     s16 i;
     s16 sp134 = 10;
@@ -2978,18 +2978,20 @@ void EnFishing_UpdateFish(Actor* thisx, GlobalContext* globalCtx2) {
     }
 
     // attempting add bottle pick up to fishing
-    if ( (this->actor.params >= 100 && this->actor.params <= 115) && EnFishing2_CheckBottleRange(&this->actor, globalCtx)) {
-        // does this call the function every frame? to see if the player has swung the bottle?
-        //Collider_UpdateSphere(globalCtx, &this->collider.base);
-        CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &this->collider.base);
-        this->actor.id = ACTOR_EN_FISH;
-        if (Actor_PickUp(&this->actor, globalCtx, GI_MAX, 80.0f, 25.0f)){
+    if ( (this->actor.params >= 100 && this->actor.params <= 115) && thisx->xzDistToPlayer < 25){
+             //&& EnFishing2_CheckBottleRange(&this->actor, globalCtx)) {
+        if (thisx->parent != NULL) {
+            this->actor.parent = NULL;
             //this->actor.draw = NULL;
             //this->actor.update = NULL;
-            Actor_MarkForDelete(&this->actor);
+            Actor_MarkForDeath(&this->actor);
             return;
-        } else {
-            this->actor.id = ACTOR_EN_FISHING;
+        } else  {
+            Player* player = GET_PLAYER(globalCtx);
+            //CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &this->collider.base);
+            this->actor.id = ACTOR_EN_FISH;
+            Actor_PickUp(&this->actor, globalCtx, GI_MAX, 80.0f, 25.0f);
+            // if success in bottling, player will now be our parent
         }
     }
 
