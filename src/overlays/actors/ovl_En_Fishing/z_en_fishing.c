@@ -21,6 +21,7 @@ void EnFishing_UpdateFish(Actor* thisx, GlobalContext* globalCtx);
 void EnFishing_DrawFish(Actor* thisx, GlobalContext* globalCtx);
 
 void EnFishing_UpdateOwner(Actor* thisx, GlobalContext* globalCtx);
+void EnFishing2_UpdateHiddenLure(Actor* thisx, GlobalContext* globalCtx);
 void EnFishing_DrawOwner(Actor* thisx, GlobalContext* globalCtx);
 
 typedef struct {
@@ -219,7 +220,7 @@ u8 D_8090CCD4 = 0;
 f32 D_8090CCD8 = 0.0f;
 Vec3f D_8090CCDC = { 0.0f, 0.0f, 0.0f };
 f32 D_8090CCE8 = 0.0f;
-u8 sSinkingLureLocation = 0;
+u8 sSinkingLureLocation = 0; // index
 f32 D_8090CCF0 = 0.0f;
 u8 D_8090CCF4 = true;
 u16 D_8090CCF8 = 0;
@@ -244,6 +245,14 @@ s16 D_8090CD48 = 0;
 u8 D_8090CD4C = 0;
 u8 D_8090CD50 = 0;
 u8 D_8090CD54 = 0;
+
+// huh, only four spots eh?
+Vec3s sSinkingLureLocationPos[] = {
+    { -364, -30, -269 },
+    { 1129, 3, -855 },
+    { -480, 0, -1055 },
+    { 553, -48, -508 },
+};
 
 /*
 static ColliderJntSphElementInit sJntSphElementsInit[] = {
@@ -831,7 +840,7 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
 
     sLinkAge = gSaveContext.save.linkAge;
 
-    if (thisx->params < 100) {
+    if (thisx->params < 100) { // spawn one owner, that spawns the rest of everything
         s16 i;
         FishingGroupFish* fish;
 
@@ -840,14 +849,22 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
         //Collider_InitJntSph(globalCtx, &sFishingMain->collider);
         //Collider_SetJntSph(globalCtx, &sFishingMain->collider, thisx, &sJntSphInit, sFishingMain->colliderElements);
 
-        thisx->params = 1;
+        thisx->params = 1; // owner
 
         //SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gFishingOwnerSkel, &gFishingOwnerAnim, NULL, NULL, 0);
         //Animation_MorphToLoop(&this->skelAnime, &gFishingOwnerAnim, 0.0f);
 
-        thisx->update = EnFishing_UpdateOwner;
+        thisx->update = EnFishing_UpdateOwner; // he handles a bunch of stuff, dont remove wholesale
+        // new, dont draw, only tatl spot, but lure at his feed
         thisx->draw = NULL;
-        thisx->flags & ~1;
+        thisx->targetMode = 0;
+        thisx->flags |= 1;
+
+        // new place lure at our feed
+        sSinkingLureLocation = 1;
+        thisx->world.pos.x  = sSinkingLureLocationPos[1].x = thisx->home.pos.x;
+        thisx->world.pos.x  = sSinkingLureLocationPos[1].y = thisx->home.pos.y;
+        thisx->world.pos.x  = sSinkingLureLocationPos[1].z = thisx->home.pos.z;
 
         //thisx->shape.rot.y = -0x6000;
         //thisx->world.pos.x = 160.0f;
@@ -985,6 +1002,11 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
         // new
         Collider_InitSphere(globalCtx, &this->collider);
         Collider_SetSphere(globalCtx, &this->collider, thisx, &sSphereInit);
+    } else if (thisx->params = 500) { // new sinking lure pickup without owner
+        thisx->targetMode = 0;
+        thisx->flags |= 1;
+        thisx->update = EnFishing2_UpdateHiddenLure;
+        return;
     } else {
         SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gFishingLoachSkel, &gFishingLoachAnim, NULL, NULL, 0);
         Animation_MorphToLoop(&this->skelAnime, &gFishingLoachAnim, 0.0f);
@@ -2889,6 +2911,7 @@ void EnFishing_HandleAquariumDialog(EnFishing* this, GlobalContext* globalCtx) {
 }
 
 
+/*
 // new for fish catching
 //this is EnFish_InBottleRange in OOT, but different in MM, copy paste form MM EnFish
 s32 EnFishing2_CheckBottleRange(Actor* thisx, GlobalContext* globalCtx) {
@@ -2906,7 +2929,7 @@ s32 EnFishing2_CheckBottleRange(Actor* thisx, GlobalContext* globalCtx) {
         }
     }
     return false;
-}
+} // */
 
 // HERE WE GOOO
 void EnFishing_UpdateFish(Actor* thisx, GlobalContext* globalCtx2) {
@@ -4763,7 +4786,7 @@ void EnFishing_DrawGroupFishes(GlobalContext* globalCtx) {
 }
 
 u16 D_8090D638[] = { 0x4096, 0x408D, 0x408E, 0x408F, 0x4094, 0x4095 };
-
+/*
 void EnFishing_HandleOwnerDialog(EnFishing* this, GlobalContext* globalCtx) {
     switch (this->unk_154) {
         case 0:
@@ -5103,20 +5126,121 @@ void EnFishing_HandleOwnerDialog(EnFishing* this, GlobalContext* globalCtx) {
             }
             break;
     }
-}
+}// */
 
 s16 D_8090D644[] = { 0, 1, 2, 2, 1 };
 
 Vec3f sStreamSoundPos = { 670.0f, 0.0f, -600.0f };
 
-Vec3s sSinkingLureLocationPos[] = {
-    { -364, -30, -269 },
-    { 1129, 3, -855 },
-    { -480, 0, -1055 },
-    { 553, -48, -508 },
-};
+
+static s8 sAlreadyPickedUp = false;
+
+void EnFishing2_UpdateHiddenLure(Actor* thisx, GlobalContext* globalCtx){
+    EnFishing* this = THIS;
+
+    // if we make contact, give the lure
+
+    // except this is hard because he made his own inner-fishing cutscene system
+
+    // zzz
+    if ( this->actor.xzDistToPlayer < 25 && !sAlreadyPickedUp ){
+        if (thisx->parent != NULL){ // PickUp worked
+            Actor_MarkForDeath(&this->actor);
+        }
+        //sSinkingLureLocation = 0;
+        D_8090CD4C = 20;
+        sAlreadyPickedUp = true;
+        func_8013EC44(0.0f, 150, 10, 10);
+        play_sound(NA_SE_SY_TRE_BOX_APPEAR);
+        Audio_QueueSeqCmd(0x101400FF);
+
+        {
+            Camera* camera;
+            Cutscene_Start(globalCtx, &globalCtx->csCtx);
+            sCameraId = Play_CreateSubCamera(globalCtx);
+            Play_CameraChangeStatus(globalCtx, CAM_ID_MAIN, 1);
+            Play_CameraChangeStatus(globalCtx, sCameraId, 7);
+            func_800B7298(globalCtx, &this->actor, 4);
+            camera = Play_GetCamera(globalCtx, CAM_ID_MAIN);
+            sCameraEye.x = camera->eye.x;
+            sCameraEye.y = camera->eye.y;
+            sCameraEye.z = camera->eye.z;
+            sCameraAt.x = camera->at.x;
+            sCameraAt.y = camera->at.y;
+            sCameraAt.z = camera->at.z;
+            Message_StartTextbox(globalCtx, 0x409A, NULL);
+            D_8090CD4C = 21;
+            D_80911F48 = 45.0f;
+            D_8090CD50 = 10;
+                // fallthrough
+
+            if ((D_8090CD50 == 0) && Message_ShouldAdvance(globalCtx)) {
+                D_8090CD4C = 22;
+                D_8090CD50 = 40;
+                // func_800B7298 call removed in MM
+                D_80911F64 = 0.0f;
+            }
+
+            }
+
+        /* // OOT
+        Camera* mainCam;
+        func_80064520(play, &play->csCtx);
+        sSubCamId = Play_CreateSubCamera(play);
+        Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+        Play_ChangeCameraStatus(play, sSubCamId, CAM_STAT_ACTIVE);
+        func_8002DF54(play, &this->actor, 5);
+        mainCam = Play_GetCamera(play, CAM_ID_MAIN);
+        sSubCamEye.x = mainCam->eye.x;
+        sSubCamEye.y = mainCam->eye.y;
+        sSubCamEye.z = mainCam->eye.z;
+        sSubCamAt.x = mainCam->at.x;
+        sSubCamAt.y = mainCam->at.y;
+        sSubCamAt.z = mainCam->at.z;
+        Message_StartTextbox(play, 0x409A, NULL);
+        D_80B7A6CC = 21;
+        D_80B7FEC8 = 45.0f;
+        D_80B7A6D0 = 10;
+        // */
+
+        //Actor_PickUp(&this->actor, globalCtx, GI_SCALE_GOLD, 2000.0f, 1000.0f); // gold skulltula
+        // if pick up works, next cycle this actor will die
+        // TODO can we disable getting this item again without switch flag?
+    }
+
+    /*
+
+        if ((D_809171CC >= 60.0f) && !(gSaveContext.save.unk_EE4 & 0x800)) {
+            gSaveContext.save.unk_EE4 |= 0x800;
+            getItemId = GI_SCALE_GOLD;
+            sSinkingLureLocation = Rand_ZeroFloat(3.999f) + 1.0f;
+        }
+    }
+        } else {
+            getItemId = GI_RUPEE_PURPLE;
+            D_8090CCF0 = 0.0f;
+        }
+
+        this->actor.parent = NULL;
+        Actor_PickUp(&this->actor, globalCtx, getItemId, 2000.0f, 1000.0f);
+
+    if ((sSinkingLureLocation != 0) &&
+        (fabsf(player->actor.world.pos.x - sSinkingLureLocationPos[sSinkingLureLocation - 1].x) < 25.0f) &&
+        (fabsf(player->actor.world.pos.y - sSinkingLureLocationPos[sSinkingLureLocation - 1].y) < 10.0f) &&
+        (fabsf(player->actor.world.pos.z - sSinkingLureLocationPos[sSinkingLureLocation - 1].z) < 25.0f)) {
+        sSinkingLureLocation = 0;
+        D_8090CD4C = 20;
+        func_8013EC44(0.0f, 150, 10, 10);
+        play_sound(NA_SE_SY_TRE_BOX_APPEAR);
+        Audio_QueueSeqCmd(0x101400FF);
+    } // */
+
+}
 
 void EnFishing_UpdateOwner(Actor* thisx, GlobalContext* globalCtx2) {
+    // TODO make the old owner a hat, just the hat
+
+    ///*
     GlobalContext* globalCtx = globalCtx2;
     EnFishing* this = THIS;
     Vec3f sp114;
@@ -5202,7 +5326,7 @@ void EnFishing_UpdateOwner(Actor* thisx, GlobalContext* globalCtx2) {
         }
     }
 
-    EnFishing_HandleOwnerDialog(this, globalCtx);
+    //EnFishing_HandleOwnerDialog(this, globalCtx);
 
     D_809101C8 = 0.0015f;
     D_8090CD00++;
@@ -5212,7 +5336,7 @@ void EnFishing_UpdateOwner(Actor* thisx, GlobalContext* globalCtx2) {
     }
 
     EnFishing_UpdateEffects(globalCtx->specialEffects, globalCtx);
-    EnFishing_UpdatePondProps(globalCtx);
+    //EnFishing_UpdatePondProps(globalCtx);
     EnFishing_UpdateGroupFishes(globalCtx);
 
     if ((D_809171FC != 0) && (D_8090CD4C == 0) && (player->actor.world.pos.z > 1360.0f) &&
@@ -5660,8 +5784,9 @@ void EnFishing_UpdateOwner(Actor* thisx, GlobalContext* globalCtx2) {
     } else {
         gSaveContext.minigameScore = (SQ((f32)D_8090CCF8) * 0.0036f) + 0.5f;
     }
+  // */
 }
-
+/*
 s32 EnFishing_OwnerOverrideLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot,
                                     Actor* thisx) {
     EnFishing* this = THIS;
@@ -5694,8 +5819,10 @@ TexturePtr sFishingOwnerEyeTexs[] = {
     gFishingOwnerEyeHalfTex,
     gFishingOwnerEyeClosedTex,
 };
+*/
 
 void EnFishing_DrawOwner(Actor* thisx, GlobalContext* globalCtx) {
+    /*
     s32 pad;
     EnFishing* this = THIS;
     Input* input = CONTROLLER1(globalCtx);
@@ -5763,4 +5890,5 @@ void EnFishing_DrawOwner(Actor* thisx, GlobalContext* globalCtx) {
     }
 
     CLOSE_DISPS(globalCtx->state.gfxCtx);
+    */
 }
