@@ -60,7 +60,8 @@ typedef struct {
     /* 0x3C */ f32 unk_3C;
 } FishingEffect; // size = 0x40
 
-#define POND_PROP_COUNT 140
+//#define POND_PROP_COUNT 140
+#define POND_PROP_COUNT 0
 
 typedef enum {
     /* 0x00 */ FS_PROP_NONE,
@@ -149,7 +150,8 @@ f32 D_80911F64;
 s32 sRandSeed0;
 s32 sRandSeed1;
 s32 sRandSeed2;
-FishingProp sPondProps[POND_PROP_COUNT];
+//FishingProp sPondProps[POND_PROP_COUNT];
+FishingProp* sPondProps;
 FishingGroupFish sGroupFishes[GROUP_FISH_COUNT];
 f32 sFishGroupAngle1;
 f32 sFishGroupAngle2;
@@ -580,6 +582,7 @@ void EnFishing_SpawnRainDrop(FishingEffect* effect, Vec3f* pos, Vec3f* rot) {
     }
 }
 
+/*
 FishingPropInit sPondPropInits[POND_PROP_COUNT + 1] = {
     { FS_PROP_ROCK, { 529, -53, -498 } },
     { FS_PROP_ROCK, { 461, -66, -480 } },
@@ -722,8 +725,9 @@ FishingPropInit sPondPropInits[POND_PROP_COUNT + 1] = {
     { FS_PROP_LILY_PAD, { -657, -22, -531 } },
     { FS_PROP_LILY_PAD, { -641, -22, -547 } },
     { FS_PROP_INIT_STOP, { 0 } },
-};
+}; // */
 
+/*
 void EnFishing_InitPondProps(EnFishing* this, GlobalContext* globalCtx) {
     FishingProp* prop = &sPondProps[0];
     Vec3f colliderPos;
@@ -779,6 +783,7 @@ void EnFishing_InitPondProps(EnFishing* this, GlobalContext* globalCtx) {
         prop++;
     }
 }
+*/
 
 FishingFishInit sFishInits[] = {
     { 0, { 666, -45, 354 }, 38, 0.1f },    { 0, { 681, -45, 240 }, 36, 0.1f },   { 0, { 670, -45, 90 }, 41, 0.05f },
@@ -810,38 +815,38 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
 
         D_809171C8 = 0;
         sFishingMain = this;
-        Collider_InitJntSph(globalCtx, &sFishingMain->collider);
-        Collider_SetJntSph(globalCtx, &sFishingMain->collider, thisx, &sJntSphInit, sFishingMain->colliderElements);
+        //Collider_InitJntSph(globalCtx, &sFishingMain->collider);
+        //Collider_SetJntSph(globalCtx, &sFishingMain->collider, thisx, &sJntSphInit, sFishingMain->colliderElements);
 
         thisx->params = 1;
 
-        SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gFishingOwnerSkel, &gFishingOwnerAnim, NULL, NULL, 0);
-        Animation_MorphToLoop(&this->skelAnime, &gFishingOwnerAnim, 0.0f);
+        //SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gFishingOwnerSkel, &gFishingOwnerAnim, NULL, NULL, 0);
+        //Animation_MorphToLoop(&this->skelAnime, &gFishingOwnerAnim, 0.0f);
 
         thisx->update = EnFishing_UpdateOwner;
-        thisx->draw = EnFishing_DrawOwner;
+        thisx->draw = NULL;
 
-        thisx->shape.rot.y = -0x6000;
-        thisx->world.pos.x = 160.0f;
-        thisx->world.pos.y = -2.0f;
-        thisx->world.pos.z = 1208.0f;
+        //thisx->shape.rot.y = -0x6000;
+        //thisx->world.pos.x = 160.0f;
+        //thisx->world.pos.y = -2.0f;
+        //thisx->world.pos.z = 1208.0f;
 
-        Actor_SetScale(thisx, 0.011f);
+        //Actor_SetScale(thisx, 0.011f);
 
-        thisx->focus.pos = thisx->world.pos;
-        thisx->focus.pos.y += 75.0f;
-        thisx->flags |= 9;
+        //thisx->focus.pos = thisx->world.pos;
+        //thisx->focus.pos.y += 75.0f;
+        //thisx->flags |= 9;
 
-        if (sLinkAge != 1) {
-            // HIGH_SCORE(HS_FISHING) from OoT
-            if (gSaveContext.save.unk_EE4 & 0x1000) {
-                D_8090CD08 = 0;
-            } else {
-                D_8090CD08 = 1;
-            }
-        } else {
-            D_8090CD08 = 2;
-        }
+        //if (sLinkAge != 1) {
+            //// HIGH_SCORE(HS_FISHING) from OoT
+            //if (gSaveContext.save.unk_EE4 & 0x1000) {
+                //D_8090CD08 = 0;
+            //} else {
+                //D_8090CD08 = 1;
+            //}
+        //} else {
+            //D_8090CD08 = 2;
+        //}
 
         D_8090CD04 = 20;
         globalCtx->specialEffects = sFishingEffects;
@@ -849,7 +854,7 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
         D_809171FC = 0;
         D_809171F6 = 10;
 
-        Audio_QueueSeqCmd(0x100100FF);
+        // Audio_QueueSeqCmd(0x100100FF); // dont change sound
 
         if (sLinkAge == 1) {
             if (gSaveContext.save.unk_EE4 & 0x7F) {
@@ -878,18 +883,19 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
             D_809171CB = 0;
         }
 
-        for (i = 0; i < EFFECT_COUNT; i++) {
-            sFishingEffects[i].type = FS_EFF_NONE;
-        }
+        //for (i = 0; i < EFFECT_COUNT; i++) {
+            //sFishingEffects[i].type = FS_EFF_NONE;
+        //}
 
-        for (i = 0; i < POND_PROP_COUNT; i++) {
-            sPondProps[i].type = FS_PROP_NONE;
-        }
+        //for (i = 0; i < POND_PROP_COUNT; i++) {
+            //sPondProps[i].type = FS_PROP_NONE;
+        //}
 
         sFishGroupAngle1 = 0.7f;
         sFishGroupAngle2 = 2.3f;
         sFishGroupAngle3 = 4.6f;
 
+        //for (i = 0; i < GROUP_FISH_COUNT; i++) {
         for (i = 0; i < GROUP_FISH_COUNT; i++) {
             fish = &sGroupFishes[i];
 
@@ -921,24 +927,28 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
             }
         }
 
-        EnFishing_InitPondProps(this, globalCtx);
-        Actor_SpawnAsChild(&globalCtx->actorCtx, thisx, globalCtx, ACTOR_EN_KANBAN, 53.0f, -17.0f, 982.0f, 0, 0, 0,
-                           ENKANBAN_FISHING);
-        Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, 0.0f, 0.0f, 0.0f, 0, 0, 0, 200);
+        //EnFishing_InitPondProps(this, globalCtx);
+        //Actor_SpawnAsChild(&globalCtx->actorCtx, thisx, globalCtx, ACTOR_EN_KANBAN, 53.0f, -17.0f, 982.0f, 0, 0, 0,
+                           //ENKANBAN_FISHING);
 
-        if ((D_809171D1 & 3) == 3) {
-            if (sLinkAge != 1) {
-                fishCount = 16;
-            } else {
-                fishCount = 17;
-            }
-        } else {
-            fishCount = 15;
-        }
+        //Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, 0.0f, 0.0f, 0.0f, 0, 0, 0, 200); //lighting?
+
+        //if ((D_809171D1 & 3) == 3) {
+            //if (sLinkAge != 1) {
+                //fishCount = 16;
+            //} else {
+                //fishCount = 17;
+            //}
+        //} else {
+            //fishCount = 15;
+        //}
+        fishCount = thisx->params;
 
         for (i = 0; i < fishCount; i++) {
-            Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, sFishInits[i].pos.x, sFishInits[i].pos.y,
-                        sFishInits[i].pos.z, 0, Rand_ZeroFloat(0x10000), 0, 100 + i);
+            //Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, sFishInits[i].pos.x, sFishInits[i].pos.y,
+                        //sFishInits[i].pos.z, 0, Rand_ZeroFloat(0x10000), 0, 100 + i);
+            Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, thisx->world.pos.x, thisx->world.pos.y,
+                        thisx->world.pos.z, 0, Rand_ZeroFloat(0x10000), 0, 100 + i);
         }
 
         return;
@@ -5064,7 +5074,7 @@ void EnFishing_UpdateOwner(Actor* thisx, GlobalContext* globalCtx2) {
 
     player->actor.shape.shadowAlpha = playerShadowAlpha;
 
-    SkelAnime_Update(&this->skelAnime);
+    //SkelAnime_Update(&this->skelAnime);
 
     if ((D_8090CD04 != 0) || Message_GetState(&globalCtx->msgCtx)) {
         this->actor.flags &= ~ACTOR_FLAG_1;
