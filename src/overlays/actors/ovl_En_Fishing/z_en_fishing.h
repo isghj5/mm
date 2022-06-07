@@ -57,8 +57,9 @@ typedef struct EnFishing {
     /* 0x01D0 */ SkelAnime skelAnime;
     /* 0x0214 */ LightNode* lightNode;
     /* 0x0218 */ LightInfo lightInfo;
-    /* 0x0228 */ ColliderJntSph collider;
-    /* 0x0248 */ ColliderJntSphElement colliderElements[12];
+    /* 0x0228 */ ColliderSphere collider;
+    ///* 0x0228 */ ColliderJntSph collider;
+    ///* 0x0248 */ ColliderJntSphElement colliderElements[12];
 } EnFishing; // size = 0x548
 
 extern const ActorInit En_Fishing_InitVars;

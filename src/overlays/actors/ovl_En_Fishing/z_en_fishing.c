@@ -397,13 +397,14 @@ u8 D_8090CF18 = 0;
 static Vec3f sZeroVec = { 0.0f, 0.0f, 0.0f };
 Vec3f D_8090CF28 = { 0.0f, 0.0f, 2000.0f }; // Unused
 
+/*
 void EnFishing_SetColliderElement(s32 index, ColliderJntSph* collider, Vec3f* pos, f32 scale) {
     collider->elements[index].dim.worldSphere.center.x = pos->x;
     collider->elements[index].dim.worldSphere.center.y = pos->y;
     collider->elements[index].dim.worldSphere.center.z = pos->z;
     collider->elements[index].dim.worldSphere.radius =
         collider->elements[index].dim.modelSphere.radius * collider->elements[index].dim.scale * scale * 1.6f;
-}
+} */
 
 void EnFishing_SeedRand(s32 seed0, s32 seed1, s32 seed2) {
     sRandSeed0 = seed0;
@@ -799,6 +800,27 @@ static InitChainEntry sInitChain[] = {
     ICHAIN_F32(targetArrowOffset, 0, ICHAIN_STOP),
 };
 
+
+static ColliderSphereInit sSphereInit = {
+    {
+        COLTYPE_NONE,
+        AT_NONE,
+        AC_ON | AC_TYPE_PLAYER,
+        OC1_ON | OC1_TYPE_ALL,
+        OC2_TYPE_1 | OC2_UNK1,
+        COLSHAPE_SPHERE,
+    },
+    {
+        ELEMTYPE_UNK0,
+        { 0xF7CFFFFF, 0x00, 0x00 },
+        { 0xF7CFFFFF, 0x00, 0x00 },
+        TOUCH_NONE | TOUCH_SFX_NORMAL,
+        BUMP_ON,
+        OCELEM_ON,
+    },
+    { 0, { { 0, 0, 0 }, 200 }, 10 },
+};
+
 void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
     GlobalContext* globalCtx = globalCtx2;
     EnFishing* this = THIS;
@@ -959,6 +981,9 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
     if ((thisx->params < 115) || (thisx->params == 200)) {
         SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gFishingFishSkel, &gFishingFishAnim, NULL, NULL, 0);
         Animation_MorphToLoop(&this->skelAnime, &gFishingFishAnim, 0.0f);
+        // new
+        Collider_InitSphere(globalCtx, &this->collider);
+        Collider_SetSphere(globalCtx, &this->collider, thisx, &sSphereInit);
     } else {
         SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gFishingLoachSkel, &gFishingLoachAnim, NULL, NULL, 0);
         Animation_MorphToLoop(&this->skelAnime, &gFishingLoachAnim, 0.0f);
@@ -967,12 +992,14 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
     SkelAnime_Update(&this->skelAnime);
 
     if (thisx->params == 200) {
+        // special light
         this->unk_150 = 100;
         func_800BC154(globalCtx, &globalCtx->actorCtx, thisx, ACTORCAT_PROP);
         thisx->targetMode = 0;
         thisx->flags |= 9;
         this->lightNode = LightContext_InsertLight(globalCtx, &globalCtx->lightCtx, &this->lightInfo);
     } else {
+        // fish, or...
         this->unk_150 = 10;
         this->unk_152 = 10;
 
@@ -1000,8 +1027,10 @@ void EnFishing_Destroy(Actor* thisx, GlobalContext* globalCtx2) {
 
     if (thisx->params == 200) {
         LightContext_RemoveLight(globalCtx, &globalCtx->lightCtx, this->lightNode);
-    } else if (thisx->params == 1) {
-        Collider_DestroyJntSph(globalCtx, &this->collider);
+    //} else if (thisx->params == 1) { // owner
+        //Collider_DestroyJntSph(globalCtx, &this->collider);
+    } else if (thisx->params >= 100 && thisx->params <= 115) { // owner
+        Collider_DestroySphere(globalCtx, &this->collider);
     }
 }
 
@@ -1389,6 +1418,7 @@ s32 func_808FEF70(Vec3f* vec) {
 }
 
 void EnFishing_UpdateLine(GlobalContext* globalCtx, Vec3f* basePos, Vec3f* pos, Vec3f* rot, Vec3f* unk) {
+/*
     s32 i;
     s32 k;
     f32 dx;
@@ -1512,9 +1542,11 @@ void EnFishing_UpdateLine(GlobalContext* globalCtx, Vec3f* basePos, Vec3f* pos, 
         (pos + i)->y = (pos + i - 1)->y + posStep.y;
         (pos + i)->z = (pos + i - 1)->z + posStep.z;
     }
+*/
 }
 
 void EnFishing_UpdateLinePos(Vec3f* pos) {
+/*
     s32 i;
     f32 dx;
     f32 dy;
@@ -1545,9 +1577,11 @@ void EnFishing_UpdateLinePos(Vec3f* pos) {
         (pos + i)->y = (pos + i + 1)->y + posStep.y;
         (pos + i)->z = (pos + i + 1)->z + posStep.z;
     }
+*/
 }
 
 void EnFishing_DrawLureHook(GlobalContext* globalCtx, Vec3f* pos, Vec3f* refPos, u8 hookIndex) {
+/*
     f32 dx;
     f32 dy;
     f32 dz;
@@ -1641,6 +1675,7 @@ void EnFishing_DrawLureHook(GlobalContext* globalCtx, Vec3f* pos, Vec3f* refPos,
     Matrix_Pop();
 
     CLOSE_DISPS(globalCtx->state.gfxCtx);
+*/
 }
 
 void EnFishing_UpdateSinkingLure(GlobalContext* globalCtx) {
@@ -1763,6 +1798,7 @@ void EnFishing_DrawSinkingLure(GlobalContext* globalCtx) {
 }
 
 void EnFishing_DrawLureAndLine(GlobalContext* globalCtx, Vec3f* linePos, Vec3f* lineRot) {
+/*
     Vec3f posSrc;
     Vec3f posStep;
     Vec3f hookPos[2];
@@ -1913,6 +1949,7 @@ void EnFishing_DrawLureAndLine(GlobalContext* globalCtx, Vec3f* linePos, Vec3f* 
     func_8012C2DC(globalCtx->state.gfxCtx);
 
     CLOSE_DISPS(globalCtx->state.gfxCtx);
+*/
 }
 
 f32 sRodScales[22] = {
@@ -2850,6 +2887,28 @@ void EnFishing_HandleAquariumDialog(EnFishing* this, GlobalContext* globalCtx) {
     }
 }
 
+
+// new for fish catching
+//this is EnFish_InBottleRange in OOT, but different in MM, copy paste form MM EnFish
+s32 EnFishing2_CheckBottleRange(Actor* thisx, GlobalContext* globalCtx) {
+    s32 pad;
+    Player* player = GET_PLAYER(globalCtx);
+    Vec3f sp1C;
+
+    if (thisx->xzDistToPlayer < 50.0f) {
+        sp1C.x = (Math_SinS(BINANG_ROT180(thisx->yawTowardsPlayer)) * 30.0f) + player->actor.world.pos.x;
+        sp1C.y = player->actor.world.pos.y;
+        sp1C.z = (Math_CosS(BINANG_ROT180(thisx->yawTowardsPlayer)) * 30.0f) + player->actor.world.pos.z;
+
+        if (SQ(sp1C.x - thisx->world.pos.x) +  SQ(sp1C.z + thisx->world.pos.z) <= SQ(30.0f)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
 void EnFishing_UpdateFish(Actor* thisx, GlobalContext* globalCtx2) {
     s16 i;
     s16 sp134 = 10;
@@ -2918,21 +2977,26 @@ void EnFishing_UpdateFish(Actor* thisx, GlobalContext* globalCtx2) {
         }
     }
 
-    if (this->unk_19C != 0) {
-        this->unk_19C--;
+    // attempting add bottle pick up to fishing
+    if ( (this->actor.params >= 100 && this->actor.params <= 115) && EnFishing2_CheckBottleRange(&this->actor, globalCtx)) {
+        // does this call the function every frame? to see if the player has swung the bottle?
+        //Collider_UpdateSphere(globalCtx, &this->collider.base);
+        CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &this->collider.base);
+        this->actor.id = ACTOR_EN_FISH;
+        if (Actor_PickUp(&this->actor, globalCtx, GI_MAX, 80.0f, 25.0f)){
+            //this->actor.draw = NULL;
+            //this->actor.update = NULL;
+            Actor_MarkForDelete(&this->actor);
+            return;
+        } else {
+            this->actor.id = ACTOR_EN_FISHING;
+        }
     }
 
-    if (this->unk_19A != 0) {
-        this->unk_19A--;
-    }
-
-    if (this->unk_198 != 0) {
-        this->unk_198--;
-    }
-
-    if (this->unk_149 != 0) {
-        this->unk_149--;
-    }
+    DECR(this->unk_19C);
+    DECR(this->unk_19A);
+    DECR(this->unk_198);
+    DECR(this->unk_149);
 
     Math_ApproachF(&this->unk_190, this->unk_188, 1.0f, 0.2f);
 
@@ -3001,6 +3065,7 @@ void EnFishing_UpdateFish(Actor* thisx, GlobalContext* globalCtx2) {
     }
 
     switch (this->unk_150) {
+        /*
         case 100:
             EnFishing_HandleAquariumDialog(this, globalCtx);
 
@@ -3031,7 +3096,7 @@ void EnFishing_UpdateFish(Actor* thisx, GlobalContext* globalCtx2) {
             this->unk_188 = 0.3f;
             this->unk_18C = 333.33334f;
             return;
-
+        // */
         case 10:
             this->unk_1AC = this->actor.home.pos;
 
@@ -4356,9 +4421,9 @@ void EnFishing_UpdatePondProps(GlobalContext* globalCtx) {
         prop++;
     }
 
-    if (sCameraId == CAM_ID_MAIN) {
-        CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &sFishingMain->collider.base);
-    }
+    //if (sCameraId == CAM_ID_MAIN) {
+        //CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &sFishingMain->collider.base);
+    //}
 }
 
 void EnFishing_DrawPondProps(GlobalContext* globalCtx) {
