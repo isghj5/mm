@@ -809,7 +809,33 @@ static InitChainEntry sInitChain[] = {
     ICHAIN_F32(targetArrowOffset, 0, ICHAIN_STOP),
 };
 
+// stuck: wont rotatt except in the X axis, default sideways
+void EnFishing2_DrawHat(Actor* thisx, GlobalContext* globalCtx) {
+    OPEN_DISPS(globalCtx->state.gfxCtx);
 
+    Matrix_Scale(2.0f, 2.0f, 2.0f, MTXMODE_APPLY);
+    Matrix_Translate(250.0f, 0.0f, -1400.0f, MTXMODE_APPLY);
+
+    Matrix_Translate(-1250.0f, 0.0f, 0.0f, MTXMODE_APPLY);
+    //Matrix_RotateZ(M_PI/2, MTXMODE_APPLY);
+    Matrix_RotateXFApply(M_PI ); // 90 deg
+
+    gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(globalCtx->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+
+    gSPDisplayList(POLY_OPA_DISP++, gFishingOwnerHatDL);
+
+    CLOSE_DISPS(globalCtx->state.gfxCtx);
+}
+
+void EnFishing_DrawSinkingLure(GlobalContext* globalCtx);
+
+void EnFishing2_DrawSinkingLureStandalone(Actor* thisx, GlobalContext* globalCtx){
+  // sits still and does not flop around, do I need to move it rythmically?
+  sLurePos = thisx->world.pos;
+  EnFishing_DrawSinkingLure(globalCtx);
+}
+
+// collider
 static ColliderSphereInit sSphereInit = {
     {
         COLTYPE_NONE,
@@ -824,10 +850,10 @@ static ColliderSphereInit sSphereInit = {
         { 0xF7CFFFFF, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
         TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_NONE,
+        BUMP_ON,
         OCELEM_ON,
     },
-    { 0, { { 0, 0, 0 }, 10}, 1 },
+    { 0, { { 0, 0, 0 }, 200}, 10 },
 };
 
 void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
@@ -856,15 +882,19 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
 
         thisx->update = EnFishing_UpdateOwner; // he handles a bunch of stuff, dont remove wholesale
         // new, dont draw, only tatl spot, but lure at his feed
-        thisx->draw = NULL;
         thisx->targetMode = 0;
         thisx->flags |= 1;
 
+        //thisx->draw = NULL;
+        //thisx->draw = EnFishing2_DrawHat;
+        thisx->draw = EnFishing2_DrawSinkingLureStandalone;
+        Actor_SetScale(thisx, 0.01f);
+
         // new place lure at our feed
         sSinkingLureLocation = 1;
-        thisx->world.pos.x  = sSinkingLureLocationPos[1].x = thisx->home.pos.x;
-        thisx->world.pos.x  = sSinkingLureLocationPos[1].y = thisx->home.pos.y;
-        thisx->world.pos.x  = sSinkingLureLocationPos[1].z = thisx->home.pos.z;
+        sSinkingLureLocationPos[1].x = thisx->world.pos.x;
+        sSinkingLureLocationPos[1].y = thisx->world.pos.y;
+        sSinkingLureLocationPos[1].z = thisx->world.pos.z;
 
         //thisx->shape.rot.y = -0x6000;
         //thisx->world.pos.x = 160.0f;
@@ -1002,6 +1032,7 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
         // new
         Collider_InitSphere(globalCtx, &this->collider);
         Collider_SetSphere(globalCtx, &this->collider, thisx, &sSphereInit);
+        //thisx->colChkInfo.mass = 
     } else if (thisx->params = 500) { // new sinking lure pickup without owner
         thisx->targetMode = 0;
         thisx->flags |= 1;
@@ -1052,7 +1083,7 @@ void EnFishing_Destroy(Actor* thisx, GlobalContext* globalCtx2) {
         LightContext_RemoveLight(globalCtx, &globalCtx->lightCtx, this->lightNode);
     //} else if (thisx->params == 1) { // owner
         //Collider_DestroyJntSph(globalCtx, &this->collider);
-    } else if (thisx->params >= 100 && thisx->params <= 115) { // owner
+    } else if (thisx->params >= 100 && thisx->params <= 115) {
         Collider_DestroySphere(globalCtx, &this->collider);
     }
 }
