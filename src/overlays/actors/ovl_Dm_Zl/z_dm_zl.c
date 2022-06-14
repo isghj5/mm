@@ -185,7 +185,9 @@ void DmZl_Init(Actor* thisx, GlobalContext* globalCtx) {
     //SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gZl4Skeleton, this->jointTable, this->morphTable, NULL, 18);
 }
 
+// not sure why they didnt use noop for empty destruction pointers
 void DmZl_Destroy(Actor* thisx, GlobalContext* globalCtx) {
+    // todo add collider
 }
 
 
@@ -318,7 +320,7 @@ void DmZl_Update(Actor* thisx, GlobalContext* globalCtx) {
     // new
     if (thisx->params != 0){
         // change head/chest rotation to look at player
-        if (this->actor.xzDistToPlayer < 100.0f){// && this->actionFunc == DmZl_WaitingForDialogue) {
+        if (this->actor.xzDistToPlayer < 100.0f && this->actionFunc != DmZl_PlayFluteIdle && this->actionFunc != DmZl_RaisingFlute) {
             func_800E9250(globalCtx, &this->actor, &this->headRot, &this->chestRot, this->actor.focus.pos);
         } else {
             Math_SmoothStepToS(&this->headRot.x, 0, 0x6, 0x1838, 0x64);

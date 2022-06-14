@@ -25,8 +25,8 @@ typedef struct DmZl {
     /* 0x2B8 */ s16 blinkTimer;
     /* 0x2BA */ s16 unused2BA; // init to 0, unread/unchanged by DmZl after
     /* 0x2BC */ UNK_TYPE1 pad2BC[0x18]; // unused by DmZl
-    /* 0x??? */ Vec3f headRot;
-    /* 0x??? */ Vec3f chestRot;
+    /* 0x??? */ Vec3s headRot;
+    /* 0x??? */ Vec3s chestRot;
 } DmZl; // size = 0x2D4
 
 extern const ActorInit Dm_Zl_InitVars;
