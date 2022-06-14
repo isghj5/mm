@@ -113,14 +113,16 @@ void DmZl_ChangeAnimation(SkelAnime* skelAnime, AnimationInfo animation[], u16 i
                      animation->mode, animation->morphFrames);
 }
 
-// todo remove globalCtx
+// the animation system in these actors sucks, just replace with a simplier function
+// todo remove globalCtx, not really needed to pass here
 void DmZl_ChangeAnimationSimple(DmZl* this, GlobalContext* globalCtx, AnimationHeader* animation, u8 animationMode) {
+    // reference; how our animations are usually handled in this actor
     //{ &gDmZl4FacingAwayHandsOverEmblemLoop, 1.0f, 0.0f, -1.0f, ANIMMODE_LOOP, -10.0f },
     //{ &gDmZl4TurningAround2Anim, 1.0f, 0.0f, -1.0f, ANIMMODE_ONCE, -10.0f },
     //{ &gDmZl4HandsOverEmblemLoopAnim, 1.0f, 0.0f, -1.0f, ANIMMODE_LOOP, -10.0f },
   
-   Animation_Change(&this->skelAnime, animation, 1.0f, 0, Animation_GetLastFrame(animation),
-                    animationMode , -10.0f); // all seem to use -10f in this actor
+   Animation_Change(&this->skelAnime, animation, 1.0f, 0, Animation_GetLastFrame(animation), animationMode,
+           -10.0f); // all seem to use -10f in this actor
 
 }
 
@@ -138,24 +140,23 @@ void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx) {
         DmZl_SetupRaiseFlute(this, globalCtx);
     }
 
-    // todo limit this to in front of them or turn them to face the player
-
-    // todo find better dialogue match
-    // todo find unique dialogue for different forms, maybe only respond to link not to the others
-    // unless I was willing to find a way to add new dialogue, this is the best I could find
-    if (gSaveContext.save.inventory.items[SLOT_OCARINA] == ITEM_NONE){
-        this->actor.textId = 0xFB5; // dont you have an instrument?
-    } else {
-        this->actor.textId = 0x1700; // how to use ocarina
-    }
-    func_800B8614(&this->actor, globalCtx, 120.0f); // enables talking prompt?
-    if (Actor_ProcessTalkRequest(&this->actor, &globalCtx->state)) {
-        DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4IdleHandsInFrontAnim, ANIMMODE_ONCE);
-
-        if (this->actor.textId == 0xFB5){
-          this->actionFunc = DmZl_Talking; // only needed for some dialogue, the rest we can stay here
+    if (ABS(this->actor.yawTowardsPlayer) <= 0x4000) { 
+        // todo find better dialogue match
+        // todo find unique dialogue for different forms, maybe only respond to link not to the others
+        // unless I was willing to find a way to add new dialogue, this is the best I could find
+        if (gSaveContext.save.inventory.items[SLOT_OCARINA] == ITEM_NONE){
+            this->actor.textId = 0xFB5; // dont you have an instrument?
+        } else {
+            this->actor.textId = 0x1700; // how to use ocarina
         }
-        //return;
+        func_800B8614(&this->actor, globalCtx, 120.0f); // enables talking prompt
+        if (Actor_ProcessTalkRequest(&this->actor, &globalCtx->state)) {
+            DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4IdleHandsInFrontAnim, ANIMMODE_ONCE);
+
+            if (this->actor.textId == 0xFB5){
+                this->actionFunc = DmZl_Talking; // only needed for some dialogue, the rest we can stay here
+            }
+        }
     }
 
 }
@@ -168,7 +169,7 @@ void DmZl_LoweringFlute(DmZl* this, GlobalContext* globalCtx) {
 }
 
 void DmZl_SetupLowerFlute(DmZl* this, GlobalContext* globalCtx) {
-    this->blinkTimer = 1;
+    this->blinkTimer = 2;
     // doesnt loop properly, let it sit on last frame
     DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4LowerFluteAfterPlayAnim, ANIMMODE_ONCE);
     this->actionFunc = DmZl_LoweringFlute;
@@ -218,8 +219,10 @@ void DmZl_Init(Actor* thisx, GlobalContext* globalCtx) {
     this->unused2BA = 0; // set here, used nowhere after
 
     if (thisx->params == DMZL_TYPE_PLAYING_FLUTE){
-        // 8 is no cull
+        // 8 is no cull, 0x02000000 is keep playing/updating when the player takes out their ocarina
         thisx->flags |= 1 + 0x02000000 + 0x8;
+        // reduce tatl distance to very close, as tatl would alert to her that you are nearby earlier
+        thisx->targetMode = 0;
         Collider_InitAndSetCylinder(globalCtx, &this->collider, &this->actor, &sCylinderInit);
         DmZl_SetupRaiseFlute(this, globalCtx);
 
@@ -380,6 +383,12 @@ void DmZl_Update(Actor* thisx, GlobalContext* globalCtx) {
         } else {
             // does the same thing that is hand written in En_Ani, but it was already a separate function
             func_800E8F08(&this->headRot, &this->chestRot); // Smooth to zero
+        }
+
+        if (gSaveContext.save.playerForm == PLAYER_FORM_FIERCE_DEITY){
+            this->nextEyeState = 5;
+        } else {
+            this->nextEyeState = 0;
         }
     }
     this->actionFunc(this, globalCtx);
