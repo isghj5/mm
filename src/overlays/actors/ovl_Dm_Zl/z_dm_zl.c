@@ -182,6 +182,7 @@ void DmZl_Init(Actor* thisx, GlobalContext* globalCtx) {
         this->actionFunc = Actor_Noop;
     }
     SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gZl4Skeleton, NULL, NULL, NULL, 0);
+    //SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gZl4Skeleton, this->jointTable, this->morphTable, NULL, 18);
 }
 
 void DmZl_Destroy(Actor* thisx, GlobalContext* globalCtx) {
