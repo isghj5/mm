@@ -16,7 +16,6 @@ void DmZl_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void DmZl_Update(Actor* thisx, GlobalContext* globalCtx);
 void DmZl_Draw(Actor* thisx, GlobalContext* globalCtx);
 
-void DmZl_DoNothing(DmZl* this, GlobalContext* globalCtx);
 
 const ActorInit Dm_Zl_InitVars = {
     ACTOR_DM_ZL,
@@ -90,26 +89,104 @@ void DmZl_ChangeAnimation(SkelAnime* skelAnime, AnimationInfo animation[], u16 i
                      animation->mode, animation->morphFrames);
 }
 
+void DmZl_ChangeAnimationSimple(DmZl* this, GlobalContext* globalCtx, AnimationHeader* animation, u8 animationMode) {
+    //{ &gDmZl4FacingAwayHandsOverEmblemLoop, 1.0f, 0.0f, -1.0f, ANIMMODE_LOOP, -10.0f },
+    //{ &gDmZl4TurningAround2Anim, 1.0f, 0.0f, -1.0f, ANIMMODE_ONCE, -10.0f },
+    //{ &gDmZl4HandsOverEmblemLoopAnim, 1.0f, 0.0f, -1.0f, ANIMMODE_LOOP, -10.0f },
+  
+   Animation_Change(&this->skelAnime, animation, 1.0f, 0, Animation_GetLastFrame(animation),
+                    animationMode , -10.0f); // all seem to use -10f in this actor
+
+}
+
+void DmZl_SetupRaiseFlute(DmZl* this, GlobalContext* globalCtx); // forward declare
+
+
+void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx) {
+    // todo add head tracking
+    // todo add dialogue prompt
+      // todo if she is talking she lowers the flute to in front of her, instead of standing there
+    if (this->actor.xzDistToPlayer > 100.0f){
+        DmZl_SetupRaiseFlute(this, globalCtx);
+    }
+    //if (<F3>)
+}
+
+void DmZl_LoweringFlute(DmZl* this, GlobalContext* globalCtx) {
+    // wait for flute lower to finish
+    if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+      //DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4LowerFluteAfterPlayAnim, ANIMMODE_LOOP); // switch to loop
+      this->actionFunc = DmZl_WaitingForDialogue;
+    }
+}
+
+void DmZl_SetupLowerFlute(DmZl* this, GlobalContext* globalCtx) {
+    this->blinkTimer = 1;
+    // doesnt loop properly, let it sit on last frame
+    DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4LowerFluteAfterPlayAnim, ANIMMODE_ONCE);
+    this->actionFunc = DmZl_LoweringFlute;
+}
+
+void DmZl_PlayFluteIdle(DmZl* this, GlobalContext* globalCtx) {
+    // if playr is in range, stop and stare
+    if (this->actor.xzDistToPlayer < 50.0f && Player_GetMask(globalCtx) != PLAYER_MASK_STONE){
+        // change animation
+        DmZl_SetupLowerFlute(this, globalCtx);
+    } else {
+        // keep playing noise
+        func_801A1D44(&this->actor.projectedPos, NA_BGM_ZELDAS_LULLABY, 540.0f); // 540 is this range or speed?
+    }
+} 
+
+void DmZl_SetupPlayFluteIdle(DmZl* this, GlobalContext* globalCtx) {
+    DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4PlayingFluteAnim, ANIMMODE_LOOP);
+    this->actionFunc = DmZl_PlayFluteIdle;
+}
+
+
+void DmZl_RaisingFlute(DmZl* this, GlobalContext* globalCtx) {
+    // wait for flute raising to stop
+    if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+      DmZl_SetupPlayFluteIdle(this, globalCtx);
+    }
+}
+
+void DmZl_SetupRaiseFlute(DmZl* this, GlobalContext* globalCtx) {
+    // change animation
+    DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4RaiseFluteToPlayAnim, ANIMMODE_ONCE);
+    this->actionFunc = DmZl_RaisingFlute;
+    this->animationIndex = -1;
+}
+
+
 void DmZl_Init(Actor* thisx, GlobalContext* globalCtx) {
     s32 pad;
     DmZl* this = THIS;
 
-    this->animationIndex = 0;
-    this->unused2BA = 0;
-    this->actor.targetArrowOffset = 1000.0f;
+    // moved down
+    //this->actor.targetArrowOffset = 1000.0f;
+    this->actor.targetArrowOffset = 900.0f; // was too high
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 24.0f);
     // these three set to NULL should mean they are dynamically allocated
-    SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gZl4Skeleton, NULL, NULL, NULL, 0);
-    DmZl_ChangeAnimation(&this->skelAnime, &sAnimations[this->animationIndex], ZELDA_ANIM_FACING_AWAY);
     Actor_SetScale(&this->actor, 0.01f);
-    this->actionFunc = DmZl_DoNothing;
+    this->unused2BA = 0;
+
+    if (thisx->params == 0x1){ // playing flute
+        thisx->flags |= 1 + 0x02000000 ;
+        DmZl_SetupRaiseFlute(this, globalCtx);
+
+    } else { // 0 vanilla
+        this->animationIndex = 0;
+
+        DmZl_ChangeAnimation(&this->skelAnime, &sAnimations[this->animationIndex], ZELDA_ANIM_FACING_AWAY);
+        this->actionFunc = Actor_Noop;
+    }
+    SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gZl4Skeleton, NULL, NULL, NULL, 0);
 }
 
 void DmZl_Destroy(Actor* thisx, GlobalContext* globalCtx) {
 }
 
-void DmZl_DoNothing(DmZl* this, GlobalContext* globalCtx) {
-}
 
 void DmZl_UpdateCutscene(DmZl* this, GlobalContext* globalCtx) {
     s32 actionIndex;
@@ -223,7 +300,7 @@ void DmZl_UpdateFace(DmZl* this) {
             break;
     }
 
-    if (this->animationIndex == ZELDA_ANIM_PLAYING_OCARINA) {
+    if (this->animationIndex == ZELDA_ANIM_PLAYING_OCARINA || this->actionFunc == DmZl_PlayFluteIdle) {
         // override blinking: eyes closed while playing ocarina
         this->eyeTextureIndexLeft = this->eyeTextureIndexRight = ZELDA_EYE_CLOSED;
     }
@@ -234,15 +311,42 @@ void DmZl_Update(Actor* thisx, GlobalContext* globalCtx) {
 
     DmZl_UpdateFace(this);
     SkelAnime_Update(&this->skelAnime);
-    DmZl_UpdateCutscene(this, globalCtx);
+    if (thisx->params == DMZL_TYPE_SOT_CUTCSENE){
+        DmZl_UpdateCutscene(this, globalCtx);
+    }
+    // new
+    if (thisx->params != 0){
+        // change head/chest rotation to look at player
+        if (this->actor.xzDistToPlayer < 100.0f){// && this->actionFunc == DmZl_WaitingForDialogue) {
+            func_800E9250(globalCtx, &this->actor, &this->headRot, &this->chestRot, this->actor.focus.pos);
+        } else {
+            Math_SmoothStepToS(&this->headRot.x, 0, 0x6, 0x1838, 0x64);
+            Math_SmoothStepToS(&this->headRot.y, 0, 0x6, 0x1838, 0x64);
+            Math_SmoothStepToS(&this->chestRot.x, 0, 0x6, 0x1838, 0x64);
+            Math_SmoothStepToS(&this->chestRot.y, 0, 0x6, 0x1838, 0x64);
+        }
+
+    }
     this->actionFunc(this, globalCtx);
 }
 
 s32 DmZl_OverrideLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
+    DmZl* this = THIS;
+    if (limbIndex == ZL4_LIMB_HEAD) {
+        rot->x += this->headRot.y;
+        rot->z += this->headRot.x;
+    }
+    if (limbIndex == ZL4_LIMB_TORSO) {
+        rot->x += this->chestRot.y;
+        rot->z += this->chestRot.x;
+    }
+
     return false;
 }
 
 void DmZl_PostLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
+    static Vec3f wat = { 800.0f, 500.0f, 0.0f };
+
     DmZl* this = THIS;
 
     if (limbIndex == ZL4_LIMB_RIGHT_HAND) {
@@ -254,6 +358,19 @@ void DmZl_PostLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec
             CLOSE_DISPS(globalCtx->state.gfxCtx);
         }
     }
+    if (limbIndex == ZL4_LIMB_LEFT_HAND) {
+        if (this->animationIndex == -1) { // flute playing
+            OPEN_DISPS(globalCtx->state.gfxCtx);
+
+            gSPDisplayList(POLY_OPA_DISP++, gDmZl4FluteDL);
+
+            CLOSE_DISPS(globalCtx->state.gfxCtx);
+        }
+    }
+    if (limbIndex == ZL4_LIMB_HEAD) {
+       Matrix_MultiplyVector3fByState(&wat, &thisx->focus.pos);
+    }
+
 }
 
 void DmZl_Draw(Actor* thisx, GlobalContext* globalCtx) {
