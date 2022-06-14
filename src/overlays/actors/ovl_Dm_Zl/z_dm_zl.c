@@ -11,6 +11,9 @@
 
 #define THIS ((DmZl*)thisx)
 
+void DmZl_SetupRaiseFlute(DmZl* this, GlobalContext* globalCtx);
+void DmZl_UpdateCutscene(DmZl* this, GlobalContext* globalCtx); 
+
 void DmZl_Init(Actor* thisx, GlobalContext* globalCtx);
 void DmZl_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void DmZl_Update(Actor* thisx, GlobalContext* globalCtx);
@@ -19,7 +22,7 @@ void DmZl_Draw(Actor* thisx, GlobalContext* globalCtx);
 
 const ActorInit Dm_Zl_InitVars = {
     ACTOR_DM_ZL,
-    ACTORCAT_NPC,
+    ACTORCAT_NPC, // changed because shes real now
     FLAGS,
     OBJECT_ZL4,
     sizeof(DmZl),
@@ -27,6 +30,27 @@ const ActorInit Dm_Zl_InitVars = {
     (ActorFunc)DmZl_Destroy,
     (ActorFunc)DmZl_Update,
     (ActorFunc)DmZl_Draw,
+};
+
+// ripped from Ani, which I know has a basic repel collider with avg size
+static ColliderCylinderInit sCylinderInit = {
+    {
+        COLTYPE_NONE,
+        AT_NONE,
+        AC_ON | AC_TYPE_ENEMY,
+        OC1_ON | OC1_TYPE_ALL,
+        OC2_TYPE_1,
+        COLSHAPE_CYLINDER,
+    },
+    {
+        ELEMTYPE_UNK0,
+        { 0x00000000, 0x00, 0x00 },
+        { 0xF7CFFFFF, 0x00, 0x00 },
+        TOUCH_NONE | TOUCH_SFX_NORMAL,
+        BUMP_ON,
+        OCELEM_ON,
+    },
+    { 30, 40, 0, { 0, 0, 0 } },
 };
 
 static AnimationInfo sAnimations[7] = {
@@ -100,12 +124,9 @@ void DmZl_ChangeAnimationSimple(DmZl* this, GlobalContext* globalCtx, AnimationH
 
 }
 
-void DmZl_SetupRaiseFlute(DmZl* this, GlobalContext* globalCtx); // forward declare
 
-void DmZl_Talking(DmZl* this, GlobalContext* globalCtx) {
-    
-    
-}
+//void DmZl_Talking(DmZl* this, GlobalContext* globalCtx) {
+//}
 
 void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx) {
     if (this->actor.xzDistToPlayer > 100.0f){
@@ -114,6 +135,8 @@ void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx) {
     }
 
     // todo only say this if you have the ocarina
+    // todo limit this to in front of them or turn them to face the player
+    // todo find better dialogue match
     this->actor.textId = 0x1700; // ocarina debug
     func_800B8614(&this->actor, globalCtx, 120.0f); // enables talking prompt
     if (Actor_ProcessTalkRequest(&this->actor, &globalCtx->state)) {
@@ -123,14 +146,11 @@ void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx) {
         //return;
     }
 
-    // todo turn to face link if 
-
 }
 
 void DmZl_LoweringFlute(DmZl* this, GlobalContext* globalCtx) {
     // wait for flute lower to finish
     if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
-      //DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4LowerFluteAfterPlayAnim, ANIMMODE_LOOP); // switch to loop
       this->actionFunc = DmZl_WaitingForDialogue;
     }
 }
@@ -143,12 +163,11 @@ void DmZl_SetupLowerFlute(DmZl* this, GlobalContext* globalCtx) {
 }
 
 void DmZl_PlayFluteIdle(DmZl* this, GlobalContext* globalCtx) {
-    // if playr is in range, stop and stare
     if (this->actor.xzDistToPlayer < 50.0f && Player_GetMask(globalCtx) != PLAYER_MASK_STONE){
-        // change animation
+        // if player is in range, stop and stare
         DmZl_SetupLowerFlute(this, globalCtx);
     } else {
-        // keep playing noise
+        // play zelda's theme as a local music, taken from GuruGuru
         func_801A1D44(&this->actor.projectedPos, NA_BGM_ZELDAS_LULLABY, 540.0f); // 540 is this range or speed?
     }
 } 
@@ -170,40 +189,47 @@ void DmZl_SetupRaiseFlute(DmZl* this, GlobalContext* globalCtx) {
     // change animation
     DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4RaiseFluteToPlayAnim, ANIMMODE_ONCE);
     this->actionFunc = DmZl_RaisingFlute;
-    this->animationIndex = -1;
+    this->animationIndex = -1; // tells us we are not using the system
 }
 
 
 void DmZl_Init(Actor* thisx, GlobalContext* globalCtx) {
-    s32 pad;
+    //s32 pad;
     DmZl* this = THIS;
 
-    // moved down
-    //this->actor.targetArrowOffset = 1000.0f;
-    this->actor.targetArrowOffset = 900.0f; // was too high
-    ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 24.0f);
-    // these three set to NULL should mean they are dynamically allocated
-    Actor_SetScale(&this->actor, 0.01f);
-    this->unused2BA = 0;
+    // all of this has been shuffled to make a new non-cutscene version    
 
-    if (thisx->params == 0x1){ // playing flute
+    //this->actor.targetArrowOffset = 1000.0f;
+    this->actor.targetArrowOffset = 900.0f; // not sure if this is moving correctly
+    ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 24.0f);
+    Actor_SetScale(&this->actor, 0.01f);
+    this->unused2BA = 0; // set here, used nowhere after
+
+    if (thisx->params == DMZL_TYPE_PLAYING_FLUTE){
         // 8 is no cull
         thisx->flags |= 1 + 0x02000000 + 0x8;
+        Collider_InitAndSetCylinder(globalCtx, &this->collider, &this->actor, &sCylinderInit);
         DmZl_SetupRaiseFlute(this, globalCtx);
 
     } else { // 0 vanilla
         this->animationIndex = 0;
 
         DmZl_ChangeAnimation(&this->skelAnime, &sAnimations[this->animationIndex], ZELDA_ANIM_FACING_AWAY);
-        this->actionFunc = Actor_Noop;
+        //this->actionFunc = DmZL_NoNothing;
+        //this->actionFunc = Actor_Noop;
+        this->actionFunc = DmZl_UpdateCutscene; // this could have been the actionFunc the whole time, but instead he made an empty one
     }
 
-    SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gZl4Skeleton, NULL, this->jointTable, this->morphTable, 18);
+    SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gZl4Skeleton, NULL, this->jointTable, this->morphTable, ZL4_LIMB_MAX);
 }
 
 // not sure why they didnt use noop for empty destruction pointers
 void DmZl_Destroy(Actor* thisx, GlobalContext* globalCtx) {
-    // todo add collider
+    DmZl* this = THIS;
+
+    if (thisx->params == DMZL_TYPE_PLAYING_FLUTE) {
+       Collider_DestroyCylinder(globalCtx, &this->collider);
+    }
 }
 
 
@@ -253,11 +279,7 @@ void DmZl_UpdateCutscene(DmZl* this, GlobalContext* globalCtx) {
  *  (Assumption: these modifications are from outside of this actor by a cutscene).
  */
 void DmZl_UpdateFace(DmZl* this) {
-    if (this->blinkTimer > 0) {
-        this->blinkTimer--;
-    } else {
-        this->blinkTimer = 0;
-    }
+    DECR(this->blinkTimer);
 
     if (this->blinkTimer < 3) {
         this->eyeTextureIndexRight = this->blinkTimer;
@@ -330,21 +352,23 @@ void DmZl_Update(Actor* thisx, GlobalContext* globalCtx) {
 
     DmZl_UpdateFace(this);
     SkelAnime_Update(&this->skelAnime);
-    if (thisx->params == DMZL_TYPE_SOT_CUTCSENE){
-        DmZl_UpdateCutscene(this, globalCtx);
-    }
+
+    // instead I turned it into an actionfunc, since new NPC doesnt use it
+    //if (thisx->params == DMZL_TYPE_SOT_CUTCSENE){ //DmZl_UpdateCutscene(this, globalCtx); //}
+
     // new
-    if (thisx->params != 0){
-        // change head/chest rotation to look at player
-        if (this->actor.xzDistToPlayer < 100.0f && this->actionFunc != DmZl_PlayFluteIdle && this->actionFunc != DmZl_RaisingFlute) {
+    if (thisx->params == DMZL_TYPE_PLAYING_FLUTE){
+        Collider_UpdateCylinder(&this->actor, &this->collider);
+        CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &this->collider.base);
+
+        // change head/chest rotation to look at player, but not when playing or about to play flute
+        if (this->actor.xzDistToPlayer < 100.0f && 
+          (this->actionFunc != DmZl_PlayFluteIdle && this->actionFunc != DmZl_RaisingFlute)) {
             func_800E9250(globalCtx, &this->actor, &this->headRot, &this->chestRot, this->actor.focus.pos);
         } else {
-            Math_SmoothStepToS(&this->headRot.x, 0, 0x6, 0x1838, 0x64);
-            Math_SmoothStepToS(&this->headRot.y, 0, 0x6, 0x1838, 0x64);
-            Math_SmoothStepToS(&this->chestRot.x, 0, 0x6, 0x1838, 0x64);
-            Math_SmoothStepToS(&this->chestRot.y, 0, 0x6, 0x1838, 0x64);
+            // does the same thing that is hand written in En_Ani, but it was already a separate function
+            func_800E8F08(&this->headRot, &this->chestRot); // Smooth to zero
         }
-
     }
     this->actionFunc(this, globalCtx);
 }
@@ -378,6 +402,7 @@ void DmZl_PostLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec
             CLOSE_DISPS(globalCtx->state.gfxCtx);
         }
     }
+
     if (limbIndex == ZL4_LIMB_LEFT_HAND) {
         if (this->animationIndex == -1) { // flute playing
             OPEN_DISPS(globalCtx->state.gfxCtx);
@@ -387,6 +412,7 @@ void DmZl_PostLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec
             CLOSE_DISPS(globalCtx->state.gfxCtx);
         }
     }
+
     if (limbIndex == ZL4_LIMB_HEAD) {
        Matrix_MultiplyVector3fByState(&focusReticuleLocation, &thisx->focus.pos);
     }

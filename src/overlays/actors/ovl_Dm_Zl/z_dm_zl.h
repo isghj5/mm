@@ -11,8 +11,8 @@ typedef struct DmZl {
     /* 0x000 */ Actor actor;
     /* 0x144 */ SkelAnime skelAnime;
     ///* 0x188 */ UNK_TYPE1 pad188[0xD8]; // unused by DmZl
-    /* 0x0218 */ Vec3s jointTable[18];
-    /* 0x0284 */ Vec3s morphTable[18];
+    /* 0x0218 */ Vec3s jointTable[ZL4_LIMB_MAX]; // 18
+    /* 0x0284 */ Vec3s morphTable[ZL4_LIMB_MAX];
     /* 0x260 */ DmZlActionFunc actionFunc;
     /* 0x0194 */ ColliderCylinder collider;
     ///* 0x264 */ UNK_TYPE1 pad264[0x4C]; // unused by DmZl
@@ -33,5 +33,6 @@ extern const ActorInit Dm_Zl_InitVars;
 
 // vanilla params are 0x0000, never checked or used
 #define DMZL_TYPE_SOT_CUTCSENE 0
+#define DMZL_TYPE_PLAYING_FLUTE 1
 
 #endif // Z_DM_ZL_H
