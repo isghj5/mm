@@ -19,7 +19,7 @@ void DmZl_Draw(Actor* thisx, GlobalContext* globalCtx);
 
 const ActorInit Dm_Zl_InitVars = {
     ACTOR_DM_ZL,
-    ACTORCAT_ITEMACTION,
+    ACTORCAT_NPC,
     FLAGS,
     OBJECT_ZL4,
     sizeof(DmZl),
@@ -346,7 +346,8 @@ s32 DmZl_OverrideLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, 
 }
 
 void DmZl_PostLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    static Vec3f wat = { 800.0f, 500.0f, 0.0f };
+    //static Vec3f focusReticuleLocation = { 800.0f, 500.0f, 0.0f }; // Ani too tall
+    static Vec3f focusReticuleLocation = { 000.0f, 500.0f, 0.0f };
 
     DmZl* this = THIS;
 
@@ -369,9 +370,8 @@ void DmZl_PostLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec
         }
     }
     if (limbIndex == ZL4_LIMB_HEAD) {
-       Matrix_MultiplyVector3fByState(&wat, &thisx->focus.pos);
+       Matrix_MultiplyVector3fByState(&focusReticuleLocation, &thisx->focus.pos);
     }
-
 }
 
 void DmZl_Draw(Actor* thisx, GlobalContext* globalCtx) {
