@@ -89,6 +89,7 @@ void DmZl_ChangeAnimation(SkelAnime* skelAnime, AnimationInfo animation[], u16 i
                      animation->mode, animation->morphFrames);
 }
 
+// todo remove globalCtx
 void DmZl_ChangeAnimationSimple(DmZl* this, GlobalContext* globalCtx, AnimationHeader* animation, u8 animationMode) {
     //{ &gDmZl4FacingAwayHandsOverEmblemLoop, 1.0f, 0.0f, -1.0f, ANIMMODE_LOOP, -10.0f },
     //{ &gDmZl4TurningAround2Anim, 1.0f, 0.0f, -1.0f, ANIMMODE_ONCE, -10.0f },
@@ -101,15 +102,29 @@ void DmZl_ChangeAnimationSimple(DmZl* this, GlobalContext* globalCtx, AnimationH
 
 void DmZl_SetupRaiseFlute(DmZl* this, GlobalContext* globalCtx); // forward declare
 
+void DmZl_Talking(DmZl* this, GlobalContext* globalCtx) {
+    
+    
+}
 
 void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx) {
-    // todo add head tracking
-    // todo add dialogue prompt
-      // todo if she is talking she lowers the flute to in front of her, instead of standing there
     if (this->actor.xzDistToPlayer > 100.0f){
+        // slight issue: she should go back to playing faster if her animation is still up
         DmZl_SetupRaiseFlute(this, globalCtx);
     }
-    //if (<F3>)
+
+    // todo only say this if you have the ocarina
+    this->actor.textId = 0x1700; // ocarina debug
+    func_800B8614(&this->actor, globalCtx, 120.0f); // enables talking prompt
+    if (Actor_ProcessTalkRequest(&this->actor, &globalCtx->state)) {
+        DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4IdleHandsInFrontAnim, ANIMMODE_ONCE);
+
+        //this->actionFunc = DmZl_Talking;
+        //return;
+    }
+
+    // todo turn to face link if 
+
 }
 
 void DmZl_LoweringFlute(DmZl* this, GlobalContext* globalCtx) {
@@ -172,7 +187,8 @@ void DmZl_Init(Actor* thisx, GlobalContext* globalCtx) {
     this->unused2BA = 0;
 
     if (thisx->params == 0x1){ // playing flute
-        thisx->flags |= 1 + 0x02000000 ;
+        // 8 is no cull
+        thisx->flags |= 1 + 0x02000000 + 0x8;
         DmZl_SetupRaiseFlute(this, globalCtx);
 
     } else { // 0 vanilla
@@ -181,8 +197,8 @@ void DmZl_Init(Actor* thisx, GlobalContext* globalCtx) {
         DmZl_ChangeAnimation(&this->skelAnime, &sAnimations[this->animationIndex], ZELDA_ANIM_FACING_AWAY);
         this->actionFunc = Actor_Noop;
     }
-    SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gZl4Skeleton, NULL, NULL, NULL, 0);
-    //SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gZl4Skeleton, this->jointTable, this->morphTable, NULL, 18);
+
+    SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gZl4Skeleton, NULL, this->jointTable, this->morphTable, 18);
 }
 
 // not sure why they didnt use noop for empty destruction pointers

@@ -10,12 +10,12 @@ typedef void (*DmZlActionFunc)(struct DmZl*, GlobalContext*);
 typedef struct DmZl {
     /* 0x000 */ Actor actor;
     /* 0x144 */ SkelAnime skelAnime;
-    /* 0x188 */ UNK_TYPE1 pad188[0xD8]; // unused by DmZl
-    ///* 0x0218 */ Vec3s jointTable[18];
-    ///* 0x0284 */ Vec3s morphTable[18];
+    ///* 0x188 */ UNK_TYPE1 pad188[0xD8]; // unused by DmZl
+    /* 0x0218 */ Vec3s jointTable[18];
+    /* 0x0284 */ Vec3s morphTable[18];
     /* 0x260 */ DmZlActionFunc actionFunc;
-    //* 0x0194 */ ColliderCylinder collider;
-    /* 0x264 */ UNK_TYPE1 pad264[0x4C]; // unused by DmZl
+    /* 0x0194 */ ColliderCylinder collider;
+    ///* 0x264 */ UNK_TYPE1 pad264[0x4C]; // unused by DmZl
     /* 0x2B0 */ s16 animationIndex;
     /* 0x2B2 */ u8 eyeTextureIndexLeft;
     /* 0x2B3 */ u8 eyeTextureIndexRight;
