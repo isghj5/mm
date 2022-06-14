@@ -5,7 +5,6 @@
  */
 
 #include "z_dm_zl.h"
-#include "objects/object_zl4/object_zl4.h"
 
 #define FLAGS (ACTOR_FLAG_10)
 
@@ -13,6 +12,7 @@
 
 void DmZl_SetupRaiseFlute(DmZl* this, GlobalContext* globalCtx);
 void DmZl_UpdateCutscene(DmZl* this, GlobalContext* globalCtx); 
+void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx);
 
 void DmZl_Init(Actor* thisx, GlobalContext* globalCtx);
 void DmZl_Destroy(Actor* thisx, GlobalContext* globalCtx);
@@ -125,8 +125,12 @@ void DmZl_ChangeAnimationSimple(DmZl* this, GlobalContext* globalCtx, AnimationH
 }
 
 
-//void DmZl_Talking(DmZl* this, GlobalContext* globalCtx) {
-//}
+void DmZl_Talking(DmZl* this, GlobalContext* globalCtx) {
+    if (Message_GetState(&globalCtx->msgCtx) == 5 &&  Message_ShouldAdvance(globalCtx)) {
+        func_801477B4(globalCtx); // ends dialogue
+        this->actionFunc = DmZl_WaitingForDialogue;
+    }
+}
 
 void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx) {
     if (this->actor.xzDistToPlayer > 100.0f){
@@ -134,15 +138,23 @@ void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx) {
         DmZl_SetupRaiseFlute(this, globalCtx);
     }
 
-    // todo only say this if you have the ocarina
     // todo limit this to in front of them or turn them to face the player
+
     // todo find better dialogue match
-    this->actor.textId = 0x1700; // ocarina debug
-    func_800B8614(&this->actor, globalCtx, 120.0f); // enables talking prompt
+    // todo find unique dialogue for different forms, maybe only respond to link not to the others
+    // unless I was willing to find a way to add new dialogue, this is the best I could find
+    if (gSaveContext.save.inventory.items[SLOT_OCARINA] == ITEM_NONE){
+        this->actor.textId = 0xFB5; // dont you have an instrument?
+    } else {
+        this->actor.textId = 0x1700; // how to use ocarina
+    }
+    func_800B8614(&this->actor, globalCtx, 120.0f); // enables talking prompt?
     if (Actor_ProcessTalkRequest(&this->actor, &globalCtx->state)) {
         DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4IdleHandsInFrontAnim, ANIMMODE_ONCE);
 
-        //this->actionFunc = DmZl_Talking;
+        if (this->actor.textId == 0xFB5){
+          this->actionFunc = DmZl_Talking; // only needed for some dialogue, the rest we can stay here
+        }
         //return;
     }
 
