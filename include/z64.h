@@ -1376,6 +1376,7 @@ struct GlobalContext {
     /* 0x18E68 */ s32 unk_18E68;
     /* 0x18E6C */ char unk_18E6C[0x3EC];
 }; // size = 0x19258
+//} GlobalContext; // size = 0x19258
 
 typedef struct {
     /* 0x00 */ s32 unk0;

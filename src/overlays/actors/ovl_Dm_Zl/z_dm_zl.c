@@ -126,6 +126,7 @@ void DmZl_ChangeAnimationSimple(DmZl* this, GlobalContext* globalCtx, AnimationH
 
 }
 
+/*
 void DmZl_Leaving(DmZl* this, GlobalContext* globalCtx) {
     static Vec3f D_80BFB2E8 = { 0.0f, 0.5f, 0.0f }; // random offset? ripped from EnYb
     Vec3f effPos;
@@ -173,6 +174,7 @@ u8 DmZl_CheckOcarinaOut(DmZl* this, GlobalContext* globalCtx) {
 
     return sPlayerOcarinaOut;
 }
+// */
 
 void DmZl_Talking(DmZl* this, GlobalContext* globalCtx) {
     if (Message_GetState(&globalCtx->msgCtx) == 5 &&  Message_ShouldAdvance(globalCtx)) {
@@ -205,7 +207,8 @@ void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx) {
             }
         }
     }
-
+    
+    // broken right now
     //if ( DmZl_CheckOcarinaOut(this, globalCtx)
        //&& globalCtx->msgCtx.ocarinaMode == 3 && globalCtx->msgCtx.unk1202E == 7){ // assumption: 7 is healing
       //// if player plays healing, something happens
@@ -228,7 +231,7 @@ void DmZl_SetupLowerFlute(DmZl* this, GlobalContext* globalCtx) {
     // doesnt loop properly, let it sit on last frame
     DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4LowerFluteAfterPlayAnim, ANIMMODE_ONCE);
     this->actionFunc = DmZl_LoweringFlute;
-    DmZl_CheckOcarinaOut(this, globalCtx);
+    //DmZl_CheckOcarinaOut(this, globalCtx);
 }
 
 void DmZl_PlayFluteIdle(DmZl* this, GlobalContext* globalCtx) {
@@ -240,7 +243,7 @@ void DmZl_PlayFluteIdle(DmZl* this, GlobalContext* globalCtx) {
         // play zelda's theme as a local music, taken from GuruGuru
         func_801A1D44(&this->actor.projectedPos, NA_BGM_ZELDAS_LULLABY, 540.0f); // 540 is this range or speed?
     }
-    DmZl_CheckOcarinaOut(this, globalCtx);
+    //DmZl_CheckOcarinaOut(this, globalCtx);
 } 
 
 void DmZl_SetupPlayFluteIdle(DmZl* this, GlobalContext* globalCtx) {
@@ -254,7 +257,7 @@ void DmZl_RaisingFlute(DmZl* this, GlobalContext* globalCtx) {
     if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
       DmZl_SetupPlayFluteIdle(this, globalCtx);
     }
-    DmZl_CheckOcarinaOut(this, globalCtx);
+    //DmZl_CheckOcarinaOut(this, globalCtx);
 }
 
 void DmZl_SetupRaiseFlute(DmZl* this, GlobalContext* globalCtx) {
@@ -262,7 +265,7 @@ void DmZl_SetupRaiseFlute(DmZl* this, GlobalContext* globalCtx) {
     DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4RaiseFluteToPlayAnim, ANIMMODE_ONCE);
     this->actionFunc = DmZl_RaisingFlute;
     this->animationIndex = -1; // tells us we are not using the system
-    DmZl_CheckOcarinaOut(this, globalCtx);
+    //DmZl_CheckOcarinaOut(this, globalCtx);
 }
 
 
@@ -279,11 +282,12 @@ void DmZl_Init(Actor* thisx, GlobalContext* globalCtx) {
     // except we use it as a timer now on death
     this->unused2BA = 0; // set here, used nowhere after
 
-    this->switchFlags = DMZL_GET_SWITCHFLAGS(thisx);
-    if (this->switchFlags != 0x7F && Flags_GetSwitch(globalCtx, this->switchFlags)){
-        Actor_MarkForDeath(&this->actor);
-    }
-    thisx->params &= 0x7; // 3 bits should be enough for type
+    // except the switch is broken ignore for now
+    //this->switchFlags = DMZL_GET_SWITCHFLAGS(thisx);
+    //if (this->switchFlags != 0x7F && Flags_GetSwitch(globalCtx, this->switchFlags)){
+        //Actor_MarkForDeath(&this->actor);
+    //}
+    //thisx->params &= 0x3; // 2 bits should be enough for type
 
     if (thisx->params == DMZL_TYPE_PLAYING_FLUTE){
         // 8 is no cull, 0x02000000 is keep playing/updating when the player takes out their ocarina
@@ -305,7 +309,7 @@ void DmZl_Init(Actor* thisx, GlobalContext* globalCtx) {
     SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gZl4Skeleton, NULL, this->jointTable, this->morphTable, ZL4_LIMB_MAX);
 }
 
-// not sure why they didnt use noop for empty destruction pointers
+// not sure why they didnt use noop for empty destruction pointers, well at least I can just use it
 void DmZl_Destroy(Actor* thisx, GlobalContext* globalCtx) {
     DmZl* this = THIS;
 
@@ -423,9 +427,12 @@ void DmZl_UpdateFace(DmZl* this) {
             break;
     }
 
-    if (this->animationIndex == ZELDA_ANIM_PLAYING_OCARINA || this->actionFunc == DmZl_PlayFluteIdle) {
-        // override blinking: eyes closed while playing ocarina
+    if (gSaveContext.save.playerForm == PLAYER_FORM_FIERCE_DEITY){
+        this->nextEyeState = 5;
+    } else if (this->animationIndex == ZELDA_ANIM_PLAYING_OCARINA || this->actionFunc == DmZl_PlayFluteIdle) {
         this->eyeTextureIndexLeft = this->eyeTextureIndexRight = ZELDA_EYE_CLOSED;
+    } else {
+        this->nextEyeState = 0;
     }
 }
 
@@ -452,17 +459,14 @@ void DmZl_Update(Actor* thisx, GlobalContext* globalCtx) {
             func_800E8F08(&this->headRot, &this->chestRot); // Smooth to zero
         }
 
-        if (gSaveContext.save.playerForm == PLAYER_FORM_FIERCE_DEITY){
-            this->nextEyeState = 5;
-        } else {
-            this->nextEyeState = 0;
-        }
     }
     this->actionFunc(this, globalCtx);
 }
 
 s32 DmZl_OverrideLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
     DmZl* this = THIS;
+
+    // added head and chest rotation
     if (limbIndex == ZL4_LIMB_HEAD) {
         rot->x += this->headRot.y;
         rot->z += this->headRot.x;
@@ -476,7 +480,6 @@ s32 DmZl_OverrideLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, 
 }
 
 void DmZl_PostLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    //static Vec3f focusReticuleLocation = { 800.0f, 500.0f, 0.0f }; // Ani too tall
     static Vec3f focusReticuleLocation = { 000.0f, 500.0f, 0.0f };
 
     DmZl* this = THIS;
@@ -554,7 +557,7 @@ void DmZl_Draw(Actor* thisx, GlobalContext* globalCtx) {
 
     // */
 
-    // shits totallly busted
+    // shits totallly busted, probably have to do something massive to fix it
     //func_8012C2B4(POLY_XLU_DISP++); // dont seem to do anything
     //Scene_SetRenderModeXlu(globalCtx, 2, 2);
     //gSPDisplayList(POLY_XLU_DISP++, &sSetupDL[6 * 0x19]);
