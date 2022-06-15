@@ -113,10 +113,10 @@ void DmZl_ChangeAnimation(SkelAnime* skelAnime, AnimationInfo animation[], u16 i
                      animation->mode, animation->morphFrames);
 }
 
-// the animation system in these actors sucks, just replace with a simplier function
+// the animation system in these actors sucks, just use a simplier function for non-data animations
 // todo remove globalCtx, not really needed to pass here
 void DmZl_ChangeAnimationSimple(DmZl* this, GlobalContext* globalCtx, AnimationHeader* animation, u8 animationMode) {
-    // reference; how our animations are usually handled in this actor
+    // reference: how our animations are usually handled in this actor
     //{ &gDmZl4FacingAwayHandsOverEmblemLoop, 1.0f, 0.0f, -1.0f, ANIMMODE_LOOP, -10.0f },
     //{ &gDmZl4TurningAround2Anim, 1.0f, 0.0f, -1.0f, ANIMMODE_ONCE, -10.0f },
     //{ &gDmZl4HandsOverEmblemLoopAnim, 1.0f, 0.0f, -1.0f, ANIMMODE_LOOP, -10.0f },
@@ -126,6 +126,53 @@ void DmZl_ChangeAnimationSimple(DmZl* this, GlobalContext* globalCtx, AnimationH
 
 }
 
+void DmZl_Leaving(DmZl* this, GlobalContext* globalCtx) {
+    static Vec3f D_80BFB2E8 = { 0.0f, 0.5f, 0.0f }; // random offset? ripped from EnYb
+    Vec3f effPos;
+
+    if (DECR(this->unused2BA) == 0){
+        Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_ELF, this->actor.focus.pos.x, 
+                                                this->actor.world.pos.y + 40.0f, this->actor.world.pos.z, 0, 0, 0, 7);
+        Flags_SetSwitch(globalCtx, this->switchFlags);
+        Actor_MarkForDeath(&this->actor);
+    }
+    
+    effPos.x = randPlusMinusPoint5Scaled(20.0f) + this->actor.world.pos.x;
+    effPos.y = randPlusMinusPoint5Scaled(16.0f) + (this->actor.world.pos.y + 20.0f);
+    effPos.z = randPlusMinusPoint5Scaled(20.0f) + this->actor.world.pos.z;
+    func_800B3030(globalCtx, &effPos, &D_80BFB2E8, &D_80BFB2E8, 100, 0, 2);
+    
+    // burning sfx
+    //SoundSource_PlaySfxAtFixedWorldPos(globalCtx, &this->actor.world.pos, 20, NA_SE_EN_EXTINCT);// EnYb
+    func_800B9010(&this->actor, NA_SE_EN_COMMON_EXTINCT_LEV - SFX_FLAG); //Bigpo
+    this->nextEyeState = 5; // every frame to overwrite the changes in update TODO merge into one function
+}
+
+void DmZl_SetupLeaving(DmZl* this, GlobalContext* globalCtx) {
+    DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4IdleHandsInFrontAnim, ANIMMODE_ONCE);
+    this->nextEyeState = 5;
+    this->actionFunc = DmZl_Leaving;
+    this->unused2BA = 60;
+}
+
+
+static u8 sPlayerOcarinaOut; // no reason to make this per-actor in struct
+// checks if the player has pulled out their ocarina, plays a SFX if so
+u8 DmZl_CheckOcarinaOut(DmZl* this, GlobalContext* globalCtx) {
+    Player* player = GET_PLAYER(globalCtx);
+
+    if (sPlayerOcarinaOut) {
+        if (!(player->stateFlags2 & 0x8000000)) {
+            sPlayerOcarinaOut = false;
+        }
+    } else if ((player->stateFlags2 & 0x8000000) && this->actor.xzDistToPlayer < 180.0f &&
+               fabsf(this->actor.playerHeightRel) < 50.0f) {
+        sPlayerOcarinaOut = true;
+        Actor_PlaySfxAtPos(&this->actor, NA_SE_SY_TRE_BOX_APPEAR);
+    }
+
+    return sPlayerOcarinaOut;
+}
 
 void DmZl_Talking(DmZl* this, GlobalContext* globalCtx) {
     if (Message_GetState(&globalCtx->msgCtx) == 5 &&  Message_ShouldAdvance(globalCtx)) {
@@ -159,6 +206,13 @@ void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx) {
         }
     }
 
+    //if ( DmZl_CheckOcarinaOut(this, globalCtx)
+       //&& globalCtx->msgCtx.ocarinaMode == 3 && globalCtx->msgCtx.unk1202E == 7){ // assumption: 7 is healing
+      //// if player plays healing, something happens
+      //// this code is yoinked from EnYb since that is the actor I know this can work
+      //DmZl_SetupLeaving(this, globalCtx);     
+
+    //}
 }
 
 void DmZl_LoweringFlute(DmZl* this, GlobalContext* globalCtx) {
@@ -166,6 +220,7 @@ void DmZl_LoweringFlute(DmZl* this, GlobalContext* globalCtx) {
     if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
       this->actionFunc = DmZl_WaitingForDialogue;
     }
+    //DmZl_CheckOcarinaOut(this, globalCtx);
 }
 
 void DmZl_SetupLowerFlute(DmZl* this, GlobalContext* globalCtx) {
@@ -173,16 +228,19 @@ void DmZl_SetupLowerFlute(DmZl* this, GlobalContext* globalCtx) {
     // doesnt loop properly, let it sit on last frame
     DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4LowerFluteAfterPlayAnim, ANIMMODE_ONCE);
     this->actionFunc = DmZl_LoweringFlute;
+    DmZl_CheckOcarinaOut(this, globalCtx);
 }
 
 void DmZl_PlayFluteIdle(DmZl* this, GlobalContext* globalCtx) {
     if (this->actor.xzDistToPlayer < 50.0f && Player_GetMask(globalCtx) != PLAYER_MASK_STONE){
         // if player is in range, stop and stare
         DmZl_SetupLowerFlute(this, globalCtx);
+        //DmZl_SetupLeaving(this, globalCtx); // testing
     } else {
         // play zelda's theme as a local music, taken from GuruGuru
         func_801A1D44(&this->actor.projectedPos, NA_BGM_ZELDAS_LULLABY, 540.0f); // 540 is this range or speed?
     }
+    DmZl_CheckOcarinaOut(this, globalCtx);
 } 
 
 void DmZl_SetupPlayFluteIdle(DmZl* this, GlobalContext* globalCtx) {
@@ -196,6 +254,7 @@ void DmZl_RaisingFlute(DmZl* this, GlobalContext* globalCtx) {
     if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
       DmZl_SetupPlayFluteIdle(this, globalCtx);
     }
+    DmZl_CheckOcarinaOut(this, globalCtx);
 }
 
 void DmZl_SetupRaiseFlute(DmZl* this, GlobalContext* globalCtx) {
@@ -203,6 +262,7 @@ void DmZl_SetupRaiseFlute(DmZl* this, GlobalContext* globalCtx) {
     DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4RaiseFluteToPlayAnim, ANIMMODE_ONCE);
     this->actionFunc = DmZl_RaisingFlute;
     this->animationIndex = -1; // tells us we are not using the system
+    DmZl_CheckOcarinaOut(this, globalCtx);
 }
 
 
@@ -216,7 +276,14 @@ void DmZl_Init(Actor* thisx, GlobalContext* globalCtx) {
     this->actor.targetArrowOffset = 900.0f; // not sure if this is moving correctly
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 24.0f);
     Actor_SetScale(&this->actor, 0.01f);
+    // except we use it as a timer now on death
     this->unused2BA = 0; // set here, used nowhere after
+
+    this->switchFlags = DMZL_GET_SWITCHFLAGS(thisx);
+    if (this->switchFlags != 0x7F && Flags_GetSwitch(globalCtx, this->switchFlags)){
+        Actor_MarkForDeath(&this->actor);
+    }
+    thisx->params &= 0x7; // 3 bits should be enough for type
 
     if (thisx->params == DMZL_TYPE_PLAYING_FLUTE){
         // 8 is no cull, 0x02000000 is keep playing/updating when the player takes out their ocarina
@@ -445,14 +512,56 @@ void DmZl_Draw(Actor* thisx, GlobalContext* globalCtx) {
     OPEN_DISPS(globalCtx->state.gfxCtx);
 
     gSPSegment(POLY_OPA_DISP++, 0x08, Lib_SegmentedToVirtual(sEyeTextures[this->eyeTextureIndexRight]));
-
     gSPSegment(POLY_OPA_DISP++, 0x09, Lib_SegmentedToVirtual(sEyeTextures[this->eyeTextureIndexLeft]));
-
     gSPSegment(POLY_OPA_DISP++, 0x0A, Lib_SegmentedToVirtual(sMouthTextures[this->mouthTextureIndex]));
 
+    //gSPSegment(POLY_XLU_DISP++, 0x08, Lib_SegmentedToVirtual(sEyeTextures[this->eyeTextureIndexRight]));
+    //gSPSegment(POLY_XLU_DISP++, 0x09, Lib_SegmentedToVirtual(sEyeTextures[this->eyeTextureIndexLeft]));
+    //gSPSegment(POLY_XLU_DISP++, 0x0A, Lib_SegmentedToVirtual(sMouthTextures[this->mouthTextureIndex]));
+
     func_8012C28C(globalCtx->state.gfxCtx);
+    // vanilla
     SkelAnime_DrawFlexOpa(globalCtx, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                           DmZl_OverrideLimbDraw, DmZl_PostLimbDraw, &this->actor);
+    // TODO draw zelda fading away
+    //SkelAnime_DrawFlexOpa(globalCtx, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
+                          //DmZl_OverrideLimbDraw, DmZl_PostLimbDraw, &this->actor);
+    /* // bigpo
+        dispHead = POLY_XLU_DISP;
+        gSPDisplayList(dispHead, &sSetupDL[6 * 0x19]);
+        gSPSegment(&dispHead[1], 0x0C, &D_801AEF88); // transparency display list
+        gSPSegment(&dispHead[2], 0x08,
+                   Gfx_EnvColor(globalCtx->state.gfxCtx, this->mainColor.r, this->mainColor.g, this->mainColor.b,
+                                this->mainColor.a));
+        POLY_XLU_DISP = SkelAnime_Draw(globalCtx, this->skelAnime.skeleton, this->skelAnime.jointTable,
+                                       EnBigpo_OverrideLimbDraw, EnBigpo_PostLimbDraw, &this->actor, &dispHead[3]);
+      // enyb
+                  if (this->alpha > 128) {
+                func_8012C2B4(POLY_XLU_DISP++);
+                Scene_SetRenderModeXlu(globalCtx, 2, 2);
+            } else {
+                func_8012C304(POLY_XLU_DISP++);
+                Scene_SetRenderModeXlu(globalCtx, 1, 2);
+            }
+            gDPSetEnvColor(POLY_XLU_DISP++, 0, 0, 0, this->alpha);
+
+            if (1) {}
+
+            POLY_XLU_DISP =
+                SkelAnime_DrawFlex(globalCtx, this->skelAnime.skeleton, this->skelAnime.jointTable,
+                                   this->skelAnime.dListCount, NULL, EnYb_PostLimbDrawXlu, &this->actor, POLY_XLU_DISP);
+      // poesisters
+
+    // */
+
+    // shits totallly busted
+    //func_8012C2B4(POLY_XLU_DISP++); // dont seem to do anything
+    //Scene_SetRenderModeXlu(globalCtx, 2, 2);
+    //gSPDisplayList(POLY_XLU_DISP++, &sSetupDL[6 * 0x19]);
+    //gDPSetEnvColor(POLY_XLU_DISP++, 0, 0, 0, 155);
+    //POLY_XLU_DISP = SkelAnime_Draw(globalCtx, this->skelAnime.skeleton, this->skelAnime.jointTable,
+                                      //DmZl_OverrideLimbDraw, DmZl_PostLimbDraw, &this->actor, POLY_XLU_DISP);
+
 
     CLOSE_DISPS(globalCtx->state.gfxCtx);
 }
