@@ -68,7 +68,7 @@ void DmOpstage_Init(Actor* thisx, GlobalContext* globalCtx) {
     Actor_SetScale(&this->dyna.actor, 0.1f);
     if (DMOPSTAGE_GET_TYPE(&this->dyna.actor) == DMOPSTAGE_TYPE_FLOOR) {
         DynaPolyActor_Init(&this->dyna, 0);
-        DynaPolyActor_LoadMesh(globalCtx, &this->dyna, &gKeikoFloorColliderHeader);
+        DynaPolyActor_LoadMesh(globalCtx, &this->dyna, &gKeikokuDemoFloorColliderHeader);
     }
     if (DMOPSTAGE_GET_TYPE(&this->dyna.actor) > DMOPSTAGE_TYPE_FLOOR) {
         this->pos.x = this->dyna.actor.world.pos.x; // this offset lets us draw at center, but official pos is zero
