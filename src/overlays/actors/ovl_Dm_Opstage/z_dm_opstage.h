@@ -11,7 +11,8 @@ struct DmOpstage;
 typedef void (*DmOpstageActionFunc)(struct DmOpstage*, GlobalContext*);
 typedef struct DmOpstage {
     /* 0x000 */ DynaPolyActor dyna;
-    /* 0x15C */ UNK_TYPE1 pad_15C[0x44];
+    ///* 0x15C */ UNK_TYPE1 pad_15C[0x44];
+    /* 0x15C */ ColliderCylinder collider; // new, give real trees a real collider
     /* 0x1A0 */ DmOpstageActionFunc actionFunc;
     /* 0x1A4 */ Vec3f pos;
 } DmOpstage; // size = 0x1B0

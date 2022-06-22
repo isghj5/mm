@@ -34,6 +34,27 @@ static InitChainEntry sInitChain[] = {
     ICHAIN_F32(uncullZoneScale, 300, ICHAIN_STOP),
 };
 
+// ripped from ani
+static ColliderCylinderInit sCylinderInit = {
+    {
+        COLTYPE_NONE,
+        AT_NONE,
+        AC_ON | AC_TYPE_ENEMY,
+        OC1_ON | OC1_TYPE_ALL,
+        OC2_TYPE_1,
+        COLSHAPE_CYLINDER,
+    },
+    {
+        ELEMTYPE_UNK0,
+        { 0x00000000, 0x00, 0x00 },
+        { 0xF7CFFFFF, 0x00, 0x00 },
+        TOUCH_NONE | TOUCH_SFX_NORMAL,
+        BUMP_ON,
+        OCELEM_ON,
+    },
+    { 30, 60, 0, { 0, 0, 0 } },
+};
+
 void DmOpstage_SetupAction(DmOpstage* this, DmOpstageActionFunc actionFunc) {
     this->actionFunc = actionFunc;
 }
@@ -49,12 +70,14 @@ void DmOpstage_Init(Actor* thisx, GlobalContext* globalCtx) {
         DynaPolyActor_LoadMesh(globalCtx, &this->dyna, &object_keikoku_demo_Colheader_001C98);
     }
     if (DMOPSTAGE_GET_TYPE(&this->dyna.actor) > DM_OPSTAGE_TYPE_FLOOR) {
-        this->pos.x = this->dyna.actor.world.pos.x;
+        this->pos.x = this->dyna.actor.world.pos.x; // but why
         this->pos.y = this->dyna.actor.world.pos.y;
         this->pos.z = this->dyna.actor.world.pos.z;
         this->dyna.actor.world.pos.x = 0.0f;
         this->dyna.actor.world.pos.y = 0.0f;
         this->dyna.actor.world.pos.z = 0.0f;
+        Collider_InitAndSetCylinder(globalCtx, &this->collider, &this->dyna.actor, &sCylinderInit);
+        Collider_UpdateCylinder(&this->dyna.actor, &this->collider);
     }
 }
 
@@ -63,6 +86,8 @@ void DmOpstage_Destroy(Actor* thisx, GlobalContext* globalCtx) {
 
     if (DMOPSTAGE_GET_TYPE(&this->dyna.actor) == DM_OPSTAGE_TYPE_FLOOR) {
         DynaPoly_DeleteBgActor(globalCtx, &globalCtx->colCtx.dyna, this->dyna.bgId);
+    } else {
+        Collider_DestroyCylinder(globalCtx, &this->collider);
     }
 }
 
@@ -95,6 +120,11 @@ void DmOpstage_Update(Actor* thisx, GlobalContext* globalCtx) {
     if ((globalCtx->sceneNum == SCENE_SPOT00) && (gSaveContext.sceneSetupIndex == 0) &&
         (globalCtx->csCtx.frames == 480)) {
         func_8019F128(NA_SE_EV_NAVY_FLY_REBIRTH);
+    }
+
+    if (thisx->params > 0){
+        Collider_UpdateCylinder(&this->dyna.actor, &this->collider);
+        CollisionCheck_SetOC(globalCtx, &globalCtx->colChkCtx, &this->collider.base);
     }
 }
 

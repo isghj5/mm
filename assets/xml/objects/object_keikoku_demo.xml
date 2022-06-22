@@ -13,7 +13,19 @@
         <DList Name="object_keikoku_demo_DL_003728" Offset="0x3728" />
         <Texture Name="object_keikoku_demo_Tex_003930" OutName="tex_003930" Format="ia16" Width="32" Height="32" Offset="0x3930" />
         <Texture Name="object_keikoku_demo_Tex_004130" OutName="tex_004130" Format="rgba16" Width="32" Height="32" Offset="0x4130" />
+
         <!-- <Blob Name="object_keikoku_demo_Blob_004930" Size="0x6600" Offset="0x4930" /> -->
+        <!-- def some textures here, not sure about the size, look like leaves/tree textures -->
+        <!-- 5930 -->
+        <!-- 6330 -->
+        <!-- 6B30 -->
+
+        <!-- 8330 -->
+        <!-- 8B30 -->
+        <!-- 9730 -->
+        <!-- 9F30 -->
+        <!-- A730 -->
+
         <Texture Name="object_keikoku_demo_Tex_00AF30" OutName="tex_00AF30" Format="rgba16" Width="16" Height="64" Offset="0xAF30" />
         <Texture Name="object_keikoku_demo_Tex_00B730" OutName="tex_00B730" Format="i4" Width="64" Height="64" Offset="0xB730" />
         <!-- <Blob Name="object_keikoku_demo_Blob_00BF30" Size="0x1400" Offset="0xBF30" /> -->
