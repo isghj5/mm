@@ -4,7 +4,7 @@
 #include "global.h"
 
 #define DMOPSTAGE_GET_TYPE(thisx) (((thisx)->params & 0xFF))
-#define DMOPSTAGE_GET_08(thisx) (((thisx)->params >> 8) & 0xFF)
+#define DMOPSTAGE_GET_ACTORACTION(thisx) (((thisx)->params >> 8) & 0xFF)
 
 struct DmOpstage;
 
@@ -18,10 +18,10 @@ typedef struct DmOpstage {
 } DmOpstage; // size = 0x1B0
 
 typedef enum {
-    /* 0 */ DM_OPSTAGE_TYPE_FLOOR,
-    /* 1 */ DM_OPSTAGE_TYPE_TREE1,
-    /* 2 */ DM_OPSTAGE_TYPE_TREE2,
-    /* 3 */ DM_OPSTAGE_TYPE_TREE3,
+    /* 0 */ DMOPSTAGE_TYPE_FLOOR,
+    /* 1 */ DMOPSTAGE_TYPE_ROOT_TREE,
+    /* 2 */ DMOPSTAGE_TYPE_CUT_TREE,
+    /* 3 */ DMOPSTAGE_TYPE_STRAIGHT_TREE,
 } DmOpStageTypes;
 
 extern const ActorInit Dm_Opstage_InitVars;
