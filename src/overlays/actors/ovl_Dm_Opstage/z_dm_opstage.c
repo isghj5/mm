@@ -113,6 +113,7 @@ void DmOpstage_Destroy(Actor* thisx, GlobalContext* globalCtx) {
     }
 }
 
+/*
 void Debug_PrintToScreen(Actor* thisx, GlobalContext *globalCtx) {
     DmOpstage* this = THIS;
     // with explanation comments
@@ -150,7 +151,7 @@ void Debug_PrintToScreen(Actor* thisx, GlobalContext *globalCtx) {
     POLY_OPA_DISP = gfx;
 
     CLOSE_DISPS(globalCtx->state.gfxCtx);
-}
+} // */
 
 // action func for collider type
 void DmOpstage_CheckBonk(DmOpstage* this, GlobalContext* globalCtx) {
@@ -258,5 +259,5 @@ void DmOpstage_Draw(Actor* thisx, GlobalContext* globalCtx) {
             //Gfx_DrawDListXlu(globalCtx, gKeikokuDemoTallTreeStraightEmptyDL);
             break;
     }
-    Debug_PrintToScreen(thisx, globalCtx);
+    //Debug_PrintToScreen(thisx, globalCtx);
 }
