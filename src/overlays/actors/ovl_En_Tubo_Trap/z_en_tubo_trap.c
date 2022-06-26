@@ -6,6 +6,7 @@
 
 #include "z_en_tubo_trap.h"
 #include "objects/gameplay_dangeon_keep/gameplay_dangeon_keep.h"
+#include "objects/object_tsubo/object_tsubo.h"
 
 #define FLAGS 0x00000000
 
@@ -43,7 +44,8 @@ const ActorInit En_Tubo_Trap_InitVars = {
     ACTOR_EN_TUBO_TRAP,
     ACTORCAT_PROP,
     FLAGS,
-    GAMEPLAY_DANGEON_KEEP,
+    GAMEPLAY_KEEP,
+    //GAMEPLAY_DANGEON_KEEP,
     sizeof(EnTuboTrap),
     (ActorFunc)EnTuboTrap_Init,
     (ActorFunc)EnTuboTrap_Destroy,
@@ -58,8 +60,53 @@ static InitChainEntry sInitChain[] = {
     ICHAIN_F32(uncullZoneDownward, 100, ICHAIN_STOP),
 };
 
+// new
+static void* sPotDL = NULL;
+static void* sPiecesDL = NULL;
+static s16 sObjId = 0;
+static s16 sObjIndex = 0;
+
+void EnTuboTrap2_SwitchObjects(EnTuboTrap* this, GlobalContext* globalCtx){
+    // if I wanted this actor to be able to use two separate objects, gotta swap some stuff
+    sObjIndex = Object_GetIndex(&globalCtx->objectCtx, GAMEPLAY_DANGEON_KEEP);
+
+    if (sObjIndex >= 0) {
+        // todo: should we just default to this to save code?
+        sObjId = GAMEPLAY_DANGEON_KEEP;
+        sPotDL = gameplay_dangeon_keep_DL_017EA0;
+        sPiecesDL = gameplay_dangeon_keep_DL_018090;
+        this->actor.objBankIndex = sObjIndex;
+        return;
+    } 
+
+    sObjIndex = Object_GetIndex(&globalCtx->objectCtx, OBJECT_TSUBO);
+    if (sObjIndex >= 0) {
+        sObjId = OBJECT_TSUBO;
+        sPotDL = object_tsubo_DL_0017C0;
+        sPiecesDL = object_tsubo_DL_001960;
+        this->actor.objBankIndex = sObjIndex;
+        return;
+    }
+
+    { // could not find the object, killll
+        //Actor_MarkForDeath(&this->actor);
+        Fault_AddHungupAndCrash("../tubo_trap.c", 93);
+    }
+}
+
 void EnTuboTrap_Init(Actor* thisx, GlobalContext* globalCtx) {
     EnTuboTrap* this = THIS;
+
+    if (sObjId == 0) {
+        EnTuboTrap2_SwitchObjects(this, globalCtx);
+    }
+    
+  /*
+    this->actor.objBankIndex = Object_GetIndex(&globalCtx->objectCtx, sObjId);
+    if (this->actor.objBankIndex < 0){
+        Actor_MarkForDeath(&this->actor);
+        return;
+    } // */
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
     this->actor.shape.rot.z = 0;
@@ -120,8 +167,9 @@ void EnTuboTrap_SpawnEffectsOnLand(EnTuboTrap* this, GlobalContext* globalCtx) {
             arg5 = 0x20;
         }
         EffectSsKakera_Spawn(globalCtx, &pos, &vel, actorPos, -0xF0, arg5, 0x14, 0, 0,
-                             ((Rand_ZeroOne() * 85.0f) + 15.0f), 0, 0, 0x3C, -1, GAMEPLAY_DANGEON_KEEP,
-                             gameplay_dangeon_keep_DL_018090);
+                             ((Rand_ZeroOne() * 85.0f) + 15.0f), 0, 0, 0x3C, -1, sObjId,
+                             sPiecesDL);
+                             //gameplay_dangeon_keep_DL_018090);
     }
 
     func_800BBFB0(globalCtx, actorPos, 30.0f, 4, 0x14, 0x32, 0);
@@ -166,8 +214,9 @@ void EnTuboTrap_SpawnEffectsInWater(EnTuboTrap* this, GlobalContext* globalCtx) 
         }
 
         EffectSsKakera_Spawn(globalCtx, &pos, &vel, actorPos, -0xAA, arg5, 0x32, 5, 0,
-                             ((Rand_ZeroOne() * 85.0f) + 15.0f), 0, 0, 0x46, -1, GAMEPLAY_DANGEON_KEEP,
-                             gameplay_dangeon_keep_DL_018090);
+                             ((Rand_ZeroOne() * 85.0f) + 15.0f), 0, 0, 0x46, -1, sObjId,
+                             sPiecesDL);
+                             //gameplay_dangeon_keep_DL_018090);
     }
 }
 
@@ -314,5 +363,6 @@ void EnTuboTrap_Update(Actor* thisx, GlobalContext* globalCtx) {
 }
 
 void EnTuboTrap_Draw(Actor* thisx, GlobalContext* globalCtx) {
-    Gfx_DrawDListOpa(globalCtx, gameplay_dangeon_keep_DL_017EA0);
+    //Gfx_DrawDListOpa(globalCtx, gameplay_dangeon_keep_DL_017EA0);
+    Gfx_DrawDListOpa(globalCtx, sPotDL );
 }
