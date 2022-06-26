@@ -50,7 +50,8 @@ const ActorInit En_Tubo_Trap_InitVars = {
     (ActorFunc)EnTuboTrap_Init,
     (ActorFunc)EnTuboTrap_Destroy,
     (ActorFunc)EnTuboTrap_Update,
-    (ActorFunc)EnTuboTrap_Draw,
+    (ActorFunc)NULL, // dont draw until our object is set
+    //(ActorFunc)EnTuboTrap_Draw,
 };
 
 static InitChainEntry sInitChain[] = {
@@ -66,47 +67,48 @@ static void* sPiecesDL = NULL;
 static s16 sObjId = 0;
 static s16 sObjIndex = 0;
 
-void EnTuboTrap2_SwitchObjects(EnTuboTrap* this, GlobalContext* globalCtx){
+s8 EnTuboTrap2_AttemptObjectSwitch(EnTuboTrap* this, GlobalContext* globalCtx){
     // if I wanted this actor to be able to use two separate objects, gotta swap some stuff
     sObjIndex = Object_GetIndex(&globalCtx->objectCtx, GAMEPLAY_DANGEON_KEEP);
 
-    if (sObjIndex >= 0) {
-        // todo: should we just default to this to save code?
+    if (sObjIndex >= 0 && Object_IsLoaded(&globalCtx->objectCtx, sObjIndex)) {
         sObjId = GAMEPLAY_DANGEON_KEEP;
-        sPotDL = gameplay_dangeon_keep_DL_017EA0;
-        sPiecesDL = gameplay_dangeon_keep_DL_018090;
+        sPotDL = &gameplay_dangeon_keep_DL_017EA0;
+        sPiecesDL = &gameplay_dangeon_keep_DL_018090;
         this->actor.objBankIndex = sObjIndex;
-        return;
+        return true;
     } 
 
     sObjIndex = Object_GetIndex(&globalCtx->objectCtx, OBJECT_TSUBO);
-    if (sObjIndex >= 0) {
+    if (sObjIndex >= 0 && Object_IsLoaded(&globalCtx->objectCtx, sObjIndex)) {
         sObjId = OBJECT_TSUBO;
-        sPotDL = object_tsubo_DL_0017C0;
-        sPiecesDL = object_tsubo_DL_001960;
+        sPotDL = &object_tsubo_DL_0017C0;
+        sPiecesDL = &object_tsubo_DL_001960;
         this->actor.objBankIndex = sObjIndex;
-        return;
+        return true;
     }
 
-    { // could not find the object, killll
-        //Actor_MarkForDeath(&this->actor);
-        Fault_AddHungupAndCrash("../tubo_trap.c", 93);
-    }
+    return false;
+}
+
+
+// dumb
+void EnTuboTrap_WaitForObject(EnTuboTrap* this, GlobalContext* globalCtx) {
+  if (EnTuboTrap2_AttemptObjectSwitch(this, globalCtx)){
+
+      this->actor.draw = EnTuboTrap_Draw;
+      this->actionFunc =  EnTuboTrap_Idle;
+  }
 }
 
 void EnTuboTrap_Init(Actor* thisx, GlobalContext* globalCtx) {
     EnTuboTrap* this = THIS;
 
     if (sObjId == 0) {
-        EnTuboTrap2_SwitchObjects(this, globalCtx);
+        EnTuboTrap2_AttemptObjectSwitch(this, globalCtx);
+    } else {
+        this->actor.objBankIndex = sObjIndex; // all copies take the first object you can
     }
-    
-  /*
-    this->actor.objBankIndex = Object_GetIndex(&globalCtx->objectCtx, sObjId);
-    if (this->actor.objBankIndex < 0){
-        Actor_MarkForDeath(&this->actor);
-        return;
-    } // */
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
     this->actor.shape.rot.z = 0;
@@ -114,7 +116,8 @@ void EnTuboTrap_Init(Actor* thisx, GlobalContext* globalCtx) {
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 1.8f);
     Collider_InitCylinder(globalCtx, &this->collider);
     Collider_SetCylinder(globalCtx, &this->collider, &this->actor, &sCylinderInit);
-    this->actionFunc = EnTuboTrap_Idle;
+    //this->actionFunc = EnTuboTrap_Idle;
+    this->actionFunc = EnTuboTrap_WaitForObject; // this game wont load objects before actors... why?
 }
 
 void EnTuboTrap_Destroy(Actor* thisx, GlobalContext* globalCtx) {
@@ -333,6 +336,7 @@ void EnTuboTrap_FlyAtPlayer(EnTuboTrap* this, GlobalContext* globalCtx) {
     this->actor.shape.rot.y += 5000;
     EnTuboTrap_HandleImpact(this, globalCtx);
 }
+
 
 void EnTuboTrap_Update(Actor* thisx, GlobalContext* globalCtx) {
     EnTuboTrap* this = THIS;
