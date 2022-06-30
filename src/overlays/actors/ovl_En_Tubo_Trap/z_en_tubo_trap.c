@@ -2,6 +2,8 @@
  * File: z_en_tubo_trap.c
  * Overlay: ovl_En_Tubo_Trap
  * Description: Flying Pot Trap Enemy
+ *
+ * Bug: if player is below pot, it wont always take off to attack player until player "reaches" its level
  */
 
 #include "z_en_tubo_trap.h"
