@@ -2,16 +2,21 @@
 #define Z_EN_BU_H
 
 #include "global.h"
+  #include "objects/object_box/object_box.h"
+
 
 struct EnBu;
 
 typedef void (*EnBuActionFunc)(struct EnBu*, GlobalContext*);
 
 typedef struct EnBu {
-    /* 0x000 */ Actor actor;
+    /* 0x000 */ DynaPolyActor dyna;
     /* 0x144 */ EnBuActionFunc actionFunc;
-    /* 0x148 */ UNK_TYPE1 unk148[0x44];
-    /* 0x18C */ Gfx* displayListPtr;
+                SkelAnime skelAnime;
+                Vec3s jointTable[OBJECT_BOX_CHEST_LIMB_MAX];
+                Vec3s morphTable[OBJECT_BOX_CHEST_LIMB_MAX];
+                s8 status;
+
 } EnBu; // size = 0x190
 
 extern const ActorInit En_Bu_InitVars;
