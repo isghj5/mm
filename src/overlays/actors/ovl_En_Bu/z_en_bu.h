@@ -9,11 +9,11 @@ struct EnBu;
 
 typedef void (*EnBuActionFunc)(struct EnBu*, GlobalContext*);
 
-#define MIMIC_FLAGS(thisx) ((thisx)->home.rot.z)
+#define MIMIC_FLAGS(this) ((this)->dyna.actor.home.rot.z)
 
 typedef enum {
   /* 0 */ MIMIC_FLAG_CLEAR,
-  /* 1 */ MIMIC_FLAG_PREVIOUSLY_SLAPPED, // hit with non-damage attack, first attack cannot giggle 
+  /* 1 */ MIMIC_FLAG_PREVIOUSLY_NOTICED, // attention grabbed no longer asleep
   /* 2 */ MIMIC_FLAG_PREVIOUSLY_LAUGHED,
 
 

@@ -8,7 +8,7 @@
 #include "objects/object_box/object_box.h"
 #include "objects/gameplay_keep/gameplay_keep.h"
 
-#define FLAGS (ACTOR_FLAG_10)
+#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20)
 
 #define THIS ((EnBu*)thisx)
 
@@ -131,7 +131,7 @@ void EnBu_Init(Actor* thisx, GlobalContext* globalCtx) {
     CollisionCheck_SetInfo(&this->dyna.actor.colChkInfo, &sDamageTable, &sColChkInfoInit);
 
 
-    MIMIC_FLAGS(thisx) = MIMIC_FLAG_CLEAR;
+    MIMIC_FLAGS(this) = MIMIC_FLAG_CLEAR;
 }
 
 void EnBu_Destroy(Actor* thisx, GlobalContext* globalCtx) {
@@ -144,15 +144,13 @@ void EnBu_Destroy(Actor* thisx, GlobalContext* globalCtx) {
 
 // todo finish these
 void EnBu_Dissappear(EnBu* this, GlobalContext* globalCtx) {
-    Item_DropCollectible(globalCtx, &this->dyna.actor.world.pos, 0x0D00);
+    Item_DropCollectibleRandom(globalCtx, &this->dyna.actor, &this->dyna.actor.world.pos, 0x10);
 
-    
     Actor_MarkForDeath(&this->dyna.actor);
 }
 
 //void EnBu_SetupDissapear(EnBu* this) {
     //this->actionFunc = EnBu_Dissappear;
-
 //}
 
 #define BU_START_TIMER 20
@@ -160,33 +158,23 @@ void EnBu_Dissappear(EnBu* this, GlobalContext* globalCtx) {
 void EnBu_BurnAway(EnBu* this, GlobalContext* globalCtx) {
     static Vec3f D_80BFB2E8 = { 0.0f, 0.5f, 0.0f };
     Vec3f effectPos;
-    //u8 i;
     
+    if (DECR(this->stateTimer) <= 0){
+        this->actionFunc = EnBu_Dissappear;
+        //Actor_MarkForDeath(&this->dyna.actor);
+    }
+
     Math_StepToF(&this->dyna.actor.scale.x, 0.0f, 0.0005f);
     Math_StepToF(&this->dyna.actor.scale.y, 0.0f, 0.0005f);
     Math_StepToF(&this->dyna.actor.scale.z, 0.0f, 0.0005f);
 
-    if (DECR(this->stateTimer) <= 0){
-        this->actionFunc = EnBu_Dissappear;
-        //Actor_MarkForDeath(&this->dyna.actor);
 
-    }else {
-        
-        //f32 newAlpha = (f32)this->stateTimer / (f32)BU_START_TIMER;
-        //newAlpha *= 255.0f;
-        // does not work, always zero even with all the casts
-        //this->alpha = (u8)(((f32)this->stateTimer) / (f32)BU_START_TIMER) * 255.0f;
-        //this->alpha = (u8) newAlpha;
-    }
+    // spawn effect every frame
+    effectPos.x = randPlusMinusPoint5Scaled(60.0f) + this->dyna.actor.world.pos.x;
+    effectPos.z = randPlusMinusPoint5Scaled(60.0f) + this->dyna.actor.world.pos.z;
+    effectPos.y = randPlusMinusPoint5Scaled(50.0f) + (this->dyna.actor.world.pos.y + 20.0f);
+    func_800B3030(globalCtx, &effectPos, &D_80BFB2E8, &D_80BFB2E8, 100, 0, 2); // flames ghosts have on death
 
-    //for (i = 0; i > 3; i++) {
-        effectPos.x = randPlusMinusPoint5Scaled(60.0f) + this->dyna.actor.world.pos.x;
-        effectPos.z = randPlusMinusPoint5Scaled(60.0f) + this->dyna.actor.world.pos.z;
-        effectPos.y = randPlusMinusPoint5Scaled(50.0f) + (this->dyna.actor.world.pos.y + 20.0f);
-        func_800B3030(globalCtx, &effectPos, &D_80BFB2E8, &D_80BFB2E8, 100, 0, 2); // death ghosts have
-    //}
-
-    //SoundSource_PlaySfxAtFixedWorldPos(globalCtx, &this->dyna.actor.world.pos, 20, NA_SE_EN_EXTINCT);
     func_800B9010(&this->dyna.actor, NA_SE_EN_COMMON_EXTINCT_LEV - SFX_FLAG); //Bigpo
 }
 
@@ -196,8 +184,8 @@ void EnBu_SetupBurnAway(EnBu* this) {
 }
 
 // every frame, check if we can take damage
+// comes after bonk
 void EnBu_CheckDamage(EnBu* this, GlobalContext* globalCtx){
-
     if ((this->collider.base.acFlags & AC_HIT)) {
         this->collider.base.acFlags &= ~AC_HIT;
 
@@ -205,8 +193,8 @@ void EnBu_CheckDamage(EnBu* this, GlobalContext* globalCtx){
             Actor_ApplyDamage(&this->dyna.actor);
             if ( this->dyna.actor.colChkInfo.health == 0) {
             
-                //Actor_PlaySfxAtPos(&this->dyna.actor, NA_SE_EN_PO_DEAD);
-                Actor_PlaySfxAtPos(&this->dyna.actor, NA_SE_EN_EXTINCT);
+                Actor_PlaySfxAtPos(&this->dyna.actor, NA_SE_EN_PO_DEAD);
+                //Actor_PlaySfxAtPos(&this->dyna.actor, NA_SE_EN_EXTINCT);
                 //Enemy_StartFinishingBlow(globalCtx, &this->dyna.actor);
                 EnBu_SetupBurnAway(this);
             }else if (this->dyna.actor.colChkInfo.damage > 0){ 
@@ -214,19 +202,56 @@ void EnBu_CheckDamage(EnBu* this, GlobalContext* globalCtx){
                 Audio_PlaySfxAtPos(&this->dyna.actor.projectedPos, NA_SE_EN_EYEGOLE_ATTACK);
             }
 
-
             if (this->dyna.actor.colChkInfo.damageEffect == MIMIC_DAMAGE_LIGHT_ARROWS) { // light arrows
                 Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_CLEAR_TAG, this->collider.info.bumper.hitPos.x,
                             this->collider.info.bumper.hitPos.y, this->collider.info.bumper.hitPos.z, 0, 0, 0,
                             CLEAR_TAG_LARGE_LIGHT_RAYS);
             }
+        //} else {
+            // no effect, wrong attack type
+            MIMIC_FLAGS(this) |= MIMIC_FLAG_PREVIOUSLY_NOTICED;
+
         }
 
+    } else if (this->dyna.actor.xzDistToPlayer < 1000 ){ // free laugh
+        Player* player = GET_PLAYER(globalCtx); 
+        if (player->invincibilityTimer > 0){
+  
+            if (!(MIMIC_FLAGS(this) & MIMIC_FLAG_PREVIOUSLY_LAUGHED) && (MIMIC_FLAGS(this) & MIMIC_FLAG_PREVIOUSLY_NOTICED)) {
+                Audio_PlaySfxAtPos(&this->dyna.actor.projectedPos, NA_SE_EN_PO_LAUGH);
+                MIMIC_FLAGS(this) |= MIMIC_FLAG_PREVIOUSLY_LAUGHED;
+            } else {
+                MIMIC_FLAGS(this) |= MIMIC_FLAG_PREVIOUSLY_NOTICED;
+            }
+        }
     }
 
     Collider_UpdateCylinder(&this->dyna.actor, &this->collider);
     // do we really need this every time?
     CollisionCheck_SetAC(globalCtx, &globalCtx->colChkCtx, &this->collider.base);
+}
+
+void EnBu_CheckBonk(EnBu* this, GlobalContext* globalCtx){
+
+    // detect bonk
+    if ( this->dyna.actor.xzDistToPlayer < 200 && (globalCtx->actorCtx.unk1F5 != 0) && (globalCtx->actorCtx.unk1F4 == 0 || globalCtx->actorCtx.unk1F4 == 2)){ 
+        Player* player = GET_PLAYER(globalCtx); // unfortunately bonk detection also detects damage to player
+        if (player->invincibilityTimer > 0){
+            return;
+        }
+
+        if ((MIMIC_FLAGS(this) & MIMIC_FLAG_PREVIOUSLY_NOTICED) && !(MIMIC_FLAGS(this) & MIMIC_FLAG_PREVIOUSLY_LAUGHED)) {
+            s32 randomChance = ((s32)Rand_ZeroFloat(5)) % 5;
+
+            if (randomChance == 4) {
+                Audio_PlaySfxAtPos(&this->dyna.actor.projectedPos, NA_SE_EN_PO_LAUGH);
+                MIMIC_FLAGS(this) |= MIMIC_FLAG_PREVIOUSLY_LAUGHED;
+            }
+            //random chance of sinister laugh
+        } else {
+            MIMIC_FLAGS(this) |= MIMIC_FLAG_PREVIOUSLY_NOTICED;
+        }
+    }
 }
 
 
@@ -250,6 +275,8 @@ void EnBu_WaitClosed(EnBu* this, GlobalContext* globalCtx) {
         }
     }
 
+    EnBu_CheckBonk(this, globalCtx);
+
 }
 
 void EnBu_Update(Actor* thisx, GlobalContext* globalCtx) {
@@ -261,7 +288,7 @@ void EnBu_Update(Actor* thisx, GlobalContext* globalCtx) {
     EnBu_CheckDamage(this, globalCtx);
 }
 
-///*
+/*
 void Debug_PrintToScreen(Actor* thisx, GlobalContext *globalCtx) {
     EnBu* this = THIS;
     // with explanation comments
@@ -284,7 +311,8 @@ void Debug_PrintToScreen(Actor* thisx, GlobalContext *globalCtx) {
     // set position to somewhere near screen center
     GfxPrint_SetPos(&printer, 1, 10);
     //GfxPrint_Printf(&printer, "rot.y: %X", this->actor.home.rot.y);
-    GfxPrint_Printf(&printer, "alpha : %X", this->alpha);
+    //GfxPrint_Printf(&printer, "flags: %X", this->alpha);
+    GfxPrint_Printf(&printer, "flags: %X", MIMIC_FLAGS(THIS));
     GfxPrint_SetPos(&printer, 1, 12);
 
     // write Hello at previously set position with previously set color
@@ -304,7 +332,6 @@ void Debug_PrintToScreen(Actor* thisx, GlobalContext *globalCtx) {
     CLOSE_DISPS(globalCtx->state.gfxCtx);
 } // */
 
-///*
 void EnBu_PostLimbDraw(GlobalContext* globalCtx, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx, Gfx** gfx) {
     s32 pad;
     EnBu* this = THIS;
@@ -379,7 +406,11 @@ void EnBu_Draw(Actor* thisx, GlobalContext* globalCtx) {
                                    //NULL, EnBu_PostLimbDraw, &this->dyna.actor, &dispHead[3]);
                                    ////NULL, NULL, &this->dyna.actor, &dispHead[3]);
  
+    // TODO finish this
+    //Actor_DrawDamageEffects(globalCtx, &this->actor, this->limbPos, ARRAY_COUNT(this->limbPos), this->drawDmgEffScale,
+                            //this->drawDmgEffFrozenSteamScale, this->drawDmgEffAlpha, this->drawDmgEffType);
+
 
     CLOSE_DISPS(globalCtx->state.gfxCtx);
-    Debug_PrintToScreen(thisx, globalCtx);
+    //Debug_PrintToScreen(thisx, globalCtx);
 }
