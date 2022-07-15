@@ -30,6 +30,7 @@ RUN apt-get install -y practicerom-dev
 COPY requirements.txt requirements.txt
 
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
+RUN python3 -m pip install pycparser
 
 ENV LANG C.UTF-8
 
