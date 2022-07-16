@@ -5,7 +5,6 @@
  */
 
 #include "z_en_zob.h"
-#include "objects/object_zob/object_zob.h"
 
 #define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_8)
 
@@ -16,7 +15,7 @@ void EnZob_Destroy(Actor* thisx, PlayState* play);
 void EnZob_Update(Actor* thisx, PlayState* play);
 void EnZob_Draw(Actor* thisx, PlayState* play);
 
-void func_80B9F7E4(EnZob* this, s16 arg1, u8 arg2);
+void EnZob_ChangeAnimation(EnZob* this, s16 arg1, u8 arg2);
 void func_80B9FD24(EnZob* this, PlayState* play);
 void func_80B9FDDC(EnZob* this, PlayState* play);
 void func_80B9FE1C(EnZob* this, PlayState* play);
@@ -70,9 +69,9 @@ static ColliderCylinderInit sCylinderInit = {
 };
 
 static AnimationHeader* sAnimations[] = {
-    &object_zob_Anim_0027D0, &object_zob_Anim_002B38, &object_zob_Anim_0037A0,
-    &object_zob_Anim_0043C4, &object_zob_Anim_005224, &object_zob_Anim_005E90,
-    &object_zob_Anim_006998, &object_zob_Anim_011144, &object_zob_Anim_001FD4,
+    &gJapasBassStrumLoopingAnim, &object_zob_Anim_002B38, &object_zob_Anim_0037A0,
+    &object_zob_Anim_0043C4, &gJapasHairAdjustAnim, &gJapasHairAdjustLoopAnim,
+    &gJapasIdleBassPracticeAnim, &gJapaLookingUpAnim, &gJapasBassStrumIntoIdleAnim,
 };
 
 Vec3f D_80BA1120 = { 300.0f, 900.0f, 0.0f };
@@ -85,18 +84,18 @@ void EnZob_Init(Actor* thisx, PlayState* play) {
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 20.0f);
     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
     Actor_SetScale(&this->actor, 0.0115f);
-    SkelAnime_InitFlex(play, &this->skelAnime, &object_zob_Skel_010810, &object_zob_Anim_006998, this->jointTable,
-                       this->morphTable, 24);
-    Animation_PlayLoop(&this->skelAnime, &object_zob_Anim_006998);
+    SkelAnime_InitFlex(play, &this->skelAnime, &gJapasSkeleton, &gJapasIdleBassPracticeAnim, this->jointTable,
+                       this->morphTable, ZOB_LIMB_MAX);
+    Animation_PlayLoop(&this->skelAnime, &gJapasIdleBassPracticeAnim);
     Collider_InitAndSetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
     this->unk_2F4 = 0;
     this->unk_30E = -1;
     this->unk_310 = 0;
-    this->unk_302 = 9;
+    this->curAnimationIndex = 9;
     this->unk_304 = 0;
     this->actor.terminalVelocity = -4.0f;
     this->actor.gravity = -4.0f;
-    func_80B9F7E4(this, 6, ANIMMODE_ONCE);
+    EnZob_ChangeAnimation(this, 6, ANIMMODE_ONCE);
     this->actionFunc = func_80BA0728;
     this->actor.textId = 0;
 
@@ -112,8 +111,8 @@ void EnZob_Init(Actor* thisx, PlayState* play) {
     this->actor.cutscene = this->unk_306[0];
     this->actor.flags |= ACTOR_FLAG_2000000;
 
-    switch (ENZOB_GET_F(&this->actor)) {
-        case ENZOB_F_1:
+    switch (ENZOB_GET_TYPE(&this->actor)) {
+        case ZOB_TYPE_1: // standing outside
             if (gSaveContext.save.weekEventReg[78] & 1) {
                 this->actionFunc = func_80BA0BB4;
             } else {
@@ -126,15 +125,15 @@ void EnZob_Init(Actor* thisx, PlayState* play) {
             }
             break;
 
-        case ENZOB_F_2:
+        case ZOB_TYPE_2: // mikaus memories during healing
             this->actionFunc = func_80BA0CF4;
             this->unk_2F4 |= 0x20;
             this->unk_312 = -1;
-            func_80B9F7E4(this, 0, ANIMMODE_ONCE);
+            EnZob_ChangeAnimation(this, 0, ANIMMODE_ONCE);
             this->unk_304 = 5;
             break;
 
-        default:
+        default: // in his room 
             if (gSaveContext.save.weekEventReg[55] & 0x80) {
                 Actor_MarkForDeath(&this->actor);
             }
@@ -149,10 +148,10 @@ void EnZob_Destroy(Actor* thisx, PlayState* play) {
     Collider_DestroyCylinder(play, &this->collider);
 }
 
-void func_80B9F7E4(EnZob* this, s16 arg1, u8 arg2) {
+void EnZob_ChangeAnimation(EnZob* this, s16 arg1, u8 arg2) {
     Animation_Change(&this->skelAnime, sAnimations[arg1], 1.0f, 0.0f, Animation_GetLastFrame(sAnimations[arg1]), arg2,
                      -5.0f);
-    this->unk_302 = arg1;
+    this->curAnimationIndex = arg1;
 }
 
 void func_80B9F86C(EnZob* this) {
@@ -160,43 +159,43 @@ void func_80B9F86C(EnZob* this) {
         switch (this->unk_304) {
             case 0:
                 if (Rand_ZeroFloat(1.0f) > 0.7f) {
-                    if (this->unk_302 == 6) {
-                        func_80B9F7E4(this, 7, ANIMMODE_ONCE);
+                    if (this->curAnimationIndex == 6) {
+                        EnZob_ChangeAnimation(this, 7, ANIMMODE_ONCE);
                     } else {
-                        func_80B9F7E4(this, 6, ANIMMODE_ONCE);
+                        EnZob_ChangeAnimation(this, 6, ANIMMODE_ONCE);
                     }
                 } else {
-                    func_80B9F7E4(this, this->unk_302, 2);
+                    EnZob_ChangeAnimation(this, this->curAnimationIndex, 2);
                 }
                 break;
 
             case 1:
-                func_80B9F7E4(this, 3, ANIMMODE_LOOP);
+                EnZob_ChangeAnimation(this, 3, ANIMMODE_LOOP);
                 break;
 
             case 2:
-                func_80B9F7E4(this, 4, ANIMMODE_LOOP);
+                EnZob_ChangeAnimation(this, 4, ANIMMODE_LOOP);
                 break;
 
             case 3:
-                func_80B9F7E4(this, 5, ANIMMODE_LOOP);
+                EnZob_ChangeAnimation(this, 5, ANIMMODE_LOOP);
                 break;
 
             case 4:
-                if (this->unk_302 == 3) {
-                    func_80B9F7E4(this, 0, ANIMMODE_LOOP);
+                if (this->curAnimationIndex == 3) {
+                    EnZob_ChangeAnimation(this, 0, ANIMMODE_LOOP);
                 } else {
-                    func_80B9F7E4(this, 3, ANIMMODE_ONCE);
+                    EnZob_ChangeAnimation(this, 3, ANIMMODE_ONCE);
                 }
                 break;
 
             case 5:
                 if (Rand_ZeroFloat(1.0f) < 0.8f) {
-                    func_80B9F7E4(this, this->unk_302, ANIMMODE_ONCE);
-                } else if (this->unk_302 == 0) {
-                    func_80B9F7E4(this, 1, ANIMMODE_ONCE);
+                    EnZob_ChangeAnimation(this, this->curAnimationIndex, ANIMMODE_ONCE);
+                } else if (this->curAnimationIndex == 0) {
+                    EnZob_ChangeAnimation(this, 1, ANIMMODE_ONCE);
                 } else {
-                    func_80B9F7E4(this, 0, ANIMMODE_ONCE);
+                    EnZob_ChangeAnimation(this, 0, ANIMMODE_ONCE);
                 }
                 break;
         }
@@ -217,36 +216,36 @@ void func_80B9FA3C(EnZob* this, PlayState* play) {
             textId = 0x11F8;
         }
         this->unk_304 = 3;
-        func_80B9F7E4(this, 5, ANIMMODE_LOOP);
+        EnZob_ChangeAnimation(this, 5, ANIMMODE_LOOP);
     } else if (this->unk_2F4 & 0x10) {
         textId = 0x1210;
         this->unk_304 = 3;
-        func_80B9F7E4(this, 5, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 5, ANIMMODE_ONCE);
     } else if (gSaveContext.save.weekEventReg[31] & 8) {
         textId = 0x1205;
         this->unk_304 = 1;
-        func_80B9F7E4(this, 3, ANIMMODE_LOOP);
+        EnZob_ChangeAnimation(this, 3, ANIMMODE_LOOP);
     } else if (this->unk_2F4 & 8) {
         textId = 0x1215;
         this->unk_304 = 3;
-        func_80B9F7E4(this, 5, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 5, ANIMMODE_ONCE);
     } else if (this->unk_2F4 & 2) {
         textId = 0x1203;
         this->unk_304 = 1;
-        func_80B9F7E4(this, 2, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 2, ANIMMODE_ONCE);
     } else if (gSaveContext.save.weekEventReg[30] & 8) {
         textId = 0x11FA;
         this->unk_304 = 1;
-        func_80B9F7E4(this, 2, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 2, ANIMMODE_ONCE);
     } else if (!(gSaveContext.save.weekEventReg[30] & 4)) {
         gSaveContext.save.weekEventReg[30] |= 4;
         textId = 0x11FB;
         this->unk_304 = 1;
-        func_80B9F7E4(this, 2, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 2, ANIMMODE_ONCE);
     } else {
         textId = 0x1201;
         this->unk_304 = 3;
-        func_80B9F7E4(this, 4, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 4, ANIMMODE_ONCE);
     }
 
     Message_StartTextbox(play, textId, &this->actor);
@@ -273,7 +272,7 @@ void func_80B9FCA0(EnZob* this, PlayState* play) {
     this->unk_2F4 &= ~1;
     this->actionFunc = func_80BA0728;
     this->unk_304 = 0;
-    func_80B9F7E4(this, 6, ANIMMODE_ONCE);
+    EnZob_ChangeAnimation(this, 6, ANIMMODE_ONCE);
     func_800B8718(&this->actor, &play->state);
 }
 
@@ -292,11 +291,11 @@ void func_80B9FD24(EnZob* this, PlayState* play) {
             this->unk_310 = action;
             switch (action) {
                 case 1:
-                    func_80B9F7E4(this, 8, ANIMMODE_LOOP);
+                    EnZob_ChangeAnimation(this, 8, ANIMMODE_LOOP);
                     break;
 
                 case 2:
-                    func_80B9F7E4(this, 7, ANIMMODE_LOOP);
+                    EnZob_ChangeAnimation(this, 7, ANIMMODE_LOOP);
                     break;
             }
         }
@@ -323,7 +322,7 @@ void func_80B9FE5C(EnZob* this, PlayState* play) {
         play->msgCtx.unk11F10 = 0;
         this->actionFunc = func_80B9FE1C;
         this->unk_304 = 3;
-        func_80B9F7E4(this, 5, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 5, ANIMMODE_ONCE);
         func_80B9FC70(this, 0);
     }
 }
@@ -342,14 +341,14 @@ void func_80B9FF80(EnZob* this, PlayState* play) {
     if (play->msgCtx.ocarinaMode == 3) {
         this->actionFunc = func_80B9FF20;
         this->unk_304 = 6;
-        func_80B9F7E4(this, 1, ANIMMODE_LOOP);
+        EnZob_ChangeAnimation(this, 1, ANIMMODE_LOOP);
         func_80152434(play, 0x3E);
         func_80B9FC70(this, 1);
     } else if (Message_GetState(&play->msgCtx) == 11) {
         play->msgCtx.unk11F10 = 0;
         this->actionFunc = func_80B9FE1C;
         this->unk_304 = 3;
-        func_80B9F7E4(this, 5, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 5, ANIMMODE_ONCE);
         func_80B9FC70(this, 0);
     }
 }
@@ -374,7 +373,7 @@ void func_80BA00BC(EnZob* this, PlayState* play) {
                         func_8019F208();
                         func_80151938(play, 0x1209);
                         this->unk_304 = 1;
-                        func_80B9F7E4(this, 2, ANIMMODE_ONCE);
+                        EnZob_ChangeAnimation(this, 2, ANIMMODE_ONCE);
                         break;
 
                     case 0:
@@ -397,7 +396,7 @@ void func_80BA00BC(EnZob* this, PlayState* play) {
                     case 0x120C:
                         play->msgCtx.unk11F10 = 0;
                         this->actionFunc = func_80B9FD24;
-                        func_80B9F7E4(this, 8, ANIMMODE_LOOP);
+                        EnZob_ChangeAnimation(this, 8, ANIMMODE_LOOP);
                         func_80B9FC70(this, 3);
                         break;
 
@@ -407,7 +406,7 @@ void func_80BA00BC(EnZob* this, PlayState* play) {
                     case 0x1217:
                         func_80151938(play, play->msgCtx.currentTextId + 1);
                         this->unk_304 = 3;
-                        func_80B9F7E4(this, 4, ANIMMODE_ONCE);
+                        EnZob_ChangeAnimation(this, 4, ANIMMODE_ONCE);
                         break;
 
                     case 0x1218:
@@ -428,7 +427,7 @@ void func_80BA00BC(EnZob* this, PlayState* play) {
                     case 0x1209:
                         func_80152434(play, 0x3D);
                         this->unk_304 = 4;
-                        func_80B9F7E4(this, 0, ANIMMODE_LOOP);
+                        EnZob_ChangeAnimation(this, 0, ANIMMODE_LOOP);
                         this->actionFunc = func_80BA005C;
                         func_80B9FC70(this, 1);
                         break;
@@ -441,7 +440,7 @@ void func_80BA00BC(EnZob* this, PlayState* play) {
 void func_80BA0318(EnZob* this, PlayState* play) {
     func_80152434(play, 0x3D);
     this->unk_304 = 4;
-    func_80B9F7E4(this, 0, ANIMMODE_LOOP);
+    EnZob_ChangeAnimation(this, 0, ANIMMODE_LOOP);
     this->actionFunc = func_80BA005C;
     func_80B9FC70(this, 1);
 }
@@ -458,7 +457,7 @@ void func_80BA0374(EnZob* this, PlayState* play) {
                     case 0:
                         func_8019F208();
                         func_80151938(play, 0x1207);
-                        func_80B9F7E4(this, 2, ANIMMODE_ONCE);
+                        EnZob_ChangeAnimation(this, 2, ANIMMODE_ONCE);
                         break;
 
                     case 1:
@@ -481,7 +480,7 @@ void func_80BA0374(EnZob* this, PlayState* play) {
                         func_801477B4(play);
                         this->actionFunc = func_80BA0728;
                         this->unk_304 = 0;
-                        func_80B9F7E4(this, 6, ANIMMODE_ONCE);
+                        EnZob_ChangeAnimation(this, 6, ANIMMODE_ONCE);
                         this->unk_2F4 &= ~1;
                         break;
 
@@ -495,13 +494,13 @@ void func_80BA0374(EnZob* this, PlayState* play) {
 
                     case 0x11FD:
                         this->unk_304 = 3;
-                        func_80B9F7E4(this, 4, ANIMMODE_ONCE);
+                        EnZob_ChangeAnimation(this, 4, ANIMMODE_ONCE);
                         func_80151938(play, play->msgCtx.currentTextId + 1);
                         break;
 
                     case 0x11FE:
                         this->unk_304 = 1;
-                        func_80B9F7E4(this, 3, ANIMMODE_LOOP);
+                        EnZob_ChangeAnimation(this, 3, ANIMMODE_LOOP);
                         func_80151938(play, play->msgCtx.currentTextId + 1);
                         break;
 
@@ -516,7 +515,7 @@ void func_80BA0374(EnZob* this, PlayState* play) {
                         func_801477B4(play);
                         this->actionFunc = func_80BA0728;
                         this->unk_304 = 0;
-                        func_80B9F7E4(this, 6, ANIMMODE_ONCE);
+                        EnZob_ChangeAnimation(this, 6, ANIMMODE_ONCE);
                         this->unk_2F4 &= ~1;
                         this->unk_2F4 |= 2;
                         break;
@@ -539,7 +538,7 @@ void func_80BA0610(EnZob* this, PlayState* play) {
         this->actor.flags &= ~ACTOR_FLAG_10000;
         Message_StartTextbox(play, 0x120D, &this->actor);
         this->unk_304 = 3;
-        func_80B9F7E4(this, 5, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 5, ANIMMODE_ONCE);
         func_80B9FC70(this, 0);
         this->actionFunc = func_80BA00BC;
     } else {
@@ -571,7 +570,7 @@ void func_80BA0728(EnZob* this, PlayState* play) {
         }
         this->actionFunc = func_80BA00BC;
         this->unk_304 = 1;
-        func_80B9F7E4(this, 2, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 2, ANIMMODE_ONCE);
         this->unk_30E = 0;
         this->unk_2F4 |= 1;
     } else if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
@@ -598,21 +597,21 @@ void func_80BA08E8(EnZob* this, PlayState* play) {
         if (gSaveContext.save.weekEventReg[79] & 1) {
             textId = 0x1257;
             this->unk_304 = 3;
-            func_80B9F7E4(this, 4, ANIMMODE_ONCE);
+            EnZob_ChangeAnimation(this, 4, ANIMMODE_ONCE);
         } else if (gSaveContext.save.weekEventReg[78] & 0x40) {
             textId = 0x1256;
             this->unk_304 = 1;
-            func_80B9F7E4(this, 2, ANIMMODE_ONCE);
+            EnZob_ChangeAnimation(this, 2, ANIMMODE_ONCE);
         } else {
             textId = 0x1255;
             gSaveContext.save.weekEventReg[78] |= 0x40;
             this->unk_304 = 1;
-            func_80B9F7E4(this, 2, ANIMMODE_ONCE);
+            EnZob_ChangeAnimation(this, 2, ANIMMODE_ONCE);
         }
     } else {
         textId = 0x1254;
         this->unk_304 = 3;
-        func_80B9F7E4(this, 5, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 5, ANIMMODE_ONCE);
     }
 
     Message_StartTextbox(play, textId, &this->actor);
@@ -635,12 +634,12 @@ void func_80BA0A04(EnZob* this, PlayState* play) {
             func_801477B4(play);
             this->actionFunc = func_80BA0AD8;
             this->unk_304 = 0;
-            func_80B9F7E4(this, 6, ANIMMODE_ONCE);
+            EnZob_ChangeAnimation(this, 6, ANIMMODE_ONCE);
         }
     } else {
         this->actionFunc = func_80BA0AD8;
         this->unk_304 = 0;
-        func_80B9F7E4(this, 6, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 6, ANIMMODE_ONCE);
     }
 }
 
@@ -665,7 +664,7 @@ void func_80BA0BB4(EnZob* this, PlayState* play) {
     func_80B9F86C(this);
     if (gSaveContext.save.weekEventReg[79] & 1) {
         this->actionFunc = func_80BA09E0;
-        func_80B9F7E4(this, 0, ANIMMODE_ONCE);
+        EnZob_ChangeAnimation(this, 0, ANIMMODE_ONCE);
         this->unk_304 = 5;
     }
 }

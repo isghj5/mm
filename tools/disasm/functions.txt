@@ -15012,7 +15012,7 @@
     0x80B9EF70:("MirRay3_Draw",),
     0x80B9F570:("EnZob_Init",),
     0x80B9F7B8:("EnZob_Destroy",),
-    0x80B9F7E4:("func_80B9F7E4",),
+    0x80B9F7E4:("EnZob_ChangeAnimation",),
     0x80B9F86C:("func_80B9F86C",),
     0x80B9FA3C:("func_80B9FA3C",),
     0x80B9FC0C:("func_80B9FC0C",),

@@ -1,13 +1,21 @@
 ﻿<Root>
+    <!-- The Zora band Bassist, Japas -->
     <File Name="object_zob" Segment="6">
-        <Animation Name="object_zob_Anim_001FD4" Offset="0x1FD4" />
-        <Animation Name="object_zob_Anim_0027D0" Offset="0x27D0" />
-        <Animation Name="object_zob_Anim_002B38" Offset="0x2B38" />
-        <Animation Name="object_zob_Anim_0037A0" Offset="0x37A0" />
-        <Animation Name="object_zob_Anim_0043C4" Offset="0x43C4" />
-        <Animation Name="object_zob_Anim_005224" Offset="0x5224" />
-        <Animation Name="object_zob_Anim_005E90" Offset="0x5E90" />
-        <Animation Name="object_zob_Anim_006998" Offset="0x6998" />
+        <!-- These first two start the same but the first one slows into an idle, second keeps looping. -->
+        <Animation Name="gJapasBassStrumIntoIdleAnim" Offset="0x1FD4" /> <!-- Original name is "jb_ensou_loop" -->
+        <Animation Name="gJapasBassStrumLoopingAnim" Offset="0x27D0" /> <!-- Original name is "zB_play01" -->
+        <Animation Name="object_zob_Anim_002B38" Offset="0x2B38" /> <!-- Original name is "zB_play02" -->
+        <!-- Used when Japas is praising Mikau. -->
+        <Animation Name="object_zob_Anim_0037A0" Offset="0x37A0" /> <!-- Original name is "zB_talk01" -->
+        <!-- Used when Japas is praising Mikau, looping -->
+        <Animation Name="object_zob_Anim_0043C4" Offset="0x43C4" /> <!-- Original name is "zB_talk02" -->
+        <!-- Used when Japas is telling you Evan is too proud to like his new jam. -->
+        <Animation Name="gJapasHairAdjustAnim" Offset="0x5224" /> <!-- Original name is "zB_talk03" -->
+        <!-- Holding his guitar verticle by his side while he talks to you after hair animation above. -->
+        <Animation Name="gJapasHairAdjustLoopAnim" Offset="0x5E90" /> <!-- Original name is "zB_talk04" -->
+        <!-- Playing LOZ1 Dungeon theme on his bass in his room, idle -->
+        <Animation Name="gJapasIdleBassPracticeAnim" Offset="0x6998" /> <!-- Original name is "zB_wait01" -->
+
         <DList Name="object_zob_DL_00A700" Offset="0xA700" />
         <DList Name="object_zob_DL_00A880" Offset="0xA880" />
         <DList Name="object_zob_DL_00AA58" Offset="0xAA58" />
@@ -30,44 +38,59 @@
         <DList Name="object_zob_DL_00C7B0" Offset="0xC7B0" />
         <DList Name="object_zob_DL_00C9E0" Offset="0xC9E0" />
         <DList Name="object_zob_DL_00CB98" Offset="0xCB98" />
-        <Texture Name="object_zob_TLUT_00CE20" OutName="tlut_00CE20" Format="rgba16" Width="16" Height="16" Offset="0xCE20" />
-        <Texture Name="object_zob_TLUT_00D020" OutName="tlut_00D020" Format="rgba16" Width="16" Height="16" Offset="0xD020" />
-        <Texture Name="object_zob_Tex_00D220" OutName="tex_00D220" Format="ci8" Width="8" Height="8" Offset="0xD220" />
-        <Texture Name="object_zob_Tex_00D260" OutName="tex_00D260" Format="ci8" Width="32" Height="32" Offset="0xD260" />
-        <Texture Name="object_zob_Tex_00D660" OutName="tex_00D660" Format="rgba16" Width="16" Height="16" Offset="0xD660" />
-        <Texture Name="object_zob_Tex_00D860" OutName="tex_00D860" Format="rgba16" Width="16" Height="16" Offset="0xD860" />
-        <Texture Name="object_zob_Tex_00DA60" OutName="tex_00DA60" Format="rgba16" Width="32" Height="32" Offset="0xDA60" />
-        <Texture Name="object_zob_Tex_00E260" OutName="tex_00E260" Format="ci8" Width="8" Height="8" Offset="0xE260" />
-        <Texture Name="object_zob_Tex_00E2A0" OutName="tex_00E2A0" Format="rgba16" Width="32" Height="32" Offset="0xE2A0" />
-        <Texture Name="object_zob_Tex_00EAA0" OutName="tex_00EAA0" Format="rgba16" Width="32" Height="32" Offset="0xEAA0" />
-        <Texture Name="object_zob_Tex_00F2A0" OutName="tex_00F2A0" Format="rgba16" Width="32" Height="32" Offset="0xF2A0" />
-        <Texture Name="object_zob_Tex_00FAA0" OutName="tex_00FAA0" Format="rgba16" Width="16" Height="16" Offset="0xFAA0" />
-        <Texture Name="object_zob_Tex_00FCA0" OutName="tex_00FCA0" Format="rgba16" Width="16" Height="16" Offset="0xFCA0" />
-        <Texture Name="object_zob_Tex_00FEA0" OutName="tex_00FEA0" Format="rgba16" Width="32" Height="32" Offset="0xFEA0" />
-        <Limb Name="object_zob_Standardlimb_0106A0" Type="Standard" EnumName="OBJECT_ZOB_LIMB_01" Offset="0x106A0" />
-        <Limb Name="object_zob_Standardlimb_0106AC" Type="Standard" EnumName="OBJECT_ZOB_LIMB_02" Offset="0x106AC" />
-        <Limb Name="object_zob_Standardlimb_0106B8" Type="Standard" EnumName="OBJECT_ZOB_LIMB_03" Offset="0x106B8" />
-        <Limb Name="object_zob_Standardlimb_0106C4" Type="Standard" EnumName="OBJECT_ZOB_LIMB_04" Offset="0x106C4" />
-        <Limb Name="object_zob_Standardlimb_0106D0" Type="Standard" EnumName="OBJECT_ZOB_LIMB_05" Offset="0x106D0" />
-        <Limb Name="object_zob_Standardlimb_0106DC" Type="Standard" EnumName="OBJECT_ZOB_LIMB_06" Offset="0x106DC" />
-        <Limb Name="object_zob_Standardlimb_0106E8" Type="Standard" EnumName="OBJECT_ZOB_LIMB_07" Offset="0x106E8" />
-        <Limb Name="object_zob_Standardlimb_0106F4" Type="Standard" EnumName="OBJECT_ZOB_LIMB_08" Offset="0x106F4" />
-        <Limb Name="object_zob_Standardlimb_010700" Type="Standard" EnumName="OBJECT_ZOB_LIMB_09" Offset="0x10700" />
-        <Limb Name="object_zob_Standardlimb_01070C" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0A" Offset="0x1070C" />
-        <Limb Name="object_zob_Standardlimb_010718" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0B" Offset="0x10718" />
-        <Limb Name="object_zob_Standardlimb_010724" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0C" Offset="0x10724" />
-        <Limb Name="object_zob_Standardlimb_010730" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0D" Offset="0x10730" />
-        <Limb Name="object_zob_Standardlimb_01073C" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0E" Offset="0x1073C" />
-        <Limb Name="object_zob_Standardlimb_010748" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0F" Offset="0x10748" />
-        <Limb Name="object_zob_Standardlimb_010754" Type="Standard" EnumName="OBJECT_ZOB_LIMB_10" Offset="0x10754" />
-        <Limb Name="object_zob_Standardlimb_010760" Type="Standard" EnumName="OBJECT_ZOB_LIMB_11" Offset="0x10760" />
-        <Limb Name="object_zob_Standardlimb_01076C" Type="Standard" EnumName="OBJECT_ZOB_LIMB_12" Offset="0x1076C" />
-        <Limb Name="object_zob_Standardlimb_010778" Type="Standard" EnumName="OBJECT_ZOB_LIMB_13" Offset="0x10778" />
-        <Limb Name="object_zob_Standardlimb_010784" Type="Standard" EnumName="OBJECT_ZOB_LIMB_14" Offset="0x10784" />
-        <Limb Name="object_zob_Standardlimb_010790" Type="Standard" EnumName="OBJECT_ZOB_LIMB_15" Offset="0x10790" />
-        <Limb Name="object_zob_Standardlimb_01079C" Type="Standard" EnumName="OBJECT_ZOB_LIMB_16" Offset="0x1079C" />
-        <Limb Name="object_zob_Standardlimb_0107A8" Type="Standard" EnumName="OBJECT_ZOB_LIMB_17" Offset="0x107A8" />
-        <Skeleton Name="object_zob_Skel_010810" Type="Flex" LimbType="Standard" LimbNone="OBJECT_ZOB_LIMB_NONE" LimbMax="OBJECT_ZOB_LIMB_MAX" EnumName="object_zob_Limbs" Offset="0x10810" />
-        <Animation Name="object_zob_Anim_011144" Offset="0x11144" />
+
+        <!-- Japas Textures -->
+    
+        <!-- Weirdly, these two TLUTS are exactly the same -->
+        <Texture Name="gJapasTLUT1" OutName="tlut_00CE20" Format="rgba16" Width="16" Height="16" Offset="0xCE20" />
+        <Texture Name="gJapasTLUT2" OutName="tlut_00D020" Format="rgba16" Width="16" Height="16" Offset="0xD020" />
+        <Texture Name="gJapasZoraSkinGradientTex" OutName="skin_gradient" Format="ci8" Width="8" Height="8" Offset="0xD220" />
+        <Texture Name="gJapasZoraSkinScalesTex" OutName="skin_scales" Format="ci8" Width="32" Height="32" Offset="0xD260" />
+        <Texture Name="gJapasFingersTex" OutName="fingers" Format="rgba16" Width="16" Height="16" Offset="0xD660" />
+        <Texture Name="gJapasHairTex" OutName="hair" Format="rgba16" Width="16" Height="16" Offset="0xD860" />
+        <Texture Name="gJapasMouthTex" OutName="mouth" Format="rgba16" Width="32" Height="32" Offset="0xDA60" />
+        <!-- Doesn't have eyes, just shadows under his hair, which is this gradient. Darker than his skin gradient. -->
+        <Texture Name="gJapasEyeGradient" OutName="eye_gradient" Format="ci8" Width="8" Height="8" Offset="0xE260" />
+
+        
+        <!-- The Crab Bass Textures -->
+        <!-- The Crab Bass's Crab face/eye texture adjacent to the fret arm. -->
+        <Texture Name="gJapasCrabBassEyeTex" OutName="bass_eye" Format="rgba16" Width="32" Height="32" Offset="0xE2A0" />
+        <Texture Name="gJapasCrabBassBodyHolesText" OutName="bass_body" Format="rgba16" Width="32" Height="32" Offset="0xEAA0" />
+        <!-- Seen along top and bottom of crab arm, Pronounced at top and bottom of main bass body. -->
+        <Texture Name="gJapasCrabBassRedSpikeTex" OutName="bass_red_spike" Format="rgba16" Width="32" Height="32" Offset="0xF2A0" />
+        <Texture Name="gJapasCrabBassStringsTex" OutName="bass_strings" Format="rgba16" Width="16" Height="16" Offset="0xFAA0" />
+        <Texture Name="gJapasCrabBassNeckHolesTex" OutName="bass_neck" Format="rgba16" Width="16" Height="16" Offset="0xFCA0" />
+        <!-- Primary texture of crab pincer headstock, Also seen down below the bridge at the bottom of the body. -->
+        <Texture Name="gJapasCrabBassRedSpotsTex" OutName="bass_red_spots" Format="rgba16" Width="32" Height="32" Offset="0xFEA0" />
+
+        <Limb Name="gJapasPelvisLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_01" Offset="0x106A0" />
+        <Limb Name="gJapasLeftThighLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_02" Offset="0x106AC" />
+        <Limb Name="gJapasLeftShinLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_03" Offset="0x106B8" />
+        <Limb Name="gJapasLeftFootLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_04" Offset="0x106C4" />
+        <Limb Name="gJapasRightThighLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_05" Offset="0x106D0" />
+        <Limb Name="gJapasRightShinLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_06" Offset="0x106DC" />
+        <Limb Name="gJapasRightFootLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_07" Offset="0x106E8" />
+        <Limb Name="gJapasChestLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_08" Offset="0x106F4" />
+        <Limb Name="gJapasHeadLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_09" Offset="0x10700" />
+        <Limb Name="gJapasHeadTailLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0A" Offset="0x1070C" />
+        <Limb Name="gJapasLeftHair1Limb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0B" Offset="0x10718" />
+        <Limb Name="gJapasLeftHair2Limb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0C" Offset="0x10724" />
+        <Limb Name="gJapasRightHair1Limb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0D" Offset="0x10730" />
+        <Limb Name="gJapasRightHair2Limb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0E" Offset="0x1073C" />
+        <!-- Bass Guitar is tied to his left hand, so we start with right first for arms. -->
+        <Limb Name="gJapasRightUpperArmLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_0F" Offset="0x10748" />
+        <Limb Name="gJapasRightForarmLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_10" Offset="0x10754" />
+        <Limb Name="gJapasRightHandLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_11" Offset="0x10760" />
+        <Limb Name="gJapasLeftUpperArmLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_12" Offset="0x1076C" />
+        <Limb Name="gJapasLeftForarmLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_13" Offset="0x10778" />
+        <Limb Name="gJapasBassGuitarRootLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_14" Offset="0x10784" />
+        <Limb Name="gJapasGuitarBodyLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_15" Offset="0x10790" />
+        <Limb Name="gJapasGuitarOutlineLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_16" Offset="0x1079C" />
+        <Limb Name="gJapasLeftHandLimb" Type="Standard" EnumName="OBJECT_ZOB_LIMB_17" Offset="0x107A8" />
+
+        <Skeleton Name="gJapasSkeleton" Type="Flex" LimbType="Standard" LimbNone="ZOB_LIMB_NONE" LimbMax="ZOB_LIMB_MAX" EnumName="ZobLimbs" Offset="0x10810" />
+
+        <Animation Name="gJapaLookingUpAnim" Offset="0x11144" /> <!-- Original name is "zB_wait02" -->
     </File>
 </Root>
