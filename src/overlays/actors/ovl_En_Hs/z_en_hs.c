@@ -82,8 +82,13 @@ void EnHs_Init(Actor* thisx, GlobalContext* globalCtx) {
     Actor_SetScale(&this->actor, 0.01f);
     this->actionFunc = func_8095345C;
 
-    if (globalCtx->curSpawn == 1) {
+    //if (globalCtx->curSpawn == 1) { // vanilla uses this to check if you have healed cuccos, but it assumes grog is always in one place
+    if (gSaveContext.save.entranceIndex == 0x7E10) { // this is more static to the one entrance we need to use
         this->actor.flags |= ACTOR_FLAG_10000;
+        // this does nothing it gets reset down below
+        // this only exists because we need to pad our asm back to vanilla padding 
+        //  as using save.entranceIndex is less asm
+        this->stateFlags |= 1;
     }
 
     this->stateFlags = 0;
