@@ -32,6 +32,7 @@ COPY requirements.txt requirements.txt
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
 RUN python3 -m pip install pycparser
 RUN python3 -m pip install -U rabbitizer
+RUN python3 -m pip install -U pyelftools 
 
 ENV LANG C.UTF-8
 
