@@ -1,6 +1,8 @@
 FROM ubuntu:22.04 as build
 ENV TZ=UTC
 
+# reminder: docker build . -t mm
+
 # Install Required Dependencies
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     apt-get update && apt-get install -y \
