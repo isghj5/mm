@@ -397,7 +397,7 @@ void ObjBean_Init(Actor* thisx, PlayState* play) {
         this->dyna.actor.shape.rot.z = 0;
         this->drawFlags |= 2;
 
-        DynaPolyActor_LoadMesh(play, &this->dyna, &object_mamenoki_Colheader_0004BC);
+        DynaPolyActor_LoadMesh(play, &this->dyna, &gMagicBeanPlatformCol);
         Collider_SetCylinder(play, &this->collider, &this->dyna.actor, &sCylinderInit1);
         Collider_UpdateCylinder(&this->dyna.actor, &this->collider);
 
@@ -945,11 +945,11 @@ void func_80938E00(Actor* thisx, PlayState* play) {
     gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 
     if (this->drawFlags & 4) {
-        gSPDisplayList(POLY_OPA_DISP++, object_mamenoki_DL_000090);
+        gSPDisplayList(POLY_OPA_DISP++, gMagicBeanSeedlingDL);
     }
 
     if (this->drawFlags & 2) {
-        gSPDisplayList(POLY_OPA_DISP++, object_mamenoki_DL_0002D0);
+        gSPDisplayList(POLY_OPA_DISP++, gMagicBeanPlatformDL);
     }
 
     if (this->drawFlags & 1) {
@@ -958,7 +958,7 @@ void func_80938E00(Actor* thisx, PlayState* play) {
         Matrix_Scale(this->unk_1B8, this->unk_1B8, this->unk_1B8, MTXMODE_APPLY);
 
         gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
-        gSPDisplayList(POLY_OPA_DISP++, object_mamenoki_DL_000530);
+        gSPDisplayList(POLY_OPA_DISP++, gSoftSoilPatchDL);
     }
 
     CLOSE_DISPS(play->state.gfxCtx);
@@ -967,5 +967,5 @@ void func_80938E00(Actor* thisx, PlayState* play) {
 void func_80938F50(Actor* thisx, PlayState* play) {
     ObjBean* this = THIS;
 
-    Gfx_DrawDListXlu(play, object_mamenoki_DL_002208);
+    Gfx_DrawDListXlu(play, gSoftSoilWallCrackDL);
 }
