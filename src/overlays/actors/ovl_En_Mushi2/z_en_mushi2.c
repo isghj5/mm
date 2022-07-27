@@ -147,8 +147,8 @@ s32 func_80A68910(EnMushi2* this, PlayState* play) {
 
     while (bean != NULL) {
         if (bean->id == ACTOR_OBJ_BEAN) {
-            params = OBJBEAN_GET_C000(bean);
-            if (((params == ENOBJBEAN_GET_C000_1) || (params == ENOBJBEAN_GET_C000_2)) &&
+            params = OBJBEAN_GET_TYPE(bean);
+            if (((params == ENOBJBEAN_GET_PATHLESS_SOIL) || (params == ENOBJBEAN_GET_WALLCRACK)) &&
                 (bean->room == this->actor.room)) {
                 temp_f0 = Math3D_XZDistanceSquared(this->actor.world.pos.x, this->actor.world.pos.z, bean->world.pos.x,
                                                    bean->world.pos.z);
@@ -157,7 +157,7 @@ s32 func_80A68910(EnMushi2* this, PlayState* play) {
                     ret = true;
                     minDistSq = temp_f0;
                     this->unk_34C = (ObjBean*)bean;
-                    if (params == ENOBJBEAN_GET_C000_1) {
+                    if (params == ENOBJBEAN_GET_PATHLESS_SOIL) {
                         this->unk_350 = SQ(30.0f);
                     } else {
                         this->unk_350 = SQ(39.0f);

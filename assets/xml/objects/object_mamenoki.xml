@@ -1,16 +1,28 @@
 ﻿<Root>
+    <!-- This is the Flying Magic Bean plant and the Soft Soil used by the bean and hiding Gold Skulltulas  -->
     <File Name="object_mamenoki" Segment="6">
-        <DList Name="object_mamenoki_DL_000090" Offset="0x90" />
-        <DList Name="object_mamenoki_DL_0002D0" Offset="0x2D0" />
-        <Collision Name="object_mamenoki_Colheader_0004BC" Offset="0x4BC" />
-        <DList Name="object_mamenoki_DL_000530" Offset="0x530" />
-        <Texture Name="object_mamenoki_Tex_0005C0" OutName="tex_0005C0" Format="rgba16" Width="32" Height="32" Offset="0x5C0" />
-        <Texture Name="object_mamenoki_Tex_000DC0" OutName="tex_000DC0" Format="rgba16" Width="16" Height="32" Offset="0xDC0" />
-        <Texture Name="object_mamenoki_Tex_0011C0" OutName="tex_0011C0" Format="rgba16" Width="32" Height="32" Offset="0x11C0" />
-        <Texture Name="object_mamenoki_Tex_0019C0" OutName="tex_0019C0" Format="rgba16" Width="16" Height="32" Offset="0x19C0" />
-        <Texture Name="object_mamenoki_Tex_001DC0" OutName="tex_001DC0" Format="rgba16" Width="32" Height="16" Offset="0x1DC0" />
-        <DList Name="object_mamenoki_DL_002200" Offset="0x2200" />
-        <DList Name="object_mamenoki_DL_002208" Offset="0x2208" />
-        <Texture Name="object_mamenoki_Tex_002298" OutName="tex_002298" Format="i8" Width="32" Height="32" Offset="0x2298" />
+        <DList Name="gMagicBeanSeedlingDL" Offset="0x90" />
+        <DList Name="gMagicBeanPlatformDL" Offset="0x2D0" />
+        <Collision Name="gMagicBeanPlatformCol" Offset="0x4BC" />
+    
+        <!-- Soft soil -->
+        <DList Name="gSoftSoilPatchDL" Offset="0x530" />
+        <Texture Name="gSoftSoilPatchTex" OutName="soft_soil" Format="rgba16" Width="32" Height="32" Offset="0x5C0" />
+
+        <!-- bean was planted, sprout has emerged, but not yet wattered to make full flying plant -->
+        <!--   also used by the underside of full flying platform -->
+        <Texture Name="gBeanSproutLeafTex" OutName="bean_left" Format="rgba16" Width="16" Height="32" Offset="0xDC0" />
+        <!-- used by bean plant platform -->
+        <Texture Name="gMagicBeanStackedLeavesTex" OutName="bean_stacked_leaves" Format="rgba16" Width="32" Height="32" Offset="0x11C0" />
+        <!-- sticking out of the top of flying bean plant -->
+        <Texture Name="gMagicBeanPlatformStem" OutName="plateform_stem" Format="rgba16" Width="16" Height="32" Offset="0x19C0" />
+        <!-- sticking out of the bottom of flying bean plant -->
+        <Texture Name="gMagicBeanPlatformRootsTex" OutName="platform_roots" Format="rgba16" Width="32" Height="16" Offset="0x1DC0" />
+
+        <DList Name="gSoftSoilEmptyDL" Offset="0x2200" />
+
+        <!-- unused in vanilla, one unused romani ranch setup/layer, placed on the wall of a ranch building -->
+        <DList Name="gSoftSoilWallCrackDL" Offset="0x2208" />
+        <Texture Name="gSoftSoilWallCrackTex" OutName="wall_crack" Format="i8" Width="32" Height="32" Offset="0x2298" />
     </File>
 </Root>
