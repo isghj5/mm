@@ -16,6 +16,8 @@ typedef void (*ObjBeanUnkFunc)(struct ObjBean*);
 
 #define OBJBEAN_GETZ_3(thisx) ((thisx)->home.rot.z & 3)
 
+// TODO make params make macro
+
 enum {
     /* 0x0 */ ENOBJBEAN_GET_C000_0,
     /* 0x1 */ ENOBJBEAN_GET_PATHLESS_SOIL,
