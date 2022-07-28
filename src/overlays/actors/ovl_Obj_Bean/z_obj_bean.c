@@ -173,7 +173,7 @@ void func_80936F04(ObjBean* this) {
 void func_80936F24(ObjBean* this) {
     this->timer1AC += 0xB6;
     this->unk_1AE += 0xFB;
-    this->unk_1B0 += 0x64;
+    this->unk_1B0 += 100;
     Math_StepToF(&this->unk_1C8, 2.0f, 0.1f);
     this->unk_1CC = (Math_SinS(this->timer1AC * 3) + Math_SinS(this->unk_1AE * 3)) * this->unk_1C8;
     this->unk_1D0 = (Math_CosS(this->timer1AC * 4) + Math_CosS(this->unk_1AE * 4)) * this->unk_1C8;
@@ -276,15 +276,16 @@ s32 func_80937468(ObjBean* this, PlayState* play) {
     return false;
 }
 
+// ObjBean_SearchForBean
 ObjBean* func_809374F8(ObjBean* this, PlayState* play) {
     Actor* bgActor = play->actorCtx.actorLists[ACTORCAT_BG].first;
     s32 params = OBJBEAN_GET_3F80(&this->dyna.actor, 0);
 
     while (bgActor != NULL) {
         if (bgActor->id == ACTOR_OBJ_BEAN) {
-            s32 params2 = OBJBEAN_GET_C000(bgActor);
+            s32 type = OBJBEAN_GET_TYPE(bgActor);
 
-            if (!params2 && (bgActor->room == this->dyna.actor.room) && !OBJBEAN_GET_80(bgActor) &&
+            if ((type == ENOBJBEAN_GET_C000_0) && (bgActor->room == this->dyna.actor.room) && !OBJBEAN_GET_80(bgActor) &&
                 (params == OBJBEAN_GET_SWITCHFLAG(bgActor, 0)) &&
                 (Math3D_Vec3fDistSq(&bgActor->world.pos, &this->dyna.actor.world.pos) < SQ(10.0f))) {
                 break;
@@ -300,7 +301,7 @@ void func_809375C8(ObjBean* this, PlayState* play) {
     ObjBean* bean = func_809374F8(this, play);
 
     if (bean != NULL) {
-        bean->unk_200 = 1;
+        bean->crossBeanFlag = 1;
     }
 }
 
@@ -364,7 +365,7 @@ static InitChainEntry sInitChain[] = {
 void ObjBean_Init(Actor* thisx, PlayState* play) {
     s32 pad;
     ObjBean* this = THIS;
-    s32 sp2C = OBJBEAN_GET_C000(&this->dyna.actor);
+    s32 type = OBJBEAN_GET_TYPE(&this->dyna.actor);
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
     this->drawFlags = 0;
@@ -372,10 +373,10 @@ void ObjBean_Init(Actor* thisx, PlayState* play) {
     DynaPolyActor_Init(&this->dyna, 3);
     Collider_InitCylinder(play, &this->collider);
 
-    if ((sp2C == ENOBJBEAN_GET_C000_1) || (sp2C == ENOBJBEAN_GET_C000_2)) {
+    if ((type == ENOBJBEAN_GET_PATHLESS_SOIL) || (type == ENOBJBEAN_GET_WALLCRACK)) {
         this->dyna.actor.update = func_80938C1C;
         this->dyna.actor.textId = 0xFD; //  Tatl: this is soft soil
-        if (sp2C == ENOBJBEAN_GET_C000_1) {
+        if (type == ENOBJBEAN_GET_PATHLESS_SOIL) {
             Collider_SetCylinder(play, &this->collider, &this->dyna.actor, &sCylinderInit2);
             Collider_UpdateCylinder(&this->dyna.actor, &this->collider);
         }
@@ -493,9 +494,9 @@ void func_80937DD8(ObjBean* this) {
 
 void func_80937DEC(ObjBean* this, PlayState* play) {
     s32 pad;
-    s32 sp20 = OBJBEAN_GET_C000(&this->dyna.actor);
+    s32 type = OBJBEAN_GET_TYPE(&this->dyna.actor);
 
-    if (sp20 == ENOBJBEAN_GET_C000_1) {
+    if (type == ENOBJBEAN_GET_PATHLESS_SOIL) {
         s32 pad2;
 
         if (func_809374F8(this, play) == NULL) {
@@ -517,7 +518,7 @@ void func_80937DEC(ObjBean* this, PlayState* play) {
         return;
     }
 
-    if (sp20 == ENOBJBEAN_GET_C000_2) {
+    if (type == ENOBJBEAN_GET_WALLCRACK) {
         this->dyna.actor.draw = func_80938F50;
     } else {
         this->dyna.actor.draw = func_80938E00;
@@ -568,6 +569,7 @@ void func_80937FC8(ObjBean* this, PlayState* play) {
                 (this->collider.base.ac->id == ACTOR_OBJ_AQUA)) ||
                ((this->bool1FF) && (this->drawFlags & 4) && (this->dyna.actor.xzDistToPlayer < 300.0f) &&
                 func_800FE9B4(play))) {
+        // sprouting a bean? getting hit with water
         func_809375C8(this, play);
         Flags_SetSwitch(play, OBJBEAN_GET_3F80(&this->dyna.actor, 1));
         this->unk_1E4 = 6;
@@ -734,12 +736,13 @@ void func_80938704(ObjBean* this) {
 }
 
 void func_80938728(ObjBean* this, PlayState* play) {
-    if (this->unk_200 != 0) {
+    if (this->crossBeanFlag) {
         ActorCutscene_SetIntentToPlay(this->dyna.actor.cutscene);
         func_8093876C(this);
     }
 }
 
+// setup cutscene
 void func_8093876C(ObjBean* this) {
     this->actionFunc = func_80938780;
 }
@@ -935,6 +938,7 @@ void ObjBean_Update(Actor* thisx, PlayState* play) {
     Actor_SetFocus(&this->dyna.actor, 6.0f);
 }
 
+// ObjBean_Draw
 void func_80938E00(Actor* thisx, PlayState* play) {
     ObjBean* this = THIS;
 
@@ -964,6 +968,7 @@ void func_80938E00(Actor* thisx, PlayState* play) {
     CLOSE_DISPS(play->state.gfxCtx);
 }
 
+// ObjBean_DrawWallCrack
 void func_80938F50(Actor* thisx, PlayState* play) {
     ObjBean* this = THIS;
 

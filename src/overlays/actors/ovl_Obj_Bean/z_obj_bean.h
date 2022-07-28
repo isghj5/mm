@@ -12,14 +12,14 @@ typedef void (*ObjBeanUnkFunc)(struct ObjBean*);
 #define OBJBEAN_GET_80(thisx) (((thisx)->params >> 7) & 1)
 #define OBJBEAN_GET_PATH(thisx) (((thisx)->params >> 8) & 0x3F)
 #define OBJBEAN_GET_3F80(thisx, x) ((((thisx)->params >> 7) + (x)) & 0x7F)
-#define OBJBEAN_GET_C000(thisx) (((thisx)->params >> 0xE) & 3)
+#define OBJBEAN_GET_TYPE(thisx) (((thisx)->params >> 0xE) & 3)
 
 #define OBJBEAN_GETZ_3(thisx) ((thisx)->home.rot.z & 3)
 
 enum {
     /* 0x0 */ ENOBJBEAN_GET_C000_0,
-    /* 0x1 */ ENOBJBEAN_GET_C000_1,
-    /* 0x2 */ ENOBJBEAN_GET_C000_2,
+    /* 0x1 */ ENOBJBEAN_GET_PATHLESS_SOIL,
+    /* 0x2 */ ENOBJBEAN_GET_WALLCRACK,
 };
 
 typedef struct ObjBean {
@@ -27,7 +27,7 @@ typedef struct ObjBean {
     /* 0x15C */ ObjBeanActionFunc actionFunc;
     /* 0x160 */ ColliderCylinder collider;
     /* 0x1AC */ s16 timer1AC;
-    /* 0x1AE */ s16 unk_1AE;
+    /* 0x1AE */ s16 unk_1AE; // timer increment and decrement in different directions
     /* 0x1B0 */ s16 unk_1B0;
     /* 0x1B2 */ s16 stateTimer;
     /* 0x1B4 */ s8 cutsceneTimer;
@@ -56,7 +56,7 @@ typedef struct ObjBean {
     /* 0x1FC */ s16 unk_1FC;
     /* 0x1FE */ u8 drawFlags; // tODO rename to like grow flags
     /* 0x1FF */ u8 bool1FF;
-    /* 0x200 */ u8 unk_200;
+    /* 0x200 */ u8 crossBeanFlag; // set by other bean???
 } ObjBean; // size = 0x204
 
 extern const ActorInit Obj_Bean_InitVars;
