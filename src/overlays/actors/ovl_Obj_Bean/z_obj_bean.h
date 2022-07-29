@@ -14,7 +14,7 @@ typedef void (*ObjBeanUnkFunc)(struct ObjBean*);
 #define OBJBEAN_GET_3F80(thisx, x) ((((thisx)->params >> 7) + (x)) & 0x7F)
 #define OBJBEAN_GET_TYPE(thisx) (((thisx)->params >> 0xE) & 3)
 
-#define OBJBEAN_GETZ_3(thisx) ((thisx)->home.rot.z & 3)
+#define OBJBEAN_GETZ_PLATFORM_SPEED_INDEX(thisx) ((thisx)->home.rot.z & 3)
 
 // TODO make params make macro
 
@@ -34,15 +34,15 @@ typedef struct ObjBean {
     /* 0x1B2 */ s16 stateTimer;
     /* 0x1B4 */ s8 cutsceneTimer;
     /* 0x1B8 */ f32 unk_1B8;
-    /* 0x1BC */ Vec3f unk_1BC;
+    /* 0x1BC */ Vec3f pathPoint;
     /* 0x1C8 */ f32 unk_1C8;
-    /* 0x1CC */ f32 unk_1CC;
-    /* 0x1D0 */ f32 unk_1D0;
+    /* 0x1CC */ f32 posOffsetX;
+    /* 0x1D0 */ f32 posOffsetZ;
     /* 0x1D4 */ Vec3s* pathPoints;
     /* 0x1D8 */ s16 pathNodeCount;
-    /* 0x1DA */ s16 unk_1DA;
+    /* 0x1DA */ s16 currentPointIndex;
     /* 0x1DC */ s16 unk_1DC;
-    /* 0x1DE */ s8 unk_1DE;
+    /* 0x1DE */ s8 platformSpeedIndex;
     /* 0x1DF */ s8 unk_1DF;
     /* 0x1E0 */ s8 unk_1E0;
     /* 0x1E4 */ s32 unk_1E4;

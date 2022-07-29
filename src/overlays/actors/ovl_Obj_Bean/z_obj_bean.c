@@ -2,6 +2,7 @@
  * File: z_obj_bean.c
  * Overlay: ovl_Obj_Bean
  * Description: Floating Bean Plant / Soft Soil
+ *   This actor does NOT accept bugs for skulltula/other rewards, that is another actor placed on top of this one
  */
 
 #include "z_obj_bean.h"
@@ -42,18 +43,18 @@ void func_809384E8(ObjBean* this);
 void func_80938504(ObjBean* this, PlayState* play);
 void func_80938588(ObjBean* this);
 void func_809385A8(ObjBean* this, PlayState* play);
-void func_80938670(ObjBean* this);
-void func_8093868C(ObjBean* this, PlayState* play);
-void func_80938704(ObjBean* this);
-void func_80938728(ObjBean* this, PlayState* play);
-void func_8093876C(ObjBean* this);
-void func_80938780(ObjBean* this, PlayState* play);
-void func_80938804(ObjBean* this);
-void func_80938834(ObjBean* this, PlayState* play);
-void func_80938874(ObjBean* this);
-void func_809388A8(ObjBean* this, PlayState* play);
-void func_8093892C(ObjBean* this);
-void func_80938958(ObjBean* this, PlayState* play);
+void ObjBean_SetupGrowPlatform(ObjBean* this);
+void ObjBean_GrowPlatform(ObjBean* this, PlayState* play);
+void ObjBean_SetupWaitForWater(ObjBean* this);
+void ObjBean_WaitForWater(ObjBean* this, PlayState* play);
+void ObjBean_SetupGrowSeedlingCutscene(ObjBean* this);
+void ObjBean_GrowSeedlingCutscene(ObjBean* this, PlayState* play);
+void ObjBean_SetupPlatformWaitForPlayer(ObjBean* this);
+void ObjBean_PlatformWaitForPlayer(ObjBean* this, PlayState* play);
+void ObjBean_SetupPlatformFly(ObjBean* this);
+void ObjBean_PlatformFly(ObjBean* this, PlayState* play);
+void ObjBean_SetupWaitForStepOff(ObjBean* this);
+void ObjBean_WaitForStepOff(ObjBean* this, PlayState* play);
 void func_809389BC(ObjBean* this, PlayState* play);
 void func_80938A14(ObjBean* this);
 void func_80938A5C(ObjBean* this, PlayState* play);
@@ -113,14 +114,22 @@ static ColliderCylinderInit sCylinderInit2 = {
 };
 
 // xz values 
-static Vec2f D_80938FF8[] = {
+static Vec2f sPlatformSpeeds[] = {
     { 3.0f, 0.3f },
     { 10.0f, 0.5f },
     { 30.0f, 0.5f },
     { 3.0f, 0.3f },
 };
 
-void func_80936CF0(ObjBean* this, PlayState* play) {
+enum {
+  /* 0 */ OBJBEAN_DRAWFLAG_NONE     = 0,
+  /* 1 */ OBJBEAN_DRAWFLAG_SOIL     = (1 << 0),
+  /* 2 */ OBJBEAN_DRAWFLAG_PLATFORM = (1 << 1),
+  /* 4 */ OBJBEAN_DRAWFLAG_SEEDLING = (1 << 2),
+} ObjBeanDrawFlags;
+
+// TODO better name?
+void ObjBean_UpdateFloorHeight(ObjBean* this, PlayState* play) {
     Vec3f sp24;
     s32 sp20;
 
@@ -131,6 +140,7 @@ void func_80936CF0(ObjBean* this, PlayState* play) {
         BgCheck_EntityRaycastFloor5(&play->colCtx, &this->dyna.actor.floorPoly, &sp20, &this->dyna.actor, &sp24);
 }
 
+// Checking if actor is touching the floor/wall?
 s32 func_80936D58(ObjBean* this, PlayState* play) {
     static Vec3f D_80939018 = { 0.0f, 30.0f, 0.0f };
     s32 pad;
@@ -170,13 +180,14 @@ void func_80936F04(ObjBean* this) {
     this->unk_1C8 = 0.0f;
 }
 
-void func_80936F24(ObjBean* this) {
+// Platform shrinks and grows in waves
+void ObjBean_PlatformUndulate(ObjBean* this) {
     this->timer1AC += 0xB6;
     this->unk_1AE += 0xFB;
     this->unk_1B0 += 100;
     Math_StepToF(&this->unk_1C8, 2.0f, 0.1f);
-    this->unk_1CC = (Math_SinS(this->timer1AC * 3) + Math_SinS(this->unk_1AE * 3)) * this->unk_1C8;
-    this->unk_1D0 = (Math_CosS(this->timer1AC * 4) + Math_CosS(this->unk_1AE * 4)) * this->unk_1C8;
+    this->posOffsetX = (Math_SinS(this->timer1AC * 3) + Math_SinS(this->unk_1AE * 3)) * this->unk_1C8;
+    this->posOffsetZ = (Math_CosS(this->timer1AC * 4) + Math_CosS(this->unk_1AE * 4)) * this->unk_1C8;
     this->dyna.actor.scale.z =
         ((Math_SinS(this->unk_1B0 * 5) * 0.06f) + (Math_SinS(this->unk_1AE * 8) * 0.01f) + 1.07f) * 0.1f;
     this->dyna.actor.scale.x = this->dyna.actor.scale.z;
@@ -203,56 +214,57 @@ void func_80937160(ObjBean* this) {
 
     this->dyna.actor.scale.y = Math_SinS(this->timer1AC) * 0.16970563f;
     this->dyna.actor.scale.x = this->dyna.actor.scale.z = Math_SinS(this->unk_1AE) * 0.10700001f;
-    Math_StepToF(&this->unk_1CC, 0.0f, 0.1f);
-    Math_StepToF(&this->unk_1D0, 0.0f, 0.1f);
+    Math_StepToF(&this->posOffsetX, 0.0f, 0.1f);
+    Math_StepToF(&this->posOffsetZ, 0.0f, 0.1f);
     Math_ScaledStepToS(&this->dyna.actor.shape.rot.y, this->dyna.actor.home.rot.y, 100);
 }
 
-void func_80937238(ObjBean* this) {
-    this->dyna.actor.world.pos.x = this->unk_1BC.x + this->unk_1CC;
-    this->dyna.actor.world.pos.y = this->unk_1BC.y;
-    this->dyna.actor.world.pos.z = this->unk_1BC.z + this->unk_1D0;
+void ObjBean_Move(ObjBean* this) {
+    this->dyna.actor.world.pos.x = this->pathPoint.x + this->posOffsetX;
+    this->dyna.actor.world.pos.y = this->pathPoint.y;
+    this->dyna.actor.world.pos.z = this->pathPoint.z + this->posOffsetZ;
 }
 
 void func_80937268(ObjBean* this, PlayState* play) {
     this->pathNodeCount = play->setupPathList[OBJBEAN_GET_PATH(&this->dyna.actor)].count - 1;
-    this->unk_1DA = 0;
+    this->currentPointIndex = 0;
     this->unk_1DC = 1;
 }
 
+// todo better name, as its converting from one type to another
 void ObjBean_CopyPathPoints(ObjBean* this) {
-    Math_Vec3s_ToVec3f(&this->unk_1BC, this->pathPoints);
+    Math_Vec3s_ToVec3f(&this->pathPoint, this->pathPoints);
 }
 
-void func_809372D0(ObjBean* this) {
+void ObjBean_FollowPath(ObjBean* this) {
     Actor* actor = &this->dyna.actor;
     Vec3f sp38;
-    f32 sp34;
+    f32 mag;
     f32 unkx;
     f32 unkz;
 
     Math_Vec3s_ToVec3f(&sp38, &this->pathPoints[this->unk_1DC]);
-    Math_Vec3f_Diff(&sp38, &this->unk_1BC, &actor->velocity);
+    Math_Vec3f_Diff(&sp38, &this->pathPoint, &actor->velocity);
 
-    sp34 = Math3D_Vec3fMagnitude(&actor->velocity);
-    unkx = D_80938FF8[this->unk_1DE].x;
-    unkz = D_80938FF8[this->unk_1DE].z;
-    if (sp34 < (actor->speedXZ * 8.0f)) {
+    mag = Math3D_Vec3fMagnitude(&actor->velocity);
+    unkx = sPlatformSpeeds[this->platformSpeedIndex].x;
+    unkz = sPlatformSpeeds[this->platformSpeedIndex].z;
+    if (mag < (actor->speedXZ * 8.0f)) {
         unkx = ((unkx - 2.0f) * 0.1f) + 2.0f;
         unkz *= 0.4f;
     }
 
     Math_StepToF(&actor->speedXZ, unkx, unkz);
 
-    if ((actor->speedXZ + 0.05f) < sp34) {
-        Math_Vec3f_Scale(&actor->velocity, actor->speedXZ / sp34);
-        this->unk_1BC.x += actor->velocity.x;
-        this->unk_1BC.y += actor->velocity.y;
-        this->unk_1BC.z += actor->velocity.z;
+    if ((actor->speedXZ + 0.05f) < mag) {
+        Math_Vec3f_Scale(&actor->velocity, actor->speedXZ / mag);
+        this->pathPoint.x += actor->velocity.x;
+        this->pathPoint.y += actor->velocity.y;
+        this->pathPoint.z += actor->velocity.z;
     } else {
-        Math_Vec3f_Copy(&this->unk_1BC, &sp38);
-        this->unk_1DA = this->unk_1DC;
-        if (this->unk_1DA >= this->pathNodeCount) {
+        Math_Vec3f_Copy(&this->pathPoint, &sp38);
+        this->currentPointIndex = this->unk_1DC;
+        if (this->currentPointIndex >= this->pathNodeCount) {
             this->unk_1DC = 0;
         } else {
             this->unk_1DC++;
@@ -261,8 +273,8 @@ void func_809372D0(ObjBean* this) {
     }
 }
 
-// is epona stepping on us
-s32 ObjBean_CheckForEpona(ObjBean* this, PlayState* play) {
+// Epona and other horses break the platform
+s32 ObjBean_CheckForHorseTrample(ObjBean* this, PlayState* play) {
     Actor* bgActor = play->actorCtx.actorLists[ACTORCAT_BG].first;
 
     while (bgActor != NULL) {
@@ -368,7 +380,7 @@ void ObjBean_Init(Actor* thisx, PlayState* play) {
     s32 type = OBJBEAN_GET_TYPE(&this->dyna.actor);
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
-    this->drawFlags = 0;
+    this->drawFlags = OBJBEAN_DRAWFLAG_NONE;
     this->unk_1B8 = 0.1f;
     DynaPolyActor_Init(&this->dyna, 3);
     Collider_InitCylinder(play, &this->collider);
@@ -392,11 +404,11 @@ void ObjBean_Init(Actor* thisx, PlayState* play) {
         s32 pathIndex = OBJBEAN_GET_PATH(&this->dyna.actor);
         Path* path = &play->setupPathList[pathIndex];
 
-        this->unk_1DE = OBJBEAN_GETZ_3(&this->dyna.actor);
+        this->platformSpeedIndex = OBJBEAN_GETZ_PLATFORM_SPEED_INDEX(&this->dyna.actor);
         this->dyna.actor.world.rot.z = 0;
         this->dyna.actor.home.rot.z = 0;
         this->dyna.actor.shape.rot.z = 0;
-        this->drawFlags |= 2;
+        this->drawFlags |= OBJBEAN_DRAWFLAG_PLATFORM;
 
         DynaPolyActor_LoadMesh(play, &this->dyna, &gMagicBeanPlatformCol);
         Collider_SetCylinder(play, &this->collider, &this->dyna.actor, &sCylinderInit1);
@@ -406,9 +418,9 @@ void ObjBean_Init(Actor* thisx, PlayState* play) {
 
         func_80937268(this, play);
         ObjBean_CopyPathPoints(this);
-        func_80937238(this);
+        ObjBean_Move(this);
         ActorShape_Init(&this->dyna.actor.shape, 0.0f, ActorShadow_DrawCircle, 8.8f);
-        func_80936CF0(this, play);
+        ObjBean_UpdateFloorHeight(this, play);
 
         if (!OBJBEAN_GET_80(&this->dyna.actor) && Flags_GetSwitch(play, OBJBEAN_GET_SWITCHFLAG(&this->dyna.actor, 0)) &&
             !Flags_GetSwitch(play, OBJBEAN_GET_SWITCHFLAG(&this->dyna.actor, 1)) && func_800FE9B4(play)) {
@@ -416,10 +428,10 @@ void ObjBean_Init(Actor* thisx, PlayState* play) {
         }
 
         if (OBJBEAN_GET_80(&this->dyna.actor) || Flags_GetSwitch(play, OBJBEAN_GET_SWITCHFLAG(&this->dyna.actor, 1))) {
-            func_80938804(this);
+            ObjBean_SetupPlatformWaitForPlayer(this);
         } else {
             func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
-            func_80938704(this);
+            ObjBean_SetupWaitForWater(this);
         }
     }
 }
@@ -488,6 +500,7 @@ void func_80937D54(ObjBean* this) {
     }
 }
 
+// used for wall types
 void func_80937DD8(ObjBean* this) {
     this->actionFunc = func_80937DEC;
 }
@@ -525,10 +538,10 @@ void func_80937DEC(ObjBean* this, PlayState* play) {
     }
 
     if (this->bool1FF && Flags_GetSwitch(play, OBJBEAN_GET_3F80(&this->dyna.actor, 0))) {
-        this->drawFlags |= 5;
+        this->drawFlags |= (OBJBEAN_DRAWFLAG_SOIL | OBJBEAN_DRAWFLAG_SEEDLING);
         func_80937C30(this);
     } else {
-        this->drawFlags |= 1;
+        this->drawFlags |= OBJBEAN_DRAWFLAG_SOIL;
         func_80937C10(this);
     }
 
@@ -546,6 +559,7 @@ void func_80937FB0(ObjBean* this) {
     this->actionFunc = func_80937FC8;
 }
 
+// regular bean idle
 void func_80937FC8(ObjBean* this, PlayState* play) {
     this->unkFunc1E8(this);
 
@@ -567,15 +581,15 @@ void func_80937FC8(ObjBean* this, PlayState* play) {
         func_809381B0(this);
     } else if (((this->collider.base.acFlags & AC_HIT) && (this->collider.base.ac != NULL) &&
                 (this->collider.base.ac->id == ACTOR_OBJ_AQUA)) ||
-               ((this->bool1FF) && (this->drawFlags & 4) && (this->dyna.actor.xzDistToPlayer < 300.0f) &&
+               ((this->bool1FF) && (this->drawFlags & OBJBEAN_DRAWFLAG_SEEDLING) && (this->dyna.actor.xzDistToPlayer < 300.0f) &&
                 func_800FE9B4(play))) {
         // sprouting a bean? getting hit with water
         func_809375C8(this, play);
         Flags_SetSwitch(play, OBJBEAN_GET_3F80(&this->dyna.actor, 1));
         this->unk_1E4 = 6;
-        func_80938670(this);
+        ObjBean_SetupGrowPlatform(this);
     } else if (this->bool1FF) {
-        if (this->drawFlags & 4) {
+        if (this->drawFlags & OBJBEAN_DRAWFLAG_SEEDLING) {
             this->collider.base.acFlags &= ~AC_HIT;
             if (this->dyna.actor.xzDistToPlayer < 150.0f) {
                 CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
@@ -649,9 +663,10 @@ void func_809383B4(ObjBean* this) {
     this->actionFunc = func_809383D0;
 }
 
+// cutscene watching bean grow before sprouting
 void func_809383D0(ObjBean* this, PlayState* play) {
     if (this->stateTimer <= 0) {
-        this->drawFlags |= 4;
+        this->drawFlags |= OBJBEAN_DRAWFLAG_SEEDLING;
         func_80938408(this);
     }
 }
@@ -661,6 +676,7 @@ void func_80938408(ObjBean* this) {
     this->actionFunc = func_80938444;
 }
 
+// cutscene watching bean sprout growing
 void func_80938444(ObjBean* this, PlayState* play) {
     s32 pad;
     s32 sp20 = Math_StepToF(&this->dyna.actor.scale.y, 0.16672663f, 0.01f) & 1;
@@ -683,6 +699,7 @@ void func_809384E8(ObjBean* this) {
     this->actionFunc = func_80938504;
 }
 
+// short duration after sprout has finished growing,
 void func_80938504(ObjBean* this, PlayState* play) {
     this->timer1AC -= 2400;
     this->dyna.actor.scale.y = Math_SinS(this->timer1AC) * 0.17434467f;
@@ -713,12 +730,13 @@ void func_809385A8(ObjBean* this, PlayState* play) {
     }
 }
 
-void func_80938670(ObjBean* this) {
-    this->actionFunc = func_8093868C;
+void ObjBean_SetupGrowPlatform(ObjBean* this) {
+    this->actionFunc = ObjBean_GrowPlatform;
     this->stateTimer = 73;
 }
 
-void func_8093868C(ObjBean* this, PlayState* play) {
+// water has been poured on us
+void ObjBean_GrowPlatform(ObjBean* this, PlayState* play) {
     if (this->stateTimer <= 0) {
         Actor_MarkForDeath(&this->dyna.actor);
     } else if (this->stateTimer <= 20) {
@@ -729,25 +747,25 @@ void func_8093868C(ObjBean* this, PlayState* play) {
     }
 }
 
-void func_80938704(ObjBean* this) {
+// idle
+void ObjBean_SetupWaitForWater(ObjBean* this) {
     this->dyna.actor.flags |= ACTOR_FLAG_10;
     this->dyna.actor.draw = NULL;
-    this->actionFunc = func_80938728;
+    this->actionFunc = ObjBean_WaitForWater;
 }
 
-void func_80938728(ObjBean* this, PlayState* play) {
+void ObjBean_WaitForWater(ObjBean* this, PlayState* play) {
     if (this->crossBeanFlag) {
         ActorCutscene_SetIntentToPlay(this->dyna.actor.cutscene);
-        func_8093876C(this);
+        ObjBean_SetupGrowSeedlingCutscene(this);
     }
 }
 
-// setup cutscene
-void func_8093876C(ObjBean* this) {
-    this->actionFunc = func_80938780;
+void ObjBean_SetupGrowSeedlingCutscene(ObjBean* this) {
+    this->actionFunc = ObjBean_GrowSeedlingCutscene;
 }
 
-void func_80938780(ObjBean* this, PlayState* play) {
+void ObjBean_GrowSeedlingCutscene(ObjBean* this, PlayState* play) {
     if (ActorCutscene_GetCanPlayNext(this->dyna.actor.cutscene)) {
         ActorCutscene_StartAndSetUnkLinkFields(this->dyna.actor.cutscene, &this->dyna.actor);
         if (this->dyna.actor.cutscene >= 0) {
@@ -761,49 +779,51 @@ void func_80938780(ObjBean* this, PlayState* play) {
     }
 }
 
-void func_80938804(ObjBean* this) {
+// Platform has finished growing, waits for contact
+void ObjBean_SetupPlatformWaitForPlayer(ObjBean* this) {
     this->dyna.actor.flags &= ~ACTOR_FLAG_10;
-    this->dyna.actor.draw = ObjBean_Draw;
-    this->actionFunc = func_80938834;
+    this->dyna.actor.draw = ObjBean_Draw; // not sure why this is
+    this->actionFunc = ObjBean_PlatformWaitForPlayer;
 }
 
-void func_80938834(ObjBean* this, PlayState* play) {
+void ObjBean_PlatformWaitForPlayer(ObjBean* this, PlayState* play) {
     if (DynaPolyActor_IsInRidingMovingState(&this->dyna)) {
-        func_80938874(this);
+        ObjBean_SetupPlatformFly(this);
     }
-    func_80936F24(this);
+    ObjBean_PlatformUndulate(this);
 }
 
-void func_80938874(ObjBean* this) {
-    this->actionFunc = func_809388A8;
+void ObjBean_SetupPlatformFly(ObjBean* this) {
+    this->actionFunc = ObjBean_PlatformFly;
     this->dyna.actor.draw = ObjBean_Draw;
     this->dyna.actor.flags |= ACTOR_FLAG_10;
     this->dyna.actor.speedXZ = 0.0f;
 }
 
-void func_809388A8(ObjBean* this, PlayState* play) {
-    func_809372D0(this);
-    if (this->unk_1DA == this->pathNodeCount) {
+void ObjBean_PlatformFly(ObjBean* this, PlayState* play) {
+    ObjBean_FollowPath(this);
+    if (this->currentPointIndex == this->pathNodeCount) {
+        // if the bean has already done its whole path and player is still on it
         func_80937268(this, play);
         ObjBean_CopyPathPoints(this);
-        func_8093892C(this);
+        ObjBean_SetupWaitForStepOff(this);
     } else if (DynaPolyActor_IsInRidingMovingState(&this->dyna)) {
         func_800B9010(&this->dyna.actor, NA_SE_PL_PLANT_MOVE - SFX_FLAG);
     }
-    func_80936F24(this);
+    ObjBean_PlatformUndulate(this);
 }
 
-void func_8093892C(ObjBean* this) {
+void ObjBean_SetupWaitForStepOff(ObjBean* this) {
     this->dyna.actor.flags |= ACTOR_FLAG_10;
-    this->dyna.actor.draw = ObjBean_Draw;
-    this->actionFunc = func_80938958;
+    this->dyna.actor.draw = ObjBean_Draw; // bit overkill, we were already standing on it
+    this->actionFunc = ObjBean_WaitForStepOff;
 }
 
-void func_80938958(ObjBean* this, PlayState* play) {
+void ObjBean_WaitForStepOff(ObjBean* this, PlayState* play) {
     if (!DynaPolyActor_IsInRidingRotatingState(&this->dyna)) {
-        func_80938804(this);
+        ObjBean_SetupPlatformWaitForPlayer(this);
     }
-    func_80936F24(this);
+    ObjBean_PlatformUndulate(this);
 }
 
 void func_80938998(ObjBean* this) {
@@ -816,7 +836,7 @@ void func_809389BC(ObjBean* this, PlayState* play) {
     if (!DynaPolyActor_IsInRidingMovingState(&this->dyna)) {
         func_80937268(this, play);
         ObjBean_CopyPathPoints(this);
-        func_80937238(this);
+        ObjBean_Move(this);
         func_80938A14(this);
     }
 }
@@ -830,7 +850,7 @@ void func_80938A14(ObjBean* this) {
 }
 
 void func_80938A5C(ObjBean* this, PlayState* play) {
-    if (ObjBean_CheckForEpona(this, play)) {
+    if (ObjBean_CheckForHorseTrample(this, play)) {
         this->stateTimer = 100;
     } else if (this->stateTimer <= 0) {
         func_80938AA4(this);
@@ -846,7 +866,7 @@ void func_80938AA4(ObjBean* this) {
 
 void func_80938AD8(ObjBean* this, PlayState* play) {
     s32 pad;
-    s32 sp30 = ObjBean_CheckForEpona(this, play);
+    s32 sp30 = ObjBean_CheckForHorseTrample(this, play);
 
     func_80937160(this);
     if (this->stateTimer == 25) {
@@ -878,7 +898,7 @@ void func_80938AD8(ObjBean* this, PlayState* play) {
 
     if ((this->stateTimer <= 0) && (sp30 == 0)) {
         func_80936F04(this);
-        func_80938804(this);
+        ObjBean_SetupPlatformWaitForPlayer(this);
     }
 }
 
@@ -918,16 +938,16 @@ void ObjBean_Update(Actor* thisx, PlayState* play) {
     }
 
     if (this->dyna.actor.draw != NULL) {
-        func_80937238(this);
+        ObjBean_Move(this);
         if (this->dyna.actor.xzDistToPlayer < 150.0f) {
             this->collider.dim.radius = (this->dyna.actor.scale.x * 640.0f) + 0.5f;
             Collider_UpdateCylinder(&this->dyna.actor, &this->collider);
             CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
         }
-        func_80936CF0(this, play);
+        ObjBean_UpdateFloorHeight(this, play);
         this->dyna.actor.shape.shadowDraw = ActorShadow_DrawCircle;
         this->dyna.actor.shape.shadowScale = this->dyna.actor.scale.x * 88.0f;
-        if (ObjBean_CheckForEpona(this, play)) {
+        if (ObjBean_CheckForHorseTrample(this, play)) {
             func_809375F4(this, play);
             func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
             func_80938998(this);
@@ -938,7 +958,55 @@ void ObjBean_Update(Actor* thisx, PlayState* play) {
     Actor_SetFocus(&this->dyna.actor, 6.0f);
 }
 
-// ObjBean_Draw
+/*
+void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
+    ObjBean* this = THIS;
+    // with explanation comments
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // the dlist will be written in the opa buffer because that buffer is larger,
+    // but executed from the overlay buffer (overlay draws last, for example the hud is drawn to overlay)
+    gfx = POLY_OPA_DISP + 1;
+    gSPDisplayList(OVERLAY_DISP++, gfx);
+
+    // initialize GfxPrint struct
+    GfxPrint_Init(&printer);
+    GfxPrint_Open(&printer, gfx);
+
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
+    GfxPrint_SetPos(&printer, 1, 10);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+
+    { // address locations
+        u32 convertedAddr = (u32)Fault_ConvertAddress((void*)this->actionFunc);
+        GfxPrint_SetPos(&printer, 1, 11);
+        //GfxPrint_Printf(&printer, "func %X", &EnPoSisters_CheckCollision);
+        GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
+        GfxPrint_SetPos(&printer, 1, 12);
+        GfxPrint_Printf(&printer, "actionfunc actual ram:  %X", this->actionFunc);
+    }
+
+    GfxPrint_SetPos(&printer, 1, 13);
+    GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
+    //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
+
+    // end of text printing
+    gfx = GfxPrint_Close(&printer);
+    GfxPrint_Destroy(&printer);
+
+    gSPEndDisplayList(gfx++);
+    // make the opa dlist jump over the part that will be executed as part of overlay
+    gSPBranchList(POLY_OPA_DISP, gfx);
+    POLY_OPA_DISP = gfx;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+    //Debug_PrintToScreen(thisx, play);
+} // */
+
+// main draw for everything but the unused wallcrack variant
 void ObjBean_Draw(Actor* thisx, PlayState* play) {
     ObjBean* this = THIS;
 
@@ -948,15 +1016,15 @@ void ObjBean_Draw(Actor* thisx, PlayState* play) {
 
     gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 
-    if (this->drawFlags & 4) {
+    if (this->drawFlags & OBJBEAN_DRAWFLAG_SEEDLING) {
         gSPDisplayList(POLY_OPA_DISP++, gMagicBeanSeedlingDL);
     }
 
-    if (this->drawFlags & 2) {
+    if (this->drawFlags & OBJBEAN_DRAWFLAG_PLATFORM) {
         gSPDisplayList(POLY_OPA_DISP++, gMagicBeanPlatformDL);
     }
 
-    if (this->drawFlags & 1) {
+    if (this->drawFlags & OBJBEAN_DRAWFLAG_SOIL) {
         Matrix_SetTranslateRotateYXZ(this->dyna.actor.world.pos.x, this->dyna.actor.world.pos.y,
                                      this->dyna.actor.world.pos.z, &this->dyna.actor.shape.rot);
         Matrix_Scale(this->unk_1B8, this->unk_1B8, this->unk_1B8, MTXMODE_APPLY);
@@ -964,11 +1032,11 @@ void ObjBean_Draw(Actor* thisx, PlayState* play) {
         gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
         gSPDisplayList(POLY_OPA_DISP++, gSoftSoilPatchDL);
     }
+    //Debug_PrintToScreen(thisx, play);
 
     CLOSE_DISPS(play->state.gfxCtx);
 }
 
-// ObjBean_DrawWallCrack
 void ObjBean_DrawWallCrack(Actor* thisx, PlayState* play) {
     ObjBean* this = THIS;
 
