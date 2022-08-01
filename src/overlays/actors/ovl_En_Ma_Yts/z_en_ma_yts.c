@@ -119,6 +119,7 @@ void EnMaYts_ChangeAnim(EnMaYts* this, s32 index) {
                      sAnimationInfo[index].morphFrames);
 }
 
+// is this dialogue things? the parent could be cremia during dialogue or could be part of the ending cutscene
 void func_80B8D12C(EnMaYts* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
     s16 flag = this->unk_32C == 2 ? true : false;
@@ -162,13 +163,20 @@ void EnMaYts_InitAnimation(EnMaYts* this, PlayState* play) {
             EnMaYts_ChangeAnim(this, 0);
             break;
 
+        case MA_YTS_TYPE_SINGING:
+            this->actor.targetMode = 0;
+            EnMaYts_ChangeAnim(this, 4);
+            break;
+
         default:
-            EnMaYts_ChangeAnim(this, 0);
+            EnMaYts_ChangeAnim(this, 0); // standing doing nothing
             break;
     }
 }
 
 s32 EnMaYts_CheckValidSpawn(EnMaYts* this, PlayState* play) {
+    if (this->typeExt != MAYTS_VANILLA) return true; // let me do things damn it
+
     switch (this->type) {
         case MA_YTS_TYPE_SITTING:
             switch (CURRENT_DAY) {
@@ -214,14 +222,107 @@ s32 EnMaYts_CheckValidSpawn(EnMaYts* this, PlayState* play) {
     return true;
 }
 
+void EnMaYts2_SetupSing(EnMaYts* this);
+
+void EnMaYts2_StandingTalk(EnMaYts* this, PlayState* play) {
+    if (Message_GetState(&play->msgCtx) == 5 && Message_ShouldAdvance(play)) {
+        func_801477B4(play); // ends dialogue
+        if (this->actor.textId == 0x296D) {this->randomTextIndex = 1;}
+    } else {
+        func_800B8614(&this->actor, play, 120.0f); // enables talking prompt
+    }
+
+    if(this->actor.xzDistToPlayer > 100.0f){
+        // player has left, go back to singing
+        // TODO figure out how to animate it smoother since she sorta starts doing it instantly
+        EnMaYts2_SetupSing(this);
+    }
+}
+
+void EnMaYts2_SetupStandingTalk(EnMaYts* this) {
+    EnMaYts_ChangeAnim(this, 0); // change anim to standing
+    this->overrideEyeTexIndex = 0; // regular blinking eyes 
+
+    this->actionFunc = EnMaYts2_StandingTalk;
+}
+
+u16 sRandomText[] = {
+  0x335C, // who are you again?
+  0x2A3A, // I am not a suspicious persona
+  0x296D, // I am sparticus
+  0x13F6  // huh?
+  // 273C I dont want to die
+};
+
+void EnMaYts2_ChooseNewText(EnMaYts* this, PlayState* play) {
+  if (gSaveContext.save.playerForm != PLAYER_FORM_HUMAN) {
+    this->actor.textId = 0x3336; // cute foreigner
+  } else if (Player_GetMask(play) != PLAYER_MASK_NONE){ 
+    this->actor.textId = 0x233F; // oh you found a cute mask
+  } else if (CURRENT_DAY == 1) {
+    this->actor.textId = 0x3348; // don't be late tonight
+  } else if (Object_IsLoaded(&play->objectCtx, GAMEPLAY_DANGEON_KEEP)) {
+    this->actor.textId = 0x208;  // eeevil
+  } else { //random text
+    this->actor.textId = sRandomText[this->randomTextIndex];
+  }
+  //this->actor.textId = 0x13F6; // testing
+  //this->actor.textId = sRandomText[this->randomTextIndex];
+
+}
+
+void EnMaYts2_Sing(EnMaYts* this, PlayState* play) {
+    // ripped from GuruGuru, because his proxmity music isn't jank like EnYb
+    // using carriage music because if she shows up in romani ranch its just weird to hear ranch music ontop of ranch music
+    // wish I could include a basic singing music in here...
+    func_801A1D44(&this->actor.projectedPos, NA_BGM_CREMIA_CARRIAGE, 540.0f); // 540 is this range or speed?
+
+    if (ABS(this->actor.yawTowardsPlayer) <= 0x4000) {
+        EnMaYts2_ChooseNewText(this, play);
+
+        func_800B8614(&this->actor, play, 120.0f); // enables talking prompt
+        if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+          EnMaYts2_SetupStandingTalk(this);
+        }
+    }
+}
+
+void EnMaYts2_SetupSing(EnMaYts* this) {
+    EnMaYts_ChangeAnim(this, 4); // singing 
+    this->overrideEyeTexIndex = 2; // sing with eyes closed
+    this->actionFunc = EnMaYts2_Sing;
+}
+
+// TODO rip the dialogue stuff and separate as a separate function
+void EnMaYts2_SittingNew(EnMaYts* this, PlayState* play) {
+    if (ABS(this->actor.yawTowardsPlayer) <= 0x4000) {
+        EnMaYts2_ChooseNewText(this, play);
+
+        if (Message_GetState(&play->msgCtx) == 5 && Message_ShouldAdvance(play)) {
+            func_801477B4(play); // ends dialogue
+            if (this->actor.textId == 0x296D) {this->actor.textId = 0x2A3A;}
+        } else {
+            func_800B8614(&this->actor, play, 120.0f); // enables talking prompt
+        }
+    }
+}
+
+// > 20 lines of asm for this stupid float bullshit, separate
+void EnMaYts2_GenerateRandomText(EnMaYts* this, PlayState* play) {
+     this->randomTextIndex = (u8)(Rand_ZeroOne() * sizeof(sRandomText));
+}
+
+
 void EnMaYts_Init(Actor* thisx, PlayState* play) {
     EnMaYts* this = THIS;
-    s32 pad;
+    //s32 pad;
 
     this->type = EN_MA_YTS_PARSE_TYPE(thisx);
     if (!EnMaYts_CheckValidSpawn(this, play)) {
         Actor_MarkForDeath(&this->actor);
     }
+
+    this->typeExt = thisx->params & 0xF; // new
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 18.0f);
     SkelAnime_InitFlex(play, &this->skelAnime, &gRomaniSkel, NULL, this->jointTable, this->morphTable, ROMANI_LIMB_MAX);
@@ -239,7 +340,7 @@ void EnMaYts_Init(Actor* thisx, PlayState* play) {
     Actor_SetScale(&this->actor, 0.01f);
 
     this->unk_1D8.unk_00 = 0;
-    this->unk_200 = 0;
+    //this->unk_200 = 0;
     this->blinkTimer = 0;
 
     if (this->type == MA_YTS_TYPE_ENDCREDITS) {
@@ -248,6 +349,7 @@ void EnMaYts_Init(Actor* thisx, PlayState* play) {
         this->hasBow = false;
     }
 
+    // ugh, this shit should be in setup funcs
     if (CURRENT_DAY == 1 || (gSaveContext.save.weekEventReg[22] & 1)) {
         this->overrideEyeTexIndex = 0;
         this->eyeTexIndex = 0;
@@ -266,10 +368,18 @@ void EnMaYts_Init(Actor* thisx, PlayState* play) {
         this->mouthTexIndex = 0;
         this->unk_32C = 2;
         EnMaYts_SetupEndCreditsHandler(this);
+    } else if (this->type ==  MA_YTS_TYPE_SITTING && this->typeExt == MAYTS_BOX) { // new
+        EnMaYts2_GenerateRandomText(this, play);
+        this->actionFunc = EnMaYts2_SittingNew;
+    } else if (this->type == MA_YTS_TYPE_SINGING) { // new
+        EnMaYts2_GenerateRandomText(this, play);
+        EnMaYts2_SetupSing(this);
+    // why is this based on time and not based on type?
     } else if (CURRENT_DAY == 2 && gSaveContext.save.isNight == 1 && (gSaveContext.save.weekEventReg[22] & 1)) {
         EnMaYts_SetupStartDialogue(this);
     } else {
-        EnMaYts_SetupDoNothing(this);
+        //EnMaYts_SetupDoNothing(this);
+        this->actionFunc = Actor_Noop;
     }
 }
 
@@ -279,12 +389,9 @@ void EnMaYts_Destroy(Actor* thisx, PlayState* play) {
     Collider_DestroyCylinder(play, &this->collider);
 }
 
-void EnMaYts_SetupDoNothing(EnMaYts* this) {
-    this->actionFunc = EnMaYts_DoNothing;
-}
-
-void EnMaYts_DoNothing(EnMaYts* this, PlayState* play) {
-}
+// get out of here with this stupid shit, just Noop
+//void EnMaYts_SetupDoNothing(EnMaYts* this) { //this->actionFunc = EnMaYts_DoNothing; //}
+//void EnMaYts_DoNothing(EnMaYts* this, PlayState* play) { //}
 
 void EnMaYts_SetupStartDialogue(EnMaYts* this) {
     EnMaYts_SetFaceExpression(this, 0, 0);
@@ -370,6 +477,136 @@ void EnMaYts_DialogueHandler(EnMaYts* this, PlayState* play) {
             break;
     }
 }
+
+// new functions for sitting dialogue
+// actually... nvm all the dialgoue options suck or are depressing
+/*
+
+void EnMaYts2_StartDialogue(EnMaYts* this, PlayState* play);
+void EnMaYts2_DialogueHandler(EnMaYts* this, PlayState* play);
+void EnMaYts2_SetupDialogueHandler(EnMaYts* this);
+
+void EnMaYts2_SetupStartDialogue(EnMaYts* this) {
+    //EnMaYts_SetFaceExpression(this, 0, 0);
+    this->actionFunc = EnMaYts2_StartDialogue;
+}
+
+void EnMaYts2_StartDialogue(EnMaYts* this, PlayState* play) {
+    s16 sp26 = this->actor.shape.rot.y - this->actor.yawTowardsPlayer;
+
+    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+        if (!(gSaveContext.save.playerForm == PLAYER_FORM_HUMAN)) {
+            if (!(gSaveContext.save.weekEventReg[65] & 0x80)) {
+                // Saying to non-human Link: "Cremia went to town."
+                gSaveContext.save.weekEventReg[65] |= 0x80;
+                EnMaYts_SetFaceExpression(this, 0, 0);
+                Message_StartTextbox(play, 0x335F, &this->actor);
+                this->textId = 0x335F;
+            } else {
+                // Saying to non-human Link: "Pretend you did not hear that."
+                EnMaYts_SetFaceExpression(this, 4, 3);
+                Message_StartTextbox(play, 0x3362, &this->actor);
+                this->textId = 0x3362;
+                func_80151BB4(play, 5);
+            }
+        } else if (Player_GetMask(play) != PLAYER_MASK_NONE) {
+            if (!(gSaveContext.save.weekEventReg[65] & 0x40)) {
+                gSaveContext.save.weekEventReg[65] |= 0x40;
+                EnMaYts_SetFaceExpression(this, 0, 0);
+                Message_StartTextbox(play, 0x3363, &this->actor);
+                this->textId = 0x3363;
+            } else {
+                EnMaYts_SetFaceExpression(this, 4, 2);
+                Message_StartTextbox(play, 0x3366, &this->actor);
+                this->textId = 0x3366;
+                func_80151BB4(play, 5);
+            }
+        } else if (!(gSaveContext.save.weekEventReg[21] & 0x20)) {
+            EnMaYts_SetFaceExpression(this, 0, 0);
+            Message_StartTextbox(play, 0x3367, &this->actor);
+            this->textId = 0x3367;
+        } else {
+            if (!(gSaveContext.save.weekEventReg[65] & 0x20)) {
+                // Saying to Grasshopper: "Cremia went to town."
+                gSaveContext.save.weekEventReg[65] |= 0x20;
+                EnMaYts_SetFaceExpression(this, 4, 2);
+                Message_StartTextbox(play, 0x3369, &this->actor);
+                this->textId = 0x3369;
+            } else {
+                // Saying to Grasshopper: "You're our bodyguard."
+                EnMaYts_SetFaceExpression(this, 0, 0);
+                Message_StartTextbox(play, 0x336C, &this->actor);
+                this->textId = 0x336C;
+                func_80151BB4(play, 5);
+            }
+        }
+        EnMaYts2_SetupDialogueHandler(this);
+    } else if (ABS_ALT(sp26) < 0x4000) {
+        func_800B8614(&this->actor, play, 120.0f);
+    }
+}
+
+// Select the following dialogue based on the current one, and an appropiate face expression
+void EnMaYts2_ChooseNextDialogue(EnMaYts* this, PlayState* play) {
+    if (Message_ShouldAdvance(play)) {
+        switch (this->textId) {
+            // 0x3358: // ... who are you again?
+            // 0x333E: // They are coming...
+            // 0x336F: They.. they come at night every year when the carnival approaches...
+            // 0x3358: // 
+            //case 0x335F:
+                //EnMaYts_SetFaceExpression(this, 0, 2);
+                //Message_StartTextbox(play, 0x3360, &this->actor);
+                //this->textId = 0x3360;
+                //break;
+
+            //case 0x3360:
+                //EnMaYts_SetFaceExpression(this, 4, 3);
+                //Message_StartTextbox(play, 0x3361, &this->actor);
+                //this->textId = 0x3361;
+                //func_80151BB4(play, 5);
+                //break;
+
+            //case 0x3363:
+                //EnMaYts_SetFaceExpression(this, 1, 1);
+                //Message_StartTextbox(play, 0x3364, &this->actor);
+                //this->textId = 0x3364;
+                //break;
+
+            //case 0x3364:
+                //EnMaYts_SetFaceExpression(this, 4, 2);
+                //Message_StartTextbox(play, 0x3365, &this->actor);
+                //this->textId = 0x3365;
+                //func_80151BB4(play, 5);
+                //break;
+
+            //case 0x3367:
+                //EnMaYts_SetFaceExpression(this, 4, 3);
+                //Message_StartTextbox(play, 0x3368, &this->actor);
+                //this->textId = 0x3368;
+                //func_80151BB4(play, 5);
+                //break;
+
+            //case 0x3369:
+                //EnMaYts_SetFaceExpression(this, 0, 0);
+                //Message_StartTextbox(play, 0x336A, &this->actor);
+                //this->textId = 0x336A;
+                //break;
+
+            //case 0x336A:
+                //EnMaYts_SetFaceExpression(this, 3, 3);
+                //Message_StartTextbox(play, 0x336B, &this->actor);
+                //this->textId = 0x336B;
+                //func_80151BB4(play, 5);
+                //break;
+
+            default:
+                break;
+        }
+    }
+}
+
+*/
 
 void EnMaYts_SetupEndCreditsHandler(EnMaYts* this) {
     this->actor.flags |= ACTOR_FLAG_10;
@@ -503,16 +740,18 @@ s32 EnMaYts_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
     EnMaYts* this = THIS;
     Vec3s sp4;
 
-    if (limbIndex == ROMANI_LIMB_HEAD) {
-        sp4 = this->unk_1D8.unk_08;
-        rot->x += sp4.y;
-        if ((this->skelAnime.animation == &gRomaniIdleAnim) || (this->skelAnime.animation == &gRomaniSittingAnim)) {
-            rot->z += sp4.x;
-        }
-    } else if (limbIndex == ROMANI_LIMB_TORSO) {
-        sp4 = this->unk_1D8.unk_0E;
-        rot->x += sp4.y;
-        rot->z += sp4.x;
+    if (this->actionFunc != EnMaYts2_Sing){
+      if (limbIndex == ROMANI_LIMB_HEAD) {
+          sp4 = this->unk_1D8.unk_08;
+          rot->x += sp4.y;
+          if ((this->skelAnime.animation == &gRomaniIdleAnim) || (this->skelAnime.animation == &gRomaniSittingAnim)) {
+              rot->z += sp4.x;
+          }
+      } else if (limbIndex == ROMANI_LIMB_TORSO) {
+          sp4 = this->unk_1D8.unk_0E;
+          rot->x += sp4.y;
+          rot->z += sp4.x;
+      }
     }
 
     return false;
@@ -536,6 +775,12 @@ void EnMaYts_Draw(Actor* thisx, PlayState* play) {
     EnMaYts* this = THIS;
 
     OPEN_DISPS(play->state.gfxCtx);
+    // ripped from EnMa4, returnt to box
+    if (this->type == MA_YTS_TYPE_SITTING && this->typeExt == MAYTS_BOX) {
+        gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+        gSPDisplayList(POLY_OPA_DISP++, gRomaniWoodenBoxDL);
+    }
+
     func_8012C28C(play->state.gfxCtx);
 
     gSPSegment(POLY_OPA_DISP++, 0x09, SEGMENTED_TO_VIRTUAL(sMouthTextures[this->mouthTexIndex]));
@@ -547,7 +792,7 @@ void EnMaYts_Draw(Actor* thisx, PlayState* play) {
     CLOSE_DISPS(play->state.gfxCtx);
 }
 
-// Alternative draw function
+// Alternative draw function for sleeping
 void EnMaYts_DrawSleeping(Actor* thisx, PlayState* play) {
     OPEN_DISPS(play->state.gfxCtx);
     func_8012C28C(play->state.gfxCtx);
