@@ -109,6 +109,7 @@ static TexturePtr sMouthTextures[] = {
     gRomaniMouthSmileTex,
 };
 
+// happy is closed happy
 static TexturePtr sEyeTextures[] = {
     gRomaniEyeOpenTex, gRomaniEyeHalfTex, gRomaniEyeClosedTex, gRomaniEyeHappyTex, gRomaniEyeSadTex,
 };
@@ -223,19 +224,29 @@ s32 EnMaYts_CheckValidSpawn(EnMaYts* this, PlayState* play) {
 }
 
 void EnMaYts2_SetupSing(EnMaYts* this);
+void EnMaYts2_ChooseNewText(EnMaYts* this, PlayState* play);
 
 void EnMaYts2_StandingTalk(EnMaYts* this, PlayState* play) {
-    if (Message_GetState(&play->msgCtx) == 5 && Message_ShouldAdvance(play)) {
+    if(this->actor.xzDistToPlayer > 100.0f){
+        if (this->type == MA_YTS_TYPE_SINGING){
+          // player has left, go back to singing
+          // TODO figure out how to animate it smoother since she sorta starts doing it instantly
+          EnMaYts2_SetupSing(this);
+        }else { // just standing normally
+          if (CURRENT_DAY == 1) {
+            this->overrideEyeTexIndex = 0;
+          } else {
+            // her half eye is kinda half-asleep sleepwalky
+            this->overrideEyeTexIndex = 1; // force half eye
+          }
+        }
+    } else if (Message_GetState(&play->msgCtx) == 5 && Message_ShouldAdvance(play)) {
         func_801477B4(play); // ends dialogue
         if (this->actor.textId == 0x296D) {this->randomTextIndex = 1;}
     } else {
+        // waiting for dialogue prompt and close by
+        EnMaYts2_ChooseNewText(this, play);
         func_800B8614(&this->actor, play, 120.0f); // enables talking prompt
-    }
-
-    if(this->actor.xzDistToPlayer > 100.0f){
-        // player has left, go back to singing
-        // TODO figure out how to animate it smoother since she sorta starts doing it instantly
-        EnMaYts2_SetupSing(this);
     }
 }
 
@@ -377,9 +388,11 @@ void EnMaYts_Init(Actor* thisx, PlayState* play) {
     // why is this based on time and not based on type?
     } else if (CURRENT_DAY == 2 && gSaveContext.save.isNight == 1 && (gSaveContext.save.weekEventReg[22] & 1)) {
         EnMaYts_SetupStartDialogue(this);
-    } else {
+    } else { // standing doing nothing should now have dialogue
         //EnMaYts_SetupDoNothing(this);
-        this->actionFunc = Actor_Noop;
+        //this->actionFunc = Actor_Noop;
+        EnMaYts2_ChooseNewText(this, play);
+        EnMaYts2_SetupStandingTalk(this);
     }
 }
 
