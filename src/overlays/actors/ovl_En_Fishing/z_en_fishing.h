@@ -7,6 +7,19 @@ struct EnFishing;
 
 typedef void (*EnFishingActionFunc)(struct EnFishing*, GlobalContext*);
 
+// ugh, not sure what I made and what is vanilla anymore, this is a mess
+// vanilla params: 
+//    < 0x64 is owner, spawns once then the owner spawns other things
+//    100 - 0115 are fish, yes that is in DEC (0x64 - 0x73)
+//    200 (dec) is another fish type
+//    0x600 is sinking lure hidden
+//    0x700 is fishing rock (single)
+//    other: loach (115 maybe?
+
+// me attempting to make new stuff
+// 0x500 visible fishing lure in the sand to pick up... gives money?
+//   maybe dumb
+
 typedef struct EnFishing {
     /* 0x000 */ Actor actor;
     /* 0x0144 */ UNK_TYPE1 unk_144[0x004];

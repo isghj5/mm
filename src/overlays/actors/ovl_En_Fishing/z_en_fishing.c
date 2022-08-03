@@ -390,7 +390,7 @@ static ColliderJntSphElementInit sJntSphElementsInit[] = {
         { 0, { { 0, 0, 0 }, 30 }, 100 },
     },
 };
-static ColliderJntSphInit sJntSphInit = {
+static ColliderJntSphInit sJntSphInit = { // owner collider
     {
         COLTYPE_NONE,
         AT_NONE | AT_TYPE_ENEMY,
@@ -862,6 +862,7 @@ void EnFishing2_InitSingleFishingRock(Actor* thisx, GlobalContext* globalCtx){
         collider->elements[0].dim.modelSphere.radius * collider->elements[0].dim.scale * randScale * 1.6f;
 }
 
+/*
 void EnFishing2_DrawSingleFishingRock(Actor* thisx, GlobalContext* globalCtx){
     OPEN_DISPS(globalCtx->state.gfxCtx);
 
@@ -898,7 +899,7 @@ void EnFishing2_DrawSingleFishingRock(Actor* thisx, GlobalContext* globalCtx){
 
     CLOSE_DISPS(globalCtx->state.gfxCtx);
 
-}
+} // */
 
 // collider
 static ColliderSphereInit sSphereInit = {
@@ -924,153 +925,167 @@ static ColliderSphereInit sSphereInit = {
 void EnFishing_InitOwner(Actor* thisx, GlobalContext* globalCtx){
     EnFishing* this = THIS;
 
-        s16 i;
-        FishingGroupFish* fish;
-        s16 fishCount;
+    s16 i;
+    FishingGroupFish* fish;
+    s16 fishCount;
 
-        D_809171C8 = 0;
-        sFishingMain = this;
-        //Collider_InitJntSph(globalCtx, &sFishingMain->collider);
-        //Collider_SetJntSph(globalCtx, &sFishingMain->collider, thisx, &sJntSphInit, sFishingMain->colliderElements);
+    D_809171C8 = 0;
+    sFishingMain = this;
+    //Collider_InitJntSph(globalCtx, &sFishingMain->collider);
+    //Collider_SetJntSph(globalCtx, &sFishingMain->collider, thisx, &sJntSphInit, sFishingMain->colliderElements);
 
-        thisx->params = 1; // owner
+    thisx->params = 1; // owner
 
-        //SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gFishingOwnerSkel, &gFishingOwnerAnim, NULL, NULL, 0);
-        //Animation_MorphToLoop(&this->skelAnime, &gFishingOwnerAnim, 0.0f);
+    //SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gFishingOwnerSkel, &gFishingOwnerAnim, NULL, NULL, 0);
+    //Animation_MorphToLoop(&this->skelAnime, &gFishingOwnerAnim, 0.0f);
 
-        thisx->update = EnFishing_UpdateOwner; // he handles a bunch of stuff, dont remove wholesale
-        // new, dont draw, only tatl spot, but lure at his feed
-        thisx->targetMode = 0;
-        thisx->flags |= 1;
+    thisx->update = EnFishing_UpdateOwner; // he handles a bunch of stuff, dont remove wholesale
+    // new, dont draw, only tatl spot, but lure at his feed
+    //thisx->targetMode = 0;
+    //thisx->flags |= 1;
 
-        //thisx->draw = NULL;
-        //thisx->draw = EnFishing2_DrawHat;
+    //thisx->draw = NULL;
+    //thisx->draw = EnFishing2_DrawHat;
 
-        //thisx->shape.rot.y = -0x6000;
-        //thisx->world.pos.x = 160.0f;
-        //thisx->world.pos.y = -2.0f;
-        //thisx->world.pos.z = 1208.0f;
+    //thisx->shape.rot.y = -0x6000;
+    //thisx->world.pos.x = 160.0f;
+    //thisx->world.pos.y = -2.0f;
+    //thisx->world.pos.z = 1208.0f;
 
-        //Actor_SetScale(thisx, 0.011f);
+    //Actor_SetScale(thisx, 0.011f);
 
-        //thisx->focus.pos = thisx->world.pos;
-        //thisx->focus.pos.y += 75.0f;
-        //thisx->flags |= 9;
+    //thisx->focus.pos = thisx->world.pos;
+    //thisx->focus.pos.y += 75.0f;
+    //thisx->flags |= 9;
 
+    //if (sLinkAge != 1) {
+        //// HIGH_SCORE(HS_FISHING) from OoT
+        //if (gSaveContext.save.unk_EE4 & 0x1000) {
+            //D_8090CD08 = 0;
+        //} else {
+            //D_8090CD08 = 1;
+        //}
+    //} else {
+        //D_8090CD08 = 2;
+    //}
+
+    D_8090CD04 = 20;
+    globalCtx->specialEffects = sFishingEffects;
+    REG(15) = 1; // gTimeIncrement in OoT
+    D_809171FC = 0;
+    D_809171F6 = 10;
+
+    // Audio_QueueSeqCmd(0x100100FF); // dont change sound
+
+    if (sLinkAge == 1) {
+        if (gSaveContext.save.unk_EE4 & 0x7F) {
+            D_809171CC = gSaveContext.save.unk_EE4 & 0x7F;
+        } else {
+            D_809171CC = 40.0f;
+        }
+    } else if (gSaveContext.save.unk_EE4 & 0x7F000000) {
+        D_809171CC = (gSaveContext.save.unk_EE4 & 0x7F000000) >> 0x18;
+    } else {
+        D_809171CC = 45.0f;
+    }
+
+    D_809171D1 = (gSaveContext.save.unk_EE4 & 0xFF0000) >> 0x10;
+    if ((D_809171D1 & 7) == 7) {
+        globalCtx->roomCtx.unk7A[0] = 90;
+        D_809171CA = 1;
+    } else {
+        globalCtx->roomCtx.unk7A[0] = 40;
+        D_809171CA = 0;
+    }
+
+    if ((D_809171D1 & 7) == 6) {
+        D_809171CB = 100;
+    } else {
+        D_809171CB = 0;
+    }
+
+    //for (i = 0; i < EFFECT_COUNT; i++) {
+        //sFishingEffects[i].type = FS_EFF_NONE;
+    //}
+
+    //for (i = 0; i < POND_PROP_COUNT; i++) {
+        //sPondProps[i].type = FS_PROP_NONE;
+    //}
+
+    sFishGroupAngle1 = 0.7f;
+    sFishGroupAngle2 = 2.3f;
+    sFishGroupAngle3 = 4.6f;
+
+    // Group fish is a shool of small fry that swim around, you cannot catch them, they are for extra background activity
+    for (i = 0; i < GROUP_FISH_COUNT; i++) {
+        fish = &sGroupFishes[i];
+
+        fish->type = FS_GROUP_FISH_NORMAL;
+
+        if (i <= 20) {
+            fish->unk_10.x = fish->pos.x = sinf(sFishGroupAngle1) * 720.0f;
+            fish->unk_10.z = fish->pos.z = cosf(sFishGroupAngle1) * 720.0f;
+        } else if (i <= 40) {
+            fish->unk_10.x = fish->pos.x = sinf(sFishGroupAngle2) * 720.0f;
+            fish->unk_10.z = fish->pos.z = cosf(sFishGroupAngle2) * 720.0f;
+        } else {
+            fish->unk_10.x = fish->pos.x = sinf(sFishGroupAngle3) * 720.0f;
+            fish->unk_10.z = fish->pos.z = cosf(sFishGroupAngle3) * 720.0f;
+        }
+
+        fish->unk_10.y = fish->pos.y = -35.0f;
+
+        fish->timer = Rand_ZeroFloat(100.0f);
+
+        fish->unk_3C = 0;
+        fish->unk_3E = 0;
+        fish->unk_40 = 0;
+
+        if (sLinkAge != 1) {
+            if (((i >= 15) && (i < 20)) || ((i >= 35) && (i < 40)) || ((i >= 55) && (i < 60))) {
+                fish->type = FS_GROUP_FISH_NONE;
+            }
+        }
+    }
+
+    //EnFishing_InitPondProps(this, globalCtx);
+    //Actor_SpawnAsChild(&globalCtx->actorCtx, thisx, globalCtx, ACTOR_EN_KANBAN, 53.0f, -17.0f, 982.0f, 0, 0, 0,
+                       //ENKANBAN_FISHING);
+
+    //Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, 0.0f, 0.0f, 0.0f, 0, 0, 0, 200); //lighting?
+
+    //if ((D_809171D1 & 3) == 3) {
         //if (sLinkAge != 1) {
-            //// HIGH_SCORE(HS_FISHING) from OoT
-            //if (gSaveContext.save.unk_EE4 & 0x1000) {
-                //D_8090CD08 = 0;
-            //} else {
-                //D_8090CD08 = 1;
-            //}
+            //fishCount = 16;
         //} else {
-            //D_8090CD08 = 2;
+            //fishCount = 17;
         //}
+    //} else {
+        //fishCount = 15;
+    //}
+    fishCount = thisx->params;
 
-        D_8090CD04 = 20;
-        globalCtx->specialEffects = sFishingEffects;
-        REG(15) = 1; // gTimeIncrement in OoT
-        D_809171FC = 0;
-        D_809171F6 = 10;
+    // dont spawn all of the fish anymore, we want to control this with params
+    /*
+    for (i = 0; i < fishCount; i++) {
+        //Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, sFishInits[i].pos.x, sFishInits[i].pos.y,
+                    //sFishInits[i].pos.z, 0, Rand_ZeroFloat(0x10000), 0, 100 + i);
+        Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, thisx->world.pos.x, thisx->world.pos.y,
+                    thisx->world.pos.z, 0, Rand_ZeroFloat(0x10000), 0, 100 + i);
+    } // */
 
-        // Audio_QueueSeqCmd(0x100100FF); // dont change sound
+}
 
-        if (sLinkAge == 1) {
-            if (gSaveContext.save.unk_EE4 & 0x7F) {
-                D_809171CC = gSaveContext.save.unk_EE4 & 0x7F;
-            } else {
-                D_809171CC = 40.0f;
-            }
-        } else if (gSaveContext.save.unk_EE4 & 0x7F000000) {
-            D_809171CC = (gSaveContext.save.unk_EE4 & 0x7F000000) >> 0x18;
-        } else {
-            D_809171CC = 45.0f;
-        }
+Actor* EnFishing2_SearchForOwner(EnFishing* this, GlobalContext* globalCtx2){
+  Actor* actorPtr = globalCtx2->actorCtx.actorLists[ACTORCAT_ENEMY].first;
 
-        D_809171D1 = (gSaveContext.save.unk_EE4 & 0xFF0000) >> 0x10;
-        if ((D_809171D1 & 7) == 7) {
-            globalCtx->roomCtx.unk7A[0] = 90;
-            D_809171CA = 1;
-        } else {
-            globalCtx->roomCtx.unk7A[0] = 40;
-            D_809171CA = 0;
-        }
+  for (true; actorPtr != NULL; actorPtr = actorPtr->next) {
+      if (actorPtr->id == ACTOR_EN_FISHING && actorPtr->params == 0) {
+          return actorPtr;
+      }
+  }
 
-        if ((D_809171D1 & 7) == 6) {
-            D_809171CB = 100;
-        } else {
-            D_809171CB = 0;
-        }
-
-        //for (i = 0; i < EFFECT_COUNT; i++) {
-            //sFishingEffects[i].type = FS_EFF_NONE;
-        //}
-
-        //for (i = 0; i < POND_PROP_COUNT; i++) {
-            //sPondProps[i].type = FS_PROP_NONE;
-        //}
-
-        sFishGroupAngle1 = 0.7f;
-        sFishGroupAngle2 = 2.3f;
-        sFishGroupAngle3 = 4.6f;
-
-        // Group fish is a shool of small fry that swim around, you cannot catch them, they are for extra background activity
-        for (i = 0; i < GROUP_FISH_COUNT; i++) {
-            fish = &sGroupFishes[i];
-
-            fish->type = FS_GROUP_FISH_NORMAL;
-
-            if (i <= 20) {
-                fish->unk_10.x = fish->pos.x = sinf(sFishGroupAngle1) * 720.0f;
-                fish->unk_10.z = fish->pos.z = cosf(sFishGroupAngle1) * 720.0f;
-            } else if (i <= 40) {
-                fish->unk_10.x = fish->pos.x = sinf(sFishGroupAngle2) * 720.0f;
-                fish->unk_10.z = fish->pos.z = cosf(sFishGroupAngle2) * 720.0f;
-            } else {
-                fish->unk_10.x = fish->pos.x = sinf(sFishGroupAngle3) * 720.0f;
-                fish->unk_10.z = fish->pos.z = cosf(sFishGroupAngle3) * 720.0f;
-            }
-
-            fish->unk_10.y = fish->pos.y = -35.0f;
-
-            fish->timer = Rand_ZeroFloat(100.0f);
-
-            fish->unk_3C = 0;
-            fish->unk_3E = 0;
-            fish->unk_40 = 0;
-
-            if (sLinkAge != 1) {
-                if (((i >= 15) && (i < 20)) || ((i >= 35) && (i < 40)) || ((i >= 55) && (i < 60))) {
-                    fish->type = FS_GROUP_FISH_NONE;
-                }
-            }
-        }
-
-        //EnFishing_InitPondProps(this, globalCtx);
-        //Actor_SpawnAsChild(&globalCtx->actorCtx, thisx, globalCtx, ACTOR_EN_KANBAN, 53.0f, -17.0f, 982.0f, 0, 0, 0,
-                           //ENKANBAN_FISHING);
-
-        //Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, 0.0f, 0.0f, 0.0f, 0, 0, 0, 200); //lighting?
-
-        //if ((D_809171D1 & 3) == 3) {
-            //if (sLinkAge != 1) {
-                //fishCount = 16;
-            //} else {
-                //fishCount = 17;
-            //}
-        //} else {
-            //fishCount = 15;
-        //}
-        fishCount = thisx->params;
-
-        for (i = 0; i < fishCount; i++) {
-            //Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, sFishInits[i].pos.x, sFishInits[i].pos.y,
-                        //sFishInits[i].pos.z, 0, Rand_ZeroFloat(0x10000), 0, 100 + i);
-            Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, thisx->world.pos.x, thisx->world.pos.y,
-                        thisx->world.pos.z, 0, Rand_ZeroFloat(0x10000), 0, 100 + i);
-        }
-
+  return NULL;
 }
 
 
@@ -1087,6 +1102,12 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
 
     if (thisx->params < 100) { // spawn one owner, that spawns the rest of everything
         EnFishing_InitOwner(thisx, globalCtx);
+    }
+
+    if (EnFishing2_SearchForOwner(this, globalCtx2) == NULL){
+       Actor_Spawn(&globalCtx->actorCtx, globalCtx, ACTOR_EN_FISHING, 
+              this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z,
+              0, 0, 0, 0);  // spawn owner before we continue
     }
 
     thisx->bgCheckFlags |= 0x800; // Added in MM
@@ -1118,12 +1139,12 @@ void EnFishing_Init(Actor* thisx, GlobalContext* globalCtx2) {
         sSinkingLureLocationPos[1].y = thisx->world.pos.y;
         sSinkingLureLocationPos[1].z = thisx->world.pos.z;
         return;
-    } else if (thisx->params == 0x700) { // just a single fishing rock
-        thisx->flags &= ~0x1;
-        thisx->draw = EnFishing2_DrawSingleFishingRock;
-        thisx->update = Actor_Noop;
-        EnFishing2_InitSingleFishingRock(thisx, globalCtx);
-        return;
+    //} else if (thisx->params == 0x700) { // just a single fishing rock
+        //thisx->flags &= ~0x1;
+        //thisx->draw = EnFishing2_DrawSingleFishingRock;
+        //thisx->update = Actor_Noop;
+        //EnFishing2_InitSingleFishingRock(thisx, globalCtx);
+        //return;
     } else { // loach is 115? 0x74
         SkelAnime_InitFlex(globalCtx, &this->skelAnime, &gFishingLoachSkel, &gFishingLoachAnim, NULL, NULL, 0);
         Animation_MorphToLoop(&this->skelAnime, &gFishingLoachAnim, 0.0f);
@@ -1526,6 +1547,8 @@ void EnFishing_DrawEffects(FishingEffect* effect, GlobalContext* globalCtx) {
     CLOSE_DISPS(globalCtx->state.gfxCtx);
 }
 
+// owner only
+/*
 void EnFishing_DrawStreamSplash(GlobalContext* globalCtx) {
     s32 pad;
 
@@ -1544,8 +1567,10 @@ void EnFishing_DrawStreamSplash(GlobalContext* globalCtx) {
     gSPDisplayList(POLY_XLU_DISP++, gFishingStreamSplashDL);
 
     CLOSE_DISPS(globalCtx->state.gfxCtx);
-}
+} // */
 
+// we already killed all the code that uses this
+/*
 s32 func_808FEF70(Vec3f* vec) {
     if (((vec->x >= 110.0f) && (vec->x <= 150.0f) && (vec->z <= 1400.0f) && (vec->z >= 1160.0f)) ||
         ((vec->x >= 110.0f) && (vec->x <= 210.0f) && (vec->z <= 1200.0f) && (vec->z >= 1160.0f))) {
@@ -1555,7 +1580,7 @@ s32 func_808FEF70(Vec3f* vec) {
     }
 
     return false;
-}
+} // */
 
 void EnFishing_UpdateLine(GlobalContext* globalCtx, Vec3f* basePos, Vec3f* pos, Vec3f* rot, Vec3f* unk) {
 /*
@@ -2129,6 +2154,7 @@ void EnFishing_DrawLureAndLine(GlobalContext* globalCtx, Vec3f* linePos, Vec3f* 
 */
 }
 
+/*
 f32 sRodScales[22] = {
     1.0f,        1.0f,        1.0f,        0.9625f,     0.925f, 0.8875f,     0.85f,       0.8125f,
     0.775f,      0.73749995f, 0.7f,        0.6625f,     0.625f, 0.5875f,     0.54999995f, 0.5125f,
@@ -2138,10 +2164,12 @@ f32 sRodScales[22] = {
 f32 sRodBendRatios[22] = {
     0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.06f,   0.12f,   0.18f,   0.24f,   0.30f,   0.36f,
     0.42f, 0.48f, 0.54f, 0.60f, 0.60f, 0.5142f, 0.4285f, 0.3428f, 0.2571f, 0.1714f, 0.0857f,
-};
+}; // */
 
 Vec3f sRodTipOffset = { 0.0f, 0.0f, 0.0f };
 
+// rod is kill draw is uncessary
+/*
 void EnFishing_DrawRod(GlobalContext* globalCtx) {
     s16 i;
     f32 spC8;
@@ -2279,7 +2307,7 @@ void EnFishing_DrawRod(GlobalContext* globalCtx) {
     }
 
     CLOSE_DISPS(globalCtx->state.gfxCtx);
-}
+} */
 
 Vec3f D_8090D614 = { 0.0f, 0.0f, 0.0f };
 
@@ -2846,6 +2874,7 @@ void EnFishing_UpdateLure(EnFishing* this, GlobalContext* globalCtx) {
     }
 } // */
 
+// used all over
 s32 func_809033F0(EnFishing* this, GlobalContext* globalCtx, u8 ignorePosCheck) {
     s16 i;
     s16 count;
@@ -2935,6 +2964,7 @@ void func_809036BC(EnFishing* this, GlobalContext* globalCtx) {
     }
 }
 
+// used all over
 void func_809038A4(EnFishing* this, Input* input) {
     Vec3f sp34;
     Vec3f sp28;
