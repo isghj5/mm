@@ -21,6 +21,7 @@ typedef struct EnMaYts {
     ///* 0x31E */ char unk_31E[0x8];
     /* 0x31? */ u8 typeExt;
     /* 0x31? */ u8 randomTextIndex;
+                //s16 curTextId; 
     /* 0x326 */ s16 blinkTimer;
     /* 0x328 */ s16 overrideEyeTexIndex; // If non-zero, then this index will be used instead of eyeTexIndex
     /* 0x32A */ s16 eyeTexIndex;
@@ -30,7 +31,7 @@ typedef struct EnMaYts {
     ///* 0x332 */ char unk_332[0x2];
     /* 0x334 */ s16 endCreditsFlag;
     /* 0x336 */ s16 hasBow;
-    /* 0x338 */ u16 textId;
+    /* 0x338 */ u16 textId; // DUMB of course it had one
 } EnMaYts; // size = 0x33C
 
 extern const ActorInit En_Ma_Yts_InitVars;
@@ -50,6 +51,10 @@ typedef enum {
     /*   2 */ MAYTS_2,
     /* 0xF */ MAYTS_VANILLA = 0xF
 } EnMaYtsTypeExt;
+
+// unused week event reg settings we can use to detect already spoken to
+#define ROMANI_SET_NEWEVENT gSaveContext.save.weekEventReg[21] |= 0x10
+#define ROMANI_GET_NEWEVENT gSaveContext.save.weekEventReg[21] &= 0x10
 
 #define EN_MA_YTS_PARSE_TYPE(actor) ((((actor)->params)&0xF000) >> 12)
 #define EN_MA_YTS_PARAM(enMaYtsType) ((enMaYtsType) << 12)

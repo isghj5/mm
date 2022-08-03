@@ -77,6 +77,7 @@ static CollisionCheckInfoInit2 sColChkInfoInit2 = {
     0, 0, 0, 0, MASS_IMMOVABLE,
 };
 
+// almost half of these are completely unused, only one odd value is used at all
 static AnimationSpeedInfo sAnimationInfo[] = {
     { &gRomaniIdleAnim, 1.0f, ANIMMODE_LOOP, 0.0f },
     { &gRomaniIdleAnim, 1.0f, ANIMMODE_LOOP, -6.0f },
@@ -103,10 +104,7 @@ static AnimationSpeedInfo sAnimationInfo[] = {
 };
 
 static TexturePtr sMouthTextures[] = {
-    gRomaniMouthHappyTex,
-    gRomaniMouthFrownTex,
-    gRomaniMouthHangingOpenTex,
-    gRomaniMouthSmileTex,
+    gRomaniMouthHappyTex, gRomaniMouthFrownTex, gRomaniMouthHangingOpenTex, gRomaniMouthSmileTex,
 };
 
 // happy is closed happy
@@ -225,6 +223,8 @@ s32 EnMaYts_CheckValidSpawn(EnMaYts* this, PlayState* play) {
 
 void EnMaYts2_SetupSing(EnMaYts* this);
 void EnMaYts2_ChooseNewText(EnMaYts* this, PlayState* play);
+void EnMaYts2_SittingNew(EnMaYts* this, PlayState* play);
+void EnMaYts2_SittingTalkNew(EnMaYts* this, PlayState* play);
 
 void EnMaYts2_StandingTalk(EnMaYts* this, PlayState* play) {
     if(this->actor.xzDistToPlayer > 100.0f){
@@ -266,14 +266,30 @@ u16 sRandomText[] = {
 };
 
 void EnMaYts2_ChooseNewText(EnMaYts* this, PlayState* play) {
-  if (gSaveContext.save.playerForm != PLAYER_FORM_HUMAN) {
+  //if (true){  // testing romani status
+  if ( CURRENT_DAY > 1 && (this->type == MA_YTS_TYPE_SITTING && this->typeExt == MAYTS_BOX)
+    //  if day > 1 and saved aliens and sitting on a crate, milk selling/giving dialogue
+    && gSaveContext.save.weekEventReg[22] & 1)  // saved romani
+    { 
+      if (ROMANI_GET_NEWEVENT) { // previous customer
+        this->actor.textId = 0x278E;
+      } else { // new customer 
+        if (gSaveContext.save.playerForm == PLAYER_FORM_HUMAN ){
+          this->actor.textId = 0x3367; // thanks for last night
+        } else {
+          this->actor.textId = 0x3395; // explaining chatou
+        }
+      }
+    
+  } else if (gSaveContext.save.playerForm != PLAYER_FORM_HUMAN) {
     this->actor.textId = 0x3336; // cute foreigner
   } else if (Player_GetMask(play) != PLAYER_MASK_NONE){ 
     this->actor.textId = 0x233F; // oh you found a cute mask
-  } else if (CURRENT_DAY == 1) {
-    this->actor.textId = 0x3348; // don't be late tonight
-  } else if (Object_IsLoaded(&play->objectCtx, GAMEPLAY_DANGEON_KEEP)) {
+  } else if (Object_GetIndex(&play->objectCtx, GAMEPLAY_DANGEON_KEEP) != -1) {
     this->actor.textId = 0x208;  // eeevil
+  } else if (CURRENT_DAY == 1 && 
+    (gSaveContext.save.weekEventReg[21] & 0x20 || CHECK_QUEST_ITEM(QUEST_SONG_EPONA))) {
+    this->actor.textId = 0x3348; // don't be late tonight
   } else { //random text
     this->actor.textId = sRandomText[this->randomTextIndex];
   }
@@ -304,25 +320,87 @@ void EnMaYts2_SetupSing(EnMaYts* this) {
     this->actionFunc = EnMaYts2_Sing;
 }
 
-// TODO rip the dialogue stuff and separate as a separate function
-void EnMaYts2_SittingNew(EnMaYts* this, PlayState* play) {
-    if (ABS(this->actor.yawTowardsPlayer) <= 0x4000) {
-        EnMaYts2_ChooseNewText(this, play);
 
-        if (Message_GetState(&play->msgCtx) == 5 && Message_ShouldAdvance(play)) {
-            func_801477B4(play); // ends dialogue
-            if (this->actor.textId == 0x296D) {this->actor.textId = 0x2A3A;}
-        } else {
-            func_800B8614(&this->actor, play, 120.0f); // enables talking prompt
+void EnMaYts2_SittingTalkNew(EnMaYts* this, PlayState* play) {
+    u8 msgState = Message_GetState(&play->msgCtx);
+    u8 shouldAdvance = Message_ShouldAdvance(play);
+
+    // if player succeded in helping sisters, they should sell or give milk/chatou
+    // 3395: explaining what chatou is
+    // 278E will you try?
+    // 0c82: will you give it a try?
+    // 3356 is try again?
+    // 12E4 you dont have an empty bottle to put it in
+    if (shouldAdvance) {
+      if (msgState == 5 || msgState == 6) {
+        // bug: for some reason I cannot chain these two toegether so I made them separate for different races
+        // it would just never leave middle chain onto the last dialogue... dont know why
+        if (this->actor.textId == 0x3395 || this->actor.textId == 0x3367) { // explaining milk
+          Message_StartTextbox(play, 0x0C82, &this->actor);
+          this->actor.textId = 0x0C82; // would you like to try?
+        //} else if (this->actor.textId == 0x3367) { // thanking link for helping
+          //Message_StartTextbox(play, 0x3395, &this->actor);
+          //this->actor.textId = 0x3395; // explaining milk
+
+        } else { // regular dialogue is one shot, end after whatever it was previously
+          func_801477B4(play); // ends dialogue
+          this->actionFunc = EnMaYts2_SittingNew;
+          // force mouth back to smile
+
+          // be extra suspicious
+          if (this->actor.textId == 0x296D) {this->randomTextIndex = 3;}
         }
+      }else if ( msgState == TEXT_STATE_CHOICE ){
+        // choosing to buy milk or not
+        //switch (this->textId){ // except we should only have the on choice
+        if (play->msgCtx.choiceIndex == 0) { // yes
+          if (Inventory_HasEmptyBottle()){ // if player has bottle
+            ROMANI_SET_NEWEVENT;
+            func_801477B4(play); // ends dialogue
+            this->overrideEyeTexIndex = 3;
+            Actor_PickUp(&this->actor, play, GI_CHATEAU, 500.0f, 100.0f);
+            this->actionFunc = EnMaYts2_SittingNew;
+
+          } else { // no bottle to use
+            this->actor.textId = 0x12E4;
+            Message_StartTextbox(play, 0x12E4, &this->actor);
+            this->overrideEyeTexIndex = 0;
+            this->mouthTexIndex = 1;
+          }
+        } else { // no
+          Message_StartTextbox(play, 0x12E7, &this->actor);
+          this->actor.textId = 0x12E7; // take care
+        }
+      }
     }
 }
 
-// > 20 lines of asm for this stupid float bullshit, separate
+
+// TODO rip the dialogue stuff and separate as a separate function
+void EnMaYts2_SittingNew(EnMaYts* this, PlayState* play) {
+  if ( this->actor.xzDistToPlayer < 100.0f && ABS(this->actor.yawTowardsPlayer) <= 0x4000) {
+    Player* player = GET_PLAYER(play);
+
+
+    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+        this->actionFunc = EnMaYts2_SittingTalkNew;
+
+    }else if (!(player->stateFlags1 & 0x800000)){
+        EnMaYts2_ChooseNewText(this, play);
+        func_800B8614(&this->actor, play, 120.0f); // enables talking prompt
+    }
+
+  } else { // not close enough
+    this->overrideEyeTexIndex = 0;
+    this->mouthTexIndex = 0;
+
+  }
+}
+
+// over A0 lines of asm for this float asm, separate because IDO wont reuse
 void EnMaYts2_GenerateRandomText(EnMaYts* this, PlayState* play) {
      this->randomTextIndex = (u8)(Rand_ZeroOne() * sizeof(sRandomText));
 }
-
 
 void EnMaYts_Init(Actor* thisx, PlayState* play) {
     EnMaYts* this = THIS;
@@ -361,6 +439,7 @@ void EnMaYts_Init(Actor* thisx, PlayState* play) {
     }
 
     // ugh, this shit should be in setup funcs
+    // YOU EVEN MADE A FACE CHANGE FUNC oh mah god
     if (CURRENT_DAY == 1 || (gSaveContext.save.weekEventReg[22] & 1)) {
         this->overrideEyeTexIndex = 0;
         this->eyeTexIndex = 0;
@@ -402,7 +481,7 @@ void EnMaYts_Destroy(Actor* thisx, PlayState* play) {
     Collider_DestroyCylinder(play, &this->collider);
 }
 
-// get out of here with this stupid shit, just Noop
+// get out of here with this stupid shit, just Noop if you want to do nothing
 //void EnMaYts_SetupDoNothing(EnMaYts* this) { //this->actionFunc = EnMaYts_DoNothing; //}
 //void EnMaYts_DoNothing(EnMaYts* this, PlayState* play) { //}
 
@@ -491,135 +570,6 @@ void EnMaYts_DialogueHandler(EnMaYts* this, PlayState* play) {
     }
 }
 
-// new functions for sitting dialogue
-// actually... nvm all the dialgoue options suck or are depressing
-/*
-
-void EnMaYts2_StartDialogue(EnMaYts* this, PlayState* play);
-void EnMaYts2_DialogueHandler(EnMaYts* this, PlayState* play);
-void EnMaYts2_SetupDialogueHandler(EnMaYts* this);
-
-void EnMaYts2_SetupStartDialogue(EnMaYts* this) {
-    //EnMaYts_SetFaceExpression(this, 0, 0);
-    this->actionFunc = EnMaYts2_StartDialogue;
-}
-
-void EnMaYts2_StartDialogue(EnMaYts* this, PlayState* play) {
-    s16 sp26 = this->actor.shape.rot.y - this->actor.yawTowardsPlayer;
-
-    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
-        if (!(gSaveContext.save.playerForm == PLAYER_FORM_HUMAN)) {
-            if (!(gSaveContext.save.weekEventReg[65] & 0x80)) {
-                // Saying to non-human Link: "Cremia went to town."
-                gSaveContext.save.weekEventReg[65] |= 0x80;
-                EnMaYts_SetFaceExpression(this, 0, 0);
-                Message_StartTextbox(play, 0x335F, &this->actor);
-                this->textId = 0x335F;
-            } else {
-                // Saying to non-human Link: "Pretend you did not hear that."
-                EnMaYts_SetFaceExpression(this, 4, 3);
-                Message_StartTextbox(play, 0x3362, &this->actor);
-                this->textId = 0x3362;
-                func_80151BB4(play, 5);
-            }
-        } else if (Player_GetMask(play) != PLAYER_MASK_NONE) {
-            if (!(gSaveContext.save.weekEventReg[65] & 0x40)) {
-                gSaveContext.save.weekEventReg[65] |= 0x40;
-                EnMaYts_SetFaceExpression(this, 0, 0);
-                Message_StartTextbox(play, 0x3363, &this->actor);
-                this->textId = 0x3363;
-            } else {
-                EnMaYts_SetFaceExpression(this, 4, 2);
-                Message_StartTextbox(play, 0x3366, &this->actor);
-                this->textId = 0x3366;
-                func_80151BB4(play, 5);
-            }
-        } else if (!(gSaveContext.save.weekEventReg[21] & 0x20)) {
-            EnMaYts_SetFaceExpression(this, 0, 0);
-            Message_StartTextbox(play, 0x3367, &this->actor);
-            this->textId = 0x3367;
-        } else {
-            if (!(gSaveContext.save.weekEventReg[65] & 0x20)) {
-                // Saying to Grasshopper: "Cremia went to town."
-                gSaveContext.save.weekEventReg[65] |= 0x20;
-                EnMaYts_SetFaceExpression(this, 4, 2);
-                Message_StartTextbox(play, 0x3369, &this->actor);
-                this->textId = 0x3369;
-            } else {
-                // Saying to Grasshopper: "You're our bodyguard."
-                EnMaYts_SetFaceExpression(this, 0, 0);
-                Message_StartTextbox(play, 0x336C, &this->actor);
-                this->textId = 0x336C;
-                func_80151BB4(play, 5);
-            }
-        }
-        EnMaYts2_SetupDialogueHandler(this);
-    } else if (ABS_ALT(sp26) < 0x4000) {
-        func_800B8614(&this->actor, play, 120.0f);
-    }
-}
-
-// Select the following dialogue based on the current one, and an appropiate face expression
-void EnMaYts2_ChooseNextDialogue(EnMaYts* this, PlayState* play) {
-    if (Message_ShouldAdvance(play)) {
-        switch (this->textId) {
-            // 0x3358: // ... who are you again?
-            // 0x333E: // They are coming...
-            // 0x336F: They.. they come at night every year when the carnival approaches...
-            // 0x3358: // 
-            //case 0x335F:
-                //EnMaYts_SetFaceExpression(this, 0, 2);
-                //Message_StartTextbox(play, 0x3360, &this->actor);
-                //this->textId = 0x3360;
-                //break;
-
-            //case 0x3360:
-                //EnMaYts_SetFaceExpression(this, 4, 3);
-                //Message_StartTextbox(play, 0x3361, &this->actor);
-                //this->textId = 0x3361;
-                //func_80151BB4(play, 5);
-                //break;
-
-            //case 0x3363:
-                //EnMaYts_SetFaceExpression(this, 1, 1);
-                //Message_StartTextbox(play, 0x3364, &this->actor);
-                //this->textId = 0x3364;
-                //break;
-
-            //case 0x3364:
-                //EnMaYts_SetFaceExpression(this, 4, 2);
-                //Message_StartTextbox(play, 0x3365, &this->actor);
-                //this->textId = 0x3365;
-                //func_80151BB4(play, 5);
-                //break;
-
-            //case 0x3367:
-                //EnMaYts_SetFaceExpression(this, 4, 3);
-                //Message_StartTextbox(play, 0x3368, &this->actor);
-                //this->textId = 0x3368;
-                //func_80151BB4(play, 5);
-                //break;
-
-            //case 0x3369:
-                //EnMaYts_SetFaceExpression(this, 0, 0);
-                //Message_StartTextbox(play, 0x336A, &this->actor);
-                //this->textId = 0x336A;
-                //break;
-
-            //case 0x336A:
-                //EnMaYts_SetFaceExpression(this, 3, 3);
-                //Message_StartTextbox(play, 0x336B, &this->actor);
-                //this->textId = 0x336B;
-                //func_80151BB4(play, 5);
-                //break;
-
-            default:
-                break;
-        }
-    }
-}
-
-*/
 
 void EnMaYts_SetupEndCreditsHandler(EnMaYts* this) {
     this->actor.flags |= ACTOR_FLAG_10;
@@ -753,7 +703,7 @@ s32 EnMaYts_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
     EnMaYts* this = THIS;
     Vec3s sp4;
 
-    if (this->actionFunc != EnMaYts2_Sing){
+    if (this->actionFunc != EnMaYts2_Sing){ // shes distracted by singing to notice you
       if (limbIndex == ROMANI_LIMB_HEAD) {
           sp4 = this->unk_1D8.unk_08;
           rot->x += sp4.y;
@@ -784,8 +734,62 @@ void EnMaYts_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* ro
     }
 }
 
+/*
+void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
+    EnMaYts* this = THIS;
+    // with explanation comments
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // the dlist will be written in the opa buffer because that buffer is larger,
+    // but executed from the overlay buffer (overlay draws last, for example the hud is drawn to overlay)
+    gfx = POLY_OPA_DISP + 1;
+    gSPDisplayList(OVERLAY_DISP++, gfx);
+
+    // initialize GfxPrint struct
+    GfxPrint_Init(&printer);
+    GfxPrint_Open(&printer, gfx);
+
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
+    GfxPrint_SetPos(&printer, 1, 10);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+
+    { // address locations
+        u32 convertedAddr = (u32)Fault_ConvertAddress((void*)this->actionFunc);
+        GfxPrint_SetPos(&printer, 1, 11);
+        //GfxPrint_Printf(&printer, "func %X", &EnPoSisters_CheckCollision);
+        GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
+        GfxPrint_SetPos(&printer, 1, 12);
+        GfxPrint_Printf(&printer, "actionfunc actual ram:  %X", this->actionFunc);
+    }
+
+    GfxPrint_SetPos(&printer, 1, 14);
+    
+    //GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
+    //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
+    GfxPrint_Printf(&printer, "mesgState  %X", Message_GetState(&play->msgCtx));
+    GfxPrint_SetPos(&printer, 1, 15);
+    GfxPrint_Printf(&printer, "textid %X", &this->actor.textId);
+
+    // end of text printing
+    gfx = GfxPrint_Close(&printer);
+    GfxPrint_Destroy(&printer);
+
+    gSPEndDisplayList(gfx++);
+    // make the opa dlist jump over the part that will be executed as part of overlay
+    gSPBranchList(POLY_OPA_DISP, gfx);
+    POLY_OPA_DISP = gfx;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+    //Debug_PrintToScreen(thisx, play);
+} // */
+
+
 void EnMaYts_Draw(Actor* thisx, PlayState* play) {
     EnMaYts* this = THIS;
+    //Debug_PrintToScreen(thisx, play);
 
     OPEN_DISPS(play->state.gfxCtx);
     // ripped from EnMa4, returnt to box
