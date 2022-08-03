@@ -467,6 +467,9 @@ void EnMaYts_Init(Actor* thisx, PlayState* play) {
     // why is this based on time and not based on type?
     } else if (CURRENT_DAY == 2 && gSaveContext.save.isNight == 1 && (gSaveContext.save.weekEventReg[22] & 1)) {
         EnMaYts_SetupStartDialogue(this);
+    } else if (this->type == MA_YTS_TYPE_SLEEPING) {
+        this->actionFunc = Actor_Noop;
+
     } else { // standing doing nothing should now have dialogue
         //EnMaYts_SetupDoNothing(this);
         //this->actionFunc = Actor_Noop;
