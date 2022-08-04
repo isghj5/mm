@@ -302,7 +302,8 @@ void EnMaYts2_Sing(EnMaYts* this, PlayState* play) {
     // ripped from GuruGuru, because his proxmity music isn't jank like EnYb
     // using carriage music because if she shows up in romani ranch its just weird to hear ranch music ontop of ranch music
     // wish I could include a basic singing music in here...
-    func_801A1D44(&this->actor.projectedPos, NA_BGM_CREMIA_CARRIAGE, 540.0f); // 540 is this range or speed?
+    //func_801A1D44(&this->actor.projectedPos, NA_BGM_CREMIA_CARRIAGE, 540.0f); // 540 is this range or speed?
+    func_801A1D44(&this->actor.projectedPos, NA_BGM_CREMIA_CARRIAGE, 2500.0f); // 540 is this range or speed?
 
     if (ABS(this->actor.yawTowardsPlayer) <= 0x4000) {
         EnMaYts2_ChooseNewText(this, play);
