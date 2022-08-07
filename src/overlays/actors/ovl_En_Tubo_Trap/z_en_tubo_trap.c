@@ -22,6 +22,21 @@ void EnTuboTrap_Idle(EnTuboTrap* this, GlobalContext* globalCtx);
 void EnTuboTrap_Levitate(EnTuboTrap* this, GlobalContext* globalCtx);
 void EnTuboTrap_FlyAtPlayer(EnTuboTrap* this, GlobalContext* globalCtx);
 
+const ActorInit En_Tubo_Trap_InitVars = {
+    ACTOR_EN_TUBO_TRAP,
+    ACTORCAT_PROP,
+    FLAGS,
+    GAMEPLAY_KEEP,
+    //GAMEPLAY_DANGEON_KEEP,
+    sizeof(EnTuboTrap),
+    (ActorFunc)EnTuboTrap_Init,
+    (ActorFunc)EnTuboTrap_Destroy,
+    (ActorFunc)EnTuboTrap_Update,
+    (ActorFunc)NULL, // dont draw until our object is set
+    //(ActorFunc)EnTuboTrap_Draw,
+};
+
+// moved down under init for easier ripping
 static ColliderCylinderInit sCylinderInit = {
     {
         COLTYPE_NONE,
@@ -40,20 +55,6 @@ static ColliderCylinderInit sCylinderInit = {
         OCELEM_NONE,
     },
     { 11, 28, 0, { 0, 0, 0 } },
-};
-
-const ActorInit En_Tubo_Trap_InitVars = {
-    ACTOR_EN_TUBO_TRAP,
-    ACTORCAT_PROP,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    //GAMEPLAY_DANGEON_KEEP,
-    sizeof(EnTuboTrap),
-    (ActorFunc)EnTuboTrap_Init,
-    (ActorFunc)EnTuboTrap_Destroy,
-    (ActorFunc)EnTuboTrap_Update,
-    (ActorFunc)NULL, // dont draw until our object is set
-    //(ActorFunc)EnTuboTrap_Draw,
 };
 
 static InitChainEntry sInitChain[] = {
@@ -99,7 +100,7 @@ void EnTuboTrap_WaitForObject(EnTuboTrap* this, GlobalContext* globalCtx) {
   if (EnTuboTrap2_AttemptObjectSwitch(this, globalCtx)){
 
       this->actor.draw = EnTuboTrap_Draw;
-      this->actionFunc =  EnTuboTrap_Idle;
+      this->actionFunc = EnTuboTrap_Idle;
   }
 }
 
@@ -287,7 +288,8 @@ void EnTuboTrap_Idle(EnTuboTrap* this, GlobalContext* globalCtx) {
     f32 transformationHeight;
     s16 startingRotation;
 
-    if ((this->actor.xzDistToPlayer < 200.0f) && (this->actor.world.pos.y <= player->actor.world.pos.y)) {
+    //if ((this->actor.xzDistToPlayer < 200.0f) && (this->actor.world.pos.y <= player->actor.world.pos.y)) {
+    if ((this->actor.xzDistToPlayer < 200.0f) && (this->actor.world.pos.y <= (player->actor.world.pos.y + 50.0f))) {
         startingRotation = this->actor.home.rot.z;
         if ((startingRotation == 0) || (this->actor.playerHeightRel <= (startingRotation * 10.0f))) {
             func_800BC154(globalCtx, &globalCtx->actorCtx, &this->actor, ACTORCAT_ENEMY);
