@@ -15,6 +15,8 @@ typedef struct EnTuboTrap {
     /* 0x0158 */ ColliderCylinder collider;
 } EnTuboTrap; // size = 0x1A4
 
+#define TUBO_LEVITATEFRAMES this->actor.home.rot.z  
+
 extern const ActorInit En_Tubo_Trap_InitVars;
 
 #endif // Z_EN_TUBO_TRAP_H

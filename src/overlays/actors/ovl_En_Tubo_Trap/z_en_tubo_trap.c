@@ -227,8 +227,7 @@ void EnTuboTrap_SpawnEffectsInWater(EnTuboTrap* this, GlobalContext* globalCtx) 
 }
 
 void EnTuboTrap_HandleImpact(EnTuboTrap* this, GlobalContext* globalCtx) {
-    Player* player = GET_PLAYER(globalCtx);
-    Player* player2 = GET_PLAYER(globalCtx);
+    //Player* player2 = GET_PLAYER(globalCtx);
 
     if ((this->actor.bgCheckFlags & 0x20) && (this->actor.depthInWater > 15.0f)) {
         EnTuboTrap_SpawnEffectsInWater(this, globalCtx);
@@ -259,12 +258,13 @@ void EnTuboTrap_HandleImpact(EnTuboTrap* this, GlobalContext* globalCtx) {
     }
 
     if (this->collider.base.atFlags & AT_HIT) {
+        Player* player = GET_PLAYER(globalCtx);
         this->collider.base.atFlags &= ~AT_HIT;
 
         if (&player->actor == this->collider.base.at) {
             EnTuboTrap_SpawnEffectsOnLand(this, globalCtx);
             SoundSource_PlaySfxAtFixedWorldPos(globalCtx, &this->actor.world.pos, 40, NA_SE_EV_POT_BROKEN);
-            SoundSource_PlaySfxAtFixedWorldPos(globalCtx, &player2->actor.world.pos, 40, NA_SE_PL_BODY_HIT);
+            SoundSource_PlaySfxAtFixedWorldPos(globalCtx, &player->actor.world.pos, 40, NA_SE_PL_BODY_HIT);
             EnTuboTrap_DropCollectible(this, globalCtx);
             Actor_MarkForDeath(&this->actor);
             return;
@@ -305,6 +305,7 @@ void EnTuboTrap_Idle(EnTuboTrap* this, GlobalContext* globalCtx) {
             }
             this->originPos = this->actor.world.pos;
             Actor_PlaySfxAtPos(&this->actor, NA_SE_EV_POT_MOVE_START);
+            TUBO_LEVITATEFRAMES = 0;
             this->actionFunc = EnTuboTrap_Levitate;
         }
     }
@@ -318,6 +319,10 @@ void EnTuboTrap_Levitate(EnTuboTrap* this, GlobalContext* globalCtx) {
         this->actor.speedXZ = 10.0f;
         this->actor.world.rot.y = this->actor.yawTowardsPlayer;
         this->actionFunc = EnTuboTrap_FlyAtPlayer;
+    }
+
+    if (++TUBO_LEVITATEFRAMES > 3) {
+      EnTuboTrap_HandleImpact(this, globalCtx);
     }
 }
 
