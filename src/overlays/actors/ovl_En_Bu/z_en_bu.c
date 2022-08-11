@@ -17,7 +17,9 @@ void EnBu_Destroy(Actor* thisx, GlobalContext* globalCtx);
 void EnBu_Update(Actor* thisx, GlobalContext* globalCtx);
 void EnBu_Draw(Actor* thisx, GlobalContext* globalCtx);
 
-void EnBu_WaitClosed(EnBu* this, GlobalContext* globalCtx);
+void EnBu_SwapChests(EnBu* this, GlobalContext* globalCtx);
+void EnBu_WaitPo(EnBu* this, GlobalContext* globalCtx);
+void EnBu_WaitSpider(EnBu* this, GlobalContext* globalCtx);
 
 const ActorInit En_Bu_InitVars = {
     ACTOR_EN_BU, // new and improved
@@ -48,7 +50,8 @@ static ColliderCylinderInit sCylinderInit = {
         BUMP_ON,
         OCELEM_ON,
     },
-    { 30, 40, 0, { 0, 0, 0 } }, // ani
+    { 35, 50, 0, { 0, 0, 0 } }, // ani ++
+    //{ 30, 40, 0, { 0, 0, 0 } }, // ani
     //{ 35, 100, 5, { 0, 0, 0 } }, // bigpo
 };
 
@@ -58,7 +61,7 @@ static CollisionCheckInfoInit sColChkInfoInit = { 3, 30, 40, 150 };
 typedef enum {
   /* 0 */ MIMIC_DAMAGE_NOTHING,
   /* 1 */ MIMIC_DAMAGE_EXPLOSION, // hit with non-damage attack, first attack cannot giggle 
-  /* 2 */ MIMIC_DAMAGE_,
+  /* 2 */ MIMIC_DAMAGE_ZORA_ELEC,
   /* 3 */ MIMIC_DAMAGE_FIRE_ARROWS,
   /* 4 */ MIMIC_DAMAGE_LIGHT_ARROWS,
 } MimicDamageTypes;
@@ -71,12 +74,11 @@ static DamageTable sDamageTable = {
     /* Zora boomerang */ DMG_ENTRY(0, MIMIC_DAMAGE_NOTHING),
     /* Normal arrow   */ DMG_ENTRY(0, MIMIC_DAMAGE_NOTHING),
     /* UNK_DMG_0x06   */ DMG_ENTRY(0, MIMIC_DAMAGE_NOTHING),
-    ///* Hookshot       */ DMG_ENTRY(0, 0xF),
     /* Hookshot       */ DMG_ENTRY(0, MIMIC_DAMAGE_NOTHING), // we want to hookshot to the chest even if its a mimic
     /* Goron punch    */ DMG_ENTRY(1, MIMIC_DAMAGE_EXPLOSION),
     /* Sword          */ DMG_ENTRY(0, MIMIC_DAMAGE_NOTHING),
     /* Goron pound    */ DMG_ENTRY(1, MIMIC_DAMAGE_EXPLOSION),
-    /* Fire arrow     */ DMG_ENTRY(1, MIMIC_DAMAGE_NOTHING),
+    /* Fire arrow     */ DMG_ENTRY(1, MIMIC_DAMAGE_FIRE_ARROWS),
     /* Ice arrow      */ DMG_ENTRY(0, MIMIC_DAMAGE_NOTHING),
     /* Light arrow    */ DMG_ENTRY(2, MIMIC_DAMAGE_LIGHT_ARROWS),
     /* Goron spikes   */ DMG_ENTRY(0, MIMIC_DAMAGE_EXPLOSION),
@@ -84,7 +86,7 @@ static DamageTable sDamageTable = {
     /* Deku bubble    */ DMG_ENTRY(0, MIMIC_DAMAGE_NOTHING),
     /* Deku launch    */ DMG_ENTRY(2, MIMIC_DAMAGE_NOTHING),
     /* UNK_DMG_0x12   */ DMG_ENTRY(0, MIMIC_DAMAGE_NOTHING),
-    /* Zora barrier   */ DMG_ENTRY(1, 0x2),
+    /* Zora barrier   */ DMG_ENTRY(1, MIMIC_DAMAGE_ZORA_ELEC),
     /* Normal shield  */ DMG_ENTRY(0, MIMIC_DAMAGE_NOTHING),
     /* Light ray      */ DMG_ENTRY(0, MIMIC_DAMAGE_NOTHING),
     /* Thrown object  */ DMG_ENTRY(0, MIMIC_DAMAGE_NOTHING),
@@ -125,13 +127,82 @@ void EnBu_Init(Actor* thisx, GlobalContext* globalCtx) {
                    OBJECT_BOX_CHEST_LIMB_MAX);
     Animation_Change(&this->skelAnime, &gBoxChestOpenAnim, 1.5f, animFrame, animFrameEnd, ANIMMODE_ONCE, 0.0f);
 
-    this->actionFunc = EnBu_WaitClosed;
-
     Collider_InitAndSetCylinder(globalCtx, &this->collider, &this->dyna.actor, &sCylinderInit);
     CollisionCheck_SetInfo(&this->dyna.actor.colChkInfo, &sDamageTable, &sColChkInfoInit);
 
+    this->actionFunc = EnBu_SwapChests;
+
+    // TODO check for chests to swap with and swap
 
     MIMIC_FLAGS(this) = MIMIC_FLAG_CLEAR;
+}
+
+
+// BUG: sometimes this returns null when it shouldnt, no idea why yet
+Actor* EnBu_FindRandomChest(EnBu* this, GlobalContext* globalCtx) {
+
+  // traverse list of chests until we find the null, that is the whole list
+  // return random value adjusted to 0-N
+  Actor* chest;
+  int chestCount = 0;
+  for (chest = (globalCtx)->actorCtx.actorLists[ACTORCAT_CHEST].first; chest != NULL; chest = chest->next ){
+    // yes I can move it up into the thing but I find that annoying
+    // the function or purpose of a for loop should be in the contents not the expressions
+    chestCount++; 
+  }
+  
+  if (chestCount == 0){
+    return NULL;
+  } else {
+    u16 randomIndex = ((s32)Rand_ZeroFloat(chestCount)) % chestCount;
+    u16 i;
+
+    chest = (globalCtx)->actorCtx.actorLists[ACTORCAT_CHEST].first;
+    while(i != randomIndex){
+      chest = chest->next;
+      i++;
+    }
+  
+    return chest;
+  }
+}
+
+
+void EnBu_SwapChests(EnBu* this, GlobalContext* globalCtx) {
+  // wait one frame for all objects and actors to load, then change type
+  MIMIC_SWAPROLL(this) = (s32)Rand_ZeroFloat(7) > 2;
+  
+  // TODO roll random dice 
+  // I would like a random chest among a list but that might be expensive
+  //Actor* realChest = SubS_FindNearestActor(globalCtx, NULL, ACTORCAT_CHEST, ACTOR_EN_BOX);
+  //Actor* realChest = SubS_FindActor(globalCtx, NULL, ACTORCAT_CHEST, ACTOR_EN_BOX);
+  // random chance our mimi will swap with a regular chest that already exists
+  if ( MIMIC_SWAPROLL(this)){
+    Actor* realChest = EnBu_FindRandomChest(this, globalCtx);
+    if (realChest != NULL) {
+      PosRot copy = this->dyna.actor.world;
+      Vec3s shapeCopy = this->dyna.actor.shape.rot;
+      
+      this->dyna.actor.world = realChest->world;
+      // we want the current shape not world, since EnBox snaps its rotation for some reason
+      this->dyna.actor.shape.rot = realChest->shape.rot; 
+
+      realChest->world = copy;
+      realChest->shape.rot = shapeCopy;
+
+      Actor_SetScale(&this->dyna.actor, realChest->scale.x); // all scales are same for chest, just use one
+    }
+  }
+
+  if (MIMIC_GET_TYPE(&this->dyna.actor) == MIMIC_TYPE_SPIDER) {
+    this->damageSfx = NA_SE_EN_STALTU_DAMAGE;
+    this->deathSfx = NA_SE_EN_STALTU_DEAD;
+    this->actionFunc = EnBu_WaitSpider;
+  } else {
+    this->damageSfx = NA_SE_EN_EYEGOLE_ATTACK;
+    this->deathSfx = NA_SE_EN_PO_DEAD;
+    this->actionFunc = EnBu_WaitPo;
+  }
 }
 
 void EnBu_Destroy(Actor* thisx, GlobalContext* globalCtx) {
@@ -139,12 +210,16 @@ void EnBu_Destroy(Actor* thisx, GlobalContext* globalCtx) {
 
     DynaPoly_DeleteBgActor(globalCtx, &globalCtx->colCtx.dyna, this->dyna.bgId);
     Collider_DestroyCylinder(globalCtx, &this->collider);
-
 }
 
 // todo finish these
 void EnBu_Dissappear(EnBu* this, GlobalContext* globalCtx) {
-    Item_DropCollectibleRandom(globalCtx, &this->dyna.actor, &this->dyna.actor.world.pos, 0x10);
+    u8 i;
+
+    for (i = 0; i < 3; i++){
+        // hoping these are random angle since there is nothing in the func params
+        Item_DropCollectibleRandom(globalCtx, &this->dyna.actor, &this->dyna.actor.world.pos, 0x10);
+    }
 
     Actor_MarkForDeath(&this->dyna.actor);
 }
@@ -175,7 +250,7 @@ void EnBu_BurnAway(EnBu* this, GlobalContext* globalCtx) {
     effectPos.y = randPlusMinusPoint5Scaled(50.0f) + (this->dyna.actor.world.pos.y + 20.0f);
     func_800B3030(globalCtx, &effectPos, &D_80BFB2E8, &D_80BFB2E8, 100, 0, 2); // flames ghosts have on death
 
-    func_800B9010(&this->dyna.actor, NA_SE_EN_COMMON_EXTINCT_LEV - SFX_FLAG); //Bigpo
+    func_800B9010(&this->dyna.actor, NA_SE_EN_COMMON_EXTINCT_LEV - SFX_FLAG); // from Bigpo
 }
 
 void EnBu_SetupBurnAway(EnBu* this) {
@@ -192,14 +267,15 @@ void EnBu_CheckDamage(EnBu* this, GlobalContext* globalCtx){
         if (this->dyna.actor.colChkInfo.damageEffect > 0){
             Actor_ApplyDamage(&this->dyna.actor);
             if ( this->dyna.actor.colChkInfo.health == 0) {
-            
-                Actor_PlaySfxAtPos(&this->dyna.actor, NA_SE_EN_PO_DEAD);
+                // death
+                //Actor_PlaySfxAtPos(&this->dyna.actor, NA_SE_EN_PO_DEAD);
+                Actor_PlaySfxAtPos(&this->dyna.actor, this->deathSfx);
                 //Actor_PlaySfxAtPos(&this->dyna.actor, NA_SE_EN_EXTINCT);
                 //Enemy_StartFinishingBlow(globalCtx, &this->dyna.actor);
                 EnBu_SetupBurnAway(this);
             }else if (this->dyna.actor.colChkInfo.damage > 0){ 
                 //Audio_PlaySfxAtPos(&this->dyna.actor.projectedPos, NA_SE_EN_PO_DAMAGE);
-                Audio_PlaySfxAtPos(&this->dyna.actor.projectedPos, NA_SE_EN_EYEGOLE_ATTACK);
+                Audio_PlaySfxAtPos(&this->dyna.actor.projectedPos, this->damageSfx);
             }
 
             if (this->dyna.actor.colChkInfo.damageEffect == MIMIC_DAMAGE_LIGHT_ARROWS) { // light arrows
@@ -254,12 +330,9 @@ void EnBu_CheckBonk(EnBu* this, GlobalContext* globalCtx){
     }
 }
 
+extern Input* D_80862B44;
 
-// never mind that we dont actually open
-// TODO we want to make some minor sound if hit with a sword but only sometime
-// TODO we want to turn to face the player if they are dancing as kamaro
-// we want to take damage from bombs/light arrow/fire arrow
-void EnBu_WaitClosed(EnBu* this, GlobalContext* globalCtx) {
+void EnBu_WaitPo(EnBu* this, GlobalContext* globalCtx) {
     Player* player = GET_PLAYER(globalCtx);
     Vec3f offset;
 
@@ -267,11 +340,30 @@ void EnBu_WaitClosed(EnBu* this, GlobalContext* globalCtx) {
     if (offset.z > -50.0f && offset.z < 0.0f && fabsf(offset.y) < 10.0f && fabsf(offset.x) < 20.0f &&
         Player_IsFacingActor(&this->dyna.actor, 0x3000, globalCtx)) {
 
-        //this->dyna.actor.id = ACTOR_EN_BOX;
-        Actor_PickUpNearby(&this->dyna.actor, globalCtx, 0); // real fake doors
+        //if (CHECK_BTN_ALL(D_80862B44->press.button, BTN_A)) { // crashes, think I'm not supposed to be able to do this..
+        //if (CHECK_BTN_ALL(CONTROLLER1(&globalCtx->state)->press.button, BTN_A)) {
+        ////if (false) {
+          //// we can reach this code no problem, however it does NOT work if its last frame only for some reason
+          //Actor_PickUpNearby(&this->dyna.actor, globalCtx, 0); // void
+          //player->stateFlags1 |= 0x800; // does nothing this late?
+            //player->csMode = 0;
+          //this->actionFunc = Actor_Noop;
+        //} else {
+        {
+          //this->dyna.actor.id = ACTOR_EN_BOX;
+          // only issue is it shows GRAB on the UI
+          //Actor_PickUpNearby(&this->dyna.actor, globalCtx, -2); // fake out value to show open instead of grab
+          Actor_PickUpNearby(&this->dyna.actor, globalCtx, 0); // fake out value to show open instead of grab
+        }
 
+
+
+        //player->getItemId = 0x0; // still tells us to grab... we need something stronger
         if (this->dyna.actor.parent != NULL){ // successful pickup
+            Player* player = GET_PLAYER(globalCtx);
+            
             Audio_PlaySfxAtPos(&this->dyna.actor.projectedPos, NA_SE_EN_PO_LAUGH);
+            this->actionFunc = Actor_Noop;
         }
     }
 
@@ -279,16 +371,31 @@ void EnBu_WaitClosed(EnBu* this, GlobalContext* globalCtx) {
 
 }
 
+void EnBu_WaitSpider(EnBu* this, GlobalContext* globalCtx) {
+    // TODO: make him skitter when behind the player
+    // make him jump attack at the player
+
+    // if player turns around, they might see the chest slightly open
+    // need to detect player is not looking
+    // then once they are looking, quickly close the lid
+}
+
 void EnBu_Update(Actor* thisx, GlobalContext* globalCtx) {
     EnBu* this = THIS;
 
-    //Actor_MoveWithGravity(&this->actor);
+    // why did I have this off?
+    Actor_MoveWithGravity(&this->dyna.actor);
+    Actor_UpdateBgCheckInfo(globalCtx, &this->dyna.actor, 0.0f, 0.0f, 0.0f, 0x1C);
 
     this->actionFunc(this, globalCtx);
     EnBu_CheckDamage(this, globalCtx);
+
+    // debug
+    // NOT WORKING???
+    //thisx->world.rot.y += 1500;
 }
 
-/*
+///*
 void Debug_PrintToScreen(Actor* thisx, GlobalContext *globalCtx) {
     EnBu* this = THIS;
     // with explanation comments
@@ -307,18 +414,22 @@ void Debug_PrintToScreen(Actor* thisx, GlobalContext *globalCtx) {
     GfxPrint_Open(&printer, gfx);
 
     // set color to opaque pink
-    GfxPrint_SetColor(&printer, 255, 0, 255, 255);
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
     // set position to somewhere near screen center
     GfxPrint_SetPos(&printer, 1, 10);
     //GfxPrint_Printf(&printer, "rot.y: %X", this->actor.home.rot.y);
     //GfxPrint_Printf(&printer, "flags: %X", this->alpha);
-    GfxPrint_Printf(&printer, "flags: %X", MIMIC_FLAGS(THIS));
+    //GfxPrint_Printf(&printer, "roll : %d", (s32)MIMIC_SWAPROLL(THIS)); // CRASH
     GfxPrint_SetPos(&printer, 1, 12);
 
     // write Hello at previously set position with previously set color
+    GfxPrint_SetPos(&printer, 1, 12);
     //GfxPrint_Printf(&printer, "limbpos (%X, %X, %X)", this->limbPos.x, this->limbPos.y, this->limbPos.z);
-    //GfxPrint_SetPos(&printer, 1, 12);
     //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
+    {
+      Player* player = GET_PLAYER(globalCtx);
+      GfxPrint_Printf(&printer, "actionfun : %X", EnBu_WaitPo);
+    }
 
     // end of text printing
     gfx = GfxPrint_Close(&printer);
