@@ -200,7 +200,7 @@ void DmZl_WaitingForDialogue(DmZl* this, GlobalContext* globalCtx) {
         }
         func_800B8614(&this->actor, globalCtx, 120.0f); // enables talking prompt
         if (Actor_ProcessTalkRequest(&this->actor, &globalCtx->state)) {
-            DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4IdleHandsInFrontAnim, ANIMMODE_ONCE);
+            DmZl_ChangeAnimationSimple(this, globalCtx, &gDmZl4HoldingFluteInFrontAnim, ANIMMODE_ONCE);
 
             if (this->actor.textId == 0xFB5){
                 this->actionFunc = DmZl_Talking; // only needed for some dialogue, the rest we can stay here
@@ -241,7 +241,7 @@ void DmZl_PlayFluteIdle(DmZl* this, GlobalContext* globalCtx) {
         //DmZl_SetupLeaving(this, globalCtx); // testing
     } else {
         // play zelda's theme as a local music, taken from GuruGuru
-        func_801A1D44(&this->actor.projectedPos, NA_BGM_ZELDAS_LULLABY, 540.0f); // 540 is this range or speed?
+        func_801A1D44(&this->actor.projectedPos, NA_BGM_ZELDAS_LULLABY, 2500.0f); // last param is distance
     }
     //DmZl_CheckOcarinaOut(this, globalCtx);
 } 
