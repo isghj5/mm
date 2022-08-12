@@ -10,14 +10,21 @@ struct EnBu;
 typedef void (*EnBuActionFunc)(struct EnBu*, GlobalContext*);
 
 #define MIMIC_FLAGS(this) ((this)->dyna.actor.home.rot.z)
+#define MIMIC_SWAPROLL(this) ((this)->dyna.actor.home.rot.y)
 
 typedef enum {
   /* 0 */ MIMIC_FLAG_CLEAR,
   /* 1 */ MIMIC_FLAG_PREVIOUSLY_NOTICED, // attention grabbed no longer asleep
   /* 2 */ MIMIC_FLAG_PREVIOUSLY_LAUGHED,
-
-
 } MimicFlags;
+
+
+#define MIMIC_GET_TYPE(thisx) ((thisx)->params & 0xFF)
+typedef enum {
+  /* 0 */ MIMIC_TYPE_PO,
+  /* 1 */ MIMIC_TYPE_SPIDER,
+  /* 2 */ MIMIC_,
+} MimicType;
 
 typedef struct EnBu {
     /* 0x000 */ DynaPolyActor dyna;
@@ -27,6 +34,8 @@ typedef struct EnBu {
                 Vec3s morphTable[OBJECT_BOX_CHEST_LIMB_MAX];
                 ColliderCylinder collider;
                 s16 stateTimer;
+                s16 damageSfx;
+                s16 deathSfx;
                 s8 alpha;
 
 } EnBu; // size = 0x???
