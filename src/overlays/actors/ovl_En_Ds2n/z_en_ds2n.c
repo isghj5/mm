@@ -98,7 +98,7 @@ void EnDs2n2_Dialogue(EnDs2n* this, PlayState* play) {
 
     if (shouldAdvance) {
       if (msgState == 5 || msgState == 6) {
-        if (this->actor.textId == 0x12D4 || this->actor.textId == 0x06C6 
+        if (this->actor.textId == 0x12D4 //|| this->actor.textId == 0x06C6 
           || this->actor.textId == 0x0D6B|| this->actor.textId == 0x06C2 ) { // good to sell
           Message_StartTextbox(play, 0x2B5D, &this->actor);
           this->actor.textId = 0x2B5D; // would you like to try?
