@@ -55,9 +55,9 @@ const ActorInit En_Nwc_InitVars = {
     (ActorFunc)EnNwc_Draw,
 };
 
-Color_RGBA8 sPrimColor = { 255, 255, 255, 255 };
+static Color_RGBA8 sPrimColor = { 255, 255, 255, 255 };
 
-Color_RGBA8 sEnvColor = { 80, 80, 80, 255 };
+static Color_RGBA8 sEnvColor = { 80, 80, 80, 255 };
 
 void EnNwc_Init(Actor* thisx, GlobalContext* globalCtx) {
     s32 niwObjectIndex;
