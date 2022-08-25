@@ -34,6 +34,7 @@ typedef struct EnEncount2 {
 } EnEncount2; // size = 0x2A70
 
 #define ENCOUNT2_GET_SWITCH_FLAG(thisx) ((thisx)->params & 0x7F)
+#define ENCOUNT2_GET_NOT_DYNA(thisx) (((thisx)->params >> 7) & 1)
 
 extern const ActorInit En_Encount2_InitVars;
 

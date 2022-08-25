@@ -99,20 +99,82 @@ static DamageTable sDamageTable = {
     /* Powder Keg     */ DMG_ENTRY(0, 0xF),
 };
 
+// its a balloon for gods sake, why is it HARD? why can bubbles pop it but not other bombs????
+static DamageTable sDamageTableMorePops = {
+    /* Deku Nut       */ DMG_ENTRY(0, 0xF),
+    /* Deku Stick     */ DMG_ENTRY(1, 0xE),
+    /* Horse trample  */ DMG_ENTRY(1, 0xE),
+    /* Explosives     */ DMG_ENTRY(1, 0xE),
+    /* Zora boomerang */ DMG_ENTRY(1, 0xE),
+    /* Normal arrow   */ DMG_ENTRY(1, 0xE),
+    /* UNK_DMG_0x06   */ DMG_ENTRY(0, 0x0),
+    /* Hookshot       */ DMG_ENTRY(1, 0xE),
+    /* Goron punch    */ DMG_ENTRY(1, 0xE),
+    /* Sword          */ DMG_ENTRY(1, 0xE),
+    /* Goron pound    */ DMG_ENTRY(1, 0xE),
+    /* Fire arrow     */ DMG_ENTRY(1, 0xE),
+    /* Ice arrow      */ DMG_ENTRY(1, 0xE),
+    /* Light arrow    */ DMG_ENTRY(1, 0xE),
+    /* Goron spikes   */ DMG_ENTRY(1, 0xE),
+    /* Deku spin      */ DMG_ENTRY(1, 0xE),
+    /* Deku bubble    */ DMG_ENTRY(1, 0xE),
+    /* Deku launch    */ DMG_ENTRY(1, 0xE),
+    /* UNK_DMG_0x12   */ DMG_ENTRY(0, 0xF),
+    /* Zora barrier   */ DMG_ENTRY(0, 0xF),
+    /* Normal shield  */ DMG_ENTRY(0, 0x0),
+    /* Light ray      */ DMG_ENTRY(0, 0x0),
+    /* Thrown object  */ DMG_ENTRY(1, 0xE),
+    /* Zora punch     */ DMG_ENTRY(1, 0xE),
+    /* Spin attack    */ DMG_ENTRY(1, 0xE),
+    /* Sword beam     */ DMG_ENTRY(1, 0xE),
+    /* Normal Roll    */ DMG_ENTRY(1, 0xE),
+    /* UNK_DMG_0x1B   */ DMG_ENTRY(0, 0x0),
+    /* UNK_DMG_0x1C   */ DMG_ENTRY(0, 0x0),
+    /* Unblockable    */ DMG_ENTRY(1, 0xE),
+    /* UNK_DMG_0x1E   */ DMG_ENTRY(0, 0x0),
+    /* Powder Keg     */ DMG_ENTRY(1, 0xE),
+};
+
+void EnEncount2_InitNonDyna(Actor* thisx, PlayState* play) {
+      s32 sp20; // req for raycast func
+      Vec3f sp24; // yes im lazy
+      f32 randomHeight;
+
+      // also make it less armored
+      thisx->colChkInfo.damageTable = &sDamageTableMorePops;
+
+      // random height?
+      randomHeight = Rand_ZeroOne() * 400.0f;
+
+      //thisx->floorHeight = //BgCheck_EntityRaycastFloor5(&play->colCtx, &thisx->floorPoly, &sp20, &thisx, &sp24);
+
+      thisx->world.pos.y = thisx->home.pos.y = thisx->floorHeight + randomHeight + 100.0f;
+
+      // 25 is kinda... huge, maybein a dim sewer it makes sense
+      ActorShape_Init(&thisx->shape, 0.0f, ActorShadow_DrawCircle, 15.0f);
+}
+
 void EnEncount2_Init(Actor* thisx, PlayState* play) {
     EnEncount2* this = THIS;
-    s32 pad;
+    //s32 pad;
     CollisionHeader* colHeader = NULL;
 
-    DynaPolyActor_Init(&this->dyna, 0);
-    CollisionHeader_GetVirtual(&object_fusen_Colheader_002420, &colHeader);
-    this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, &this->dyna.actor, colHeader);
-    ActorShape_Init(&this->dyna.actor.shape, 0.0f, ActorShadow_DrawCircle, 25.0f);
+    if (! ENCOUNT2_GET_NOT_DYNA(thisx)){ // vanilla dyna version
+      DynaPolyActor_Init(&this->dyna, 0);
+      CollisionHeader_GetVirtual(&object_fusen_Colheader_002420, &colHeader);
+      this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, &this->dyna.actor, colHeader);
+      this->dyna.actor.colChkInfo.damageTable = &sDamageTable;
+      // 25 is kinda... huge
+      ActorShape_Init(&this->dyna.actor.shape, 0.0f, ActorShadow_DrawCircle, 25.0f);
+    } else { // non-dyna, 
+      EnEncount2_InitNonDyna(thisx, play);
+    }
+
     this->dyna.actor.colChkInfo.mass = MASS_IMMOVABLE;
     Collider_InitAndSetJntSph(play, &this->collider, &this->dyna.actor, &sJntSphInit, &this->colElement);
 
-    this->dyna.actor.targetMode = 6;
-    this->dyna.actor.colChkInfo.health = 1;
+    //this->dyna.actor.targetMode = 6; // wait its not targetable, wtf?
+    //this->dyna.actor.colChkInfo.health = 1; // also it always pops first, not waiting for health, wtf?
     this->scale = 0.1;
     this->switchFlag = ENCOUNT2_GET_SWITCH_FLAG(&this->dyna.actor);
 
@@ -131,14 +193,18 @@ void EnEncount2_Init(Actor* thisx, PlayState* play) {
     this->collider.elements->dim.modelSphere.center.y = -4;
     this->collider.elements->dim.modelSphere.center.z = 0;
 
-    this->dyna.actor.colChkInfo.damageTable = &sDamageTable;
+    // moved up
+    //this->dyna.actor.colChkInfo.damageTable = &sDamageTable;
     EnEncount2_SetIdle(this);
 }
 
 void EnEncount2_Destroy(Actor* thisx, PlayState* play) {
     EnEncount2* this = THIS;
+    
+    if (! ENCOUNT2_GET_NOT_DYNA(thisx)){
+      DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+    }
 
-    DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
     Collider_DestroyJntSph(play, &this->collider);
 }
 
@@ -270,9 +336,11 @@ void EnEncount2_DrawEffects(EnEncount2* this, PlayState* play) {
     GraphicsContext* gfxCtx = play->state.gfxCtx;
 
     OPEN_DISPS(gfxCtx);
+
     sPtr = this->effects;
     func_8012C28C(gfxCtx);
     func_8012C2DC(play->state.gfxCtx);
+
     for (i = 0; i < ARRAY_COUNT(this->effects); i++, sPtr++) {
         if (sPtr->isEnabled) {
             Matrix_Translate(sPtr->pos.x, sPtr->pos.y, sPtr->pos.z, MTXMODE_NEW);
@@ -283,8 +351,10 @@ void EnEncount2_DrawEffects(EnEncount2* this, PlayState* play) {
             gDPPipeSync(POLY_XLU_DISP++);
             gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 255, 255, 255);
             gDPSetEnvColor(POLY_XLU_DISP++, 250, 180, 255, sPtr->alpha);
+
             Matrix_Mult(&play->billboardMtxF, MTXMODE_APPLY);
             Matrix_RotateZF(DEGF_TO_RADF(play->state.frames * 20.0f), MTXMODE_APPLY);
+
             gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
             gSPDisplayList(POLY_XLU_DISP++, gameplay_keep_DL_07AB58);
         }
