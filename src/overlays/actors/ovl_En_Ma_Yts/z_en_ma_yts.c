@@ -403,8 +403,15 @@ void EnMaYts2_GenerateRandomText(EnMaYts* this, PlayState* play) {
      this->randomTextIndex = (u8)(Rand_ZeroOne() * sizeof(sRandomText));
 }
 
+void EnMaYts_Kill(Actor* thisx){
+    Actor_MarkForDeath(thisx);
+    thisx->update = NULL;
+    thisx->draw = NULL;
+}
+
 void EnMaYts_Init(Actor* thisx, PlayState* play) {
     EnMaYts* this = THIS;
+    bool aliensWon = false;
     //s32 pad;
 
     this->type = EN_MA_YTS_PARSE_TYPE(thisx);
@@ -453,6 +460,8 @@ void EnMaYts_Init(Actor* thisx, PlayState* play) {
         this->unk_32C = 2;
     }
 
+    aliensWon = CURRENT_DAY > 1 && ! (gSaveContext.save.weekEventReg[22] & 1);
+
     if (this->type == MA_YTS_TYPE_ENDCREDITS) {
         this->overrideEyeTexIndex = 0;
         this->eyeTexIndex = 0;
@@ -460,15 +469,30 @@ void EnMaYts_Init(Actor* thisx, PlayState* play) {
         this->unk_32C = 2;
         EnMaYts_SetupEndCreditsHandler(this);
     } else if (this->type ==  MA_YTS_TYPE_SITTING && this->typeExt == MAYTS_BOX) { // new
+        if ( aliensWon )
+        {
+          //Actor_MarkForDeath(&this);
+          EnMaYts_Kill(thisx);
+        }
         EnMaYts2_GenerateRandomText(this, play);
         this->actionFunc = EnMaYts2_SittingNew;
     } else if (this->type == MA_YTS_TYPE_SINGING) { // new
+        if ( aliensWon )
+        {
+          //Actor_MarkForDeath(&this);
+          EnMaYts_Kill(thisx);
+        }
         EnMaYts2_GenerateRandomText(this, play);
         EnMaYts2_SetupSing(this);
     // why is this based on time and not based on type?
     } else if (CURRENT_DAY == 2 && gSaveContext.save.isNight == 1 && (gSaveContext.save.weekEventReg[22] & 1)) {
         EnMaYts_SetupStartDialogue(this);
     } else if (this->type == MA_YTS_TYPE_SLEEPING) {
+        if ( aliensWon )
+        {
+          //Actor_MarkForDeath(&this);
+          EnMaYts_Kill(thisx);
+        }
         this->actionFunc = Actor_Noop;
 
     } else { // standing doing nothing should now have dialogue

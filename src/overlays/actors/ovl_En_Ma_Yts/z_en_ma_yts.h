@@ -52,6 +52,8 @@ typedef enum {
     /* 0xF */ MAYTS_VANILLA = 0xF
 } EnMaYtsTypeExt;
 
+#define EN_MA_YTS_TYPEEXT(actor) ((actor)->params & 0xF)
+
 // unused week event reg settings we can use to detect already spoken to
 #define ROMANI_SET_NEWEVENT gSaveContext.save.weekEventReg[21] |= 0x10
 #define ROMANI_GET_NEWEVENT gSaveContext.save.weekEventReg[21] &= 0x10
