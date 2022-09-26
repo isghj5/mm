@@ -48,7 +48,7 @@ typedef struct ObjBean {
     /* 0x1DA */ s16 currentPointIndex;
     /* 0x1DC */ s16 nextPointIndex;
     /* 0x1DE */ s8 platformSpeedIndex;
-    /* 0x1DF */ s8 unk_1DF;
+    /* 0x1DF */ s8 timer1DF;
     /* 0x1E0 */ s8 unk_1E0;
     /* 0x1E4 */ s32 unk_1E4;
     /* 0x1E8 */ ObjBeanUnkFunc unkFunc1E8;
@@ -60,7 +60,7 @@ typedef struct ObjBean {
     /* 0x1F6 */ s16 unk_1F6;
     /* 0x1F8 */ s16 unk_1F8;
     /* 0x1FA */ s16 unk_1FA;
-    /* 0x1FC */ s16 unk_1FC;
+    /* 0x1FC */ s16 flexTimer; // full plant will oscilate/warp, sin/cos of this value
     /* 0x1FE */ u8 drawFlags; // tODO rename to like grow flags
     /* 0x1FF */ u8 bool1FF;
     /* 0x200 */ u8 crossBeanFlag; // set by other bean???

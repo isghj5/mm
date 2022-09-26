@@ -441,12 +441,13 @@ void func_80937B54(ObjBean* this) {
     Math_StepToS(&this->unk_1EE, this->unk_1F0, this->unk_1F2);
     Math_StepToS(&this->unk_1F4, this->unk_1F6, this->unk_1F8);
     this->unk_1FA += this->unk_1F4;
-    this->unk_1FC = 6372.0f - (Math_SinS(this->unk_1FA) * this->unk_1EE);
-    this->dyna.actor.scale.y = Math_SinS(this->unk_1FC) * 0.17434467f;
-    this->dyna.actor.scale.x = this->dyna.actor.scale.z = Math_CosS(this->unk_1FC) * 0.12207746f;
+    this->flexTimer = 6372.0f - (Math_SinS(this->unk_1FA) * this->unk_1EE);
+    this->dyna.actor.scale.y = Math_SinS(this->flexTimer) * 0.17434467f; // TODO figure these fraction out
+    //this->dyna.actor.scale.y = Math_SinS(this->flexTimer) * (sqrtf(3.0f / 10.0f) / M_PI); // TODO figure these fraction out
+    this->dyna.actor.scale.x = this->dyna.actor.scale.z = Math_CosS(this->flexTimer) * 0.12207746f;
 }
 
-// sets a do nothing function
+// sets a do nothing function, but this is NOT an actionfunc
 void ObjBean_SetupUnkFuncDoNothing(ObjBean* this) {
     this->unkFunc1E8 = ObjBean_UnkFuncDoNothing;
 }
@@ -551,7 +552,6 @@ void func_80937DEC(ObjBean* this, PlayState* play) {
 }
 
 
-
 void func_80937FB0(ObjBean* this) {
     this->unk_1E0 = 0;
     this->actionFunc = func_80937FC8;
@@ -575,7 +575,7 @@ void func_80937FC8(ObjBean* this, PlayState* play) {
             this->unk_1E4 = 0;
         }
     } else if (this->unk_1E4 == 1) {
-        this->unk_1DF = 16;
+        this->timer1DF = 16;
         func_809381B0(this);
     } else if (((this->collider.base.acFlags & AC_HIT) && (this->collider.base.ac != NULL) &&
                 (this->collider.base.ac->id == ACTOR_OBJ_AQUA)) ||
@@ -908,9 +908,9 @@ void ObjBean_UpdateAlt(Actor* thisx, PlayState* play) {
         this->stateTimer--;
     }
 
-    if (this->unk_1DF > 0) {
-        this->unk_1DF--;
-        if (this->unk_1DF == 0) {
+    if (this->timer1DF > 0) {
+        this->timer1DF--;
+        if (this->timer1DF == 0) {
             play_sound(NA_SE_SY_TRE_BOX_APPEAR);
         }
     }
@@ -922,7 +922,7 @@ void ObjBean_Update(Actor* thisx, PlayState* play) {
     s32 pad;
     ObjBean* this = THIS;
 
-    if (this->stateTimer > 0) {
+    if (this->stateTimer > 0) { // this dev was not a DECR user
         this->stateTimer--;
     }
 
