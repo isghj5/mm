@@ -77,6 +77,18 @@ typedef enum {
     /* 7 */ EN_GRASSHOPPER_ANIM_FALL,
 } EnGrasshopperAnim;
 
+const ActorInit En_Grasshopper_InitVars = {
+    ACTOR_EN_GRASSHOPPER,
+    ACTORCAT_ENEMY,
+    FLAGS,
+    OBJECT_GRASSHOPPER,
+    sizeof(EnGrasshopper),
+    (ActorFunc)EnGrasshopper_Init,
+    (ActorFunc)EnGrasshopper_Destroy,
+    (ActorFunc)EnGrasshopper_Update,
+    (ActorFunc)EnGrasshopper_Draw,
+};
+
 static s32 sOccupiedIndices[] = {
     false, false, false, false, false,
 };
@@ -137,17 +149,6 @@ static DamageTable sDamageTable = {
     /* Powder Keg     */ DMG_ENTRY(1, EN_GRASSHOPPER_DMGEFF_HOOK),
 };
 
-const ActorInit En_Grasshopper_InitVars = {
-    ACTOR_EN_GRASSHOPPER,
-    ACTORCAT_ENEMY,
-    FLAGS,
-    OBJECT_GRASSHOPPER,
-    sizeof(EnGrasshopper),
-    (ActorFunc)EnGrasshopper_Init,
-    (ActorFunc)EnGrasshopper_Destroy,
-    (ActorFunc)EnGrasshopper_Update,
-    (ActorFunc)EnGrasshopper_Draw,
-};
 
 static ColliderJntSphElementInit sJntSphElementsInit[2] = {
     {
