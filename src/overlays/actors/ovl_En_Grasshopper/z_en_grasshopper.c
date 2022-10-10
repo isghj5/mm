@@ -1001,12 +1001,14 @@ void EnGrasshopper_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec
 void EnGrasshopper_Draw(Actor* thisx, PlayState* play) {
     EnGrasshopper* this = THIS;
     s32 i;
-    u8* shadowTex = GRAPH_ALLOC(play->state.gfxCtx, SUBS_SHADOW_TEX_SIZE);
-    u8* shadowTexIter;
+    //u8* shadowTex = GRAPH_ALLOC(play->state.gfxCtx, SUBS_SHADOW_TEX_SIZE);
+    //u8* shadowTexIter;
 
     func_8012C2DC(play->state.gfxCtx);
     SkelAnime_DrawOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, NULL, EnGrasshopper_PostLimbDraw,
                       &this->actor);
+
+    /*
     if ((this->type != EN_GRASSHOPPER_TYPE_WOODFALL_TEMPLE_FINAL_ROOM) &&
         (this->type != EN_GRASSHOPPER_TYPE_WOODFALL)) {
         Matrix_RotateXS(0, MTXMODE_NEW);
@@ -1024,7 +1026,7 @@ void EnGrasshopper_Draw(Actor* thisx, PlayState* play) {
         }
 
         SubS_DrawShadowTex(&this->actor, &play->state, shadowTex);
-    }
+    } // */
 
     if (this->drawDmgEffTimer != 0) {
         f32 drawDmgEffAlpha = this->drawDmgEffTimer * 0.05f;
