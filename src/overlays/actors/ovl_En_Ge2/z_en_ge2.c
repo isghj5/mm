@@ -367,8 +367,15 @@ void EnGe2_Scream(EnGe2* this) {
 void EnGe2_ThrowPlayerOut(EnGe2* this, PlayState* play) {
     if (this->timer > 0) {
         this->timer--;
+    } else if (play->sceneNum == SCENE_KAKUSIANA){
+        play->nextEntrance = 0x14A0;
+        play->transitionTrigger = TRANS_TRIGGER_START;
+        play->transitionType = TRANS_TYPE_38;
     } else if (play->nextEntrance != play->setupExitList[GERUDO_PURPLE_GET_EXIT(&this->picto.actor)]) {
-        play->nextEntrance = play->setupExitList[GERUDO_PURPLE_GET_EXIT(&this->picto.actor)];
+          // vanilla 
+          play->nextEntrance = play->setupExitList[GERUDO_PURPLE_GET_EXIT(&this->picto.actor)];
+        //}
+
         play->transitionTrigger = TRANS_TRIGGER_START;
         play->transitionType = TRANS_TYPE_38;
     }
