@@ -11,7 +11,7 @@
 #include "overlays/actors/ovl_En_Niw/z_en_niw.h"
 #include "objects/object_nwc/object_nwc.h"
 
-#define FLAGS (ACTOR_FLAG_10)
+#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_80000000)
 
 #define THIS ((EnNwc*)thisx)
 
