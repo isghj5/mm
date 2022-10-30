@@ -47,6 +47,19 @@ void EnPoSisters_MegSurroundPlayer(EnPoSisters* this, PlayState* play);
 void EnPoSisters_SetupSpawnPo(EnPoSisters* this);
 void EnPoSisters_PoeSpawn(EnPoSisters* this, PlayState* play);
 
+// moved for easier finding in ovl bin
+ActorInit En_Po_Sisters_InitVars = {
+    ACTOR_EN_PO_SISTERS,
+    ACTORCAT_ENEMY,
+    FLAGS,
+    OBJECT_PO_SISTERS,
+    sizeof(EnPoSisters),
+    (ActorFunc)EnPoSisters_Init,
+    (ActorFunc)EnPoSisters_Destroy,
+    (ActorFunc)EnPoSisters_Update,
+    (ActorFunc)EnPoSisters_Draw,
+};
+
 static Color_RGBA8 sPoSisterFlameColors[] = {
     { 255, 170, 255, 255 }, // Meg
     { 255, 200, 0, 255 },   // Jo
@@ -59,18 +72,6 @@ static Color_RGBA8 sPoSisterEnvColors[] = {
     { 255, 0, 0, 255 },   // Jo
     { 0, 0, 255, 255 },   // Beth
     { 0, 150, 0, 255 },   // Amy
-};
-
-ActorInit En_Po_Sisters_InitVars = {
-    ACTOR_EN_PO_SISTERS,
-    ACTORCAT_ENEMY,
-    FLAGS,
-    OBJECT_PO_SISTERS,
-    sizeof(EnPoSisters),
-    (ActorFunc)EnPoSisters_Init,
-    (ActorFunc)EnPoSisters_Destroy,
-    (ActorFunc)EnPoSisters_Update,
-    (ActorFunc)EnPoSisters_Draw,
 };
 
 static ColliderCylinderInit sCylinderInit = {
@@ -158,7 +159,7 @@ static InitChainEntry sInitChain[] = {
 // clang-format on
 
 void EnPoSisters_Init(Actor* thisx, PlayState* play) {
-    s32 pad;
+    //s32 pad;
     EnPoSisters* this = THIS;
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
@@ -190,6 +191,7 @@ void EnPoSisters_Init(Actor* thisx, PlayState* play) {
         // if flagged observer, they are a floating prop spawned by EnGb2 (po hut proprieter)
         EnPoSisters_SetupObserverIdle(this);
     } else if (this->type == POSISTER_TYPE_MEG) {
+        this->actor.room = -1;
         if (this->megCloneId == POSISTER_MEG_REAL) {
             this->actor.colChkInfo.health = 8;
             this->collider.info.toucher.damage = 16;
@@ -204,6 +206,7 @@ void EnPoSisters_Init(Actor* thisx, PlayState* play) {
             EnPoSisters_MegCloneVanish(this, NULL);
         }
     } else {
+        this->actor.room = -1;
         EnPoSisters_SetupSpawnPo(this);
     }
 
@@ -948,7 +951,7 @@ void EnPoSisters_CheckCollision(EnPoSisters* this, PlayState* play) {
 }
 
 void EnPoSisters_Update(Actor* thisx, PlayState* play) {
-    s32 pad;
+    //s32 pad;
     EnPoSisters* this = THIS;
     f32 alpha;
     Vec3f checkPos;
@@ -1189,11 +1192,11 @@ void EnPoSisters_Draw(Actor* thisx, PlayState* play) {
     EnPoSisters* this = THIS;
     Color_RGBA8* sisterEnvColor = &sPoSisterEnvColors[this->type];
     Color_RGBA8* flameColor = &sPoSisterFlameColors[this->type];
-    s32 pad;
+    //s32 pad;
     s32 i;
     u8 alpha;
     f32 scale;
-    s32 pad2;
+    //s32 pad2;
 
     OPEN_DISPS(play->state.gfxCtx);
 
