@@ -47,6 +47,7 @@ void EnPoSisters_MegSurroundPlayer(EnPoSisters* this, PlayState* play);
 void EnPoSisters_SetupSpawnPo(EnPoSisters* this);
 void EnPoSisters_PoeSpawn(EnPoSisters* this, PlayState* play);
 
+
 // moved for easier finding in ovl bin
 ActorInit En_Po_Sisters_InitVars = {
     ACTOR_EN_PO_SISTERS,
@@ -167,10 +168,8 @@ void EnPoSisters_Init(Actor* thisx, PlayState* play) {
     SkelAnime_Init(play, &this->skelAnime, &gPoSistersSkel, &gPoeSistersSwayAnim, this->jointTable, this->morphTable,
                    POSISTERS_LIMB_MAX);
 
-    this->color.r = 255;
-    this->color.g = 255;
-    this->color.b = 210;
-    this->color.a = 255;
+    this->color.r = 255; this->color.g = 255; this->color.b = 210; this->color.a = 255;
+
     this->lightNode = LightContext_InsertLight(play, &play->lightCtx, &this->lightInfo);
     Lights_PointGlowSetInfo(&this->lightInfo, this->actor.home.pos.x, this->actor.home.pos.y, this->actor.home.pos.z, 0,
                             0, 0, 0);
@@ -186,6 +185,9 @@ void EnPoSisters_Init(Actor* thisx, PlayState* play) {
     this->poSisterFlags = POSISTERS_FLAG_UPDATE_FIRES;
     this->megDistToPlayer = 110.0f;
     thisx->flags &= ~ACTOR_FLAG_1;
+
+    // new
+    ENPOSISTERS_LAST_ROOM(thisx) = ENPOSISTERS_ORIG_ROOM(thisx)= play->roomCtx.curRoom.num;
 
     if (ENPOSISTERS_GET_OBSERVER_FLAG(&this->actor)) {
         // if flagged observer, they are a floating prop spawned by EnGb2 (po hut proprieter)
@@ -219,6 +221,11 @@ void EnPoSisters_Destroy(Actor* thisx, PlayState* play) {
 
     LightContext_RemoveLight(play, &play->lightCtx, this->lightNode);
     Collider_DestroyCylinder(play, &this->collider);
+
+    // clear enemy room does not work unless this is returned back
+    if (this->actor.room == -1){
+        this->actor.room = play->roomCtx.curRoom.num;
+    }
 }
 
 /**
@@ -325,27 +332,114 @@ void EnPoSisters_ObserverIdle(EnPoSisters* this, PlayState* play) {
     }
 }
 
-/**
- *  Change animation, but keep flying idle in straight line. Flying through walls possible.
- *
- *  This is never reached because conditions are never met in EnPoSisters_AimlessIdleFlying
- */
-void EnPoSisters_SetupAimlessIdleFlying2(EnPoSisters* this) {
-    Animation_MorphToLoop(&this->skelAnime, &gPoeSistersSwayAnim, -3.0f);
-    this->idleFlyingAnimationCounter = Rand_S16Offset(2, 3);
-    this->actor.speedXZ = 0.0f;
-    this->actionFunc = EnPoSisters_AimlessIdleFlying2;
+///**
+ //*  Change animation, but keep flying idle in straight line. Flying through walls possible.
+ //*
+ //*  This is never reached because conditions are never met in EnPoSisters_AimlessIdleFlying
+ //*/
+//void EnPoSisters_SetupAimlessIdleFlying2(EnPoSisters* this) {
+    //Animation_MorphToLoop(&this->skelAnime, &gPoeSistersSwayAnim, -3.0f);
+    //this->idleFlyingAnimationCounter = Rand_S16Offset(2, 3);
+    //this->actor.speedXZ = 0.0f;
+    //this->actionFunc = EnPoSisters_AimlessIdleFlying2;
+//}
+
+//void EnPoSisters_AimlessIdleFlying2(EnPoSisters* this, PlayState* play) {
+    //SkelAnime_Update(&this->skelAnime);
+    //if (Animation_OnFrame(&this->skelAnime, 0.0f)) {
+        //DECR(this->idleFlyingAnimationCounter);
+    //}
+
+    //if ((this->idleFlyingAnimationCounter == 0) || (this->actor.xzDistToPlayer < 600.0f)) {
+        //EnPoSisters_SetupAimlessIdleFlying(this);
+    //}
+//}
+
+// new: checks if player has changed rooms, and if we should persue or dissapear
+u8 EnPoSisters2_CheckRoomChange(EnPoSisters* this, PlayState* play) {
+  Actor* thisx = &this->actor;
+  u32 curRoomNum = play->roomCtx.curRoom.num;
+
+  if (curRoomNum != ENPOSISTERS_LAST_ROOM(thisx)) {
+    ENPOSISTERS_LAST_ROOM(thisx) = curRoomNum;
+    return true;
+  } else {
+    return false;
+  }
 }
 
-void EnPoSisters_AimlessIdleFlying2(EnPoSisters* this, PlayState* play) {
-    SkelAnime_Update(&this->skelAnime);
-    if (Animation_OnFrame(&this->skelAnime, 0.0f)) {
-        DECR(this->idleFlyingAnimationCounter);
+void EnPoSisters2_WarpInThroughWalls(EnPoSisters* this, PlayState* play){
+    if (DECR(this->spinInvisibleTimer) == 0) {
+      Player* player = GET_PLAYER(play);
+
+      // move actor to next to player
+      this->actor.world.pos = player->actor.world.pos;
+
+      this->actor.world.pos.x += 10;
+      
+      // re-use the old spin back to player, doesn't need to be different
+      EnPoSisters_SetupSpinBackToVisible(this, play);
+    }
+}
+
+
+// new: spin to invisible before teleporting like bigpo, code taken from vanilla spin to invisible
+void EnPoSisters2_WarpOutThroughWalls(EnPoSisters* this, PlayState* play){
+    if (SkelAnime_Update(&this->skelAnime)) {
+        this->color.a = 0;
+        this->collider.info.bumper.dmgFlags = (0x40000 | 0x1);
+        //EnPoSisters_SetupAimlessIdleFlying(this);
+        
+        this->spinInvisibleTimer = 20;
+        this->actionFunc = EnPoSisters2_WarpInThroughWalls;
+    } else {
+        s32 alpha = ((this->skelAnime.endFrame - this->skelAnime.curFrame) * 255.0f) / this->skelAnime.endFrame;
+
+        this->color.a = CLAMP(alpha, 0, 255);
     }
 
-    if ((this->idleFlyingAnimationCounter == 0) || (this->actor.xzDistToPlayer < 600.0f)) {
-        EnPoSisters_SetupAimlessIdleFlying(this);
+}
+
+void EnPoSisters2_SetupWarpOutThroughWalls(EnPoSisters* this){
+    Animation_Change(&this->skelAnime, &gPoeSistersAppearDisappearAnim, 1.5f, 0.0f,
+                     Animation_GetLastFrame(&gPoeSistersAppearDisappearAnim.common), ANIMMODE_ONCE, -3.0f);
+    this->invisibleTimer = 20 * 5;
+    this->actor.speedXZ = 0.0f;
+    this->actor.world.rot.y = this->actor.shape.rot.y;
+    this->poSisterFlags &= ~(POSISTERS_FLAG_CHECK_Z_TARGET | POSISTERS_FLAG_CHECK_AC);
+    Actor_PlaySfxAtPos(&this->actor, NA_SE_EN_PO_DISAPPEAR);
+
+    this->actionFunc = EnPoSisters2_WarpOutThroughWalls;
+}
+
+void EnPoSisters2_SwirlDissapear(EnPoSisters* this, PlayState* play){
+  if (DECR(this->spinInvisibleTimer) == 0) {
+    Actor_Kill(this);
+  }
+}
+
+// new: change direction and 
+void EnPoSisters2_ChaseThroughWalls(EnPoSisters* this, PlayState* play){
+  //Player* player = GET_PLAYER(play);
+
+  //if player->actor.world.pos
+  if (this->actor.xzDistToPlayer > 1000){
+    if (Rand_ZeroFloat(10.0f) < 2.3f){
+      // chance of "warps behind you"
+      // except I'm too lazy to lookup player angles and do trig
+      EnPoSisters2_SetupWarpOutThroughWalls(this);
+      
+    } else {
+      
+      //Actor_Kill(this); // quiet kill, todo make swuirl exit
+      this->spinInvisibleTimer = 20 * 4;
+      Actor_PlaySfxAtPos(&this->actor, NA_SE_EN_PO_DISAPPEAR);
+      this->actionFunc = EnPoSisters2_SwirlDissapear;
     }
+  } else {
+    // hope this approaches the player?
+    EnPoSisters_SetupSpinUp(this);
+  }
 }
 
 /**
@@ -369,10 +463,18 @@ void EnPoSisters_AimlessIdleFlying(EnPoSisters* this, PlayState* play) {
 
     if ((this->actor.xzDistToPlayer < 600.0f) && (fabsf(this->actor.playerHeightRel + 5.0f) < 30.0f)) {
         EnPoSisters_SetupInvestigating(this);
-    } else if ((this->idleFlyingAnimationCounter == 0) && Math_StepToF(&this->actor.speedXZ, 0.0f, 0.2f)) {
-        // ! @bug: this is never reached because speedXZ is reduced
-        //         at the same rate it is increased at the top of this function
-        EnPoSisters_SetupAimlessIdleFlying2(this);
+    } // else if ((this->idleFlyingAnimationCounter == 0) && Math_StepToF(&this->actor.speedXZ, 0.0f, 0.2f)) {
+        //// ! @bug: this is never reached because speedXZ is reduced
+        ////         at the same rate it is increased at the top of this function
+        //EnPoSisters_SetupAimlessIdleFlying2(this);
+    //}
+    // new
+    if ( EnPoSisters2_CheckRoomChange(this, play)){
+      // I want to check if the player has entered a room with a chest or with a auto-locking door, think I could detect those
+
+      // for now, always follow the player into the next room
+      EnPoSisters2_ChaseThroughWalls(this, play);
+
     }
 
     if (this->actor.bgCheckFlags & 8) { // touching a wall

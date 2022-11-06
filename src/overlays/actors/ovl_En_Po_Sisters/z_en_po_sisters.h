@@ -14,6 +14,9 @@ typedef void (*EnPoSistersActionFunc)(struct EnPoSisters*, PlayState*);
 
 #define ENPOSISTERS_PARAMS(observerFlag, megClone, type) (((observerFlag) << 0xC) | ((megClone & 3) << 0xA) | ((type & 3) << 8))
 
+#define ENPOSISTERS_ORIG_ROOM(thisx) ((thisx)->home.rot.x)
+#define ENPOSISTERS_LAST_ROOM(thisx) ((thisx)->home.rot.z)
+
 typedef enum {
     /* 0 */ POSISTER_TYPE_MEG,   // purple
     /* 1 */ POSISTER_TYPE_JO,    // red
@@ -59,6 +62,7 @@ typedef struct EnPoSisters {
     /* 0x226 */ Color_RGBA8 color;
     /* 0x22C */ Vec3f firePos[8];
     /* 0x28C */ Vec3f limbPos[8]; // passed to Actor_DrawDamageEffects
+    /* new   */ 
     /* 0x2EC */ f32 megDistToPlayer;
     /* 0x2F0 */ f32 drawDmgEffAlpha;
     /* 0x2F4 */ f32 drawDmgEffScale;
