@@ -428,7 +428,8 @@ void EnSyatekiDekunuts_Update(Actor* thisx, PlayState* play) {
         (this->timer > 10)) {
         if ((this->collider.base.acFlags & AC_HIT) && (this->isAlive == true)) {
             if (EN_SYATEKI_DEKUNUTS_GET_TYPE(&this->actor) == EN_SYATEKI_DEKUNUTS_TYPE_BONUS) {
-                Audio_PlayFanfare(NA_BGM_GET_ITEM | 0x900);
+                //Audio_PlayFanfare(NA_BGM_GET_ITEM | 0x900);
+                play_sound(NA_SE_SY_TRE_BOX_APPEAR);
             } else {
                 play_sound(NA_SE_SY_TRE_BOX_APPEAR);
             }
