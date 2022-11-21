@@ -187,7 +187,8 @@ void EnPoSisters_Init(Actor* thisx, PlayState* play) {
     thisx->flags &= ~ACTOR_FLAG_1;
 
     // new
-    ENPOSISTERS_LAST_ROOM(thisx) = ENPOSISTERS_ORIG_ROOM(thisx)= play->roomCtx.curRoom.num;
+    ENPOSISTERS_LAST_ROOM(thisx) = play->roomCtx.curRoom.num;
+    ENPOSISTERS_STATE_CHASING(thisx) = false;
 
     if (ENPOSISTERS_GET_OBSERVER_FLAG(&this->actor)) {
         // if flagged observer, they are a floating prop spawned by EnGb2 (po hut proprieter)
@@ -362,8 +363,12 @@ u8 EnPoSisters2_CheckRoomChange(EnPoSisters* this, PlayState* play) {
 
   if (curRoomNum != ENPOSISTERS_LAST_ROOM(thisx)) {
     ENPOSISTERS_LAST_ROOM(thisx) = curRoomNum;
+    ENPOSISTERS_STATE_CHASING(thisx) = true;
+    return true;
+  } else if (ENPOSISTERS_STATE_CHASING(thisx) == true && this->type != POSISTER_TYPE_MEG && this->actor.xzDistToPlayer > 500) {
     return true;
   } else {
+    ENPOSISTERS_STATE_CHASING(thisx) = false;
     return false;
   }
 }
@@ -592,6 +597,10 @@ void EnPoSisters_SetupAttackConnect(EnPoSisters* this) {
     if (this->type != POSISTER_TYPE_MEG) {
         this->collider.base.colType = COLTYPE_HIT3;
         this->collider.base.acFlags &= ~AC_HARD;
+    }
+    
+    if (ENPOSISTERS_STATE_CHASING(&this->actor) == true) {
+      ENPOSISTERS_STATE_CHASING(&this->actor) = false;
     }
 
     this->actionFunc = EnPoSisters_AttackConnectDrift;

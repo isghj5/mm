@@ -14,7 +14,7 @@ typedef void (*EnPoSistersActionFunc)(struct EnPoSisters*, PlayState*);
 
 #define ENPOSISTERS_PARAMS(observerFlag, megClone, type) (((observerFlag) << 0xC) | ((megClone & 3) << 0xA) | ((type & 3) << 8))
 
-#define ENPOSISTERS_ORIG_ROOM(thisx) ((thisx)->home.rot.x)
+#define ENPOSISTERS_STATE_CHASING(thisx) ((thisx)->home.rot.x)
 #define ENPOSISTERS_LAST_ROOM(thisx) ((thisx)->home.rot.z)
 
 typedef enum {
