@@ -175,16 +175,16 @@ void Fault_RemoveAddrConvClient(FaultAddrConvClient* client) {
 
 void* Fault_ConvertAddress(void* addr) {
     void* ret;
-    FaultAddrConvClient* iter = sFaultContext->addrConvClients;
+    FaultAddrConvClient* client = sFaultContext->addrConvClients;
 
-    while (iter) {
-        if (iter->callback) {
-            ret = iter->callback(addr, iter->param);
+    while (client) {
+        if (client->callback) {
+            ret = client->callback(addr, client->param);
             if (ret != NULL) {
                 return ret;
             }
         }
-        iter = iter->next;
+        client = client->next;
     }
 
     return NULL;
@@ -502,6 +502,7 @@ void Fault_DrawMemDumpPage(const char* title, u32* addr, u32 param_3) {
     FaultDrawer_SetCharPad(0, 0);
 }
 
+// unk0 and unk1 are always zero.. but zero address shouldnt exist?
 void Fault_DrawMemDump(u32 pc, u32 sp, u32 unk0, u32 unk1) {
     s32 count;
     s32 off;
@@ -723,14 +724,24 @@ void Fault_CommitFB(void) {
     FaultDrawer_SetDrawerFB(fb, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
+// This prints all pages (idx) of details per client
+// First page: actor struct data:
+//   Spawned count, Actor overlay addr, ActorId (Name), Part (always empty?), Segment being used
+// Second page: actor_dlftbls
+//   ActorId (decimal), RomStart - RamEnd, NumberLoaded "cn", and an unused Name field (%s still exists)
+//   see: ActorOverlayTable_FaultPrint
+// Third page: Screen save?
+// Fourth page: The rom creation data
+// Fifth page: sched info
 void Fault_ProcessClients(void) {
     FaultClient* iter = sFaultContext->clients;
-    s32 idx = 0;
+    s32 idx = 0; // rename to clientId
 
     while (iter != NULL) {
         if (iter->callback) {
             Fault_FillScreenBlack();
-            FaultDrawer_SetCharPad(-2, 0);
+            FaultDrawer_SetCharPad(-2, 0); // ... but why
+            // color: lighter grey compared to white text that follows
             FaultDrawer_Printf("\x1A\x38"
                                "CallBack (%d) %08x %08x %08x\n"
                                "\x1A\x37",

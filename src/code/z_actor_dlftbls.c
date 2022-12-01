@@ -46,7 +46,7 @@ void ActorOverlayTable_FaultPrint(void* arg0, void* arg1) {
     u32 overlaySize;
     ActorId i;
 
-    FaultDrawer_SetCharPad(-2, 0);
+    FaultDrawer_SetCharPad(-2, 0); // text was compressed in anticipation for unused Name field
 
     FaultDrawer_Printf("actor_dlftbls %u\n", gMaxActorId);
     FaultDrawer_Printf("No. RamStart- RamEnd cn  Name\n");
@@ -54,6 +54,7 @@ void ActorOverlayTable_FaultPrint(void* arg0, void* arg1) {
     for (i = 0, overlayEntry = &gActorOverlayTable[0]; i < gMaxActorId; i++, overlayEntry++) {
         overlaySize = VRAM_PTR_SIZE(overlayEntry);
         if (overlayEntry->loadedRamAddr != NULL) {
+            // %s unused, should be the name field but empty here
             FaultDrawer_Printf("%3d %08x-%08x %3d %s\n", i, overlayEntry->loadedRamAddr,
                                (u32)overlayEntry->loadedRamAddr + overlaySize, overlayEntry->numLoaded, "");
         }
