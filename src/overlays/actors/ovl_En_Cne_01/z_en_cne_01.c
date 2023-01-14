@@ -6,6 +6,7 @@
 
 #include "z_en_cne_01.h"
 #include "objects/object_cne/object_cne.h"
+#include "new_animations.c"
 
 #define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_8 | ACTOR_FLAG_10)
 
@@ -16,8 +17,8 @@ void EnCne01_Destroy(Actor* thisx, PlayState* play);
 void EnCne01_Update(Actor* thisx, PlayState* play);
 void EnCne01_Draw(Actor* thisx, PlayState* play);
 
-void EnCne01_Walk(EnHy* this, PlayState* play);
-void EnCne01_FaceForward(EnHy* this, PlayState* play);
+void EnCne01_Walk(EnCne01* this, PlayState* play);
+void EnCne01_FaceForward(EnCne01* this, PlayState* play);
 void EnCne01_Talk(EnCne01* this, PlayState* play);
 
 ActorInit En_Cne_01_InitVars = {
@@ -122,6 +123,7 @@ void EnCne01_UpdateModel(EnCne01* this, PlayState* play) {
         Math_SmoothStepToS(&this->torsoRot.x, 0, 4, 0x3E8, 1);
         Math_SmoothStepToS(&this->torsoRot.y, 0, 4, 0x3E8, 1);
     }
+
     SubS_FillLimbRotTables(play, this->limbRotTableY, this->limbRotTableZ, ARRAY_COUNT(this->limbRotTableY));
 
     //EnHy_UpdateCollider(&this->enHy, play);
@@ -139,7 +141,8 @@ s32 EnCne01_TestIsTalking(EnCne01* this, PlayState* play) {
 
     if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
         isTalking = true;
-        this->textId = 0x10B9; // Invalid textId, produces empty textbox
+        //this->textId = 0x10B9; // Invalid textId, produces empty textbox
+        this->textId = 0x14B4; // Are you the one who freed my soul?
         //this->prevTrackTarget = this->trackTarget;
         this->prevHeadRot = this->headRot;
         this->prevTorsoRot = this->torsoRot;
@@ -154,18 +157,17 @@ s32 func_809CB4A0(EnCne01* this, PlayState* play) {
     s16 x;
     s16 y;
 
-    ///*
     Actor_GetScreenPos(play, &this->actor, &x, &y);
     //! @bug: Both x and y conditionals are always true, || should be an &&
-    if (((x >= 0) || (x < SCREEN_WIDTH)) && ((y >= 0) || (y < SCREEN_HEIGHT))) {
+    if (((x >= 0) && (x < SCREEN_WIDTH)) && ((y >= 0) && (y < SCREEN_HEIGHT))) {
         func_800B85E0(&this->actor, play, 30.0f, PLAYER_IA_MAGIC_BEANS);
     }
     return true;
-    // */
 }
 
-void EnCne01_FinishInit(EnHy* this, PlayState* play) {
+// no longer double object, don't need this shit
     /*
+void EnCne01_FinishInit(EnHy* this, PlayState* play) {
     if (EnHy_Init(this, play, &gCneSkel, ENHY_ANIM_OS_ANIME_11)) {
         this->actor.flags |= ACTOR_FLAG_1;
         this->actor.draw = EnCne01_Draw;
@@ -176,16 +178,16 @@ void EnCne01_FinishInit(EnHy* this, PlayState* play) {
             this->actionFunc = EnCne01_Walk;
         }
     }
-    */
 }
+    */
 
-void EnCne01_Walk(EnHy* this, PlayState* play) {
+void EnCne01_Walk(EnCne01* this, PlayState* play) {
     //if (EnHy_MoveForwards(this, 1.0f)) {
         //this->curPoint = 0;
     //}
 }
 
-void EnCne01_FaceForward(EnHy* this, PlayState* play) {
+void EnCne01_FaceForward(EnCne01* this, PlayState* play) {
     this->actor.shape.rot = this->actor.world.rot;
 }
 
@@ -218,8 +220,6 @@ void EnCne01_Talk(EnCne01* this, PlayState* play) {
     }
 }
 
-extern Gfx* object_os_anime_Anim_0025E4;
-
 void EnCne01_Init(Actor* thisx, PlayState* play) {
     s32 pad;
     EnCne01* this = THIS;
@@ -234,7 +234,7 @@ void EnCne01_Init(Actor* thisx, PlayState* play) {
         //Actor_Kill(&this->enHy.actor);
     //}
 
-    SkelAnime_InitFlex(play, &this->skelAnime, &gCneSkel, &object_os_anime_Anim_0025E4, this->jointTable, this->morphTable, CNE_LIMB_MAX);
+    SkelAnime_InitFlex(play, &this->skelAnime, &gCneSkel, &gCneFoldingArmsStartAnim, this->jointTable, this->morphTable, CNE_LIMB_MAX);
 
     Collider_InitCylinder(play, &this->collider);
     Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
@@ -248,6 +248,7 @@ void EnCne01_Init(Actor* thisx, PlayState* play) {
     //if (EnHy_Init(this, play, &gCneSkel, ENHY_ANIM_OS_ANIME_11)) {
         this->actor.flags |= ACTOR_FLAG_1;
         this->actor.draw = EnCne01_Draw;
+        //this->actor.draw = NULL;
         //this->waitingOnInit = false;
         if (ENCNE01_GET_PATH(&this->actor) == 0x3F) {
             this->actionFunc = EnCne01_FaceForward;
@@ -267,8 +268,9 @@ void EnCne01_Update(Actor* thisx, PlayState* play) {
     EnCne01* this = THIS;
 
     EnCne01_TestIsTalking(this, play);
-    this->actionFunc(&this, play);
+    this->actionFunc(this, play);
     Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
+
     EnCne01_UpdateModel(this, play);
     func_809CB4A0(this, play);
 }
@@ -321,7 +323,7 @@ void EnCne01_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* ro
     GraphicsContext* gfxCtx = play->state.gfxCtx;
     Vec3f zeroVec = { 0.0f, 0.0f, 0.0f };
 
-      /*
+    /* // think this was how her segment for her body draw was assigned? craxy
     if (limbIndex == CNE_LIMB_RIGHT_FOOT) {
         OPEN_DISPS(play->state.gfxCtx);
         //gSPSegment(POLY_OPA_DISP++, 0x06, play->objectCtx.status[this->enHy.skelUpperObjIndex].segment);
