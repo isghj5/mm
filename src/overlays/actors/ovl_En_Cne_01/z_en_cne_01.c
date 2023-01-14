@@ -18,13 +18,13 @@ void EnCne01_Draw(Actor* thisx, PlayState* play);
 
 void EnCne01_Walk(EnHy* this, PlayState* play);
 void EnCne01_FaceForward(EnHy* this, PlayState* play);
-void EnCne01_Talk(EnHy* this, PlayState* play);
+void EnCne01_Talk(EnCne01* this, PlayState* play);
 
 ActorInit En_Cne_01_InitVars = {
     ACTOR_EN_CNE_01,
     ACTORCAT_NPC,
     FLAGS,
-    GAMEPLAY_KEEP,
+    OBJECT_CNE,
     sizeof(EnCne01),
     (ActorFunc)EnCne01_Init,
     (ActorFunc)EnCne01_Destroy,
@@ -96,58 +96,76 @@ static TrackOptionsSet sTrackOptions = {
     { 0x1770, 4, 1, 6 },
 };
 
+// end vanilla data
+
+
+
 void EnCne01_UpdateModel(EnCne01* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
     Vec3f point;
+    
+    //EnHy_UpdateSkelAnime(&this->enHy, play);
+    SkelAnime_Update(&this->skelAnime);
 
-    EnHy_UpdateSkelAnime(&this->enHy, play);
-    if (SubS_AngleDiffLessEqual(this->enHy.actor.shape.rot.y, 0x36B0, this->enHy.actor.yawTowardsPlayer)) {
+    
+    if (SubS_AngleDiffLessEqual(this->actor.shape.rot.y, 0x36B0, this->actor.yawTowardsPlayer)) {
         point.x = player->actor.world.pos.x;
         point.y = player->bodyPartsPos[PLAYER_BODYPART_HEAD].y + 3.0f;
         point.z = player->actor.world.pos.z;
-        SubS_TrackPoint(&point, &this->enHy.actor.focus.pos, &this->enHy.actor.shape.rot, &this->enHy.trackTarget,
-                        &this->enHy.headRot, &this->enHy.torsoRot, &sTrackOptions);
+        SubS_TrackPoint(&point, &this->actor.focus.pos, &this->actor.shape.rot, &this->trackTarget,
+                        &this->headRot, &this->torsoRot, &sTrackOptions);
     } else {
-        Math_SmoothStepToS(&this->enHy.trackTarget.x, 0, 4, 0x3E8, 1);
-        Math_SmoothStepToS(&this->enHy.trackTarget.y, 0, 4, 0x3E8, 1);
-        Math_SmoothStepToS(&this->enHy.headRot.x, 0, 4, 0x3E8, 1);
-        Math_SmoothStepToS(&this->enHy.headRot.y, 0, 4, 0x3E8, 1);
-        Math_SmoothStepToS(&this->enHy.torsoRot.x, 0, 4, 0x3E8, 1);
-        Math_SmoothStepToS(&this->enHy.torsoRot.y, 0, 4, 0x3E8, 1);
+        Math_SmoothStepToS(&this->trackTarget.x, 0, 4, 0x3E8, 1);
+        Math_SmoothStepToS(&this->trackTarget.y, 0, 4, 0x3E8, 1);
+        Math_SmoothStepToS(&this->headRot.x, 0, 4, 0x3E8, 1);
+        Math_SmoothStepToS(&this->headRot.y, 0, 4, 0x3E8, 1);
+        Math_SmoothStepToS(&this->torsoRot.x, 0, 4, 0x3E8, 1);
+        Math_SmoothStepToS(&this->torsoRot.y, 0, 4, 0x3E8, 1);
     }
-    SubS_FillLimbRotTables(play, this->enHy.limbRotTableY, this->enHy.limbRotTableZ,
-                           ARRAY_COUNT(this->enHy.limbRotTableY));
-    EnHy_UpdateCollider(&this->enHy, play);
+    SubS_FillLimbRotTables(play, this->limbRotTableY, this->limbRotTableZ, ARRAY_COUNT(this->limbRotTableY));
+
+    //EnHy_UpdateCollider(&this->enHy, play);
+    this->collider.dim.pos.x = this->actor.world.pos.x;
+    this->collider.dim.pos.y = this->actor.world.pos.y;
+    this->collider.dim.pos.z = this->actor.world.pos.z;
+    
+    CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+    CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+
 }
 
 s32 EnCne01_TestIsTalking(EnCne01* this, PlayState* play) {
     s32 isTalking = false;
 
-    if (Actor_ProcessTalkRequest(&this->enHy.actor, &play->state)) {
+    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
         isTalking = true;
-        this->enHy.textId = 0x10B9; // Invalid textId, produces empty textbox
-        this->enHy.prevTrackTarget = this->enHy.trackTarget;
-        this->enHy.prevHeadRot = this->enHy.headRot;
-        this->enHy.prevTorsoRot = this->enHy.torsoRot;
-        this->enHy.prevActionFunc = this->enHy.actionFunc;
-        this->enHy.actionFunc = EnCne01_Talk;
+        this->textId = 0x10B9; // Invalid textId, produces empty textbox
+        //this->prevTrackTarget = this->trackTarget;
+        this->prevHeadRot = this->headRot;
+        this->prevTorsoRot = this->torsoRot;
+        this->prevActionFunc = this->actionFunc;
+        this->actionFunc = EnCne01_Talk;
     }
     return isTalking;
 }
 
+// is actor on screen, attempt to accept beans
 s32 func_809CB4A0(EnCne01* this, PlayState* play) {
     s16 x;
     s16 y;
 
-    Actor_GetScreenPos(play, &this->enHy.actor, &x, &y);
+    ///*
+    Actor_GetScreenPos(play, &this->actor, &x, &y);
     //! @bug: Both x and y conditionals are always true, || should be an &&
-    if (!this->enHy.waitingOnInit && ((x >= 0) || (x < SCREEN_WIDTH)) && ((y >= 0) || (y < SCREEN_HEIGHT))) {
-        func_800B85E0(&this->enHy.actor, play, 30.0f, PLAYER_IA_MAGIC_BEANS);
+    if (((x >= 0) || (x < SCREEN_WIDTH)) && ((y >= 0) || (y < SCREEN_HEIGHT))) {
+        func_800B85E0(&this->actor, play, 30.0f, PLAYER_IA_MAGIC_BEANS);
     }
     return true;
+    // */
 }
 
 void EnCne01_FinishInit(EnHy* this, PlayState* play) {
+    /*
     if (EnHy_Init(this, play, &gCneSkel, ENHY_ANIM_OS_ANIME_11)) {
         this->actor.flags |= ACTOR_FLAG_1;
         this->actor.draw = EnCne01_Draw;
@@ -158,19 +176,20 @@ void EnCne01_FinishInit(EnHy* this, PlayState* play) {
             this->actionFunc = EnCne01_Walk;
         }
     }
+    */
 }
 
 void EnCne01_Walk(EnHy* this, PlayState* play) {
-    if (EnHy_MoveForwards(this, 1.0f)) {
-        this->curPoint = 0;
-    }
+    //if (EnHy_MoveForwards(this, 1.0f)) {
+        //this->curPoint = 0;
+    //}
 }
 
 void EnCne01_FaceForward(EnHy* this, PlayState* play) {
     this->actor.shape.rot = this->actor.world.rot;
 }
 
-void EnCne01_Talk(EnHy* this, PlayState* play) {
+void EnCne01_Talk(EnCne01* this, PlayState* play) {
     s16 yaw;
     u8 talkState;
 
@@ -189,7 +208,7 @@ void EnCne01_Talk(EnHy* this, PlayState* play) {
 
         case TEXT_STATE_CLOSING:
             this->actor.textId = 0;
-            this->trackTarget = this->prevTrackTarget;
+            //this->trackTarget = this->prevTrackTarget;
             this->headRot = this->prevHeadRot;
             this->torsoRot = this->prevTorsoRot;
             this->actor.shape.rot.y = this->actor.world.rot.y;
@@ -199,42 +218,57 @@ void EnCne01_Talk(EnHy* this, PlayState* play) {
     }
 }
 
+extern Gfx* object_os_anime_Anim_0025E4;
+
 void EnCne01_Init(Actor* thisx, PlayState* play) {
     s32 pad;
     EnCne01* this = THIS;
 
-    this->enHy.animObjIndex = SubS_GetObjectIndex(OBJECT_OS_ANIME, play);
-    this->enHy.headObjIndex = SubS_GetObjectIndex(OBJECT_CNE, play);
-    this->enHy.skelUpperObjIndex = SubS_GetObjectIndex(OBJECT_CNE, play);
-    this->enHy.skelLowerObjIndex = SubS_GetObjectIndex(OBJECT_CNE, play);
+    //this->enHy.animObjIndex = SubS_GetObjectIndex(OBJECT_OS_ANIME, play);
+    //this->enHy.headObjIndex = SubS_GetObjectIndex(OBJECT_CNE, play);
+    //this->enHy.skelUpperObjIndex = SubS_GetObjectIndex(OBJECT_CNE, play);
+    //this->enHy.skelLowerObjIndex = SubS_GetObjectIndex(OBJECT_CNE, play);
 
-    if ((this->enHy.animObjIndex < 0) || (this->enHy.headObjIndex < 0) || (this->enHy.skelUpperObjIndex < 0) ||
-        (this->enHy.skelLowerObjIndex < 0)) {
-        Actor_Kill(&this->enHy.actor);
-    }
-    this->enHy.actor.draw = NULL;
-    Collider_InitCylinder(play, &this->enHy.collider);
-    Collider_SetCylinder(play, &this->enHy.collider, &this->enHy.actor, &sCylinderInit);
-    CollisionCheck_SetInfo2(&this->enHy.actor.colChkInfo, &sDamageTable, &sColChkInfoInit);
-    this->enHy.actor.flags &= ~ACTOR_FLAG_1;
-    this->enHy.path = SubS_GetPathByIndex(play, ENCNE01_GET_PATH(&this->enHy.actor), 0x3F);
-    this->enHy.waitingOnInit = true;
-    Actor_SetScale(&this->enHy.actor, 0.01f);
-    this->enHy.actionFunc = EnCne01_FinishInit;
+    //if ((this->enHy.animObjIndex < 0) || (this->enHy.headObjIndex < 0) || (this->enHy.skelUpperObjIndex < 0) ||
+        //(this->enHy.skelLowerObjIndex < 0)) {
+        //Actor_Kill(&this->enHy.actor);
+    //}
+
+    SkelAnime_InitFlex(play, &this->skelAnime, &gCneSkel, &object_os_anime_Anim_0025E4, this->jointTable, this->morphTable, CNE_LIMB_MAX);
+
+    Collider_InitCylinder(play, &this->collider);
+    Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
+    CollisionCheck_SetInfo2(&this->actor.colChkInfo, &sDamageTable, &sColChkInfoInit);
+    this->actor.flags &= ~ACTOR_FLAG_1;
+    this->path = SubS_GetPathByIndex(play, ENCNE01_GET_PATH(&this->actor), 0x3F);
+    //this->.waitingOnInit = true;
+    Actor_SetScale(&this->actor, 0.01f);
+
+    //this->actionFunc = EnCne01_FinishInit;
+    //if (EnHy_Init(this, play, &gCneSkel, ENHY_ANIM_OS_ANIME_11)) {
+        this->actor.flags |= ACTOR_FLAG_1;
+        this->actor.draw = EnCne01_Draw;
+        //this->waitingOnInit = false;
+        if (ENCNE01_GET_PATH(&this->actor) == 0x3F) {
+            this->actionFunc = EnCne01_FaceForward;
+        } else {
+            this->actionFunc = EnCne01_Walk;
+        }
+    //}
 }
 
 void EnCne01_Destroy(Actor* thisx, PlayState* play) {
     EnCne01* this = THIS;
 
-    Collider_DestroyCylinder(play, &this->enHy.collider);
+    Collider_DestroyCylinder(play, &this->collider);
 }
 
 void EnCne01_Update(Actor* thisx, PlayState* play) {
     EnCne01* this = THIS;
 
     EnCne01_TestIsTalking(this, play);
-    this->enHy.actionFunc(&this->enHy, play);
-    Actor_UpdateBgCheckInfo(play, &this->enHy.actor, 0.0f, 0.0f, 0.0f, 4);
+    this->actionFunc(&this, play);
+    Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
     EnCne01_UpdateModel(this, play);
     func_809CB4A0(this, play);
 }
@@ -246,37 +280,37 @@ s32 EnCne01_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
 
     bodyPart = gEnHyBodyParts[limbIndex];
     if (bodyPart >= 0) {
-        Matrix_MultVec3f(&zeroVec, &this->enHy.bodyPartsPos[bodyPart]);
+        Matrix_MultVec3f(&zeroVec, &this->bodyPartsPos[bodyPart]);
     }
 
     if (limbIndex == CNE_LIMB_HEAD) {
         OPEN_DISPS(play->state.gfxCtx);
-        gSPSegment(POLY_OPA_DISP++, 0x06, play->objectCtx.status[this->enHy.headObjIndex].segment);
-        gSegments[6] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[this->enHy.headObjIndex].segment);
+        //gSPSegment(POLY_OPA_DISP++, 0x06, play->objectCtx.status[this->headObjIndex].segment);
+        //gSegments[6] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[this->headObjIndex].segment);
         *dList = gCneHeadBrownHairDL;
-        gSegments[6] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[this->enHy.skelLowerObjIndex].segment);
+        //gSegments[6] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[this->enHy.skelLowerObjIndex].segment);
         CLOSE_DISPS(play->state.gfxCtx);
     }
     if (limbIndex == CNE_LIMB_HEAD) {
         Matrix_Translate(1500.0f, 0.0f, 0.0f, MTXMODE_APPLY);
-        Matrix_RotateXS(this->enHy.headRot.y, MTXMODE_APPLY);
-        Matrix_RotateZS(-this->enHy.headRot.x, MTXMODE_APPLY);
+        Matrix_RotateXS(this->headRot.y, MTXMODE_APPLY);
+        Matrix_RotateZS(-this->headRot.x, MTXMODE_APPLY);
         Matrix_Translate(-1500.0f, 0.0f, 0.0f, MTXMODE_APPLY);
     }
 
     if (limbIndex == CNE_LIMB_TORSO) {
-        Matrix_RotateXS(-this->enHy.torsoRot.y, MTXMODE_APPLY);
-        Matrix_RotateZS(-this->enHy.torsoRot.x, MTXMODE_APPLY);
+        Matrix_RotateXS(-this->torsoRot.y, MTXMODE_APPLY);
+        Matrix_RotateZS(-this->torsoRot.x, MTXMODE_APPLY);
     }
 
-    if ((limbIndex == CNE_LIMB_HEAD) && this->enHy.inMsgState3 && ((play->state.frames % 2) == 0)) {
+    if ((limbIndex == CNE_LIMB_HEAD) && this->inMsgState3 && ((play->state.frames % 2) == 0)) {
         Matrix_Translate(40.0f, 0.0f, 0.0f, MTXMODE_APPLY);
     }
 
     if ((limbIndex == CNE_LIMB_TORSO) || (limbIndex == CNE_LIMB_LEFT_UPPER_ARM) ||
         (limbIndex == CNE_LIMB_RIGHT_UPPER_ARM)) {
-        rot->y += (s16)(Math_SinS(this->enHy.limbRotTableY[limbIndex]) * 200.0f);
-        rot->z += (s16)(Math_CosS(this->enHy.limbRotTableZ[limbIndex]) * 200.0f);
+        rot->y += (s16)(Math_SinS(this->limbRotTableY[limbIndex]) * 200.0f);
+        rot->z += (s16)(Math_CosS(this->limbRotTableZ[limbIndex]) * 200.0f);
     }
 
     return false;
@@ -287,15 +321,16 @@ void EnCne01_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* ro
     GraphicsContext* gfxCtx = play->state.gfxCtx;
     Vec3f zeroVec = { 0.0f, 0.0f, 0.0f };
 
+      /*
     if (limbIndex == CNE_LIMB_RIGHT_FOOT) {
         OPEN_DISPS(play->state.gfxCtx);
-        gSPSegment(POLY_OPA_DISP++, 0x06, play->objectCtx.status[this->enHy.skelUpperObjIndex].segment);
-        gSegments[0x06] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[this->enHy.skelUpperObjIndex].segment);
+        //gSPSegment(POLY_OPA_DISP++, 0x06, play->objectCtx.status[this->enHy.skelUpperObjIndex].segment);
+        //gSegments[0x06] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[this->enHy.skelUpperObjIndex].segment);
         CLOSE_DISPS(play->state.gfxCtx);
-    }
+    } // */
 
     if (limbIndex == CNE_LIMB_HEAD) {
-        Matrix_MultVec3f(&zeroVec, &this->enHy.actor.focus.pos);
+        Matrix_MultVec3f(&zeroVec, &this->actor.focus.pos);
     }
 }
 
@@ -315,19 +350,19 @@ void EnCne01_Draw(Actor* thisx, PlayState* play) {
     gSPSegment(POLY_OPA_DISP++, 0x09, Gfx_EnvColor(play->state.gfxCtx, 160, 180, 255, 0));
     gSPSegment(POLY_OPA_DISP++, 0x0A, Gfx_EnvColor(play->state.gfxCtx, 160, 180, 255, 0));
     gDPPipeSync(POLY_OPA_DISP++);
-    SkelAnime_DrawTransformFlexOpa(play, this->enHy.skelAnime.skeleton, this->enHy.skelAnime.jointTable,
-                                   this->enHy.skelAnime.dListCount, EnCne01_OverrideLimbDraw, EnCne01_PostLimbDraw,
-                                   EnCne01_TransformLimbDraw, &this->enHy.actor);
+    SkelAnime_DrawTransformFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable,
+                                   this->skelAnime.dListCount, EnCne01_OverrideLimbDraw, EnCne01_PostLimbDraw,
+                                   EnCne01_TransformLimbDraw, &this->actor);
     Matrix_RotateXS(0, MTXMODE_NEW);
 
     for (i = 0, shadowTexIter = shadowTex; i < SUBS_SHADOW_TEX_SIZE; i++) {
         *shadowTexIter++ = 0;
     }
     for (i = 0; i < 5; i++) {
-        SubS_GenShadowTex(this->enHy.bodyPartsPos, &this->enHy.actor.world.pos, shadowTex, i / 5.0f,
-                          ARRAY_COUNT(this->enHy.bodyPartsPos), gEnHyShadowSizes, gEnHyParentBodyParts);
+        SubS_GenShadowTex(this->bodyPartsPos, &this->actor.world.pos, shadowTex, i / 5.0f,
+                          ARRAY_COUNT(this->bodyPartsPos), gEnHyShadowSizes, gEnHyParentBodyParts);
     }
-    SubS_DrawShadowTex(&this->enHy.actor, &play->state, shadowTex);
+    SubS_DrawShadowTex(&this->actor, &play->state, shadowTex);
 
     CLOSE_DISPS(play->state.gfxCtx);
 }
