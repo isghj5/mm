@@ -4,7 +4,8 @@
 #include "assets/misc/link_animetion/link_animetion.h"
 #include "objects/gameplay_keep/gameplay_keep.h"
 
-
+// one arm slightly forward, head slightly up, like a walking animation but only one frame?
+/*
 s16 object_animeisreal_Anim_0000B4FrameData[] = {
     0x0000, 0x0DF8, 0x0032, 0xC000, 0x009F, 0xFBBC, 0xF240, 0x0C2F, 0xFB24, 0xEAF0, 0xC42F, 0xFF15, 0x0569, 0xFF45, 
     0x0E15, 0x089F, 0x1668, 0xB5E3, 0xFAB4, 0x80C8, 0x04DA, 0x0288, 0x9284, 0xEBF1, 0xF3CC, 0xED22, 0x1874, 0xFBD2, 
@@ -35,14 +36,15 @@ AnimationHeader object_animeisreal_Anim_0000B4 = {
     { 2 }, object_animeisreal_Anim_0000B4FrameData,
     object_animeisreal_Anim_0000B4JointIndices, 41
 };
+*/
 
-s16 object_animeisreal_Anim_000170FrameData[] = {
+s16 gCneSmugAnimFrameData[] = {
     0x0000, 0x0E21, 0xFF93, 0xC000, 0xFAB3, 0x079E, 0xF8C6, 0xF447, 0xBB22, 0xFFFA, 0x0862, 0xFB10, 0x0038, 0x0A78, 
     0x1BE6, 0xCC1C, 0x78AB, 0x5F68, 0x2E73, 0xC897, 0x0709, 0x1979, 0xE3BF, 0xF387, 0x0960, 0x5978, 0x1B4C, 0xD507, 
     0xA9F3, 0x080A, 0xFC66, 0xFB18, 
 };
 
-JointIndex object_animeisreal_Anim_000170JointIndices[] = {
+JointIndex gCneSmugAnimJointIndices[] = {
     { 0x0000, 0x0001, 0x0002 },
     { 0x0003, 0x0000, 0x0003 },
     { 0x0000, 0x0004, 0x0005 },
@@ -61,18 +63,18 @@ JointIndex object_animeisreal_Anim_000170JointIndices[] = {
     { 0x0000, 0x0000, 0x0000 },
 };
 
-AnimationHeader object_animeisreal_Anim_000170 = { 
-    { 2 }, object_animeisreal_Anim_000170FrameData,
-    object_animeisreal_Anim_000170JointIndices, 32
+AnimationHeader gCneSmugAnim = { 
+    { 2 }, gCneSmugAnimFrameData,
+    gCneSmugAnimJointIndices, 32
 };
 
-s16 object_animeisreal_Anim_000228FrameData[] = {
+s16 gCneRememberedTheOvenIsStillTurnedOnAnimFrameData[] = {
     0x0000, 0x0E20, 0x0175, 0xC000, 0x0079, 0xFC05, 0xF5C7, 0x09F0, 0xFB27, 0xE9AC, 0xC3D2, 0xFED6, 0x0446, 0xFFE9, 
     0x165D, 0x08F1, 0x1D6A, 0xC3FD, 0x7B1C, 0xF847, 0xEE8F, 0x8C10, 0xFBA8, 0x1BD5, 0xC70B, 0xF30E, 0x0268, 0xEE90, 
     0x037A, 0x0DDB, 0x8AD1, 0xECDA, 0xD538, 0xF709, 0xFAB4, 0x0000, 
 };
 
-JointIndex object_animeisreal_Anim_000228JointIndices[] = {
+JointIndex gCneRememberedTheOvenIsStillTurnedOnAnimJointIndices[] = {
     { 0x0000, 0x0001, 0x0002 },
     { 0x0003, 0x0000, 0x0003 },
     { 0x0004, 0x0005, 0x0006 },
@@ -91,13 +93,13 @@ JointIndex object_animeisreal_Anim_000228JointIndices[] = {
     { 0x0000, 0x0000, 0x0000 },
 };
 
-AnimationHeader object_animeisreal_Anim_000228 = { 
-    { 2 }, object_animeisreal_Anim_000228FrameData,
-    object_animeisreal_Anim_000228JointIndices, 35
+AnimationHeader gCneRememberedTheOvenIsStillTurnedOnAnim = { 
+    { 2 }, gCneRememberedTheOvenIsStillTurnedOnAnimFrameData,
+    gCneRememberedTheOvenIsStillTurnedOnAnimJointIndices, 35
 };
 
 
-s16 object_animeisreal_Anim_000718FrameData[] = {
+s16 gCneAnjuCuccoReunitedGivingBottleAnimFrameData[] = {
     0x0000, 0x0E53, 0xFF9F, 0xC000, 0x043D, 0x02DA, 0xFD26, 0x0003, 0x0038, 0x0DCF, 0xF499, 0x0E53, 0x0E54, 0x0E56, 
     0x0E59, 0x0E5C, 0x0E5F, 0x0E62, 0x0E64, 0x0E66, 0x0E68, 0x0E68, 0x0E68, 0x0E66, 0x0E63, 0x0E5F, 0x0E5C, 0x0E58, 
     0x0E55, 0x0E53, 0x0E53, 0xFF85, 0xFF88, 0xFF8C, 0xFF92, 0xFF99, 0xFFA0, 0xFFA8, 0xFFB0, 0xFFB7, 0xFFBC, 0xFFBE, 
@@ -141,7 +143,7 @@ s16 object_animeisreal_Anim_000718FrameData[] = {
     0x1064, 0x1082, 0x1055, 0x0FDD, 0x0F30, 0x0E62, 0x0D89, 0x0CBB, 0x0C0D, 0x0B95, 0x0B69, 0x0000, 
 };
 
-JointIndex object_animeisreal_Anim_000718JointIndices[] = {
+JointIndex gCneAnjuCuccoReunitedGivingBottleAnimJointIndices[] = {
     { 0x0000, 0x000B, 0x0002 },
     { 0x0003, 0x0004, 0x0003 },
     { 0x001F, 0x0033, 0x0047 },
@@ -160,19 +162,19 @@ JointIndex object_animeisreal_Anim_000718JointIndices[] = {
     { 0x0000, 0x0000, 0x0227 },
 };
 
-AnimationHeader object_animeisreal_Anim_000718 = { 
-    { 20 }, object_animeisreal_Anim_000718FrameData,
-    object_animeisreal_Anim_000718JointIndices, 11
+AnimationHeader gCneAnjuCuccoReunitedGivingBottleAnim = { 
+    { 20 }, gCneAnjuCuccoReunitedGivingBottleAnimFrameData,
+    gCneAnjuCuccoReunitedGivingBottleAnimJointIndices, 11
 };
 
 
-s16 object_animeisreal_Anim_0007D0FrameData[] = {
+s16 gCnePatientHandsTogetherAnimFrameData[] = {
     0x0000, 0x0E8F, 0xFF9C, 0xC000, 0xFFFE, 0x020D, 0xFFE1, 0x003A, 0x02DA, 0xFD44, 0xFD26, 0x8000, 0x8685, 0x002C, 
     0x05B4, 0xB91E, 0x1466, 0x225E, 0x1535, 0x88F7, 0xF639, 0xBDFF, 0xFCB3, 0xD789, 0x03AC, 0x0000, 0x0002, 0x0000, 
     0xFFE0, 0x0000, 0x003A, 0x0000, 
 };
 
-JointIndex object_animeisreal_Anim_0007D0JointIndices[] = {
+JointIndex gCnePatientHandsTogetherAnimJointIndices[] = {
     { 0x0000, 0x0001, 0x0002 },
     { 0x0003, 0x0000, 0x0003 },
     { 0x0004, 0x0005, 0x0006 },
@@ -191,19 +193,19 @@ JointIndex object_animeisreal_Anim_0007D0JointIndices[] = {
     { 0x0000, 0x0000, 0x0000 },
 };
 
-AnimationHeader object_animeisreal_Anim_0007D0 = { 
-    { 2 }, object_animeisreal_Anim_0007D0FrameData,
-    object_animeisreal_Anim_0007D0JointIndices, 25
+AnimationHeader gCnePatientHandsTogetherAnim = { 
+    { 2 }, gCnePatientHandsTogetherAnimFrameData,
+    gCnePatientHandsTogetherAnimJointIndices, 25
 };
 
-s16 object_animeisreal_Anim_000894FrameData[] = {
+s16 gCneHeadSidewaysConfusedAnimFrameData[] = {
     0xFFB0, 0x0C7E, 0x0095, 0xC000, 0x0000, 0xF0DF, 0xF4F3, 0xF3B7, 0x183A, 0xFBAA, 0x0185, 0xB5F7, 0x0E4D, 0x0524, 
     0xF428, 0x1AAE, 0x0024, 0x049D, 0xB125, 0x0049, 0x0204, 0x80D2, 0xFC12, 0xFAF7, 0x7FA3, 0xFF30, 0x03FE, 0xF7D0, 
     0x0CDF, 0x001F, 0x0845, 0xFF97, 0x075A, 0x7DEE, 0xFAB4, 0xF0F0, 0xFE44, 0x019F, 0xFDD6, 0x0770, 0xFA19, 0x0000, 
     
 };
 
-JointIndex object_animeisreal_Anim_000894JointIndices[] = {
+JointIndex gCneHeadSidewaysConfusedAnimJointIndices[] = {
     { 0x0000, 0x0001, 0x0002 },
     { 0x0003, 0x0004, 0x0003 },
     { 0x0005, 0x0006, 0x0007 },
@@ -222,12 +224,14 @@ JointIndex object_animeisreal_Anim_000894JointIndices[] = {
     { 0x0026, 0x0027, 0x0028 },
 };
 
-AnimationHeader object_animeisreal_Anim_000894 = { 
-    { 2 }, object_animeisreal_Anim_000894FrameData,
-    object_animeisreal_Anim_000894JointIndices, 41
+AnimationHeader gCneHeadSidewaysConfusedAnim = { 
+    { 2 }, gCneHeadSidewaysConfusedAnimFrameData,
+    gCneHeadSidewaysConfusedAnimJointIndices, 41
 };
 
 
+// animations for some other actor, look stupid on her frame
+/*
 s16 object_animeisreal_Anim_000938FrameData[] = {
     0x0000, 0x0B0B, 0x0032, 0xC000, 0xFFE1, 0x003A, 0x79E3, 0x10C3, 0xFB9F, 0x6EF0, 0x0EF9, 0x0813, 0xEE6D, 0xFD34, 
     0x0661, 0x6F13, 0xDE41, 0xEB54, 0xF7F6, 0x0A98, 
@@ -465,9 +469,9 @@ AnimationHeader object_animeisreal_Anim_0012FC = {
     { 2 }, object_animeisreal_Anim_0012FCFrameData,
     object_animeisreal_Anim_0012FCJointIndices, 14
 };
+// */
 
-
-s16 object_animeisreal_Anim_001458FrameData[] = {
+s16 gCneConfusedHandsAnimFrameData[] = {
     0x0000, 0x0F57, 0xFFCE, 0xC000, 0xFFE1, 0x003A, 0x87D5, 0xF859, 0xFA73, 0xB2C1, 0xE7F6, 0xD8E3, 0x8000, 0xFBD6, 
     0xFD52, 0xA9E0, 0xF666, 0x12BF, 0xE8F5, 0xF60F, 0xDFE9, 0xE4AA, 0xF08D, 0x0000, 0x0F73, 0x1B56, 0x2017, 0x1B56, 
     0x0F73, 0x0000, 0xF08D, 0xE4AA, 0x0B78, 0x09C5, 0x0585, 0x0000, 0xFA7B, 0xF63B, 0xF488, 0xF63B, 0xFA7B, 0x0000, 
@@ -479,7 +483,7 @@ s16 object_animeisreal_Anim_001458FrameData[] = {
     0x02E4, 0x0000, 0xFD1C, 0xFAE4, 
 };
 
-JointIndex object_animeisreal_Anim_001458JointIndices[] = {
+JointIndex gCneConfusedHandsAnimJointIndices[] = {
     { 0x0000, 0x0001, 0x0002 },
     { 0x0003, 0x0000, 0x0003 },
     { 0x0000, 0x0000, 0x0004 },
@@ -498,13 +502,13 @@ JointIndex object_animeisreal_Anim_001458JointIndices[] = {
     { 0x005C, 0x0068, 0x0013 },
 };
 
-AnimationHeader object_animeisreal_Anim_001458 = { 
-    { 12 }, object_animeisreal_Anim_001458FrameData,
-    object_animeisreal_Anim_001458JointIndices, 20
+AnimationHeader gCneConfusedHandsAnim = { 
+    { 12 }, gCneConfusedHandsAnimFrameData,
+    gCneConfusedHandsAnimJointIndices, 20
 };
 
 
-s16 object_animeisreal_Anim_0017D8FrameData[] = {
+s16 gCneConcernedThinkingAnimFrameData[] = {
     0x0000, 0x0F57, 0xFFCE, 0xC000, 0xFFE1, 0x003A, 0x0B09, 0x08AD, 0xFE40, 0xFE6F, 0xFEB5, 0xFF0C, 0xFF6D, 0xFFD1, 
     0x0032, 0x0089, 0x00CF, 0x00FE, 0x010F, 0x00F6, 0x00B2, 0x0050, 0xFFDC, 0xFF62, 0xFEEE, 0xFE8C, 0xFE48, 0xFE2F, 
     0x8CC3, 0x8C76, 0x8C02, 0x8B72, 0x8AD2, 0x8A2D, 0x898D, 0x88FE, 0x888A, 0x883C, 0x8820, 0x884A, 0x88BA, 0x895C, 
@@ -535,7 +539,7 @@ s16 object_animeisreal_Anim_0017D8FrameData[] = {
     0x10E3, 0x10E3, 0x10E3, 0x10E3, 0x10E3, 0x10E3, 0x10E2, 0x10E1, 0x10E0, 0x10DE, 
 };
 
-JointIndex object_animeisreal_Anim_0017D8JointIndices[] = {
+JointIndex gCneConcernedThinkingAnimJointIndices[] = {
     { 0x0000, 0x0001, 0x0002 },
     { 0x0003, 0x0008, 0x0003 },
     { 0x0000, 0x0000, 0x0004 },
@@ -554,13 +558,13 @@ JointIndex object_animeisreal_Anim_0017D8JointIndices[] = {
     { 0x0000, 0x0000, 0x0170 },
 };
 
-AnimationHeader object_animeisreal_Anim_0017D8 = { 
-    { 20 }, object_animeisreal_Anim_0017D8FrameData,
-    object_animeisreal_Anim_0017D8JointIndices, 8
+AnimationHeader gCneConcernedThinkingAnim = { 
+    { 20 }, gCneConcernedThinkingAnimFrameData,
+    gCneConcernedThinkingAnimJointIndices, 8
 };
 
 
-s16 object_animeisreal_Anim_001C9CFrameData[] = {
+s16 gCneSecretSharingAnimFrameData[] = {
     0x0000, 0x0F57, 0xFFCE, 0xC000, 0xFFE1, 0x003A, 0xFCBB, 0x0B09, 0x08AD, 0x0004, 0x000E, 0x001C, 0x002E, 0x0042, 
     0x0058, 0x006F, 0x0086, 0x009C, 0x00B0, 0x00C1, 0x00CF, 0x00D7, 0x00DA, 0x00D8, 0x00D1, 0x00C7, 0x00B9, 0x00A9, 
     0x0097, 0x0084, 0x0070, 0x005C, 0x0048, 0x0036, 0x0025, 0x0017, 0x000B, 0x0004, 0x0000, 0x92F3, 0x92EF, 0x92DD, 
@@ -603,7 +607,7 @@ s16 object_animeisreal_Anim_001C9CFrameData[] = {
     0x0798, 0x07B4, 0x07BE, 0x0000, 
 };
 
-JointIndex object_animeisreal_Anim_001C9CJointIndices[] = {
+JointIndex gCneSecretSharingAnimJointIndices[] = {
     { 0x0000, 0x0001, 0x0002 },
     { 0x0003, 0x0009, 0x0003 },
     { 0x0000, 0x0000, 0x0004 },
@@ -622,9 +626,9 @@ JointIndex object_animeisreal_Anim_001C9CJointIndices[] = {
     { 0x0000, 0x0000, 0x0207 },
 };
 
-AnimationHeader object_animeisreal_Anim_001C9C = { 
-    { 30 }, object_animeisreal_Anim_001C9CFrameData,
-    object_animeisreal_Anim_001C9CJointIndices, 9
+AnimationHeader gCneSecretSharingAnim = { 
+    { 30 }, gCneSecretSharingAnimFrameData,
+    gCneSecretSharingAnimJointIndices, 9
 };
 
 s16 object_animeisreal_Anim_001D44FrameData[] = {
@@ -657,7 +661,7 @@ AnimationHeader object_animeisreal_Anim_001D44 = {
 };
 
 
-s16 object_animeisreal_Anim_001EE0FrameData[] = {
+s16 gCneHoldingFaceAnimFrameData[] = {
     0x0000, 0x0F57, 0xFFCE, 0xC000, 0xFFE1, 0x003A, 0xE336, 0x05E4, 0x6C59, 0x182F, 0x2944, 0x2403, 0x1104, 0x0B09, 
     0x08AD, 0x0808, 0x03A9, 0x642C, 0x11B1, 0xF084, 0x9AF3, 0xFB1C, 0xF777, 0x0F57, 0x0F58, 0x0F5C, 0x0F62, 0x0F69, 
     0x0F70, 0x0F77, 0x0F7E, 0x0F84, 0x0F88, 0x0F89, 0x0F88, 0x0F84, 0x0F7E, 0x0F77, 0x0F6F, 0x0F67, 0x0F60, 0x0F5B, 
@@ -671,7 +675,7 @@ s16 object_animeisreal_Anim_001EE0FrameData[] = {
     0x10C1, 0x10D6, 0x10DE, 0x0000, 
 };
 
-JointIndex object_animeisreal_Anim_001EE0JointIndices[] = {
+JointIndex gCneHoldingFaceAnimJointIndices[] = {
     { 0x0000, 0x0017, 0x0002 },
     { 0x0003, 0x002B, 0x0003 },
     { 0x0000, 0x0000, 0x0004 },
@@ -690,11 +694,13 @@ JointIndex object_animeisreal_Anim_001EE0JointIndices[] = {
     { 0x0000, 0x0067, 0x007B },
 };
 
-AnimationHeader object_animeisreal_Anim_001EE0 = { 
-    { 20 }, object_animeisreal_Anim_001EE0FrameData,
-    object_animeisreal_Anim_001EE0JointIndices, 23
+AnimationHeader gCneHoldingFaceAnim = { 
+    { 20 }, gCneHoldingFaceAnimFrameData,
+    gCneHoldingFaceAnimJointIndices, 23
 };
 
+// wide arms, looks dumb, wrong actor?
+/*
 s16 object_animeisreal_Anim_001F78FrameData[] = {
     0x0000, 0x0D31, 0x0032, 0xC000, 0xFFE1, 0x003A, 0x8000, 0xEAC8, 0xFA06, 0x19F9, 0xE87C, 0x1D63, 0x072F, 0xE4A6, 
     0x12C6, 0x0437, 0xF97E, 0xE870, 0xE997, 0xEEE3, 
@@ -723,7 +729,7 @@ AnimationHeader object_animeisreal_Anim_001F78 = {
     { 2 }, object_animeisreal_Anim_001F78FrameData,
     object_animeisreal_Anim_001F78JointIndices, 20
 };
-
+// */
 
 s16 gCneFoldingArmsStartAnimFrameData[] = {
     0x0000, 0x0CE4, 0xFFCA, 0xC000, 0x005B, 0xFE34, 0xF19B, 0x0EBE, 0xFDF6, 0xEBA1, 0xC068, 0x0007, 0xFC17, 0x08D2, 
@@ -762,13 +768,13 @@ AnimationHeader gCneFoldingArmsStartAnim = {
     gCneFoldingArmsStartAnimJointIndices, 19
 };
 
-s16 object_animeisreal_Anim_0021B8FrameData[] = {
+s16 gCneArmsCrossedAnimFrameData[] = {
     0x0000, 0x0CE4, 0xFFCA, 0xC000, 0x005B, 0xFE34, 0xF19B, 0x0EBE, 0xFDF6, 0xEBA1, 0xC068, 0x0007, 0xFC17, 0x08D2, 
     0x0090, 0xF913, 0x145F, 0xB639, 0x8000, 0x0201, 0x5EFF, 0x1530, 0x307C, 0xC008, 0xCC41, 0x1669, 0xCB71, 0xFFA0, 
     0x5FD0, 0xD609, 0xBF38, 0xF709, 0xF42F, 0x0755, 0xDC8E, 0x0000, 
 };
 
-JointIndex object_animeisreal_Anim_0021B8JointIndices[] = {
+JointIndex gCneArmsCrossedAnimJointIndices[] = {
     { 0x0000, 0x0001, 0x0002 },
     { 0x0003, 0x0000, 0x0003 },
     { 0x0004, 0x0005, 0x0006 },
@@ -787,9 +793,9 @@ JointIndex object_animeisreal_Anim_0021B8JointIndices[] = {
     { 0x0000, 0x0000, 0x0000 },
 };
 
-AnimationHeader object_animeisreal_Anim_0021B8 = { 
-    { 2 }, object_animeisreal_Anim_0021B8FrameData,
-    object_animeisreal_Anim_0021B8JointIndices, 35
+AnimationHeader gCneArmsCrossedAnim = { 
+    { 2 }, gCneArmsCrossedAnimFrameData,
+    gCneArmsCrossedAnimJointIndices, 35
 };
 
 s16 gCneAnjuHandsTogetherAnimFrameData[] = {
@@ -853,7 +859,7 @@ AnimationHeader gCneAnjuHandsTogetherAnim = {
     gCneAnjuHandsTogetherAnimJointIndices, 9
 };
 
-s16 object_animeisreal_Anim_002C80FrameData[] = {
+s16 gCneAnjuMyChickenHaveEscapedAnimFrameData[] = {
     0x0000, 0x0E37, 0x002C, 0xC000, 0x02DA, 0xFD26, 0x0E37, 0x0E3F, 0x0E4A, 0x0E55, 0x0E5D, 0x0E61, 0x0E5C, 0x0E51, 
     0x0E43, 0x0E38, 0x0E34, 0x0E38, 0x0E43, 0x0E51, 0x0E5C, 0x0E61, 0x0E5C, 0x0E50, 0x0E43, 0x0E38, 0x0E34, 0xC06E, 
     0xC0E7, 0xC15C, 0xC1C1, 0xC208, 0xC222, 0xC1F9, 0xC191, 0xC107, 0xC078, 0xC000, 0xBF88, 0xBEF9, 0xBE6F, 0xBE07, 
@@ -913,7 +919,7 @@ s16 object_animeisreal_Anim_002C80FrameData[] = {
     
 };
 
-JointIndex object_animeisreal_Anim_002C80JointIndices[] = {
+JointIndex gCneAnjuMyChickenHaveEscapedAnimJointIndices[] = {
     { 0x0000, 0x0006, 0x0002 },
     { 0x001B, 0x0030, 0x0003 },
     { 0x0045, 0x005A, 0x006F },
@@ -932,8 +938,8 @@ JointIndex object_animeisreal_Anim_002C80JointIndices[] = {
     { 0x02E5, 0x0000, 0x02FA },
 };
 
-AnimationHeader object_animeisreal_Anim_002C80 = { 
-    { 21 }, object_animeisreal_Anim_002C80FrameData,
-    object_animeisreal_Anim_002C80JointIndices, 6
+AnimationHeader gCneAnjuMyChickenHaveEscapedAnim = { 
+    { 21 }, gCneAnjuMyChickenHaveEscapedAnimFrameData,
+    gCneAnjuMyChickenHaveEscapedAnimJointIndices, 6
 };
 
