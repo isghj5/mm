@@ -439,6 +439,7 @@ void EnCne01_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* ro
 void EnCne01_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
 }
 
+/*
 void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     EnCne01* this = THIS;
     // with explanation comments
@@ -531,7 +532,7 @@ void EnCne01_Draw(Actor* thisx, PlayState* play) {
     //}
     //SubS_DrawShadowTex(&this->actor, &play->state, shadowTex);
     
-    Debug_PrintToScreen(thisx, play);
+    //Debug_PrintToScreen(thisx, play);
 
     CLOSE_DISPS(play->state.gfxCtx);
 }
