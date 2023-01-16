@@ -6,7 +6,6 @@
 
 #include "z_en_cne_01.h"
 #include "objects/object_cne/object_cne.h"
-#include "new_animations.c"
 
 #define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_8 | ACTOR_FLAG_10)
 
@@ -55,40 +54,10 @@ static ColliderCylinderInit sCylinderInit = {
 
 static CollisionCheckInfoInit2 sColChkInfoInit = { 0, 0, 0, 0, MASS_IMMOVABLE };
 
+// why did the dev leave this instead of using the blank ones...
+/*
 static DamageTable sDamageTable = {
-    /* Deku Nut       */ DMG_ENTRY(0, 0),
-    /* Deku Stick     */ DMG_ENTRY(0, 0),
-    /* Horse trample  */ DMG_ENTRY(0, 0),
-    /* Explosives     */ DMG_ENTRY(0, 0),
-    /* Zora boomerang */ DMG_ENTRY(0, 0),
-    /* Normal arrow   */ DMG_ENTRY(0, 0),
-    /* UNK_DMG_0x06   */ DMG_ENTRY(0, 0),
-    /* Hookshot       */ DMG_ENTRY(0, 0),
-    /* Goron punch    */ DMG_ENTRY(0, 0),
-    /* Sword          */ DMG_ENTRY(0, 0),
-    /* Goron pound    */ DMG_ENTRY(0, 0),
-    /* Fire arrow     */ DMG_ENTRY(0, 0),
-    /* Ice arrow      */ DMG_ENTRY(0, 0),
-    /* Light arrow    */ DMG_ENTRY(0, 0),
-    /* Goron spikes   */ DMG_ENTRY(0, 0),
-    /* Deku spin      */ DMG_ENTRY(0, 0),
-    /* Deku bubble    */ DMG_ENTRY(0, 0),
-    /* Deku launch    */ DMG_ENTRY(0, 0),
-    /* UNK_DMG_0x12   */ DMG_ENTRY(0, 0),
-    /* Zora barrier   */ DMG_ENTRY(0, 0),
-    /* Normal shield  */ DMG_ENTRY(0, 0),
-    /* Light ray      */ DMG_ENTRY(0, 0),
-    /* Thrown object  */ DMG_ENTRY(0, 0),
-    /* Zora punch     */ DMG_ENTRY(0, 0),
-    /* Spin attack    */ DMG_ENTRY(0, 0),
-    /* Sword beam     */ DMG_ENTRY(0, 0),
-    /* Normal Roll    */ DMG_ENTRY(0, 0),
-    /* UNK_DMG_0x1B   */ DMG_ENTRY(0, 0),
-    /* UNK_DMG_0x1C   */ DMG_ENTRY(0, 0),
-    /* Unblockable    */ DMG_ENTRY(0, 0),
-    /* UNK_DMG_0x1E   */ DMG_ENTRY(0, 0),
-    /* Powder Keg     */ DMG_ENTRY(0, 0),
-};
+}; // */
 
 static TrackOptionsSet sTrackOptions = {
     { 0xFA0, 4, 1, 3 },
@@ -99,6 +68,7 @@ static TrackOptionsSet sTrackOptions = {
 
 // end vanilla data
 
+#include "new_animations.c"
 
 void EnCne02_SetAnimation(EnCne01* this, AnimationHeader* anim){
 
@@ -323,7 +293,7 @@ void EnCne01_Init(Actor* thisx, PlayState* play) {
 
     Collider_InitCylinder(play, &this->collider);
     Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
-    CollisionCheck_SetInfo2(&this->actor.colChkInfo, &sDamageTable, &sColChkInfoInit);
+    CollisionCheck_SetInfo2(&this->actor.colChkInfo, DamageTable_Get(0x16), &sColChkInfoInit);
     this->path = SubS_GetPathByIndex(play, CNE_GET_PATH(&this->actor), 0x3F);
     Actor_SetScale(&this->actor, 0.01f);
     //this->actor.flags &= ~ACTOR_FLAG_1;
