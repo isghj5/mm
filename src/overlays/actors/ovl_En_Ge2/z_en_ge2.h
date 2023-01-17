@@ -22,6 +22,7 @@ typedef enum {
     /* 0 */ GERUDO_PURPLE_TYPE_CUTSCENE,
     /* 1 */ GERUDO_PURPLE_TYPE_BOAT_SENTRY, //!< on boats
     /* 2 */ GERUDO_PURPLE_TYPE_AVEIL_GUARD,
+    /* 3 */ GERUDO_PURPLE_TYPE_BOAT_HITTABLE, // new
     /* 7 */ GERUDO_PURPLE_TYPE_FORTRESS = 7 //!< In both courtyard and rooms
 } GerudoPurpleType;
 

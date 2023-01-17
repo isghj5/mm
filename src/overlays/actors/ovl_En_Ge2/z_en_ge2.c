@@ -118,11 +118,13 @@ void EnGe2_Init(Actor* thisx, PlayState* play) {
 
     switch (GERUDO_PURPLE_GET_TYPE(&this->picto.actor)) {
         case GERUDO_PURPLE_TYPE_BOAT_SENTRY:
+            this->picto.actor.uncullZoneForward = 4000.0f;
+        case GERUDO_PURPLE_TYPE_BOAT_HITTABLE:
+
             Animation_Change(&this->skelAnime, &gGerudoPurpleLookingAboutAnim, 1.0f, 0.0f,
                              Animation_GetLastFrame(&gGerudoPurpleLookingAboutAnim), 0, 0.0f);
             this->actionFunc = EnGe2_GuardStationary;
             this->picto.actor.speedXZ = 0.0f;
-            this->picto.actor.uncullZoneForward = 4000.0f;
             break;
 
         case GERUDO_PURPLE_TYPE_AVEIL_GUARD:
@@ -688,6 +690,29 @@ void EnGe2_GuardStationary(EnGe2* this, PlayState* play) {
             EnGe2_SetupCapturePlayer(this);
         }
     }
+
+    // new, we want a stationary that can still be hitable, which the others were not because you could cheese their boat? I think?
+    if (GERUDO_PURPLE_GET_TYPE(&this->picto.actor) == GERUDO_PURPLE_TYPE_BOAT_HITTABLE){
+      if (this->collider.base.acFlags & AC_HIT) {
+        if ((this->collider.info.acHitInfo != NULL) &&
+            (this->collider.info.acHitInfo->toucher.dmgFlags & DMG_DEKU_NUT)) {
+            Actor_SetColorFilter(&this->picto.actor, 0, 120, 0, 400);
+            this->picto.actor.speedXZ = 0.0f;
+            this->actionFunc = EnGe2_Stunned;
+            this->stateFlags |= GERUDO_PURPLE_STATE_STUNNED;
+        } else {
+            Animation_Change(&this->skelAnime, &gGerudoPurpleFallingToGroundAnim, 1.0f, 0.0f,
+                             Animation_GetLastFrame(&gGerudoPurpleFallingToGroundAnim), 2, -8.0f);
+            this->timer = 200;
+            this->picto.actor.speedXZ = 0.0f;
+            this->actionFunc = EnGe2_KnockedOut;
+            Actor_PlaySfxAtPos(&this->picto.actor, NA_SE_EN_PIRATE_DEAD);
+            this->picto.actor.flags &= ~ACTOR_FLAG_1;
+            this->stateFlags |= GERUDO_PURPLE_STATE_KO;
+        }
+      }
+    }
+
 
     if (this->picto.actor.playerHeightRel < -150.0f) {
         this->picto.actor.draw = NULL;
