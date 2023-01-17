@@ -373,6 +373,7 @@ u8 EnPoSisters2_CheckRoomChange(EnPoSisters* this, PlayState* play) {
   }
 }
 
+// new: warping back into the reality
 void EnPoSisters2_WarpInThroughWalls(EnPoSisters* this, PlayState* play){
     if (DECR(this->spinInvisibleTimer) == 0) {
       Player* player = GET_PLAYER(play);
@@ -423,9 +424,21 @@ void EnPoSisters2_SwirlDissapear(EnPoSisters* this, PlayState* play){
   }
 }
 
+void EnPoSisters2_SetupSwirlDissapear(EnPoSisters* this, PlayState* play){
+      //Actor_Kill(this); // quiet kill, todo make swuirl exit
+      this->spinInvisibleTimer = 20 * 4;
+      Actor_PlaySfxAtPos(&this->actor, NA_SE_EN_PO_DISAPPEAR);
+      this->actionFunc = EnPoSisters2_SwirlDissapear;
+}
+
 // new: change direction and 
 void EnPoSisters2_ChaseThroughWalls(EnPoSisters* this, PlayState* play){
   //Player* player = GET_PLAYER(play);
+
+  if (Player_GetMask(play) == PLAYER_MASK_STONE){
+      EnPoSisters2_SetupSwirlDissapear(this, play);
+
+  }
 
   //if player->actor.world.pos
   if (this->actor.xzDistToPlayer > 1000){
@@ -435,11 +448,8 @@ void EnPoSisters2_ChaseThroughWalls(EnPoSisters* this, PlayState* play){
       EnPoSisters2_SetupWarpOutThroughWalls(this);
       
     } else {
+      EnPoSisters2_SetupSwirlDissapear(this, play);
       
-      //Actor_Kill(this); // quiet kill, todo make swuirl exit
-      this->spinInvisibleTimer = 20 * 4;
-      Actor_PlaySfxAtPos(&this->actor, NA_SE_EN_PO_DISAPPEAR);
-      this->actionFunc = EnPoSisters2_SwirlDissapear;
     }
   } else {
     // hope this approaches the player?
@@ -512,7 +522,7 @@ void EnPoSisters_Investigating(EnPoSisters* this, PlayState* play) {
         Math_ScaledStepToS(&this->actor.world.rot.y, this->actor.yawTowardsPlayer, 0x71C);
     }
 
-    if ((this->actor.xzDistToPlayer < 320.0f) && (fabsf(this->actor.playerHeightRel + 5.0f) < 30.0f)) {
+    if ( (Player_GetMask(play) != PLAYER_MASK_STONE) && (this->actor.xzDistToPlayer < 320.0f) && (fabsf(this->actor.playerHeightRel + 5.0f) < 30.0f)) {
         EnPoSisters_SetupSpinUp(this);
     } else if (this->actor.xzDistToPlayer > 720.0f) {
         EnPoSisters_SetupAimlessIdleFlying(this);
