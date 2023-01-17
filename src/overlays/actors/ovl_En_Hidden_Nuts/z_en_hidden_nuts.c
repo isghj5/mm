@@ -106,6 +106,15 @@ void EnHiddenNuts_Init(Actor* thisx, PlayState* play) {
 
     this->path = SubS_GetPathByIndex(play, this->unk_21E, 0x3F);
     this->unk_226 = this->actor.cutscene;
+
+    if (ENHIDDENNUTS_GET_8000(thisx)){
+        Actor_Spawn(&play->actorCtx, play, ACTOR_OBJ_ETCETERA,
+                    this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z,
+                    0,0,0,
+                    0x17F);
+        this->actor.world.pos.y += 0x14;
+    }
+
     func_801A5080(2);
     func_80BDB268(this);
 }
