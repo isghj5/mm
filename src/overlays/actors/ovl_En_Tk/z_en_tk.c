@@ -108,11 +108,26 @@ static u32 D_80AEF85C[] = {
     0xFF000000,
 };
 
+typedef enum {
+    /* 0x0 */ DAMPE_ANIM_WALK,
+    /* 0x1 */ DAMPE_ANIM_WALK2,
+    /* 0x2 */ DAMPE_ANIM_REST,
+    /* 0x3 */ DAMPE_ANIM_DIG,
+    /* 0x3 */ DAMPE_ANIM_STARTLE,
+    /* 0x3 */ DAMPE_ANIM_RUN,
+    /* 0x3 */ DAMPE_ANIM_UNK,
+    /* 0x3 */ DAMPE_ANIM_STARTLE_LOOP,
+} DampeAnims;
+
 static AnimationSpeedInfo D_80AEF868[] = {
-    { &object_tk_Anim_001FA8, 1.0f, ANIMMODE_LOOP, -10.0f }, { &object_tk_Anim_001FA8, 2.0f, ANIMMODE_LOOP, -10.0f },
-    { &object_tk_Anim_0030A4, 1.0f, ANIMMODE_LOOP, -10.0f }, { &object_tk_Anim_001144, 1.0f, ANIMMODE_ONCE, -10.0f },
-    { &object_tk_Anim_003724, 1.0f, ANIMMODE_ONCE, -10.0f }, { &object_tk_Anim_003FB8, 1.0f, ANIMMODE_LOOP, -10.0f },
-    { &object_tk_Anim_0020C8, 1.0f, ANIMMODE_LOOP, -10.0f }, { &object_tk_Anim_003B10, 1.0f, ANIMMODE_LOOP, -10.0f },
+    { &gDampeWalkAnim, 1.0f, ANIMMODE_LOOP, -10.0f },
+    { &gDampeWalkAnim, 2.0f, ANIMMODE_LOOP, -10.0f },
+    { &gDampeRestAnim, 1.0f, ANIMMODE_LOOP, -10.0f },
+    { &gDampeDigAnim, 1.0f, ANIMMODE_ONCE, -10.0f },
+    { &gDampeStartleAnim, 1.0f, ANIMMODE_ONCE, -10.0f },
+    { &gDampeRunAnim, 1.0f, ANIMMODE_LOOP, -10.0f },
+    { &gDampeUnk20C8Anim, 1.0f, ANIMMODE_LOOP, -10.0f },
+    { &gDampeStartleLoopAnim, 1.0f, ANIMMODE_LOOP, -10.0f },
 };
 
 static s32 D_80AEF8E8[2] = { 0, 0 };
@@ -225,9 +240,9 @@ void EnTk_Init(Actor* thisx, PlayState* play) {
     }
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 24.0f);
-    SkelAnime_InitFlex(play, &this->skelAnime, &object_tk_Skel_00B9E8, NULL, this->jointTable, this->morphTable, 18);
-    Animation_Change(&this->skelAnime, &object_tk_Anim_0030A4, 1.0f, 0.0f,
-                     Animation_GetLastFrame(&object_tk_Anim_0030A4.common), ANIMMODE_LOOP, 0.0f);
+    SkelAnime_InitFlex(play, &this->skelAnime, &gDampeSkel, NULL, this->jointTable, this->morphTable, DAMPE_LIMB_MAX);
+    Animation_Change(&this->skelAnime, &gDampeRestAnim, 1.0f, 0.0f,
+                     Animation_GetLastFrame(&gDampeRestAnim.common), ANIMMODE_LOOP, 0.0f);
     this->unk_318 = 0;
     this->unk_2D4 = -1;
     Actor_SetScale(&this->actor, 0.01f);
@@ -1362,7 +1377,7 @@ void EnTk_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
 
                 OPEN_DISPS(play->state.gfxCtx);
 
-                gSPDisplayList(POLY_OPA_DISP++, object_tk_DL_00B530);
+                gSPDisplayList(POLY_OPA_DISP++, gDampeShovelDL);
 
                 CLOSE_DISPS(play->state.gfxCtx);
                 break;
@@ -1371,10 +1386,10 @@ void EnTk_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
 }
 
 void EnTk_Draw(Actor* thisx, PlayState* play) {
-    static TexturePtr D_80AEFA90[] = {
-        object_tk_Tex_004390,
-        object_tk_Tex_004B90,
-        object_tk_Tex_005390,
+    static TexturePtr sDampeEyeTextures[] = {
+        gDampeEyeOpenTex,
+        gDampeEyeHalfTex,
+        gDampeEyeClosedTex,
     };
     s32 pad;
     EnTk* this = THIS;
@@ -1383,7 +1398,7 @@ void EnTk_Draw(Actor* thisx, PlayState* play) {
 
     POLY_OPA_DISP = Gfx_CallSetupDL(POLY_OPA_DISP, 25);
 
-    gSPSegment(POLY_OPA_DISP++, 0x08, Lib_SegmentedToVirtual(D_80AEFA90[this->unk_2C2]));
+    gSPSegment(POLY_OPA_DISP++, 0x08, Lib_SegmentedToVirtual(sDampeEyeTextures[this->unk_2C2]));
 
     Matrix_RotateYS(this->unk_318, MTXMODE_APPLY);
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,

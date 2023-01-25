@@ -1,65 +1,74 @@
 ﻿<Root>
     <File Name="object_tk" Segment="6">
-        <Animation Name="object_tk_Anim_001144" Offset="0x1144" />
-        <Animation Name="object_tk_Anim_001FA8" Offset="0x1FA8" />
-        <Animation Name="object_tk_Anim_0020C8" Offset="0x20C8" />
-        <Animation Name="object_tk_Anim_0030A4" Offset="0x30A4" />
-        <Animation Name="object_tk_Anim_003724" Offset="0x3724" />
-        <Animation Name="object_tk_Anim_003B10" Offset="0x3B10" />
-        <Animation Name="object_tk_Anim_003FB8" Offset="0x3FB8" />
-        <Texture Name="object_tk_TLUT_003FD0" OutName="tlut_003FD0" Format="rgba16" Width="16" Height="16" Offset="0x3FD0" />
-        <Texture Name="object_tk_Tex_0041D0" OutName="tex_0041D0" Format="ci8" Width="8" Height="8" Offset="0x41D0" />
-        <Texture Name="object_tk_Tex_004210" OutName="tex_004210" Format="ci8" Width="8" Height="8" Offset="0x4210" />
-        <Texture Name="object_tk_Tex_004250" OutName="tex_004250" Format="ci8" Width="8" Height="8" Offset="0x4250" />
-        <Texture Name="object_tk_Tex_004290" OutName="tex_004290" Format="ci8" Width="16" Height="16" Offset="0x4290" />
-        <Texture Name="object_tk_Tex_004390" OutName="tex_004390" Format="rgba16" Width="32" Height="32" Offset="0x4390" />
-        <Texture Name="object_tk_Tex_004B90" OutName="tex_004B90" Format="rgba16" Width="32" Height="32" Offset="0x4B90" />
-        <Texture Name="object_tk_Tex_005390" OutName="tex_005390" Format="rgba16" Width="32" Height="32" Offset="0x5390" />
-        <Texture Name="object_tk_Tex_005B90" OutName="tex_005B90" Format="ci8" Width="16" Height="16" Offset="0x5B90" />
-        <Texture Name="object_tk_Tex_005C90" OutName="tex_005C90" Format="ci8" Width="16" Height="16" Offset="0x5C90" />
-        <!-- <Blob Name="object_tk_Blob_005D90" Size="0x180" Offset="0x5D90" /> -->
-        <Texture Name="object_tk_Tex_005F10" OutName="tex_005F10" Format="ci8" Width="16" Height="16" Offset="0x5F10" />
-        <DList Name="object_tk_DL_008870" Offset="0x8870" />
-        <DList Name="object_tk_DL_0089B0" Offset="0x89B0" />
-        <DList Name="object_tk_DL_008B40" Offset="0x8B40" />
-        <DList Name="object_tk_DL_008C60" Offset="0x8C60" />
-        <DList Name="object_tk_DL_0091A8" Offset="0x91A8" />
-        <DList Name="object_tk_DL_0094F0" Offset="0x94F0" />
-        <DList Name="object_tk_DL_009620" Offset="0x9620" />
-        <DList Name="object_tk_DL_009750" Offset="0x9750" />
-        <DList Name="object_tk_DL_009960" Offset="0x9960" />
-        <DList Name="object_tk_DL_009A90" Offset="0x9A90" />
-        <DList Name="object_tk_DL_009BC0" Offset="0x9BC0" />
-        <DList Name="object_tk_DL_009DD0" Offset="0x9DD0" />
-        <DList Name="object_tk_DL_009F88" Offset="0x9F88" />
-        <DList Name="object_tk_DL_00A068" Offset="0xA068" />
-        <DList Name="object_tk_DL_00A220" Offset="0xA220" />
-        <!-- <Blob Name="object_tk_Blob_00A300" Size="0x50" Offset="0xA300" /> -->
-        <Texture Name="object_tk_Tex_00A350" OutName="tex_00A350" Format="ci8" Width="16" Height="16" Offset="0xA350" />
-        <Texture Name="object_tk_Tex_00A450" OutName="tex_00A450" Format="ci8" Width="8" Height="16" Offset="0xA450" />
-        <Texture Name="object_tk_Tex_00A4D0" OutName="tex_00A4D0" Format="i8" Width="8" Height="8" Offset="0xA4D0" />
-        <Texture Name="object_tk_Tex_00A510" OutName="tex_00A510" Format="rgba16" Width="8" Height="8" Offset="0xA510" />
-        <Texture Name="object_tk_Tex_00A590" OutName="tex_00A590" Format="i4" Width="16" Height="32" Offset="0xA590" />
-        <DList Name="object_tk_DL_00B260" Offset="0xB260" />
-        <DList Name="object_tk_DL_00B3C8" Offset="0xB3C8" />
-        <DList Name="object_tk_DL_00B530" Offset="0xB530" />
-        <Limb Name="object_tk_Standardlimb_00B8D8" Type="Standard" EnumName="OBJECT_TK_LIMB_01" Offset="0xB8D8" />
-        <Limb Name="object_tk_Standardlimb_00B8E4" Type="Standard" EnumName="OBJECT_TK_LIMB_02" Offset="0xB8E4" />
-        <Limb Name="object_tk_Standardlimb_00B8F0" Type="Standard" EnumName="OBJECT_TK_LIMB_03" Offset="0xB8F0" />
-        <Limb Name="object_tk_Standardlimb_00B8FC" Type="Standard" EnumName="OBJECT_TK_LIMB_04" Offset="0xB8FC" />
-        <Limb Name="object_tk_Standardlimb_00B908" Type="Standard" EnumName="OBJECT_TK_LIMB_05" Offset="0xB908" />
-        <Limb Name="object_tk_Standardlimb_00B914" Type="Standard" EnumName="OBJECT_TK_LIMB_06" Offset="0xB914" />
-        <Limb Name="object_tk_Standardlimb_00B920" Type="Standard" EnumName="OBJECT_TK_LIMB_07" Offset="0xB920" />
-        <Limb Name="object_tk_Standardlimb_00B92C" Type="Standard" EnumName="OBJECT_TK_LIMB_08" Offset="0xB92C" />
-        <Limb Name="object_tk_Standardlimb_00B938" Type="Standard" EnumName="OBJECT_TK_LIMB_09" Offset="0xB938" />
-        <Limb Name="object_tk_Standardlimb_00B944" Type="Standard" EnumName="OBJECT_TK_LIMB_0A" Offset="0xB944" />
-        <Limb Name="object_tk_Standardlimb_00B950" Type="Standard" EnumName="OBJECT_TK_LIMB_0B" Offset="0xB950" />
-        <Limb Name="object_tk_Standardlimb_00B95C" Type="Standard" EnumName="OBJECT_TK_LIMB_0C" Offset="0xB95C" />
-        <Limb Name="object_tk_Standardlimb_00B968" Type="Standard" EnumName="OBJECT_TK_LIMB_0D" Offset="0xB968" />
-        <Limb Name="object_tk_Standardlimb_00B974" Type="Standard" EnumName="OBJECT_TK_LIMB_0E" Offset="0xB974" />
-        <Limb Name="object_tk_Standardlimb_00B980" Type="Standard" EnumName="OBJECT_TK_LIMB_0F" Offset="0xB980" />
-        <Limb Name="object_tk_Standardlimb_00B98C" Type="Standard" EnumName="OBJECT_TK_LIMB_10" Offset="0xB98C" />
-        <Limb Name="object_tk_Standardlimb_00B998" Type="Standard" EnumName="OBJECT_TK_LIMB_11" Offset="0xB998" />
-        <Skeleton Name="object_tk_Skel_00B9E8" Type="Flex" LimbType="Standard" LimbNone="OBJECT_TK_LIMB_NONE" LimbMax="OBJECT_TK_LIMB_MAX" EnumName="ObjectTkLimb" Offset="0xB9E8" />
+        <Animation Name="gDampeDigAnim" Offset="0x1144" />
+        <Animation Name="gDampeWalkAnim" Offset="0x1FA8" />
+        <Animation Name="gDampeUnk20C8Anim" Offset="0x20C8" />
+        <Animation Name="gDampeRestAnim" Offset="0x30A4" />
+        <Animation Name="gDampeStartleAnim" Offset="0x3724" />
+        <Animation Name="gDampeStartleLoopAnim" Offset="0x3B10" />
+        <Animation Name="gDampeRunAnim" Offset="0x3FB8" />
+
+        <Texture Name="gDampeTlut" OutName="tlut" Format="rgba16" Width="16" Height="16" Offset="0x3FD0" />
+        <Texture Name="gDampeSkinTex" OutName="skin" Format="ci8" Width="8" Height="8" Offset="0x41D0" />
+        <Texture Name="gDampeSkin2" OutName="skin2" Format="ci8" Width="8" Height="8" Offset="0x4210" />
+        <Texture Name="gDampeToothTex" OutName="tooth" Format="ci8" Width="8" Height="8" Offset="0x4250" />
+        <Texture Name="gDampeEarTex" OutName="ear" Format="ci8" Width="16" Height="16" Offset="0x4290" />
+
+        <Texture Name="gDampeEyeOpenTex" OutName="eye_open" Format="rgba16" Width="32" Height="32" Offset="0x4390" />
+        <Texture Name="gDampeEyeHalfTex" OutName="eye_half" Format="rgba16" Width="32" Height="32" Offset="0x4B90" />
+        <Texture Name="gDampeEyeClosedTex" OutName="eye_closed" Format="rgba16" Width="32" Height="32" Offset="0x5390" />
+
+        <Texture Name="gDampeFingersTex" OutName="fingers" Format="ci8" Width="16" Height="16" Offset="0x5B90" />
+        <Texture Name="gDampeClothesTex" OutName="clothes" Format="ci8" Width="16" Height="16" Offset="0x5C90" />
+        <Texture Name="gDampeShoeTopsTex" OutName="shoe_tops" Format="ci8" Width="16" Height="16" Offset="0x5D90" TlutOffset="0x3FD0" />
+        <Texture Name="gDampeShoeSidesTex" OutName="shoe_sides" Format="ci8" Width="8" Height="16" Offset="0x5E90" TlutOffset="0x3FD0" />
+        <Texture Name="gDampePantsPatchesTex" OutName="pants_patches" Format="ci8" Width="16" Height="16" Offset="0x5F10" />
+
+        <DList Name="gDampePelvisDL" Offset="0x8870" />
+        <DList Name="gDampeChestDL" Offset="0x89B0" />
+        <DList Name="gDampeNeckDL" Offset="0x8B40" />
+        <DList Name="gDampeSkullDL" Offset="0x8C60" />
+        <DList Name="gDampeMandibleDL" Offset="0x91A8" />
+        <DList Name="gDampeRightUpperArmDL" Offset="0x94F0" />
+        <DList Name="gDampeRightForearmDL" Offset="0x9620" />
+        <DList Name="gDampeRightHandDL" Offset="0x9750" />
+        <DList Name="gDampeLeftUpperArmDL" Offset="0x9960" />
+        <DList Name="gDampeLeftForearmDL" Offset="0x9A90" />
+        <DList Name="gDampeLeftHandDL" Offset="0x9BC0" />
+        <DList Name="gDampeRightThighDL" Offset="0x9DD0" />
+        <DList Name="gDampeRightShinDL" Offset="0x9F88" />
+        <DList Name="gDampeLeftThighDL" Offset="0xA068" />
+        <DList Name="gDampeLeftShinDL" Offset="0xA220" />
+
+        <!-- Seem to be identical duplicates. -->
+        <Texture Name="gDampe2Tlut" OutName="tlut2" Format="rgba16" Width="8" Height="4" Offset="0xA300" />
+        <Texture Name="gdampeShowTops2Tex" OutName="shoe_tops2" Format="ci8" Width="16" Height="16" Offset="0xA350" TlutOffset="0xA300" />
+        <Texture Name="gDampeShoeSides2Tex" OutName="shoe_sides2" Format="ci8" Width="8" Height="16" Offset="0xA450" TlutOffset="0xA300" />
+
+        <Texture Name="gDampeShovelSpadeMetalTex" OutName="spade_metal" Format="i8" Width="8" Height="8" Offset="0xA4D0" />
+        <Texture Name="gDampeShovelHandleStaffTex" OutName="shovel_handle_pole" Format="rgba16" Width="8" Height="8" Offset="0xA510" />
+        <Texture Name="gDampeShovelHandleEndTex" OutName="shovel_handle_end" Format="i4" Width="16" Height="32" Offset="0xA590" />
+        <DList Name="gDampeLeftFootDL" Offset="0xB260" />
+        <DList Name="gDampeRightFootDL" Offset="0xB3C8" />
+        <DList Name="gDampeShovelDL" Offset="0xB530" />
+        
+        <Limb Name="gDampePelvisLimb" Type="Standard" EnumName="DAMPE_LIMB_PELVIS" Offset="0xB8D8" />
+        <Limb Name="gDampeLeftThighLimb" Type="Standard" EnumName="DAMPE_LIMB_LEFT_THIGH" Offset="0xB8E4" />
+        <Limb Name="gDampeLeftShinLimb" Type="Standard" EnumName="DAMPE_LIMB_LEFT_SHIN" Offset="0xB8F0" />
+        <Limb Name="gDampeLeftFootLimb" Type="Standard" EnumName="DAMPE_LIMB_LEFT_FOOT" Offset="0xB8FC" />
+        <Limb Name="gDampeRightThighLimb" Type="Standard" EnumName="DAMPE_LIMB_RIGHT_THIGH" Offset="0xB908" />
+        <Limb Name="gDampeRightShinLimb" Type="Standard" EnumName="DAMPE_LIMB_RIGHT_SHIN" Offset="0xB914" />
+        <Limb Name="gDampeRightFootLimb" Type="Standard" EnumName="DAMPE_LIMB_RIGHT_FOOT" Offset="0xB920" />
+        <Limb Name="gDampeChestLimb" Type="Standard" EnumName="DAMPE_LIMB_CHEST" Offset="0xB92C" />
+        <Limb Name="gDampeLeftUpperArmLimb" Type="Standard" EnumName="DAMPE_LIMB_LEFT_UPPER_ARM" Offset="0xB938" />
+        <Limb Name="gDampeLeftForearmLimb" Type="Standard" EnumName="DAMPE_LIMB_LEFT_FOREARM" Offset="0xB944" />
+        <Limb Name="gDampeLeftHandLimb" Type="Standard" EnumName="DAMPE_LIMB_LEFT_HAND" Offset="0xB950" />
+        <Limb Name="gDampeRightUpperArmLimb" Type="Standard" EnumName="DAMPE_LIMB_RIGHT_UPPER_ARM" Offset="0xB95C" />
+        <Limb Name="gDampeRightForearmLimb" Type="Standard" EnumName="DAMPE_LIMB_RIGHT_FOREARM" Offset="0xB968" />
+        <Limb Name="gDampeRightHandLimb" Type="Standard" EnumName="DAMPE_LIMB_RIGHT_HAND" Offset="0xB974" />        
+        <Limb Name="gDampeNeckLimb" Type="Standard" EnumName="DAMPE_LIMB_NECK" Offset="0xB980" />
+        <Limb Name="gDampeSkullLimb" Type="Standard" EnumName="DAMPE_LIMB_SKULL" Offset="0xB98C" />
+        <Limb Name="gDampeMandibleLimb" Type="Standard" EnumName="DAMPE_LIMB_MANDIBLE" Offset="0xB998" />
+        <Skeleton Name="gDampeSkel" Type="Flex" LimbType="Standard" LimbNone="DAMPE_LIMB_NONE" LimbMax="DAMPE_LIMB_MAX" EnumName="DampeLimb" Offset="0xB9E8" />
     </File>
 </Root>
