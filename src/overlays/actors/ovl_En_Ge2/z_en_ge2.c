@@ -20,6 +20,7 @@ s32 EnGe2_SetupPath(EnGe2* this, PlayState* play);
 void EnGe2_LookAround(EnGe2* this, PlayState* play);
 void EnGe2_Walk(EnGe2* this, PlayState* play);
 void EnGe2_GuardStationary(EnGe2* this, PlayState* play);
+void EnGe2_GuardStationary2(EnGe2* this, PlayState* play);
 
 s32 EnGe2_ValidatePictograph(PlayState* play, Actor* thisx);
 
@@ -109,7 +110,12 @@ void EnGe2_Init(Actor* thisx, PlayState* play) {
     this->actionFunc = EnGe2_Walk;
     this->picto.validationFunc = EnGe2_ValidatePictograph;
 
-    EnGe2_SetupPath(this, play);
+    // in vanilla this is just called and the return is ignored, here I am checking for false and changing type
+    //if ( ! EnGe2_SetupPath(this, play) ){
+      //GERUDO_PURPLE_GET_TYPE(&this->picto.actor) = GERUDO_PURPLE_TYPE_BOAT_HITTABLE;
+      //thisx->params = thisx->params & ~0x00E0;
+      //thisx->params |= GERUDO_PURPLE_TYPE_BOAT_HITTABLE << 5;
+    //}
 
     this->picto.actor.flags |= ACTOR_FLAG_10;
     if (play->actorCtx.unk5 & 2) {
@@ -118,7 +124,11 @@ void EnGe2_Init(Actor* thisx, PlayState* play) {
 
     switch (GERUDO_PURPLE_GET_TYPE(&this->picto.actor)) {
         case GERUDO_PURPLE_TYPE_BOAT_SENTRY:
+            Animation_Change(&this->skelAnime, &gGerudoPurpleLookingAboutAnim, 1.0f, 0.0f,
+                             Animation_GetLastFrame(&gGerudoPurpleLookingAboutAnim), 0, 0.0f);
             this->picto.actor.uncullZoneForward = 4000.0f;
+            this->actionFunc = EnGe2_GuardStationary2;
+            break;
         case GERUDO_PURPLE_TYPE_BOAT_HITTABLE:
 
             Animation_Change(&this->skelAnime, &gGerudoPurpleLookingAboutAnim, 1.0f, 0.0f,
@@ -523,6 +533,7 @@ void EnGe2_PatrolDuties(EnGe2* this, PlayState* play) {
             this->picto.actor.flags &= ~ACTOR_FLAG_1;
             this->stateFlags |= GERUDO_PURPLE_STATE_KO;
         }
+    // WHAT THE FUCK IS THIS
     } else if (this->picto.actor.home.rot.x == 0) {
         CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
     }
@@ -680,6 +691,8 @@ void EnGe2_PerformCutsceneActions(EnGe2* this, PlayState* play) {
 // Used for those on boats
 void EnGe2_GuardStationary(EnGe2* this, PlayState* play) {
     SkelAnime_Update(&this->skelAnime);
+
+
     if (EnGe2_LookForPlayer(play, &this->picto.actor, &this->picto.actor.focus.pos, this->picto.actor.shape.rot.y,
                             0x4000, 720.0f, this->verticalDetectRange)) {
         if ((GERUDO_PURPLE_GET_EXIT(&this->picto.actor) != GERUDO_PURPLE_EXIT_NONE) && !Play_InCsMode(play)) {
@@ -691,35 +704,38 @@ void EnGe2_GuardStationary(EnGe2* this, PlayState* play) {
         }
     }
 
-    // new, we want a stationary that can still be hitable, which the others were not because you could cheese their boat? I think?
-    if (GERUDO_PURPLE_GET_TYPE(&this->picto.actor) == GERUDO_PURPLE_TYPE_BOAT_HITTABLE){
-      if (this->collider.base.acFlags & AC_HIT) {
-        if ((this->collider.info.acHitInfo != NULL) &&
-            (this->collider.info.acHitInfo->toucher.dmgFlags & DMG_DEKU_NUT)) {
-            Actor_SetColorFilter(&this->picto.actor, 0, 120, 0, 400);
-            this->picto.actor.speedXZ = 0.0f;
-            this->actionFunc = EnGe2_Stunned;
-            this->stateFlags |= GERUDO_PURPLE_STATE_STUNNED;
-        } else {
-            Animation_Change(&this->skelAnime, &gGerudoPurpleFallingToGroundAnim, 1.0f, 0.0f,
-                             Animation_GetLastFrame(&gGerudoPurpleFallingToGroundAnim), 2, -8.0f);
-            this->timer = 200;
-            this->picto.actor.speedXZ = 0.0f;
-            this->actionFunc = EnGe2_KnockedOut;
-            Actor_PlaySfxAtPos(&this->picto.actor, NA_SE_EN_PIRATE_DEAD);
-            this->picto.actor.flags &= ~ACTOR_FLAG_1;
-            this->stateFlags |= GERUDO_PURPLE_STATE_KO;
-        }
-      }
-    }
-
-
     if (this->picto.actor.playerHeightRel < -150.0f) {
         this->picto.actor.draw = NULL;
     } else {
         this->picto.actor.draw = EnGe2_Draw;
     }
 }
+
+void EnGe2_GuardStationary2(EnGe2* this, PlayState* play){
+    CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+    // new, we want a stationary that can still be hitable, which the others were not because you could cheese their boat? I think?
+    if (this->collider.base.acFlags & AC_HIT) {
+      if ((this->collider.info.acHitInfo != NULL) && (this->collider.info.acHitInfo->toucher.dmgFlags & DMG_DEKU_NUT)) {
+          Actor_SetColorFilter(&this->picto.actor, 0, 120, 0, 400);
+          this->picto.actor.speedXZ = 0.0f;
+          this->actionFunc = EnGe2_Stunned;
+          this->stateFlags |= GERUDO_PURPLE_STATE_STUNNED;
+      } else {
+          Animation_Change(&this->skelAnime, &gGerudoPurpleFallingToGroundAnim, 1.0f, 0.0f,
+                           Animation_GetLastFrame(&gGerudoPurpleFallingToGroundAnim), 2, -8.0f);
+          this->timer = 200;
+          this->picto.actor.speedXZ = 0.0f;
+          this->actionFunc = EnGe2_KnockedOut;
+          Actor_PlaySfxAtPos(&this->picto.actor, NA_SE_EN_PIRATE_DEAD);
+          this->picto.actor.flags &= ~ACTOR_FLAG_1;
+          this->stateFlags |= GERUDO_PURPLE_STATE_KO;
+      }
+    }
+
+    EnGe2_GuardStationary(this, play);
+
+}
+
 
 void EnGe2_Update(Actor* thisx, PlayState* play) {
     s32 pad;
@@ -783,6 +799,53 @@ void EnGe2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
     }
 }
 
+void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
+    EnGe2* this = THIS; // replace with THIS actor
+    // with explanation comments
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // the dlist will be written in the opa buffer because that buffer is larger,
+    // but executed from the overlay buffer (overlay draws last, for example the hud is drawn to overlay)
+    gfx = POLY_OPA_DISP + 1;
+    gSPDisplayList(OVERLAY_DISP++, gfx);
+
+    // initialize GfxPrint struct
+    GfxPrint_Init(&printer);
+    GfxPrint_Open(&printer, gfx);
+
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
+    GfxPrint_SetPos(&printer, 1, 10);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+
+    { // address locations
+        u32 convertedAddr = (u32)Fault_ConvertAddress((void*)this->actionFunc);
+        GfxPrint_SetPos(&printer, 1, 11);
+        GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
+        GfxPrint_SetPos(&printer, 1, 12);
+        GfxPrint_Printf(&printer, "actionfunc actual ram:  %X", this->actionFunc);
+    }
+
+    GfxPrint_SetPos(&printer, 1, 13);
+    
+    //GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
+    GfxPrint_Printf(&printer, "type %X", GERUDO_PURPLE_GET_TYPE(thisx));
+
+    // end of text printing
+    gfx = GfxPrint_Close(&printer);
+    GfxPrint_Destroy(&printer);
+
+    gSPEndDisplayList(gfx++);
+    // make the opa dlist jump over the part that will be executed as part of overlay
+    gSPBranchList(POLY_OPA_DISP, gfx);
+    POLY_OPA_DISP = gfx;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+    //Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+} // */
+
 void EnGe2_Draw(Actor* thisx, PlayState* play) {
     static TexturePtr sEyeTextures[] = {
         gGerudoPurpleEyeOpenTex,
@@ -799,6 +862,9 @@ void EnGe2_Draw(Actor* thisx, PlayState* play) {
     func_800B8050(&this->picto.actor, play, 0);
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                           EnGe2_OverrideLimbDraw, EnGe2_PostLimbDraw, &this->picto.actor);
+
+    Debug_PrintToScreen(thisx, play);
+
 
     CLOSE_DISPS(play->state.gfxCtx);
 }
