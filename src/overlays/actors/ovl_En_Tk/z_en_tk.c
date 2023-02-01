@@ -14,25 +14,25 @@
 
 void EnTk_Init(Actor* thisx, PlayState* play);
 void EnTk_Destroy(Actor* thisx, PlayState* play);
-void EnTk_Update(Actor* thisx, PlayState* play);
+void EnTk_UpdateDigGame(Actor* thisx, PlayState* play);
 void EnTk_Draw(Actor* thisx, PlayState* play);
 
-void func_80AECA3C(EnTk* this, PlayState* play);
-void func_80AECA90(EnTk* this, PlayState* play);
-void func_80AECB0C(EnTk* this, PlayState* play);
-void func_80AECB6C(EnTk* this, PlayState* play);
+void EnTk_SetupHidingUnderBed(EnTk* this, PlayState* play);
+void EnTk_HidingUnderBed(EnTk* this, PlayState* play);
+void EnTk_SetupWalkingOutside(EnTk* this, PlayState* play);
+void EnTk_WalkingOutside(EnTk* this, PlayState* play);
 void func_80AECE0C(EnTk* this, PlayState* play);
 s32 func_80AECE60(EnTk* this, PlayState* play);
 s32 func_80AED354(EnTk* this, PlayState* play, ScheduleOutput* scheduleOutput);
 s32 func_80AED38C(EnTk* this, PlayState* play, ScheduleOutput* scheduleOutput);
-void func_80AED4F8(EnTk* this, PlayState* play);
-void func_80AED610(EnTk* this, PlayState* play);
+void EnTk_SetupStopToTalkOutside(EnTk* this, PlayState* play);
+void EnTk_Talk(EnTk* this, PlayState* play);
 void func_80AED898(EnTk* this, PlayState* play);
 void func_80AED940(EnTk* this, PlayState* play);
-void func_80AEDC4C(EnTk* this, PlayState* play);
-void func_80AEDCBC(EnTk* this, PlayState* play);
-void func_80AEDD4C(EnTk* this, PlayState* play);
-void func_80AEDE10(EnTk* this, PlayState* play);
+void EnTk_RunFromBigpo(EnTk* this, PlayState* play);
+void EnTk_SetupRunFromBigpoKill(EnTk* this, PlayState* play);
+void EnTk_RunFromBigpoKill(EnTk* this, PlayState* play);
+void EnTk_ChooseNextDialogue(EnTk* this, PlayState* play);
 void func_80AEDF5C(EnTk* this, PlayState* play);
 void func_80AEE2A8(EnTk* this, PlayState* play);
 void func_80AEE2C0(EnTk* this, PlayState* play);
@@ -76,7 +76,7 @@ ActorInit En_Tk_InitVars = {
     sizeof(EnTk),
     (ActorFunc)EnTk_Init,
     (ActorFunc)EnTk_Destroy,
-    (ActorFunc)EnTk_Update,
+    (ActorFunc)EnTk_UpdateDigGame,
     (ActorFunc)EnTk_Draw,
 };
 
@@ -150,8 +150,7 @@ typedef struct {
 } EnTkStruct; // size = 0x8?
 
 
-// blink
-void func_80AEC460(EnTk* this) {
+void EnTk_Blink(EnTk* this) {
     if (DECR(this->unk_2C4) == 0) {
         this->eyeState++;
         if (this->eyeState >= 3) {
@@ -255,7 +254,7 @@ void EnTk_Init(Actor* thisx, PlayState* play) {
     if (this->type == DAMPE_TYPE_HIDING) {
         this->unk_316 = 0;
         this->actor.update = EnTk_UpdateHidingUnderBed;
-        func_80AECA3C(this, play);
+        EnTk_SetupHidingUnderBed(this, play);
         return;
     }
 
@@ -269,15 +268,16 @@ void EnTk_Init(Actor* thisx, PlayState* play) {
 
     switch (this->type) {
         case DAMPE_TYPE_OUTSIDE_NPC:
+            // Ikana Graveyard has two rooms, need to check if the other room spawned one already.
             if (sIsSpawned) {
                 Actor_Kill(&this->actor);
                 return;
             }
             sIsSpawned = true;
-            this->actor.room = -1;
+            this->actor.room = -1; // Do not despawn on room change.
             this->actor.update = EnTk_UpdateOutside;
             this->unk_2D8 = 0.0f;
-            func_80AECB0C(this, play);
+            EnTk_SetupWalkingOutside(this, play);
             EnTk_UpdateOutside(&this->actor, play);
             break;
 
@@ -300,45 +300,44 @@ void EnTk_Destroy(Actor* thisx, PlayState* play) {
     Collider_DestroyCylinder(play, &this->collider);
 }
 
-// set func
-void func_80AECA3C(EnTk* this, PlayState* play) {
+void EnTk_SetupHidingUnderBed(EnTk* this, PlayState* play) {
     this->unk_316 = 0;
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
-    this->actionFunc = func_80AECA90;
+    this->actionFunc = EnTk_HidingUnderBed;
 }
 
-void func_80AECA90(EnTk* this, PlayState* play) {
+void EnTk_HidingUnderBed(EnTk* this, PlayState* play) {
     if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
         play->msgCtx.msgMode = 0;
         play->msgCtx.msgLength = 0;
-        func_80AEDE10(this, play);
+        EnTk_ChooseNextDialogue(this, play);
     } else if (this->actor.xzDistToPlayer < 100.0f) {
         func_800B8614(&this->actor, play, 100.0f);
     }
 }
 
-void func_80AECB0C(EnTk* this, PlayState* play) {
+void EnTk_SetupWalkingOutside(EnTk* this, PlayState* play) {
     this->actor.speedXZ = 0.0f;
     this->unk_3CC = 0xFF;
     this->unk_2DC = 0.0f;
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_WALK, &this->animIndex);
-    this->actionFunc = func_80AECB6C;
+    this->actionFunc = EnTk_WalkingOutside;
 }
 
-void func_80AECB6C(EnTk* this, PlayState* play) {
+void EnTk_WalkingOutside(EnTk* this, PlayState* play) {
     f32 temp_f0;
     s32 temp2;
     s32 temp3;
     f32 sp48;
     f32 sp44;
-    ScheduleOutput sp34;
+    ScheduleOutput scheduleResult;
     u8 temp4;
 
     this->actor.textId = 0;
     if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
         play->msgCtx.msgMode = 0;
         play->msgCtx.msgLength = 0;
-        func_80AED4F8(this, play);
+        EnTk_SetupStopToTalkOutside(this, play);
         return;
     }
 
@@ -348,7 +347,7 @@ void func_80AECB6C(EnTk* this, PlayState* play) {
         this->skelAnime.playSpeed = 0.0f;
     }
 
-    if (this->unk_2CA & 0x10) {
+    if (this->tkFlags2 & 0x10) {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_RUN, &this->animIndex);
         sp48 = 1.0f;
         sp44 = 22.0f;
@@ -365,14 +364,14 @@ void func_80AECB6C(EnTk* this, PlayState* play) {
     this->unk_2DC -= temp3;
     this->unk_2E0 += R_TIME_SPEED;
 
-    if (Schedule_RunScript(play, D_80AEF800, &sp34)) {
-        if ((this->unk_3CC != sp34.result) && !func_80AED354(this, play, &sp34)) {
+    if (Schedule_RunScript(play, D_80AEF800, &scheduleResult)) {
+        if ((this->unk_3CC != scheduleResult.result) && !func_80AED354(this, play, &scheduleResult)) {
             return;
         }
-        temp4 = sp34.result;
+        temp4 = scheduleResult.result;
     } else {
-        sp34.result = 0;
-        temp4 = sp34.result;
+        scheduleResult.result = 0;
+        temp4 = scheduleResult.result;
     }
 
     if (!temp4 && (this->unk_3CC != 0)) {
@@ -383,7 +382,7 @@ void func_80AECB6C(EnTk* this, PlayState* play) {
         this->actor.draw = EnTk_Draw;
     }
 
-    this->unk_3CC = sp34.result;
+    this->unk_3CC = scheduleResult.result;
     func_80AECE0C(this, play);
 
     if (this->tkFlags & 8) {
@@ -411,6 +410,7 @@ s32 func_80AECE60(EnTk* this, PlayState* play) {
     s32 pad;
 
     SubS_TimePathing_FillKnots(knots, SUBS_TIME_PATHING_ORDER, this->timePath->count + SUBS_TIME_PATHING_ORDER);
+    // if timepath, else regular path?
     if (!(this->tkFlags & 4)) {
         timePathTargetPos = gZeroVec3f;
         SubS_TimePathing_Update(this->timePath, &this->timePathProgress, &this->timePathElapsedTime,
@@ -455,7 +455,7 @@ s32 func_80AECE60(EnTk* this, PlayState* play) {
     }
 
     door = NULL;
-    if (!(this->unk_2CA & 0xC00)) {
+    if (!(this->tkFlags2 & 0xC00)) {
         Actor* doorIter = NULL;
 
         do {
@@ -464,7 +464,7 @@ s32 func_80AECE60(EnTk* this, PlayState* play) {
                 if (Actor_XZDistanceBetweenActors(&this->actor, doorIter) <= 120.0f) {
                     if (ABS(BINANG_SUB(Actor_YawToPoint(&this->actor, &doorIter->world.pos),
                                        this->actor.shape.rot.y)) <= 0x2000) {
-                        this->unk_2CA |= 0x400;
+                        this->tkFlags2 |= 0x400;
                         door = (EnDoor*)doorIter;
                         break;
                     }
@@ -487,24 +487,24 @@ s32 func_80AECE60(EnTk* this, PlayState* play) {
         } while (doorIter != NULL);
     }
 
-    if ((door != NULL) && (this->unk_2CA & 0x400)) {
+    if ((door != NULL) && (this->tkFlags2 & 0x400)) {
         Vec3f sp5C;
 
         Actor_OffsetOfPointInActorCoords(&this->actor, &sp5C, &door->dyna.actor.world.pos);
         door->unk_1A7 = 2;
         if (sp5C.z < -20.0f) {
-            this->unk_2CA &= ~0x400;
-            this->unk_2CA |= 0x800;
+            this->tkFlags2 &= ~0x400;
+            this->tkFlags2 |= 0x800;
         }
     }
 
     if (door != NULL) {
-        if ((this->unk_2CA & 0x800) && (door->unk_1A7 == 0)) {
-            this->unk_2CA &= ~0x800;
+        if ((this->tkFlags2 & 0x800) && (door->unk_1A7 == 0)) {
+            this->tkFlags2 &= ~0x800;
         }
     }
 
-    if (!(this->tkFlags & 8) && !(this->unk_2CA & 0x10) && (this->actor.xzDistToPlayer < 100.0f)) {
+    if (!(this->tkFlags & 8) && !(this->tkFlags2 & 0x10) && (this->actor.xzDistToPlayer < 100.0f)) {
         func_8013E8F8(&this->actor, play, 100.0f, 100.0f, PLAYER_IA_NONE, 0x4000, 0x4000);
     }
 
@@ -548,27 +548,32 @@ s32 func_80AED38C(EnTk* this, PlayState* play, ScheduleOutput* scheduleOutput) {
     return true;
 }
 
-void func_80AED4F8(EnTk* this, PlayState* play) {
+void EnTk_SetupStopToTalkOutside(EnTk* this, PlayState* play) {
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
-    this->actionFunc = func_80AED610;
+    this->actionFunc = EnTk_Talk;
 }
 
-void func_80AED544(EnTk* this, PlayState* play) {
+void EnTk_ChooseNextOutsideDialogue(EnTk* this, PlayState* play) {
     if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_31_10)) {
+        // I am Dampe! My face is frightening but I am not a bad person.
         Message_StartTextbox(play, 0x13FE, &this->actor);
         SET_WEEKEVENTREG(WEEKEVENTREG_31_10);
     } else if (gSaveContext.save.time < CLOCK_TIME(9, 0)) {
+        // All the graves belong to royals, ghosts come out.
         Message_StartTextbox(play, 0x13FF, &this->actor);
     } else if (gSaveContext.save.time < CLOCK_TIME(12, 0)) {
+        // (remarking on the captain keeta skeleton lore)
         Message_StartTextbox(play, 0x1400, &this->actor);
     } else if (gSaveContext.save.time < CLOCK_TIME(15, 0)) {
+        // Do you want to see dancing bones? Just wait here... I don't want to see it.
         Message_StartTextbox(play, 0x1401, &this->actor);
     } else {
+        // Don't bother me! Soon ghosts will apear, go home!
         Message_StartTextbox(play, 0x1402, &this->actor);
     }
 }
 
-void func_80AED610(EnTk* this, PlayState* play) {
+void EnTk_Talk(EnTk* this, PlayState* play) {
     if ((this->animIndex == DAMPE_ANIM_STARTLE) && Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_STARTLE_LOOP, &this->animIndex);
     }
@@ -578,14 +583,17 @@ void func_80AED610(EnTk* this, PlayState* play) {
             if (Math_ScaledStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer - 0x1555, 0x71C)) {
                 if (Player_GetMask(play) == PLAYER_MASK_CAPTAIN) {
                     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_STARTLE, &this->animIndex);
+                    // (Screamin) They're out! Why are they out when its not night!
                     Message_StartTextbox(play, 0x13FD, &this->actor);
                 } else if (CURRENT_DAY != 2) {
-                    func_80AED544(this, play);
+                    EnTk_ChooseNextOutsideDialogue(this, play);
                 } else if (!Flags_GetSwitch(play, DAMPE_GET_SWITCH_FLAGS(&this->actor))) {
+                    // There are a lot of bats, I don't like bats.
                     Message_StartTextbox(play, 0x1403, &this->actor);
                 } else if (CHECK_WEEKEVENTREG(WEEKEVENTREG_60_02)) {
-                    func_80AED544(this, play);
+                    EnTk_ChooseNextOutsideDialogue(this, play);
                 } else {
+                    // Was it you who chased those bats away? Here have 30 rupees for your trouble.
                     Message_StartTextbox(play, 0x1413, &this->actor);
                 }
                 break;
@@ -602,20 +610,20 @@ void func_80AED610(EnTk* this, PlayState* play) {
             if (Message_ShouldAdvance(play)) {
                 switch (play->msgCtx.currentTextId) {
                     case 0x13FD:
-                        this->unk_2CA |= 0x10;
+                        this->tkFlags2 |= 0x10;
                         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_WALK, &this->animIndex);
                         this->skelAnime.playSpeed = 10.0f;
-                        this->actionFunc = func_80AECB6C;
+                        this->actionFunc = EnTk_WalkingOutside;
                         break;
 
                     case 0x13FE:
-                        func_80151938(play, 0x13FF);
+                        func_80151938(play, 0x13FF); // All the graves here belong to royal family.
                         break;
 
                     case 0x1413:
                         Rupees_ChangeBy(30);
                         SET_WEEKEVENTREG(WEEKEVENTREG_60_02);
-                        func_80151938(play, 0x13FF);
+                        func_80151938(play, 0x13FF); // All the graves here belong to royal family.
                         break;
 
                     case 0x13FF:
@@ -623,24 +631,24 @@ void func_80AED610(EnTk* this, PlayState* play) {
                     case 0x1401:
                     case 0x1402:
                     case 0x1403:
-                    case 0x1404:
-                    case 0x1405:
+                    case 0x1404: // (Screaming) They're out! Go away!
+                    case 0x1405: // Who are you? Not a ghost are you?
                     case 0x1406:
                     case 0x1407:
                     case 0x1408:
                     case 0x1409:
                     case 0x140A:
-                    case 0x140B:
+                    case 0x140B: // Where did you go? ... I need to follow your light.
                     case 0x140C:
-                    case 0x140D:
+                    case 0x140D: // Something here, want me to dig? y/n
                     case 0x140E:
-                    case 0x140F:
-                    case 0x1410:
+                    case 0x140F: // Nothing here, show me another spot.
+                    case 0x1410: // (dug up bigpo flame) Something strange is here.. Show me anothe spot
                     case 0x1411:
                     case 0x1412:
                     default:
                         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_WALK, &this->animIndex);
-                        this->actionFunc = func_80AECB6C;
+                        this->actionFunc = EnTk_WalkingOutside;
                         break;
                 }
             }
@@ -651,7 +659,7 @@ void func_80AED610(EnTk* this, PlayState* play) {
 void func_80AED898(EnTk* this, PlayState* play) {
     this->unk_316 = 0;
     this->actor.speedXZ = 0.0f;
-    if (this->unk_2CA & 0x1000) {
+    if (this->tkFlags2 & 0x1000) {
         if ((this->animIndex == DAMPE_ANIM_STARTLE) && Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
             SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_STARTLE_LOOP, &this->animIndex);
         }
@@ -663,25 +671,25 @@ void func_80AED898(EnTk* this, PlayState* play) {
 
 void func_80AED940(EnTk* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
-    Actor* actor;
-    Vec3f sp44;
+    Actor* dampeSearchPtr;
 
     if ((this->animIndex != DAMPE_ANIM_STARTLE) && (this->animIndex != DAMPE_ANIM_STARTLE_LOOP)) {
+        Vec3f focusTarget;
         s16 temp_v0 = (this->actor.shape.rot.y - this->actor.yawTowardsPlayer) + 0x1555;
 
         if (ABS(temp_v0) < 0x1800) {
-            Math_SmoothStepToS(&this->unk_31C, temp_v0, 3, 0x71C, 0);
+            Math_SmoothStepToS(&this->skullRotY, temp_v0, 3, 0x71C, 0);
         } else {
-            Math_SmoothStepToS(&this->unk_31C, 0, 3, 0x71C, 0);
+            Math_SmoothStepToS(&this->skullRotY, 0, 3, 0x71C, 0);
         }
 
-        Math_Vec3f_Copy(&sp44, &player->actor.world.pos);
-        sp44.y = player->bodyPartsPos[PLAYER_BODYPART_HEAD].y + 3.0f;
-        temp_v0 = Math_Vec3f_Pitch(&this->actor.focus.pos, &sp44);
+        Math_Vec3f_Copy(&focusTarget, &player->actor.world.pos);
+        focusTarget.y = player->bodyPartsPos[PLAYER_BODYPART_HEAD].y + 3.0f;
+        temp_v0 = Math_Vec3f_Pitch(&this->actor.focus.pos, &focusTarget);
         if (ABS(temp_v0) < 0x800) {
-            Math_SmoothStepToS(&this->unk_31A, temp_v0, 3, 0x16C, 0);
+            Math_SmoothStepToS(&this->skullRotZ, temp_v0, 3, 0x16C, 0);
         } else {
-            Math_SmoothStepToS(&this->unk_31A, 0, 3, 0x16C, 0);
+            Math_SmoothStepToS(&this->skullRotZ, 0, 3, 0x16C, 0);
         }
     }
 
@@ -689,31 +697,32 @@ void func_80AED940(EnTk* this, PlayState* play) {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_STARTLE_LOOP, &this->animIndex);
     }
 
-    if (!(this->unk_2CA & 0x40)) {
-        actor = NULL;
+    if (!(this->tkFlags2 & 0x40)) {
+        dampeSearchPtr = NULL;
 
         do {
-            actor = SubS_FindActor(play, actor, ACTORCAT_NPC, ACTOR_EN_TK);
-            if (actor != NULL) {
-                if (DAMPE_GET_TYPE(actor) == 1) {
-                    Math_Vec3f_Copy(&this->unk_2EC, &actor->world.pos);
-                    Math_Vec3s_Copy(&this->unk_2F8, &actor->world.rot);
-                    Actor_Kill(actor);
-                    this->unk_2CA |= 0x40;
+            dampeSearchPtr = SubS_FindActor(play, dampeSearchPtr, ACTORCAT_NPC, ACTOR_EN_TK);
+            if (dampeSearchPtr != NULL) {
+                if (DAMPE_GET_TYPE(dampeSearchPtr) == DAMPE_TYPE_RUNNING) {
+                    Math_Vec3f_Copy(&this->unk_2EC, &dampeSearchPtr->world.pos);
+                    Math_Vec3s_Copy(&this->unk_2F8, &dampeSearchPtr->world.rot);
+                    Actor_Kill(dampeSearchPtr);
+                    // bug? the dampeSearchPtr was already kill
+                    this->tkFlags2 |= 0x40;
                     break;
                 }
-                actor = actor->next;
+                dampeSearchPtr = dampeSearchPtr->next;
             }
-        } while (actor != NULL);
+        } while (dampeSearchPtr != NULL);
     }
 
     if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
-        this->unk_2CA &= ~0x80;
+        this->tkFlags2 &= ~0x80;
         this->actor.flags &= ~ACTOR_FLAG_10000;
         play->msgCtx.msgMode = 0;
         play->msgCtx.msgLength = 0;
-        func_80AEDE10(this, play);
-    } else if (!(this->unk_2CA & 0x80)) {
+        EnTk_ChooseNextDialogue(this, play);
+    } else if (!(this->tkFlags2 & 0x80)) {
         if (this->actor.xzDistToPlayer < 100.0f) {
             func_8013E8F8(&this->actor, play, 100.0f, 100.0f, PLAYER_IA_NONE, 0x4000, 0x4000);
         }
@@ -722,36 +731,36 @@ void func_80AED940(EnTk* this, PlayState* play) {
     }
 }
 
-void func_80AEDBEC(EnTk* this, PlayState* play) {
+void EnTk_SetupRunFromBigpo(EnTk* this, PlayState* play) {
     this->actor.params = -1;
-    this->unk_2E8 = 0;
+    this->bigpoRunCutsceneTimer = 0;
     this->actor.speedXZ = 0.0f;
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
-    this->actionFunc = func_80AEDC4C;
+    this->actionFunc = EnTk_RunFromBigpo;
 }
 
-void func_80AEDC4C(EnTk* this, PlayState* play) {
+void EnTk_RunFromBigpo(EnTk* this, PlayState* play) {
     if ((this->actor.params >= 0) && SubS_StartActorCutscene(&this->actor, this->cutscenes[1], this->actor.params,
                                                              SUBS_CUTSCENE_SET_UNK_LINK_FIELDS)) {
-        this->unk_2E8 = ActorCutscene_GetLength(this->cutscenes[1]);
-        func_80151938(play, 0x1411);
-        func_80AEDCBC(this, play);
+        this->bigpoRunCutsceneTimer = ActorCutscene_GetLength(this->cutscenes[1]);
+        func_80151938(play, 0x1411); // (Scream) It's the leader of the ghosts!
+        EnTk_SetupRunFromBigpoKill(this, play);
     }
 }
 
-void func_80AEDCBC(EnTk* this, PlayState* play) {
+void EnTk_SetupRunFromBigpoKill(EnTk* this, PlayState* play) {
     this->actor.speedXZ = 10.0f;
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_RUN, &this->animIndex);
     Math_Vec3f_Copy(&this->actor.world.pos, &this->unk_2EC);
     Math_Vec3f_Copy(&this->actor.prevPos, &this->unk_2EC);
     Math_Vec3s_Copy(&this->actor.world.rot, &this->unk_2F8);
     Math_Vec3s_Copy(&this->actor.shape.rot, &this->unk_2F8);
-    this->actionFunc = func_80AEDD4C;
+    this->actionFunc = EnTk_RunFromBigpoKill;
 }
 
-void func_80AEDD4C(EnTk* this, PlayState* play) {
-    this->unk_2E8--;
-    if (this->unk_2E8 <= 0) {
+void EnTk_RunFromBigpoKill(EnTk* this, PlayState* play) {
+    this->bigpoRunCutsceneTimer--;
+    if (this->bigpoRunCutsceneTimer <= 0) {
         ActorCutscene_Stop(this->cutscenes[1]);
         func_801477B4(play);
         Actor_Kill(&this->actor);
@@ -762,38 +771,41 @@ void func_80AEDDA0(EnTk* this, PlayState* play) {
     this->actor.speedXZ = 0.0f;
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
     this->actor.flags |= ACTOR_FLAG_10000;
-    this->unk_2CA |= 0x80;
+    this->tkFlags2 |= 0x80;
     this->actionFunc = func_80AED940;
 }
 
-void func_80AEDE10(EnTk* this, PlayState* play) {
+// might not be the only one
+void EnTk_ChooseNextDialogue(EnTk* this, PlayState* play) {
     switch (this->type) {
         case DAMPE_TYPE_DIG_GAME_NPC:
             if (Player_GetMask(play) == PLAYER_MASK_CAPTAIN) {
-                this->unk_2E6 = 0x1404;
+                this->textId = 0x1404; // (Screaming) They're out! Go away!
                 break;
             }
 
             switch (this->unk_310) {
                 case 0:
-                    this->unk_2CA &= ~0x1000;
+                    this->tkFlags2 &= ~0x1000;
                     if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_52_80)) {
-                        this->unk_2E6 = 0x1405;
+                        this->textId = 0x1405; // Who are you? Not a ghost are you?
                     } else {
-                        this->unk_2E6 = 0x140B;
+                        this->textId = 0x140B; // Where did you go? ... I need to follow your light.
                     }
                     break;
 
                 case 2:
-                    this->unk_2E6 = 0x140D;
+                    this->textId = 0x140D; // Something here, want me to dig? y/n
                     break;
 
-                case 4:
+                case 4: 
+                    // Nothing here, show me another spot.
                     Message_StartTextbox(play, 0x140F, &this->actor);
                     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
                     break;
 
                 case 3:
+                    // (dug up bigpo flame) Something strange is here.. Show me anothe spot
                     Message_StartTextbox(play, 0x1410, &this->actor);
                     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
                     break;
@@ -801,7 +813,7 @@ void func_80AEDE10(EnTk* this, PlayState* play) {
             break;
 
         case DAMPE_TYPE_HIDING:
-            this->unk_2E6 = 0x1414;
+            this->textId = 0x1414; // (Hiding under bed) I didn't see anything!
             break;
     }
 
@@ -815,27 +827,28 @@ void func_80AEDF5C(EnTk* this, PlayState* play) {
 
     switch (Message_GetState(&play->msgCtx)) {
         case TEXT_STATE_NONE:
-            switch (this->unk_2E6) {
-                case 0x1404:
-                case 0x1405:
-                case 0x140B:
-                case 0x140D:
+            switch (this->textId) {
+                case 0x1404: // (Screaming) They're out! Go away!
+                case 0x1405: // Who are you? Not a ghost are you?
+                case 0x140B: // Where did you go? ... I need to follow your light.
+                case 0x140D: // Something here, want me to dig? y/n
                     Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer - 0x1555, 1, 0x71C, 0);
                     this->actor.world.rot.y = this->actor.shape.rot.y;
-                    if (!Math_SmoothStepToS(&this->unk_31A, 0, 3, 0x16C, 10) &&
-                        !Math_SmoothStepToS(&this->unk_31C, 0, 3, 0x71C, 10) &&
+                    if (!Math_SmoothStepToS(&this->skullRotZ, 0, 3, 0x16C, 10) &&
+                        !Math_SmoothStepToS(&this->skullRotY, 0, 3, 0x71C, 10) &&
                         (this->actor.shape.rot.y == (s16)(this->actor.yawTowardsPlayer - 0x1555))) {
-                        if (this->unk_2E6 == 0x1404) {
+                        if (this->textId == 0x1404) {
+                            // (Screaming) They're out! Go away!
                             SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_STARTLE, &this->animIndex);
                         } else {
                             SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
                         }
-                        Message_StartTextbox(play, this->unk_2E6, &this->actor);
+                        Message_StartTextbox(play, this->textId, &this->actor);
                     }
                     break;
 
-                case 0x1414:
-                    Message_StartTextbox(play, this->unk_2E6, &this->actor);
+                case 0x1414: // (Hiding under bed) I didn't see anything!
+                    Message_StartTextbox(play, this->textId, &this->actor);
                     break;
             }
             break;
@@ -850,20 +863,20 @@ void func_80AEDF5C(EnTk* this, PlayState* play) {
         case TEXT_STATE_DONE:
             if (Message_ShouldAdvance(play)) {
                 switch (play->msgCtx.currentTextId) {
-                    case 0x1404:
-                        this->unk_2CA |= 0x1000;
+                    case 0x1404: // (Screaming) They're out! Go away!
+                        this->tkFlags2 |= 0x1000;
                         func_80AED898(this, play);
                         break;
 
-                    case 0x1405:
+                    case 0x1405: // Who are you? Not a ghost are you?
                         func_80151938(play, 0x1406);
                         break;
 
-                    case 0x1406:
+                    case 0x1406: // A fairy? Could you lead me?
                         func_80151938(play, 0x1407);
                         break;
 
-                    case 0x1407:
+                    case 0x1407: // Please? y/n
                         if (play->msgCtx.choiceIndex == 0) {
                             func_8019F208();
                             func_80151938(play, 0x1409);
@@ -873,23 +886,23 @@ void func_80AEDF5C(EnTk* this, PlayState* play) {
                         }
                         break;
 
-                    case 0x1408:
+                    case 0x1408: // I wont give up, thats how I won my wife
                         func_80151938(play, 0x1407);
                         break;
 
-                    case 0x1409:
+                    case 0x1409: // You will? (walk in front of me with light)
                         func_80151938(play, 0x140A);
                         break;
 
-                    case 0x140A:
+                    case 0x140A: // I'll even split the treasure with you, y/n
                         SET_WEEKEVENTREG(WEEKEVENTREG_52_80);
 
-                    case 0x140B:
+                    case 0x140B: // Where did you go? ... I need to follow your light.
                         func_80AEE784(this, play);
                         break;
 
-                    case 0x140D:
-                        this->unk_2CA |= 2;
+                    case 0x140D: // Something here, want me to dig? y/n
+                        this->tkFlags2 |= 2;
                         if (play->msgCtx.choiceIndex == 0) {
                             func_8019F208();
                             play->msgCtx.msgMode = 0x44;
@@ -900,14 +913,14 @@ void func_80AEDF5C(EnTk* this, PlayState* play) {
                         }
                         break;
 
-                    case 0x140E:
-                    case 0x140F:
-                    case 0x1410:
+                    case 0x140E: // In any case, take me to another spot
+                    case 0x140F: // Nothing here, show me another spot.
+                    case 0x1410: // (dug up bigpo flame) Something strange is here.. Show me anothe spot
                         func_80AEE784(this, play);
                         break;
 
-                    case 0x1414:
-                        func_80AECA3C(this, play);
+                    case 0x1414: // (Hiding under bed) I didn't see anything!
+                        EnTk_SetupHidingUnderBed(this, play);
                         break;
                 }
             }
@@ -980,7 +993,7 @@ void func_80AEE4D0(EnTk* this, PlayState* play) {
         Actor_PlaySfxAtPos(&this->actor, NA_SE_EV_DIG_UP);
     }
 
-    if (!(this->unk_2CA & 0x20)) {
+    if (!(this->tkFlags2 & 0x20)) {
         if (Animation_OnFrame(&this->skelAnime, 37.0f)) {
             bigPoe = NULL;
             do {
@@ -989,7 +1002,7 @@ void func_80AEE4D0(EnTk* this, PlayState* play) {
                 if (bigPoe != NULL) {
                     if ((bigPoe->params == 3) && (Actor_DistanceBetweenActors(&this->actor, bigPoe) < 80.0f)) {
                         bigPoe->params = 4;
-                        this->unk_2CA |= 0x20;
+                        this->tkFlags2 |= 0x20;
                         this->unk_2E4++;
                     }
                     bigPoe = bigPoe->next;
@@ -1012,19 +1025,19 @@ void func_80AEE650(EnTk* this, PlayState* play) {
 }
 
 void func_80AEE6B8(EnTk* this, PlayState* play) {
-    if (this->unk_2CA & 0x20) {
+    if (this->tkFlags2 & 0x20) {
         if (this->unk_2E4 >= 3) {
             ActorCutscene_Stop(this->cutscenes[0]);
             func_801477B4(play);
-            func_80AEDBEC(this, play);
+            EnTk_SetupRunFromBigpo(this, play);
         } else if (SubS_StartActorCutscene(&this->actor, 0x7C, this->cutscenes[0], SUBS_CUTSCENE_SET_UNK_LINK_FIELDS)) {
             this->unk_310 = 3;
-            func_80AEDE10(this, play);
-            this->unk_2CA &= ~0x20;
+            EnTk_ChooseNextDialogue(this, play);
+            this->tkFlags2 &= ~0x20;
         }
     } else if (SubS_StartActorCutscene(&this->actor, 0x7C, this->cutscenes[0], SUBS_CUTSCENE_SET_UNK_LINK_FIELDS)) {
         this->unk_310 = 4;
-        func_80AEDE10(this, play);
+        EnTk_ChooseNextDialogue(this, play);
     }
 }
 
@@ -1063,7 +1076,7 @@ s32 func_80AEE86C(EnTk* this, PlayState* play) {
         (func_800C9BB8(&play->colCtx, sp38, sp34) == 1) && (this->unk_2D0 == (u32)1) &&
         (this->actor.xyzDistToPlayerSq <= SQ(115.0f)) &&
         func_80AEE7E0(&this->actor.world.pos, 100.0f, this->unk_324, this->unk_36C) &&
-        (((this->unk_2CA & 2) && (Math_Vec3f_DistXZ(&this->unk_300, &sp28) >= 100.0f)) || !(this->unk_2CA & 2)) &&
+        (((this->tkFlags2 & 2) && (Math_Vec3f_DistXZ(&this->unk_300, &sp28) >= 100.0f)) || !(this->tkFlags2 & 2)) &&
         !Play_InCsMode(play)) {
         Math_Vec3f_Copy(&this->unk_300, &sp28);
         ret = true;
@@ -1076,7 +1089,7 @@ void func_80AEE9B0(EnTk* this, PlayState* play) {
 
     func_80AEEAD4(this, play);
     if (Math_Vec3f_DistXZ(&this->actor.world.pos, &this->unk_300) >= 100.0f) {
-        this->unk_2CA &= ~2;
+        this->tkFlags2 &= ~2;
     }
 
     if (func_80AEE86C(this, play)) {
@@ -1088,7 +1101,7 @@ void func_80AEE9B0(EnTk* this, PlayState* play) {
 s32 func_80AEEA4C(EnTk* this, PlayState* play) {
     s32 ret;
 
-    if (this->unk_2CA & 1) {
+    if (this->tkFlags2 & 1) {
         ret = 3;
     } else if (this->actor.xyzDistToPlayerSq < SQ(60.0f)) {
         ret = 0;
@@ -1198,7 +1211,7 @@ void func_80AEED38(EnTk* this, PlayState* play) {
         }
     }
 
-    if (this->unk_2CA & 0x200) {
+    if (this->tkFlags2 & 0x200) {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
     } else {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_WALK2, &this->animIndex);
@@ -1212,7 +1225,7 @@ void func_80AEED38(EnTk* this, PlayState* play) {
 
     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_NONE) && !Play_InCsMode(play) && (this->unk_2C6-- <= 0)) {
         Message_StartTextbox(play, 0x140C, NULL);
-        this->unk_2CA |= 0x4000;
+        this->tkFlags2 |= 0x4000;
         this->unk_2C6 = 200;
     }
 }
@@ -1225,7 +1238,7 @@ void func_80AEF048(EnTk* this, PlayState* play) {
 void func_80AEF094(EnTk* this, PlayState* play) {
     f32 sp2C;
 
-    if (this->unk_2CA & 0x200) {
+    if (this->tkFlags2 & 0x200) {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
     } else {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_WALK2, &this->animIndex);
@@ -1266,6 +1279,11 @@ void func_80AEF278(EnTk* this, PlayState* play) {
     this->actor.world.rot.y = this->actor.shape.rot.y;
 }
 
+/**
+ *  Assigned for both types: 
+ *    DAMPE_TYPE_RUNNING (running away from scary mask
+ *    DAMPE_TYPE_DIG_GAME_SPOT (the proximity spots dampe knows he can dig at)
+ */
 void EnTk_UpdateDoNothing(Actor* thisx, PlayState* play) {
 }
 
@@ -1290,10 +1308,10 @@ void EnTk_UpdateOutside(Actor* thisx, PlayState* play) {
 
     Actor_MoveWithGravity(&this->actor);
     Actor_UpdateBgCheckInfo(play, &this->actor, 10.0f, 10.0f, 0.0f, 4);
-    func_80AEC460(this);
+    EnTk_Blink(this);
 }
 
-void EnTk_Update(Actor* thisx, PlayState* play) {
+void EnTk_UpdateDigGame(Actor* thisx, PlayState* play) {
     s32 pad;
     EnTk* this = THIS;
 
@@ -1301,14 +1319,14 @@ void EnTk_Update(Actor* thisx, PlayState* play) {
     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
     this->unk_320 = this->skelAnime.curFrame;
     SkelAnime_Update(&this->skelAnime);
-    func_80AEC460(this);
+    EnTk_Blink(this);
 
     if (((this->animIndex == 0) || (this->animIndex == 1)) &&
         (Animation_OnFrame(&this->skelAnime, 0.0f) || Animation_OnFrame(&this->skelAnime, 24.0f))) {
         Actor_PlaySfxAtPos(&this->actor, NA_SE_EN_GOLON_WALK);
     }
 
-    this->unk_2CA &= ~1;
+    this->tkFlags2 &= ~1;
 
     if (this->actor.floorBgId != BGCHECK_SCENE) {
         BgDanpeiMovebg* platform = (BgDanpeiMovebg*)DynaPoly_GetActor(&play->colCtx, this->actor.floorBgId);
@@ -1317,7 +1335,7 @@ void EnTk_Update(Actor* thisx, PlayState* play) {
             if (platform->dyna.actor.id == ACTOR_BG_DANPEI_MOVEBG) {
                 platform->unk_1CC |= 1;
                 if (platform->unk_1CC & 2) {
-                    this->unk_2CA |= 1;
+                    this->tkFlags2 |= 1;
                 }
             }
         } else {
@@ -1333,13 +1351,13 @@ void EnTk_Update(Actor* thisx, PlayState* play) {
 
     if ((this->type == DAMPE_TYPE_DIG_GAME_NPC) && (func_800C9B40(&play->colCtx, this->actor.floorPoly, this->actor.floorBgId) == 12)) {
         Math_Vec3f_Copy(&this->actor.world.pos, &this->actor.prevPos);
-        this->unk_2CA |= 0x200;
+        this->tkFlags2 |= 0x200;
         this->actor.velocity.y = 0.0f;
     } else {
-        this->unk_2CA &= ~0x200;
+        this->tkFlags2 &= ~0x200;
     }
 
-    if (!(this->unk_2CA & 0x200)) {
+    if (!(this->tkFlags2 & 0x200)) {
         if (!(this->actor.bgCheckFlags & 1)) {
             func_800B9010(&this->actor, NA_SE_EV_HONEYCOMB_FALL - SFX_FLAG);
         } else if (this->actor.bgCheckFlags & 2) {
@@ -1360,8 +1378,8 @@ s32 EnTk_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
     EnTk* this = THIS;
 
     if (limbIndex == DAMPE_LIMB_SKULL) {
-        rot->z += this->unk_31A;
-        rot->y += this->unk_31C;
+        rot->z += this->skullRotZ;
+        rot->y += this->skullRotY;
     }
     return false;
 }

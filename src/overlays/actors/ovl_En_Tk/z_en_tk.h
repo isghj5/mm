@@ -36,7 +36,7 @@ typedef struct EnTk {
     /* 0x2C4 */ s16 unk_2C4;
     /* 0x2C6 */ s16 unk_2C6;
     /* 0x2C8 */ UNK_TYPE1 unk2C8[0x2];
-    /* 0x2CA */ u16 unk_2CA;
+    /* 0x2CA */ u16 tkFlags2;
     /* 0x2CC */ s16 unk_2CC;
     /* 0x2D0 */ s32 unk_2D0;
     /* 0x2D4 */ s32 animIndex;
@@ -44,8 +44,8 @@ typedef struct EnTk {
     /* 0x2DC */ f32 unk_2DC;
     /* 0x2E0 */ s32 unk_2E0;
     /* 0x2E4 */ s16 unk_2E4;
-    /* 0x2E6 */ u16 unk_2E6;
-    /* 0x2E8 */ s16 unk_2E8;
+    /* 0x2E6 */ u16 textId;
+    /* 0x2E8 */ s16 bigpoRunCutsceneTimer;
     /* 0x2EC */ Vec3f unk_2EC;
     /* 0x2F8 */ Vec3s unk_2F8;
     /* 0x300 */ Vec3f unk_300;
@@ -54,8 +54,8 @@ typedef struct EnTk {
     /* 0x312 */ s16 cutscenes[2];
     /* 0x316 */ s16 unk_316; // might be shiver timer
     /* 0x318 */ s16 unk_318; // set to zero, set to spin, draws right before skeleton??
-    /* 0x31A */ s16 unk_31A;
-    /* 0x31C */ s16 unk_31C;
+    /* 0x31A */ s16 skullRotZ;
+    /* 0x31C */ s16 skullRotY;
     /* 0x320 */ f32 unk_320;
     /* 0x324 */ Vec3f unk_324[6];
     /* 0x36C */ s32 unk_36C;
