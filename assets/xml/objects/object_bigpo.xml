@@ -7,6 +7,7 @@
         <Animation Name="gBigpoFloatAnim" Offset="0x924" /> <!-- Original name is "pog_fly" -->
         <Animation Name="gBigpoAwakenSpawnAnim" Offset="0xF9C" /> <!-- Original name is "pog_start" -->
         <Animation Name="gBigpoAwakenStretchAnim" Offset="0x1360" /> <!-- Original name is "pog_wait" -->
+
         <Texture Name="gBigpoSoulFace" OutName="bigpo_soul_face" Format="i8" Width="32" Height="64" Offset="0x1370" />
         <DList Name="gBigpoDrawSoulDL" Offset="0x1BB0" /> <!-- Original name is "bigpo_soul_modelT" -->
         <Texture Name="gBigpoNecklaceSkullHalfTex" OutName="bigpo_skull_necklace" Format="rgba16" Width="16" Height="16" Offset="0x1C70" />
@@ -32,7 +33,10 @@
         <DList Name="gBigpoDrawLowerRobeDL" Offset="0x4BD8" />
         <Texture Name="gBigpoCrispyPiecesTex" OutName="bigpo_crispy_pieces" Format="rgba16" Width="16" Height="16" Offset="0x4C98" />
         <Texture Name="gBigpoCrispyEyesTex" OutName="bigpo_crispy_eyes" Format="rgba16" Width="8" Height="8" Offset="0x4E98" />
+
+        <!-- The body after burning up in flames after defeat. -->
         <DList Name="gBigpoDrawCrispyBodyDL" Offset="0x58B8" />
+
         <Limb Name="gBigpoFaceLimb" Type="Standard" Offset="0x5B88" />
         <Limb Name="gBigpoLeftArmUpperLimb" Type="Standard" Offset="0x5B94" />
         <Limb Name="gBigpoLeftForarmLimb" Type="Standard" Offset="0x5BA0" />
