@@ -8,7 +8,7 @@
 struct EnTk;
 
 typedef void (*EnTkActionFunc)(struct EnTk*, PlayState*);
-typedef void (*EnTkUnkFunc)(struct EnTk*, PlayState*);
+typedef void (*EnTkWalkingFunc)(struct EnTk*, PlayState*);
 
 #define DAMPE_GET_TYPE(thisx) ((thisx)->params & 0xF)
 #define DAMPE_GET_SWITCH_FLAGS(thisx) (((thisx)->params >> 4) & 0x7F)
@@ -21,6 +21,34 @@ typedef enum {
   /* 3 */ DAMPE_TYPE_DIG_GAME_SPOT,
   /* 4 */ DAMPE_TYPE_OUTSIDE_NPC,
 } DampeType;
+
+#define TKFLAGS1_UNK_00 0
+#define TKFLAGS1_UNK_01 1 << 0
+#define TKFLAGS1_UNK_02 1 << 1
+#define TKFLAGS1_UNK_04 1 << 2
+#define TKFLAGS1_UNK_08 1 << 3
+#define TKFLAGS1_UNK_10 1 << 4
+#define TKFLAGS1_UNK_20 1 << 5
+#define TKFLAGS1_UNK_40 1 << 6
+#define TKFLAGS1_UNK_80 1 << 7
+
+// state of dampe digging
+typedef enum {
+  /* 0 */ DAMPE_DIG_GAME_STATE_IDLE,
+  /* 1 */ DAMPE_DIG_GAME_STATE_WALKING,
+  /* 2 */ DAMPE_DIG_GAME_STATE_FOUND_DIG_SPOT,
+  /* 3 */ DAMPE_DIG_GAME_STATE_FOUND_FLAME,
+  /* 4 */ DAMPE_DIG_GAME_STATE_FOUND_NOTHING,
+} DampeDigGameState;
+
+// state of dampe moving during the game
+typedef enum {
+  /* -1 */ DAMPE_DIG_GAME_MOVING_STATE_PRE = -1, // default before the game starts
+  /*  0 */ DAMPE_DIG_GAME_MOVING_STATE_STANDING = 0,
+  /*  1 */ DAMPE_DIG_GAME_MOVING_STATE_FOLLOWING,
+  /*  2 */ DAMPE_DIG_GAME_MOVING_STATE_LOST,
+  /*  3 */ DAMPE_DIG_GAME_MOVING_STATE_RIDING_ELEVATOR,
+} DampeDigGameMovingState;
 
 typedef struct EnTk {
     /* 0x000 */ Actor actor;
@@ -39,7 +67,7 @@ typedef struct EnTk {
     /* 0x2C8 */ UNK_TYPE1 unk2C8[0x2];
     /* 0x2CA */ u16 tkFlags2;
     /* 0x2CC */ s16 unk_2CC;
-    /* 0x2D0 */ s32 unk_2D0;
+    /* 0x2D0 */ s32 digGameMovingState;
     /* 0x2D4 */ s32 animIndex;
     /* 0x2D8 */ f32 unk_2D8;
     /* 0x2DC */ f32 unk_2DC;
@@ -49,9 +77,9 @@ typedef struct EnTk {
     /* 0x2E8 */ s16 bigpoRunCutsceneTimer;
     /* 0x2EC */ Vec3f unk_2EC;
     /* 0x2F8 */ Vec3s unk_2F8;
-    /* 0x300 */ Vec3f unk_300;
-    /* 0x30C */ EnTkUnkFunc actionFunc2;
-    /* 0x310 */ s16 unkState310;
+    /* 0x300 */ Vec3f unk_300; // pos of something
+    /* 0x30C */ EnTkWalkingFunc followActionFunc; // Dig for bigpo minigame
+    /* 0x310 */ s16 digGameState;
     /* 0x312 */ s16 cutscenes[2];
     /* 0x316 */ s16 unk_316; // might be shiver timer
     /* 0x318 */ s16 unk_318; // set to zero, set to spin, draws right before skeleton??

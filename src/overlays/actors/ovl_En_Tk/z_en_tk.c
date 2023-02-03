@@ -27,8 +27,8 @@ s32 func_80AED354(EnTk* this, PlayState* play, ScheduleOutput* scheduleOutput);
 s32 func_80AED38C(EnTk* this, PlayState* play, ScheduleOutput* scheduleOutput);
 void EnTk_SetupStopToTalkOutside(EnTk* this, PlayState* play);
 void EnTk_TalkOutSide(EnTk* this, PlayState* play);
-void func_80AED898(EnTk* this, PlayState* play);
-void func_80AED940(EnTk* this, PlayState* play);
+void EnTk_SetupDigGameIdle(EnTk* this, PlayState* play);
+void EnTk_DigGameIdle(EnTk* this, PlayState* play);
 void EnTk_RunFromBigpo(EnTk* this, PlayState* play);
 void EnTk_SetupRunFromBigpoKill(EnTk* this, PlayState* play);
 void EnTk_RunFromBigpoKill(EnTk* this, PlayState* play);
@@ -39,22 +39,22 @@ void EnTk_WaitForDigCutscene(EnTk* this, PlayState* play);
 void EnTk_CheckForDampeDigSpot(EnTk* this, PlayState* play);
 void EnTk_TurnTowardDigSpot(EnTk* this, PlayState* play);
 void EnTk_SetupDigging(EnTk* this, PlayState* play);
-void EmTk_Digging(EnTk* this, PlayState* play);
+void EnTk_Digging(EnTk* this, PlayState* play);
 void func_80AEE650(EnTk* this, PlayState* play);
 void func_80AEE6B8(EnTk* this, PlayState* play);
-void func_80AEE784(EnTk* this, PlayState* play);
-void func_80AEE9B0(EnTk* this, PlayState* play);
-void func_80AEEAD4(EnTk* this, PlayState* play);
-void func_80AEEB88(EnTk* this, PlayState* play);
-void func_80AEED38(EnTk* this, PlayState* play);
-void func_80AEF048(EnTk* this, PlayState* play);
-void func_80AEF094(EnTk* this, PlayState* play);
-void func_80AEF15C(EnTk* this, PlayState* play);
-void func_80AEF1B4(EnTk* this, PlayState* play);
-void func_80AEF1C4(EnTk* this, PlayState* play);
-void func_80AEF210(EnTk* this, PlayState* play);
-void func_80AEF220(EnTk* this, PlayState* play);
-void func_80AEF278(EnTk* this, PlayState* play);
+void EnTk_SetupDigGameWalking(EnTk* this, PlayState* play);
+void EnTk_DigGameWalking(EnTk* this, PlayState* play);
+void EnTk_CheckDigGameMovingState(EnTk* this, PlayState* play);
+void EnTk_SetFollowFuncLost(EnTk* this, PlayState* play);
+void EnTk_FollowFuncLost(EnTk* this, PlayState* play);
+void EnTk_SetFollowFuncFollowing(EnTk* this, PlayState* play);
+void EnTk_FollowFuncFollowing(EnTk* this, PlayState* play);
+void EnTk_SetFollowFuncRidingElevator(EnTk* this, PlayState* play);
+void EnTk_FollowFuncRidingElevator(EnTk* this, PlayState* play);
+void EnTk_SetFollowFuncUnused(EnTk* this, PlayState* play);
+void EnTk_FollowFuncUnused(EnTk* this, PlayState* play);
+void EnTk_SetFollowFuncStanding(EnTk* this, PlayState* play);
+void EnTk_WalkingFuncStanding(EnTk* this, PlayState* play);
 void EnTk_UpdateDoNothing(Actor* thisx, PlayState* play);
 void EnTk_UpdateOutside(Actor* thisx, PlayState* play);
 void EnTk_UpdateHidingUnderBed(Actor* thisx, PlayState* play);
@@ -282,10 +282,10 @@ void EnTk_Init(Actor* thisx, PlayState* play) {
             break;
 
         case DAMPE_TYPE_DIG_GAME_NPC:
-            this->unk_2D0 = -1;
-            this->unkState310 = 0;
+            this->digGameMovingState = DAMPE_DIG_GAME_MOVING_STATE_PRE;
+            this->digGameState = DAMPE_DIG_GAME_STATE_IDLE;
             this->bigpoFlameFoundCount = 0;
-            func_80AED898(this, play);
+            EnTk_SetupDigGameIdle(this, play);
             break;
 
         default:
@@ -512,12 +512,12 @@ s32 func_80AECE60(EnTk* this, PlayState* play) {
 }
 
 s32 func_80AED354(EnTk* this, PlayState* play, ScheduleOutput* scheduleOutput) {
-    s32 phi_v1 = false;
+    s32 result = false;
 
     if (scheduleOutput->result != 0) {
-        phi_v1 = func_80AED38C(this, play, scheduleOutput);
+        result = func_80AED38C(this, play, scheduleOutput);
     }
-    return phi_v1;
+    return result;
 }
 
 s32 func_80AED38C(EnTk* this, PlayState* play, ScheduleOutput* scheduleOutput) {
@@ -657,7 +657,8 @@ void EnTk_TalkOutSide(EnTk* this, PlayState* play) {
     }
 }
 
-void func_80AED898(EnTk* this, PlayState* play) {
+// standing around waiting for player
+void EnTk_SetupDigGameIdle(EnTk* this, PlayState* play) {
     this->unk_316 = 0;
     this->actor.speedXZ = 0.0f;
     if (this->tkFlags2 & 0x1000) {
@@ -667,10 +668,19 @@ void func_80AED898(EnTk* this, PlayState* play) {
     } else {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
     }
-    this->actionFunc = func_80AED940;
+    this->actionFunc = EnTk_DigGameIdle;
 }
 
-void func_80AED940(EnTk* this, PlayState* play) {
+// dig game idle
+// before we talk to dampe, tkflags2 0x40 is set, tkflags is unset, state is zero
+// state 1 is following player
+// tkflags was 0xc0 for a second when it collided with soil
+// state 2 is talking about digging
+// tkflags2 62 is while digging
+// tkflags2 is 4040 when lost state is still 1
+// tkflags2 is 4040 when talking too, maybe 4000 is the lost dialogue has played
+// tkflags2 is 4060 when the flame spawns, does not change if not flame
+void EnTk_DigGameIdle(EnTk* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
     Actor* dampeSearchIter;
 
@@ -768,12 +778,13 @@ void EnTk_RunFromBigpoKill(EnTk* this, PlayState* play) {
     }
 }
 
-void func_80AEDDA0(EnTk* this, PlayState* play) {
+// second DigGameIdle Setup function called when you find a flame
+void EnTk_SetupDigGameIdleFoundSpot(EnTk* this, PlayState* play) {
     this->actor.speedXZ = 0.0f;
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
     this->actor.flags |= ACTOR_FLAG_10000;
     this->tkFlags2 |= 0x80;
-    this->actionFunc = func_80AED940;
+    this->actionFunc = EnTk_DigGameIdle;
 }
 
 // might not be the only one
@@ -785,8 +796,8 @@ void EnTk_ChooseNextDialogue(EnTk* this, PlayState* play) {
                 break;
             }
 
-            switch (this->unkState310) {
-                case 0:
+            switch (this->digGameState) {
+                case DAMPE_DIG_GAME_STATE_IDLE:
                     this->tkFlags2 &= ~0x1000;
                     if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_52_80)) {
                         this->textId = 0x1405; // Who are you? Not a ghost are you?
@@ -795,17 +806,17 @@ void EnTk_ChooseNextDialogue(EnTk* this, PlayState* play) {
                     }
                     break;
 
-                case 2:
+                case DAMPE_DIG_GAME_STATE_FOUND_DIG_SPOT:
                     this->textId = 0x140D; // Something here, want me to dig? y/n
                     break;
 
-                case 4: 
+                case DAMPE_DIG_GAME_STATE_FOUND_NOTHING: 
                     // Nothing here, show me another spot.
                     Message_StartTextbox(play, 0x140F, &this->actor);
                     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
                     break;
 
-                case 3:
+                case DAMPE_DIG_GAME_STATE_FOUND_FLAME:
                     // (dug up bigpo flame) Something strange is here.. Show me anothe spot
                     Message_StartTextbox(play, 0x1410, &this->actor);
                     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
@@ -866,7 +877,7 @@ void EnTk_TalkDigGame(EnTk* this, PlayState* play) {
                 switch (play->msgCtx.currentTextId) {
                     case 0x1404: // (Screaming) They're out! Go away!
                         this->tkFlags2 |= 0x1000;
-                        func_80AED898(this, play);
+                        EnTk_SetupDigGameIdle(this, play);
                         break;
 
                     case 0x1405: // Who are you? Not a ghost are you?
@@ -899,7 +910,7 @@ void EnTk_TalkDigGame(EnTk* this, PlayState* play) {
                         SET_WEEKEVENTREG(WEEKEVENTREG_52_80);
 
                     case 0x140B: // Where did you go? ... I need to follow your light.
-                        func_80AEE784(this, play);
+                        EnTk_SetupDigGameWalking(this, play);
                         break;
 
                     case 0x140D: // Something here, want me to dig? y/n
@@ -918,7 +929,7 @@ void EnTk_TalkDigGame(EnTk* this, PlayState* play) {
                     case 0x140E: // In any case, take me to another spot
                     case 0x140F: // Nothing here, show me another spot.
                     case 0x1410: // (dug up bigpo flame) Something strange is here.. Show me anothe spot
-                        func_80AEE784(this, play);
+                        EnTk_SetupDigGameWalking(this, play);
                         break;
 
                     case 0x1414: // (Hiding under bed) I didn't see anything!
@@ -940,7 +951,7 @@ void EnTk_WaitForDigCutscene(EnTk* this, PlayState* play) {
     }
 }
 
-// subs verify actor function?
+// called from SubS_FindActorCustom
 // where "thisActor" is the actor that calls the subs func
 // where "nullActor" is the second optional actor from subs, since we call it on ourselves we know its always null
 s32 EnTk_SubsVerifyActor(PlayState* play, Actor* thisActor, Actor* nullActor, void* _verifyData) {
@@ -953,6 +964,7 @@ s32 EnTk_SubsVerifyActor(PlayState* play, Actor* thisActor, Actor* nullActor, vo
             verifyData->distance = distance;
         }
     }
+
     return false;
 }
 
@@ -980,12 +992,12 @@ void EnTk_TurnTowardDigSpot(EnTk* this, PlayState* play) {
 }
 
 void EnTk_SetupDigging(EnTk* this, PlayState* play) {
-    this->unkState310 = 2;
+    this->digGameState = DAMPE_DIG_GAME_STATE_FOUND_DIG_SPOT;
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_DIG, &this->animIndex);
-    this->actionFunc = EmTk_Digging;
+    this->actionFunc = EnTk_Digging;
 }
 
-void EmTk_Digging(EnTk* this, PlayState* play) {
+void EnTk_Digging(EnTk* this, PlayState* play) {
     Actor* bigPoe;
 
     if ((this->skelAnime.curFrame > 33.0f) && (this->skelAnime.curFrame < 41.0f)) {
@@ -1034,22 +1046,23 @@ void func_80AEE6B8(EnTk* this, PlayState* play) {
             func_801477B4(play);
             EnTk_SetupRunFromBigpo(this, play);
         } else if (SubS_StartActorCutscene(&this->actor, 0x7C, this->cutscenes[0], SUBS_CUTSCENE_SET_UNK_LINK_FIELDS)) {
-            this->unkState310 = 3;
+            this->digGameState = DAMPE_DIG_GAME_STATE_FOUND_FLAME;
             EnTk_ChooseNextDialogue(this, play);
             this->tkFlags2 &= ~0x20;
         }
     } else if (SubS_StartActorCutscene(&this->actor, 0x7C, this->cutscenes[0], SUBS_CUTSCENE_SET_UNK_LINK_FIELDS)) {
-        this->unkState310 = 4;
+        this->digGameState = DAMPE_DIG_GAME_STATE_FOUND_NOTHING;
         EnTk_ChooseNextDialogue(this, play);
     }
 }
 
-void func_80AEE784(EnTk* this, PlayState* play) {
-    this->unk_2D0 = -1;
-    this->unkState310 = 1;
+// this is a meta function, it includes following player, wandering, lost, etc
+void EnTk_SetupDigGameWalking(EnTk* this, PlayState* play) {
+    this->digGameMovingState = DAMPE_DIG_GAME_MOVING_STATE_PRE;
+    this->digGameState = DAMPE_DIG_GAME_STATE_WALKING;
     Math_Vec3s_Copy(&this->actor.world.rot, &this->actor.shape.rot);
-    func_80AEEAD4(this, play);
-    this->actionFunc = func_80AEE9B0;
+    EnTk_CheckDigGameMovingState(this, play);
+    this->actionFunc = EnTk_DigGameWalking;
 }
 
 s32 func_80AEE7E0(Vec3f* arg0, f32 arg1, Vec3f* arg2, s32 arg3) {
@@ -1065,7 +1078,7 @@ s32 func_80AEE7E0(Vec3f* arg0, f32 arg1, Vec3f* arg2, s32 arg3) {
     return ret;
 }
 
-s32 func_80AEE86C(EnTk* this, PlayState* play) {
+s32 EnTk_CheckFoundDigSpot(EnTk* this, PlayState* play) {
     static Vec3f D_80AEFA78 = { 0.0f, 20.0f, 32.0f };
     s32 pad;
     s32 ret = false;
@@ -1076,7 +1089,7 @@ s32 func_80AEE86C(EnTk* this, PlayState* play) {
 
     Lib_Vec3f_TranslateAndRotateY(&this->actor.world.pos, this->actor.shape.rot.y, &D_80AEFA78, &sp28);
     if ((BgCheck_EntityRaycastFloor3(&play->colCtx, &sp38, &sp34, &sp28) != BGCHECK_Y_MIN) &&
-        (func_800C9BB8(&play->colCtx, sp38, sp34) == 1) && (this->unk_2D0 == (u32)1) &&
+        (func_800C9BB8(&play->colCtx, sp38, sp34) == 1) && (this->digGameMovingState == (u32)DAMPE_DIG_GAME_MOVING_STATE_FOLLOWING) &&
         (this->actor.xyzDistToPlayerSq <= SQ(115.0f)) &&
         func_80AEE7E0(&this->actor.world.pos, 100.0f, this->unk_324, this->unk_36C) &&
         (((this->tkFlags2 & 2) && (Math_Vec3f_DistXZ(&this->unk_300, &sp28) >= 100.0f)) || !(this->tkFlags2 & 2)) &&
@@ -1087,67 +1100,69 @@ s32 func_80AEE86C(EnTk* this, PlayState* play) {
     return ret;
 }
 
-void func_80AEE9B0(EnTk* this, PlayState* play) {
-    this->actionFunc2(this, play);
+void EnTk_DigGameWalking(EnTk* this, PlayState* play) {
+    this->followActionFunc(this, play);
 
-    func_80AEEAD4(this, play);
+    EnTk_CheckDigGameMovingState(this, play);
     if (Math_Vec3f_DistXZ(&this->actor.world.pos, &this->unk_300) >= 100.0f) {
         this->tkFlags2 &= ~2;
     }
 
-    if (func_80AEE86C(this, play)) {
-        this->unkState310 = 2;
-        func_80AEDDA0(this, play);
+    if (EnTk_CheckFoundDigSpot(this, play)) {
+        this->digGameState = DAMPE_DIG_GAME_STATE_FOUND_DIG_SPOT;
+        EnTk_SetupDigGameIdleFoundSpot(this, play);
     }
 }
 
-// what are these states???
-s32 func_80AEEA4C(EnTk* this, PlayState* play) {
-    s32 ret;
+
+s32 EnTk_GetNewDigGameMovingState(EnTk* this, PlayState* play) {
+    s32 newState;
 
     if (this->tkFlags2 & 1) {
-        ret = 3;
+        newState = DAMPE_DIG_GAME_MOVING_STATE_RIDING_ELEVATOR;
     } else if (this->actor.xyzDistToPlayerSq < SQ(60.0f)) {
-        ret = 0;
+        newState = DAMPE_DIG_GAME_MOVING_STATE_STANDING;
     } else if (this->actor.isTargeted || (play->actorCtx.targetContext.unk_94 == &this->actor) ||
                (this->actor.xyzDistToPlayerSq < SQ(80.0f))) {
-        ret = 1;
+        newState = DAMPE_DIG_GAME_MOVING_STATE_FOLLOWING;
     } else {
-        ret = 2;
+        newState = DAMPE_DIG_GAME_MOVING_STATE_LOST;
     }
-    return ret;
+    return newState;
 }
 
-void func_80AEEAD4(EnTk* this, PlayState* play) {
-    s32 sp24 = func_80AEEA4C(this, play);
+// if not "check" what word best describes the action of checking if the status needs updating without "update"
+void EnTk_CheckDigGameMovingState(EnTk* this, PlayState* play) {
+    s32 newState = EnTk_GetNewDigGameMovingState(this, play);
 
-    if (sp24 != this->unk_2D0) {
-        switch (sp24) {
-            case 0:
-                func_80AEF220(this, play);
+    if (newState != this->digGameMovingState) {
+        switch (newState) {
+            case DAMPE_DIG_GAME_MOVING_STATE_STANDING:
+                EnTk_SetFollowFuncStanding(this, play);
                 break;
 
-            case 1:
-                func_80AEF048(this, play);
+            case DAMPE_DIG_GAME_MOVING_STATE_FOLLOWING:
+                EnTk_SetFollowFuncFollowing(this, play);
                 break;
 
-            case 2:
-                func_80AEEB88(this, play);
+            case DAMPE_DIG_GAME_MOVING_STATE_LOST:
+                EnTk_SetFollowFuncLost(this, play);
                 break;
 
-            case 3:
-                func_80AEF15C(this, play);
+            case DAMPE_DIG_GAME_MOVING_STATE_RIDING_ELEVATOR:
+                EnTk_SetFollowFuncRidingElevator(this, play);
                 break;
 
+            // ! @Bug: The above function cannot return 4, this case is never used
             case 4:
-                func_80AEF1C4(this, play);
+                EnTk_SetFollowFuncUnused(this, play);
                 break;
         }
-        this->unk_2D0 = sp24;
+        this->digGameMovingState = newState;
     }
 }
 
-void func_80AEEB88(EnTk* this, PlayState* play) {
+void EnTk_SetFollowFuncLost(EnTk* this, PlayState* play) {
     s32 sp74;
     Vec3f sp68;
     s32 i;
@@ -1176,10 +1191,10 @@ void func_80AEEB88(EnTk* this, PlayState* play) {
 
     this->unk_2C6 = 100;
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_WALK2, &this->animIndex);
-    this->actionFunc2 = func_80AEED38;
+    this->followActionFunc = EnTk_FollowFuncLost;
 }
 
-void func_80AEED38(EnTk* this, PlayState* play) {
+void EnTk_FollowFuncLost(EnTk* this, PlayState* play) {
     f32 sp64;
     Vec3f sp58;
     s16 sp56 = this->actor.shape.rot.y;
@@ -1234,12 +1249,12 @@ void func_80AEED38(EnTk* this, PlayState* play) {
     }
 }
 
-void func_80AEF048(EnTk* this, PlayState* play) {
+void EnTk_SetFollowFuncFollowing(EnTk* this, PlayState* play) {
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_WALK2, &this->animIndex);
-    this->actionFunc2 = func_80AEF094;
+    this->followActionFunc = EnTk_FollowFuncFollowing;
 }
 
-void func_80AEF094(EnTk* this, PlayState* play) {
+void EnTk_FollowFuncFollowing(EnTk* this, PlayState* play) {
     f32 sp2C;
 
     if (this->tkFlags2 & 0x200) {
@@ -1255,30 +1270,31 @@ void func_80AEF094(EnTk* this, PlayState* play) {
     }
 }
 
-void func_80AEF15C(EnTk* this, PlayState* play) {
+void EnTk_SetFollowFuncRidingElevator(EnTk* this, PlayState* play) {
     this->actor.speedXZ = 0.0f;
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
-    this->actionFunc2 = func_80AEF1B4;
+    this->followActionFunc = EnTk_FollowFuncRidingElevator;
 }
 
-void func_80AEF1B4(EnTk* this, PlayState* play) {
+void EnTk_FollowFuncRidingElevator(EnTk* this, PlayState* play) {
 }
 
-void func_80AEF1C4(EnTk* this, PlayState* play) {
+// Never used because this state doesn't exist, see: EnTk_CheckDigGameMovingState
+void EnTk_SetFollowFuncUnused(EnTk* this, PlayState* play) {
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
-    this->actionFunc2 = func_80AEF210;
+    this->followActionFunc = EnTk_FollowFuncUnused;
 }
 
-void func_80AEF210(EnTk* this, PlayState* play) {
+void EnTk_FollowFuncUnused(EnTk* this, PlayState* play) {
 }
 
-void func_80AEF220(EnTk* this, PlayState* play) {
+void EnTk_SetFollowFuncStanding(EnTk* this, PlayState* play) {
     this->actor.speedXZ = 0.0f;
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
-    this->actionFunc2 = func_80AEF278;
+    this->followActionFunc = EnTk_WalkingFuncStanding;
 }
 
-void func_80AEF278(EnTk* this, PlayState* play) {
+void EnTk_WalkingFuncStanding(EnTk* this, PlayState* play) {
     Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer - 0x1555, 3, 0x1C7, 0);
     this->actor.world.rot.y = this->actor.shape.rot.y;
 }
@@ -1411,6 +1427,60 @@ void EnTk_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
     }
 }
 
+
+void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
+    EnTk* this = THIS; // replace with THIS actor
+    // with explanation comments
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // the dlist will be written in the opa buffer because that buffer is larger,
+    // but executed from the overlay buffer (overlay draws last, for example the hud is drawn to overlay)
+    gfx = POLY_OPA_DISP + 1;
+    gSPDisplayList(OVERLAY_DISP++, gfx);
+
+    // initialize GfxPrint struct
+    GfxPrint_Init(&printer);
+    GfxPrint_Open(&printer, gfx);
+
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
+    GfxPrint_SetPos(&printer, 1, 10);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+
+    { // address locations
+        u32 convertedAddr = (u32)Fault_ConvertAddress((void*)this->actionFunc);
+        GfxPrint_SetPos(&printer, 1, 11);
+        GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
+        GfxPrint_SetPos(&printer, 1, 12);
+        GfxPrint_Printf(&printer, "actionfunc actual ram:  %X", this->actionFunc);
+    }
+
+    GfxPrint_SetPos(&printer, 1, 13);
+    
+    //GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
+    //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
+    GfxPrint_Printf(&printer, "2D0 %X", this->digGameMovingState);
+    GfxPrint_SetPos(&printer, 1, 14);
+    GfxPrint_Printf(&printer, "tkFlags2 %X", this->tkFlags2);
+    GfxPrint_SetPos(&printer, 1, 15);
+    GfxPrint_Printf(&printer, "otheractionfunc %X", this->followActionFunc);
+
+    // end of text printing
+    gfx = GfxPrint_Close(&printer);
+    GfxPrint_Destroy(&printer);
+
+    gSPEndDisplayList(gfx++);
+    // make the opa dlist jump over the part that will be executed as part of overlay
+    gSPBranchList(POLY_OPA_DISP, gfx);
+    POLY_OPA_DISP = gfx;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+    //Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+} // */
+
+
 void EnTk_Draw(Actor* thisx, PlayState* play) {
     static TexturePtr sDampeEyeTextures[] = { gDampeEyeOpenTex, gDampeEyeHalfTex, gDampeEyeClosedTex, };
     s32 pad;
@@ -1426,5 +1496,9 @@ void EnTk_Draw(Actor* thisx, PlayState* play) {
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                           EnTk_OverrideLimbDraw, EnTk_PostLimbDraw, &this->actor);
 
+    if (this->type == DAMPE_TYPE_DIG_GAME_NPC){
+      Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+    }
+    
     CLOSE_DISPS(play->state.gfxCtx);
 }
