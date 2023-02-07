@@ -32,6 +32,21 @@ typedef enum {
 #define TKFLAGS1_UNK_40 1 << 6
 #define TKFLAGS1_UNK_80 1 << 7
 
+// used during big po dig minigame?
+#define TKFLAGS2_UNK_00  0
+#define TKFLAGS2_UNK_01  1 << 0
+#define TKFLAGS2_UNK_02  1 << 1
+#define TKFLAGS2_UNK_04  1 << 2
+#define TKFLAGS2_UNK_08  1 << 3
+#define TKFLAGS2_UNK_10  1 << 4
+#define TKFLAGS2_UNK_20  1 << 5
+#define TKFLAGS2_UNK_40  1 << 6
+#define TKFLAGS2_UNK_80  1 << 7
+#define TKFLAGS2_UNK_100 1 << 8
+#define TKFLAGS2_STOPPED 1 << 9
+#define TKFLAGS2_UNK_400 1 << 10
+#define TKFLAGS2_UNK_800 1 << 11
+
 // state of dampe digging
 typedef enum {
   /* 0 */ DAMPE_DIG_GAME_STATE_IDLE,
@@ -60,9 +75,9 @@ typedef struct EnTk {
     /* 0x2B0 */ s8 type;
     /* 0x2B1 */ s8 switchFlag;
     /* 0x2B4 */ Vec3f unk_2B4;
-    /* 0x2C0 */ s16 unk_2C0;
+    /* 0x2C0 */ s16 unk_2C0; // second eye state thing
     /* 0x2C2 */ s16 eyeState;
-    /* 0x2C4 */ s16 unk_2C4;
+    /* 0x2C4 */ s16 blinkTimer;
     /* 0x2C6 */ s16 unk_2C6; // index for 2C8
     /* 0x2C8 */ UNK_TYPE1 unk2C8[0x2];
     /* 0x2CA */ u16 tkFlags2;
@@ -90,7 +105,7 @@ typedef struct EnTk {
     /* 0x36C */ s32 unk_36C;
     /* 0x370 */ UNK_TYPE1 unk370[0x58];
     /* 0x3C8 */ Path* timePath;
-    /* 0x3CC */ u8 unk_3CC;
+    /* 0x3CC */ u8 scheduleResult;
     /* 0x3CE */ u16 tkFlags;
     /* 0x3D0 */ s32 timePathTimeSpeed;
     /* 0x3D4 */ Vec3f timePathTargetPos;

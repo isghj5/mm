@@ -151,12 +151,12 @@ typedef struct {
 
 
 void EnTk_Blink(EnTk* this) {
-    if (DECR(this->unk_2C4) == 0) {
+    if (DECR(this->blinkTimer) == 0) {
         this->eyeState++;
         if (this->eyeState >= 3) {
             this->unk_2C0--;
             if (this->unk_2C0 < 0) {
-                this->unk_2C4 = Rand_S16Offset(30, 30);
+                this->blinkTimer = Rand_S16Offset(30, 30);
                 this->unk_2C0 = 2;
                 if (Rand_ZeroOne() > 0.5f) {
                     this->unk_2C0++;
@@ -167,6 +167,7 @@ void EnTk_Blink(EnTk* this) {
     }
 }
 
+// the hell is this
 f32 func_80AEC524(f32 arg0) {
     f32 temp_f0;
     f32 ret;
@@ -318,8 +319,8 @@ void EnTk_HidingUnderBed(EnTk* this, PlayState* play) {
 
 void EnTk_SetupWalkingOutside(EnTk* this, PlayState* play) {
     this->actor.speedXZ = 0.0f;
-    this->unk_3CC = 0xFF;
-    this->unk_2DC = 0.0f;
+    this->scheduleResult = -1;
+    this->unk_2DC = 0.0f; // related to speed?
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_WALK, &this->animIndex);
     this->actionFunc = EnTk_WalkingOutside;
 }
@@ -330,8 +331,8 @@ void EnTk_WalkingOutside(EnTk* this, PlayState* play) {
     s32 temp3;
     f32 sp48;
     f32 sp44;
-    ScheduleOutput scheduleResult;
-    u8 temp4;
+    ScheduleOutput scheduleOutput;
+    u8 schResult;
 
     this->actor.textId = 0;
     if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
@@ -364,25 +365,25 @@ void EnTk_WalkingOutside(EnTk* this, PlayState* play) {
     this->unk_2DC -= temp3;
     this->unk_2E0 += R_TIME_SPEED;
 
-    if (Schedule_RunScript(play, D_80AEF800, &scheduleResult)) {
-        if ((this->unk_3CC != scheduleResult.result) && !func_80AED354(this, play, &scheduleResult)) {
+    if (Schedule_RunScript(play, D_80AEF800, &scheduleOutput)) {
+        if ((this->scheduleResult != scheduleOutput.result) && !func_80AED354(this, play, &scheduleOutput)) {
             return;
         }
-        temp4 = scheduleResult.result;
+        schResult = scheduleOutput.result;
     } else {
-        scheduleResult.result = 0;
-        temp4 = scheduleResult.result;
+        scheduleOutput.result = 0;
+        schResult = scheduleOutput.result;
     }
 
-    if (!temp4 && (this->unk_3CC != 0)) {
+    if (!schResult && (this->scheduleResult != 0)) {
         this->actor.draw = NULL;
         this->actor.flags &= ~ACTOR_FLAG_1;
-    } else if (temp4 && (this->unk_3CC == 0)) {
+    } else if (schResult && (this->scheduleResult == 0)) {
         this->actor.flags |= ACTOR_FLAG_1;
         this->actor.draw = EnTk_Draw;
     }
 
-    this->unk_3CC = scheduleResult.result;
+    this->scheduleResult = scheduleOutput.result;
     func_80AECE0C(this, play);
 
     if (this->tkFlags & 8) {
@@ -392,7 +393,7 @@ void EnTk_WalkingOutside(EnTk* this, PlayState* play) {
 }
 
 void func_80AECE0C(EnTk* this, PlayState* play) {
-    if (this->unk_3CC != 0) {
+    if (this->scheduleResult != 0) {
         if (1) {}
         func_80AECE60(this, play);
     }
@@ -532,7 +533,7 @@ s32 func_80AED38C(EnTk* this, PlayState* play, ScheduleOutput* scheduleOutput) {
         return false;
     }
 
-    if ((this->unk_3CC <= 0) && (this->unk_3CC != 0) && (this->timePathTimeSpeed >= 0)) {
+    if ((this->scheduleResult <= 0) && (this->scheduleResult != 0) && (this->timePathTimeSpeed >= 0)) {
         phi_a1 = now;
     } else {
         phi_a1 = scheduleOutput->time0;
@@ -1254,6 +1255,8 @@ void EnTk_SetFollowFuncFollowing(EnTk* this, PlayState* play) {
     this->followActionFunc = EnTk_FollowFuncFollowing;
 }
 
+// TODO needs better name
+// This is when he is actually following the player during dig minigame
 void EnTk_FollowFuncFollowing(EnTk* this, PlayState* play) {
     f32 sp2C;
 
@@ -1427,7 +1430,7 @@ void EnTk_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
     }
 }
 
-
+/*
 void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     EnTk* this = THIS; // replace with THIS actor
     // with explanation comments
@@ -1496,9 +1499,9 @@ void EnTk_Draw(Actor* thisx, PlayState* play) {
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                           EnTk_OverrideLimbDraw, EnTk_PostLimbDraw, &this->actor);
 
-    if (this->type == DAMPE_TYPE_DIG_GAME_NPC){
-      Debug_PrintToScreen(thisx, play); // put this in your actors draw func
-    }
+    //if (this->type == DAMPE_TYPE_DIG_GAME_NPC){
+      //Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+    //}
     
     CLOSE_DISPS(play->state.gfxCtx);
 }
