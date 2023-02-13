@@ -30,8 +30,11 @@ typedef struct EnCne01 {
                 s16 inMsgState3; // head bob
                 s16 headObjIndex;
                 s16 textId;
-                s16 previousDialogue;
+                s16 stateFlags;
+                //s16 dialogueTimer;
                 Actor* moonPtr;
+                AnimationHeader* defaultAnim;
+                AnimationHeader* curAnim;
     
     ///* 0x3EC */ UNK_TYPE1 unk_3EC[0x230];
 } EnCne01; // size = 0x61C

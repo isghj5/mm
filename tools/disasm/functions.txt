@@ -9143,7 +9143,7 @@
     0x809CB230:("EnBoj04_Draw",),
     0x809CB290:("EnCne01_UpdateModel",),
     0x809CB404:("EnCne01_TestIsTalking",),
-    0x809CB4A0:("func_809CB4A0",),
+    0x809CB4A0:("EnCne01_AttemptItemRecieve",),
     0x809CB520:("EnCne01_FinishInit",),
     0x809CB5A0:("EnCne01_Walk",),
     0x809CB5D8:("EnCne01_FaceForward",),

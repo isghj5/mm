@@ -32,17 +32,18 @@ ActorInit En_Cne_01_InitVars = {
     (ActorFunc)EnCne01_Draw,
 };
 
+// her collider was supposed to take hits from the player??? nah that looks weird
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_HIT0,
+        COLTYPE_NONE, // changed
         AT_NONE,
-        AC_ON | AC_TYPE_PLAYER,
+        AC_ON | AC_TYPE_ENEMY, // changed
         OC1_ON | OC1_TYPE_ALL,
         OC2_TYPE_1,
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK1,
+        ELEMTYPE_UNK0, // changed
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
         TOUCH_NONE | TOUCH_SFX_NORMAL,
@@ -70,30 +71,85 @@ static TrackOptionsSet sTrackOptions = {
 
 #include "new_animations.c"
 
+// is actor on screen, attempt to accept beans
+s32 EnCne01_AttemptItemRecieve(EnCne01* this, PlayState* play) {
+    s16 x;
+    s16 y;
+
+    Actor_GetScreenPos(play, &this->actor, &x, &y);
+    //! @bug: Both x and y conditionals are always true, || should be an &&
+    if (((x >= 0) && (x < SCREEN_WIDTH)) && ((y >= 0) && (y < SCREEN_HEIGHT))) {
+        // what if you give vampire girl fish and she gives you a blood potion?
+        // or you give her red potion and you get a poe?
+        //func_800B85E0(&this->actor, play, 30.0f, PLAYER_IA_MAGIC_BEANS);
+        func_800B85E0(&this->actor, play, 30.0f, PLAYER_IA_MOON_TEAR); // think -1 is all
+    }
+    return true;
+}
+
+void EnCne02_TestGiftItem(EnCne01* this, PlayState* play){
+    Player* player = GET_PLAYER(play);
+    s16 playerType = CNE_GET_TYPE(&this->actor);
+    PlayerItemAction itemAction = func_80123810(play);
+
+    // trying to make this code work from En_Akindonuts, the only actor used in the game that can just accept an item without the prompt
+    if (itemAction > PLAYER_IA_NONE && playerType == CNE_TYPE_VENESA) {
+        
+        //if (itemAction == PLAYER_IA_BOTTLE_POTION_RED) {
+        if (itemAction == PLAYER_IA_PICTO_BOX) {
+            player->exchangeItemId = itemAction; // what does this doooooo
+            this->textId = 0x221B;
+        }
+        else{ // wrong item
+            this->textId = 0x2220;
+        }
+    } else  if (itemAction > PLAYER_IA_NONE && playerType == CNE_TYPE_ORANGE) {
+        //if (itemAction == PLAYER_IA_PENDANT_OF_MEMORIES) {
+        if (itemAction == PLAYER_IA_PICTO_BOX) {
+            player->exchangeItemId = itemAction; // what does this doooooo
+            this->textId = 0x221B;
+
+        }
+        else{ // wrong item
+            this->textId = 0x2220;
+        }
+
+    }
+    Message_StartTextbox(play, this->textId, NULL);
+
+}
+
 void EnCne02_SetAnimation(EnCne01* this, AnimationHeader* anim){
+    this->curAnim = anim;
 
     Animation_Change(&this->skelAnime, anim, 1.0f, 0.0f, 0.0f, ANIMMODE_LOOP, 1.0f);
 }
 
 void EnCne01_UpdateModel(EnCne01* this, PlayState* play) {
     Vec3f point;
+    int talkingDist = (CNE_GET_TYPE(&this->actor) == CNE_TYPE_VENESA) ? 90: 200;
     
     //EnHy_UpdateSkelAnime(&this->enHy, play);
     SkelAnime_Update(&this->skelAnime);
 
+    this->stateFlags &= ~2;
     
-    if (this->actor.xzDistToPlayer < 200 
-      && SubS_AngleDiffLessEqual(this->actor.shape.rot.y, 0x36B0, this->actor.yawTowardsPlayer)) {
+    if (this->actor.xzDistToPlayer < talkingDist && 
+      SubS_AngleDiffLessEqual(this->actor.shape.rot.y, 0x36B0, this->actor.yawTowardsPlayer)) {
         Player* player = GET_PLAYER(play);
         point.x = player->actor.world.pos.x;
         point.y = player->bodyPartsPos[PLAYER_BODYPART_HEAD].y + 3.0f;
         point.z = player->actor.world.pos.z;
         SubS_TrackPoint(&point, &this->actor.focus.pos, &this->actor.shape.rot, &this->trackTarget,
                         &this->headRot, &this->torsoRot, &sTrackOptions);
-    } else if (this->moonPtr != NULL) { // look at the moon
-        if (this->moonPtr != NULL && (this->previousDialogue & 0x1) && CNE_GET_TYPE(&this->actor) == CNE_TYPE_VENESA){
-          EnCne02_SetAnimation(this, &gCneAnjuMyChickenHaveEscapedAnim);
+
+        // does player have cucco?
+        if (CNE_GET_TYPE(&this->actor) == CNE_TYPE_VENESA 
+            && player->heldActor != NULL && player->heldActor->id == ACTOR_EN_NIW){
+          this->stateFlags |= 2;
         }
+
+    } else if (this->moonPtr != NULL) { // look at the moon
         point.x = this->moonPtr->world.pos.x;
         point.y = this->moonPtr->world.pos.y;
         point.z = this->moonPtr->world.pos.z;
@@ -108,6 +164,12 @@ void EnCne01_UpdateModel(EnCne01* this, PlayState* play) {
         Math_SmoothStepToS(&this->torsoRot.y, 0, 4, 0x3E8, 1);
     }
 
+    if ((this->stateFlags & 2) && this->curAnim != &gCneAnjuMyChickenHaveEscapedAnim){
+        EnCne02_SetAnimation(this,  &gCneAnjuMyChickenHaveEscapedAnim);
+    } else if (!(this->stateFlags & 2) && this->curAnim == &gCneAnjuMyChickenHaveEscapedAnim){
+        EnCne02_SetAnimation(this,  &this->defaultAnim);
+    }
+
     SubS_FillLimbRotTables(play, this->limbRotTableY, this->limbRotTableZ, ARRAY_COUNT(this->limbRotTableY));
 
     //EnHy_UpdateCollider(&this->enHy, play);
@@ -120,52 +182,37 @@ void EnCne01_UpdateModel(EnCne01* this, PlayState* play) {
 
 }
 
-// is actor on screen, attempt to accept beans
-s32 func_809CB4A0(EnCne01* this, PlayState* play) {
-    s16 x;
-    s16 y;
-
-    Actor_GetScreenPos(play, &this->actor, &x, &y);
-    //! @bug: Both x and y conditionals are always true, || should be an &&
-    if (((x >= 0) && (x < SCREEN_WIDTH)) && ((y >= 0) && (y < SCREEN_HEIGHT))) {
-        // what if you give vampire girl fish and she gives you a blood potion?
-        // or you give her red potion and you get a poe?
-        func_800B85E0(&this->actor, play, 30.0f, PLAYER_IA_MAGIC_BEANS);
-    }
-    return true;
-}
-
 // no longer double object, don't need this shit
-    /*
+/*
 void EnCne01_FinishInit(EnHy* this, PlayState* play) {
-    if (EnHy_Init(this, play, &gCneSkel, ENHY_ANIM_OS_ANIME_11)) {
-        this->actor.flags |= ACTOR_FLAG_1;
-        this->actor.draw = EnCne01_Draw;
-        this->waitingOnInit = false;
-        if (ENCNE01_GET_PATH(&this->actor) == 0x3F) {
-            this->actionFunc = EnCne01_FaceForward;
-        } else {
-            this->actionFunc = EnCne01_Walk;
-        }
-    }
-}
-    */
+} // */
 
+// disabled for now because we need to completely rebuild the path system and also have pathing variants as an mmra option
 void EnCne01_Walk(EnCne01* this, PlayState* play) {
     //if (EnHy_MoveForwards(this, 1.0f)) {
         //this->curPoint = 0;
     //}
 }
 
+void EnCne02_SetupFaceForward(EnCne01* this){
+    if (this->moonPtr != NULL && (this->stateFlags & 0x1) && CNE_GET_TYPE(&this->actor) == CNE_TYPE_VENESA){
+      this->stateFlags &= ~1;
+      // this is crashing, skelanime is trying to look up a wrong address????
+      //EnCne02_SetAnimation(this, &gCneAnjuMyChickenHaveEscapedAnim);
+    }
+    this->actionFunc = EnCne01_FaceForward;
+}
+
 void EnCne01_FaceForward(EnCne01* this, PlayState* play) {
+    EnCne01_TestIsTalking(this, play);
     this->actor.shape.rot = this->actor.world.rot;
 }
 
+
+// 2AEE ....
 // ideas: you bring her a cucco for a bottle, need to know there is cucco nearby tho
 // you give her a bean for bean soup
 //
-
-
 void EnCne01_Talk(EnCne01* this, PlayState* play) {
     s16 yaw;
     u8 talkState;
@@ -173,46 +220,61 @@ void EnCne01_Talk(EnCne01* this, PlayState* play) {
     Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 4, 0xFA0, 1);
 
     talkState = Message_GetState(&play->msgCtx);
-    this->inMsgState3 = (talkState == TEXT_STATE_3) ? true : false;
+    //this->inMsgState3 = (talkState == TEXT_STATE_3) ? true : false;
+    this->inMsgState3 = (talkState == TEXT_STATE_3); 
 
     switch (talkState) {
-        case TEXT_STATE_NONE:
-            yaw = ABS_ALT(this->actor.shape.rot.y - this->actor.yawTowardsPlayer);
-            if (yaw < 0x64) {
-                this->previousDialogue |= 0x1;
-                Message_StartTextbox(play, this->textId, NULL);
+        //case TEXT_STATE_NONE:
+            //Message_StartTextbox(play, this->textId, NULL);
+            
+            //break;
+
+        case TEXT_STATE_5: // blue arrow mid-multiple text
+            // supposed to be used for continue, but we use continue dialogue as one off
+            if (!Message_ShouldAdvance(play)) return;
+
+            //Message_StartTextbox(play, this->textId, NULL); // wy is this here
+            func_801477B4(play);
+            EnCne02_SetupFaceForward(this);
+
+            break;
+
+        case TEXT_STATE_CLOSING: // 2
+            if (this->textId == 0x33D3){
+              this->textId = 0;
+              EnCne02_SetupFaceForward(this);
             }
             break;
 
+        case TEXT_STATE_DONE: //  6
+            if (!Message_ShouldAdvance(play)) return;
 
-        case 5:
-            if (!Message_ShouldAdvance(play)) return;
-            func_801477B4(play);
-        case TEXT_STATE_CLOSING:
-            if (!Message_ShouldAdvance(play)) return;
             this->actor.textId = 0;
             
             
-            //this->trackTarget = this->prevTrackTarget;
-            //this->headRot = this->prevHeadRot;
-            //this->torsoRot = this->prevTorsoRot; //this makes her snap back too fast, we should smooth it like all other actors
-            //this->actor.shape.rot.y = this->actor.world.rot.y;
-            this->actionFunc = this->prevActionFunc;
-            this->prevActionFunc = NULL;
+            EnCne02_SetupFaceForward(this);
+            func_801477B4(play);
             break;
-        //case 6:
-        case 0xA:
+        //case 0xA:
             //if (Message_ShouldAdvance(play)){
                 //k
             //}
+            //break;
+        //case TEXT_STATE_16: //being given an item
+            //EnCne02_TestGiftItem(this, play);
+            //break;
+        default:
             break;
     }
 }
 
+// 1479 ;; oh thanks here is something ffor thing
 s32 EnCne01_TestIsTalking(EnCne01* this, PlayState* play) {
-    s32 isTalking = false;
+    s32 isTalking = false; // this is not test if talking, this is test if started talking, this frame
+    s16 yaw = ABS_ALT(this->actor.shape.rot.y - this->actor.yawTowardsPlayer);
+    //if (DECR(this->dialogueTimer) != 0) return;
 
-    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+    if (yaw < 0x64 && Actor_ProcessTalkRequest(&this->actor, &play->state)) {
         isTalking = true;
         //this->textId = 0x10B9; // Invalid textId, produces empty textbox
         if (CNE_GET_TYPE(&this->actor) == CNE_TYPE_VENESA){
@@ -220,49 +282,59 @@ s32 EnCne01_TestIsTalking(EnCne01* this, PlayState* play) {
                this->textId = 0x221B; // you fouuuuund meee
 
             }else if (this->moonPtr != NULL){
-                if (this->previousDialogue & 0x1){
+                if (this->stateFlags & 0x1){
                   this->textId = 0x05DE; // the moon is magicccc
 
                 } else {
+                  this->stateFlags |= 0x1;
                   this->textId = 0x05DD; // I love hte moooooon
                 }
             } else {
                 this->textId = 0x14B4; // Are you the one who freed my soul?
             }
             //this->textId = 0x28A5; // Please visit the inn
-        } else {
+        } else { // orangi
+            // this one is bugged: cannot figure out the code to keep the dialogue working smoothly
             this->textId = 0x33D3; // Are the village people saying the moon is going to fall?
+            //this->textId = 0x33D3; // 
         }
         //this->prevTrackTarget = this->trackTarget;
         //this->prevHeadRot = this->headRot;
         //this->prevTorsoRot = this->torsoRot; // snaps her back too fast
-        this->prevActionFunc = this->actionFunc;
         
+        // maybe we dont need this?? not used in enms
+        //this->actor.textId = this->textId;
+        //Message_StartTextbox(play, this->textId, NULL);
+        Message_StartTextbox(play, this->textId, &this->actor);
+        this->prevActionFunc = this->actionFunc;
         this->actionFunc = EnCne01_Talk;
+
+    } else if (yaw < 100) {
+        //func_800B8614(&this->actor, play, 90.0f); // is 90 the units of distance?
+        func_800B8614(&this->actor, play, 200.0f); // is 90 the units of distance?
+
     }
+
     return isTalking;
 }
 
 void EnCne01_Init(Actor* thisx, PlayState* play) {
     s32 pad;
     EnCne01* this = THIS;
-    AnimationHeader* animPtr;
 
     //this->enHy.animObjIndex = SubS_GetObjectIndex(OBJECT_OS_ANIME, play);
     //this->enHy.headObjIndex = SubS_GetObjectIndex(OBJECT_CNE, play);
     //this->enHy.skelUpperObjIndex = SubS_GetObjectIndex(OBJECT_CNE, play);
     //this->enHy.skelLowerObjIndex = SubS_GetObjectIndex(OBJECT_CNE, play);
-
     //if ((this->enHy.animObjIndex < 0) || (this->enHy.headObjIndex < 0) || (this->enHy.skelUpperObjIndex < 0) ||
         //(this->enHy.skelLowerObjIndex < 0)) {
         //Actor_Kill(&this->enHy.actor);
     //}
   
-    //EnCne02_FindMoon(thisx, play);
     this->moonPtr = SubS_FindActor(play, 0, ACTORCAT_ITEMACTION, ACTOR_EN_FALL);
 
     if (this->moonPtr != NULL){ // face the moon if it exists
-        this->actor.world.rot.y = Actor_YawBetweenActors(&this->actor, this->moonPtr);// + 0x8000;
+        this->actor.world.rot.y = Actor_YawBetweenActors(&this->actor, this->moonPtr);
         this->actor.shape.rot.y = this->actor.world.rot.y;
     }
   
@@ -270,25 +342,26 @@ void EnCne01_Init(Actor* thisx, PlayState* play) {
         default:
         case CNE_TYPE_VENESA:
             if (this->moonPtr != NULL){
-              //animPtr = &gCneSmugAnim;
-              animPtr = &gCneAnjuHandsTogetherAnim;
+              //this->curAnim = &gCneSmugAnim;
+              this->curAnim = &gCneAnjuHandsTogetherAnim;
             } else {
-              animPtr = &gCnePatientHandsTogetherAnim;
+              this->curAnim = &gCnePatientHandsTogetherAnim;
             }
           
             break;
 
         case CNE_TYPE_ORANGE:
             if (this->moonPtr != NULL){
-              animPtr = &gCneArmsCrossedAnim;
+              this->curAnim = &gCneArmsCrossedAnim;
             } else {
-              animPtr = &gCnePatientHandsTogetherAnim;
+              this->curAnim = &gCnePatientHandsTogetherAnim;
             }
             break;
     }
+    this->defaultAnim = this->curAnim;
 
     SkelAnime_InitFlex(play, &this->skelAnime, 
-        &gCneSkel, animPtr, 
+        &gCneSkel, this->curAnim, 
         this->jointTable, this->morphTable, CNE_LIMB_MAX);
 
     Collider_InitCylinder(play, &this->collider);
@@ -332,12 +405,12 @@ void EnCne01_Destroy(Actor* thisx, PlayState* play) {
 void EnCne01_Update(Actor* thisx, PlayState* play) {
     EnCne01* this = THIS;
 
-    EnCne01_TestIsTalking(this, play);
     this->actionFunc(this, play);
     Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
 
     EnCne01_UpdateModel(this, play);
-    func_809CB4A0(this, play);
+    // WARNING: this can interfere with text system or even replaec it
+    //EnCne01_AttemptItemRecieve(this, play);
 }
 
 s32 EnCne01_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
@@ -447,7 +520,10 @@ void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     GfxPrint_Printf(&printer, "mesgState %X", Message_GetState(&play->msgCtx));
 
     GfxPrint_SetPos(&printer, 1, 14);
-    GfxPrint_Printf(&printer, "moon %X", this->moonPtr);
+    GfxPrint_Printf(&printer, "prev state %X", this->stateFlags );
+
+    GfxPrint_SetPos(&printer, 1, 15);
+    GfxPrint_Printf(&printer, "TestFunc %X", &EnCne01_Talk);
 
     // end of text printing
     gfx = GfxPrint_Close(&printer);
@@ -474,16 +550,22 @@ void EnCne01_Draw(Actor* thisx, PlayState* play) {
 
     func_8012C28C(play->state.gfxCtx);
     if (CNE_GET_TYPE(&this->actor) == CNE_TYPE_ORANGE) {
-        gSPSegment(POLY_OPA_DISP++, 0x08, Gfx_EnvColor(play->state.gfxCtx, 70, 160, 230, 0)); // the side to side girl has different colors
-        gSPSegment(POLY_OPA_DISP++, 0x09, Gfx_EnvColor(play->state.gfxCtx, 255, 255, 100, 0));
-        gSPSegment(POLY_OPA_DISP++, 0x0A, Gfx_EnvColor(play->state.gfxCtx, 255, 255, 255, 255));
-    } else {
-        gSPSegment(POLY_OPA_DISP++, 0x08, Gfx_EnvColor(play->state.gfxCtx, originalBlueColor.r, originalBlueColor.g,
-             originalBlueColor.b, originalBlueColor.a)); // blue for all, regular
-        gSPSegment(POLY_OPA_DISP++, 0x09, Gfx_EnvColor(play->state.gfxCtx, originalBlueColor.r, originalBlueColor.g,
-             originalBlueColor.b, originalBlueColor.a)); // blue for all, regular
-        gSPSegment(POLY_OPA_DISP++, 0x0A, Gfx_EnvColor(play->state.gfxCtx, originalBlueColor.r, originalBlueColor.g,
-             originalBlueColor.b, originalBlueColor.a)); // blue for all, regular
+        gSPSegment(POLY_OPA_DISP++, 0x08, Gfx_EnvColor(play->state.gfxCtx, 
+          70, 160, 230, 0)); // the side to side girl has different colors
+        gSPSegment(POLY_OPA_DISP++, 0x09, Gfx_EnvColor(play->state.gfxCtx, 
+          255, 255, 100, 0));
+        gSPSegment(POLY_OPA_DISP++, 0x0A, Gfx_EnvColor(play->state.gfxCtx, 
+          255, 255, 255, 255));
+    } else { // venessa
+        gSPSegment(POLY_OPA_DISP++, 0x08, Gfx_EnvColor(play->state.gfxCtx, 
+          originalBlueColor.r, originalBlueColor.g, 
+          originalBlueColor.b, originalBlueColor.a)); // blue for all, regular
+        gSPSegment(POLY_OPA_DISP++, 0x09, Gfx_EnvColor(play->state.gfxCtx, 
+          originalBlueColor.r, originalBlueColor.g,
+          originalBlueColor.b, originalBlueColor.a)); // blue for all, regular
+        gSPSegment(POLY_OPA_DISP++, 0x0A, Gfx_EnvColor(play->state.gfxCtx, 
+          originalBlueColor.r, originalBlueColor.g,
+          originalBlueColor.b, originalBlueColor.a)); // blue for all, regular
         //gSPSegment(POLY_OPA_DISP++, 0x09, Gfx_EnvColor(play->state.gfxCtx, 160, 180, 255, 0));
         //gSPSegment(POLY_OPA_DISP++, 0x0A, Gfx_EnvColor(play->state.gfxCtx, 160, 180, 255, 0));
     }
