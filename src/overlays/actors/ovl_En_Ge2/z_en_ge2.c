@@ -110,6 +110,7 @@ void EnGe2_Init(Actor* thisx, PlayState* play) {
     this->actionFunc = EnGe2_Walk;
     this->picto.validationFunc = EnGe2_ValidatePictograph;
 
+    EnGe2_SetupPath(this, play);
     // in vanilla this is just called and the return is ignored, here I am checking for false and changing type
     //if ( ! EnGe2_SetupPath(this, play) ){
       //GERUDO_PURPLE_GET_TYPE(&this->picto.actor) = GERUDO_PURPLE_TYPE_BOAT_HITTABLE;
@@ -127,13 +128,13 @@ void EnGe2_Init(Actor* thisx, PlayState* play) {
             Animation_Change(&this->skelAnime, &gGerudoPurpleLookingAboutAnim, 1.0f, 0.0f,
                              Animation_GetLastFrame(&gGerudoPurpleLookingAboutAnim), 0, 0.0f);
             this->picto.actor.uncullZoneForward = 4000.0f;
-            this->actionFunc = EnGe2_GuardStationary2;
+            this->actionFunc = EnGe2_GuardStationary;
             break;
         case GERUDO_PURPLE_TYPE_BOAT_HITTABLE:
 
             Animation_Change(&this->skelAnime, &gGerudoPurpleLookingAboutAnim, 1.0f, 0.0f,
                              Animation_GetLastFrame(&gGerudoPurpleLookingAboutAnim), 0, 0.0f);
-            this->actionFunc = EnGe2_GuardStationary;
+            this->actionFunc = EnGe2_GuardStationary2;
             this->picto.actor.speedXZ = 0.0f;
             break;
 
@@ -691,8 +692,6 @@ void EnGe2_PerformCutsceneActions(EnGe2* this, PlayState* play) {
 // Used for those on boats
 void EnGe2_GuardStationary(EnGe2* this, PlayState* play) {
     SkelAnime_Update(&this->skelAnime);
-
-
     if (EnGe2_LookForPlayer(play, &this->picto.actor, &this->picto.actor.focus.pos, this->picto.actor.shape.rot.y,
                             0x4000, 720.0f, this->verticalDetectRange)) {
         if ((GERUDO_PURPLE_GET_EXIT(&this->picto.actor) != GERUDO_PURPLE_EXIT_NONE) && !Play_InCsMode(play)) {
@@ -799,6 +798,7 @@ void EnGe2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
     }
 }
 
+/*
 void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     EnGe2* this = THIS; // replace with THIS actor
     // with explanation comments
@@ -863,7 +863,7 @@ void EnGe2_Draw(Actor* thisx, PlayState* play) {
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                           EnGe2_OverrideLimbDraw, EnGe2_PostLimbDraw, &this->picto.actor);
 
-    Debug_PrintToScreen(thisx, play);
+    //Debug_PrintToScreen(thisx, play);
 
 
     CLOSE_DISPS(play->state.gfxCtx);
