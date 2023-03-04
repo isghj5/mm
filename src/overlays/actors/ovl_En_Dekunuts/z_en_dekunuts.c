@@ -17,8 +17,8 @@ void EnDekunuts_Destroy(Actor* thisx, PlayState* play);
 void EnDekunuts_Update(Actor* thisx, PlayState* play);
 void EnDekunuts_Draw(Actor* thisx, PlayState* play);
 
-void func_808BD428(EnDekunuts* this);
-void func_808BD49C(EnDekunuts* this, PlayState* play);
+void EnDekuNuts_SetupPeriscope(EnDekunuts* this);
+void EnDekuNuts_Periscope(EnDekunuts* this, PlayState* play);
 void func_808BD78C(EnDekunuts* this);
 void func_808BD7D4(EnDekunuts* this, PlayState* play);
 void func_808BD870(EnDekunuts* this);
@@ -123,21 +123,23 @@ void EnDekunuts_Init(Actor* thisx, PlayState* play) {
                    DEKU_SCRUB_LIMB_MAX);
     Collider_InitAndSetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
     CollisionCheck_SetInfo(&this->actor.colChkInfo, &sDamageTable, &sColChkInfoInit);
-    this->unk_194 = ENDEKUNUTS_GET_FF00(&this->actor);
-    thisx->params &= 0xFF;
-    if ((this->unk_194 == ENDEKUNUTS_GET_FF00_FF) || (this->unk_194 == ENDEKUNUTS_GET_FF00_0)) {
-        this->unk_194 = ENDEKUNUTS_GET_FF00_1;
+
+    this->paramsUpperByte = ENDEKUNUTS_GET_FF00(&this->actor);
+    thisx->params &= 0xFF; // reduce to type only
+
+    if ((this->paramsUpperByte == MADSCRUB_TYPE2_FF) || (this->paramsUpperByte == MADSCRUB_TYPE2_0)) {
+        this->paramsUpperByte = MADSCRUB_TYPE2_1;
     }
 
-    if (this->actor.params == ENDEKUNUTS_GET_FF00_1) {
+    if (this->actor.params == MADSCRUB_TYPE_PASSIVE) {
         this->actor.flags &= ~ACTOR_FLAG_1;
         this->collider.base.colType = COLTYPE_NONE;
         this->collider.info.bumperFlags |= (BUMP_NO_HITMARK | BUMP_NO_SWORD_SFX | BUMP_NO_DAMAGE | BUMP_NO_AT_INFO);
-    } else if (this->actor.params == ENDEKUNUTS_GET_FF00_2) {
+    } else if (this->actor.params == MADSCRUB_TYPE_REGULAR) {
         this->actor.targetMode = 0;
     }
 
-    func_808BD428(this);
+    EnDekuNuts_SetupPeriscope(this);
 }
 
 void EnDekunuts_Destroy(Actor* thisx, PlayState* play) {
@@ -146,17 +148,17 @@ void EnDekunuts_Destroy(Actor* thisx, PlayState* play) {
     Collider_DestroyCylinder(play, &this->collider);
 }
 
-void func_808BD348(EnDekunuts* this) {
+void EnDekuNuts_Freeze(EnDekunuts* this) {
     this->drawDmgEffType = ACTOR_DRAW_DMGEFF_FROZEN_NO_SFX;
     this->drawDmgEffScale = 0.55f;
-    this->drawDmgEffFrozenSteamScale = 0.82500005f;
+    this->drawDmgEffFrozenSteamScale = 0.82500005f; // todo
     this->drawDmgEffAlpha = 1.0f;
     this->collider.base.colType = COLTYPE_HIT3;
-    this->unk_190 = 80;
+    this->timer = 80;
     Actor_SetColorFilter(&this->actor, 0x4000, 255, 0, 80);
 }
 
-void func_808BD3B4(EnDekunuts* this, PlayState* play) {
+void EnDekuNuts_Thaw(EnDekunuts* this, PlayState* play) {
     if (this->drawDmgEffType == ACTOR_DRAW_DMGEFF_FROZEN_NO_SFX) {
         this->drawDmgEffType = ACTOR_DRAW_DMGEFF_FIRE;
         this->collider.base.colType = COLTYPE_HIT6;
@@ -165,24 +167,24 @@ void func_808BD3B4(EnDekunuts* this, PlayState* play) {
     }
 }
 
-void func_808BD428(EnDekunuts* this) {
+void EnDekuNuts_SetupPeriscope(EnDekunuts* this) {
     Animation_PlayOnceSetSpeed(&this->skelAnime, &gDekuScrubUpAnim, 0.0f);
-    this->unk_190 = Rand_S16Offset(100, 50);
+    this->timer = Rand_S16Offset(100, 50);
     this->collider.dim.height = 5;
     Math_Vec3f_Copy(&this->actor.world.pos, &this->actor.home.pos);
     this->collider.base.acFlags &= ~AC_ON;
-    this->actionFunc = func_808BD49C;
+    this->actionFunc = EnDekuNuts_Periscope;
 }
 
-void func_808BD49C(EnDekunuts* this, PlayState* play) {
+void EnDekuNuts_Periscope(EnDekunuts* this, PlayState* play) {
     s32 phi_v1 = false;
 
     if (this->skelAnime.playSpeed < 0.5f) {
         phi_v1 = true;
     }
 
-    if (phi_v1 && (this->unk_190 != 0)) {
-        this->unk_190--;
+    if (phi_v1 && (this->timer != 0)) {
+        this->timer--;
     }
 
     if (Animation_OnFrame(&this->skelAnime, 9.0f)) {
@@ -193,17 +195,17 @@ void func_808BD49C(EnDekunuts* this, PlayState* play) {
 
     this->collider.dim.height = (s32)((CLAMP(this->skelAnime.curFrame, 9.0f, 12.0f) - 9.0f) * 9.0f) + 5;
 
-    if (!phi_v1 && (this->actor.params == ENDEKUNUTS_GET_FF00_0) && (Player_GetMask(play) != PLAYER_MASK_STONE) &&
+    if (!phi_v1 && (this->actor.params == MADSCRUB_TYPE_EVASIVE) && (Player_GetMask(play) != PLAYER_MASK_STONE) &&
         (this->actor.xzDistToPlayer < 120.0f)) {
         func_808BDC9C(this);
     } else if (SkelAnime_Update(&this->skelAnime)) {
-        if (((this->unk_190 == 0) && (this->actor.xzDistToPlayer > 320.0f)) ||
+        if (((this->timer == 0) && (this->actor.xzDistToPlayer > 320.0f)) ||
             (Player_GetMask(play) == PLAYER_MASK_STONE)) {
             func_808BD78C(this);
         } else {
-            if (this->actor.params == ENDEKUNUTS_GET_FF00_1) {
+            if (this->actor.params == MADSCRUB_TYPE_PASSIVE) {
                 func_808BE680(this);
-            } else if ((this->actor.params == ENDEKUNUTS_GET_FF00_0) && (this->actor.xzDistToPlayer < 120.0f)) {
+            } else if ((this->actor.params == MADSCRUB_TYPE_EVASIVE) && (this->actor.xzDistToPlayer < 120.0f)) {
                 func_808BDC9C(this);
             } else {
                 func_808BD870(this);
@@ -211,40 +213,42 @@ void func_808BD49C(EnDekunuts* this, PlayState* play) {
         }
     }
 
-    if (phi_v1 && ((this->actor.xzDistToPlayer > 160.0f) || (this->actor.params != ENDEKUNUTS_GET_FF00_0)) &&
-        (((this->actor.params == ENDEKUNUTS_GET_FF00_0) && (fabsf(this->actor.playerHeightRel) < 120.0f)) ||
-         ((this->actor.params == ENDEKUNUTS_GET_FF00_2) && (this->actor.playerHeightRel > -60.0f)) ||
-         (this->actor.params == ENDEKUNUTS_GET_FF00_1)) &&
-        ((this->unk_190 == 0) || (this->actor.xzDistToPlayer < 480.0f))) {
+    if (phi_v1 && ((this->actor.xzDistToPlayer > 160.0f) || (this->actor.params != MADSCRUB_TYPE_EVASIVE)) &&
+        (((this->actor.params == MADSCRUB_TYPE_EVASIVE) && (fabsf(this->actor.playerHeightRel) < 120.0f)) ||
+         ((this->actor.params == MADSCRUB_TYPE_REGULAR) && (this->actor.playerHeightRel > -60.0f)) ||
+         (this->actor.params == MADSCRUB_TYPE_PASSIVE)) &&
+        ((this->timer == 0) || (this->actor.xzDistToPlayer < 480.0f))) {
         this->skelAnime.playSpeed = 1.0f;
     }
 }
 
+// looking around for player
 void func_808BD78C(EnDekunuts* this) {
     Animation_PlayLoop(&this->skelAnime, &gDekuScrubLookAroundAnim);
-    this->unk_190 = 2;
+    this->timer = 2;
     this->actionFunc = func_808BD7D4;
 }
 
 void func_808BD7D4(EnDekunuts* this, PlayState* play) {
     SkelAnime_Update(&this->skelAnime);
     if (Animation_OnFrame(&this->skelAnime, 0.0f)) {
-        if (this->unk_190 != 0) {
-            this->unk_190--;
+        if (this->timer != 0) {
+            this->timer--;
         }
     }
 
-    if ((this->unk_190 == 0) || ((this->actor.xzDistToPlayer < 120.0f) && Player_GetMask(play) != PLAYER_MASK_STONE)) {
+    if ((this->timer == 0) || ((this->actor.xzDistToPlayer < 120.0f) && Player_GetMask(play) != PLAYER_MASK_STONE)) {
         func_808BDC9C(this);
     }
 }
 
+// waiting to spit
 void func_808BD870(EnDekunuts* this) {
     Animation_MorphToLoop(&this->skelAnime, &gDekuScrubIdleAnim, -3.0f);
     if (this->actionFunc == func_808BDA4C) {
-        this->unk_190 = 4098;
+        this->timer = 4098;
     } else {
-        this->unk_190 = 1;
+        this->timer = 1;
     }
     this->actionFunc = func_808BD8D8;
 }
@@ -252,24 +256,24 @@ void func_808BD870(EnDekunuts* this) {
 void func_808BD8D8(EnDekunuts* this, PlayState* play) {
     SkelAnime_Update(&this->skelAnime);
     if (Animation_OnFrame(&this->skelAnime, 0.0f)) {
-        if (this->unk_190 != 0) {
-            this->unk_190--;
+        if (this->timer != 0) {
+            this->timer--;
         }
     }
 
-    if (!(this->unk_190 & 0x1000)) {
+    if (!(this->timer & 0x1000)) {
         Math_ApproachS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 2, 0xE38);
     }
 
-    if (this->unk_190 == 0x1000) {
+    if (this->timer == 0x1000) {
         if ((this->actor.xzDistToPlayer > 480.0f) ||
-            ((this->actor.params == ENDEKUNUTS_GET_FF00_0) && (this->actor.xzDistToPlayer < 120.0f)) ||
+            ((this->actor.params == MADSCRUB_TYPE_EVASIVE) && (this->actor.xzDistToPlayer < 120.0f)) ||
             (Player_GetMask(play) == PLAYER_MASK_STONE)) {
             func_808BDC9C(this);
         } else {
             func_808BDA08(this);
         }
-    } else if (this->unk_190 == 0) {
+    } else if (this->timer == 0) {
         if (Player_GetMask(play) == PLAYER_MASK_STONE) {
             func_808BDC9C(this);
         } else {
@@ -278,9 +282,10 @@ void func_808BD8D8(EnDekunuts* this, PlayState* play) {
     }
 }
 
+// spitting
 void func_808BDA08(EnDekunuts* this) {
     Animation_PlayOnce(&this->skelAnime, &gDekuScrubSpitAnim);
-    this->unk_190 = this->unk_194;
+    this->timer = this->paramsUpperByte;
     this->actionFunc = func_808BDA4C;
 }
 
@@ -293,7 +298,7 @@ void func_808BDA4C(EnDekunuts* this, PlayState* play) {
     s16 params;
 
     Math_ApproachS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 2, 0xE38);
-    if (this->actor.params == ENDEKUNUTS_GET_FF00_2) {
+    if (this->actor.params == MADSCRUB_TYPE_REGULAR) {
         player = GET_PLAYER(play);
 
         sp58.x = player->actor.world.pos.x;
@@ -316,23 +321,25 @@ void func_808BDA4C(EnDekunuts* this, PlayState* play) {
         pos.x = (Math_SinS(this->actor.shape.rot.y) * val) + this->actor.world.pos.x;
         pos.y = (this->actor.world.pos.y + 12.0f) - (Math_SinS(this->actor.world.rot.x) * 15.0f);
         pos.z = (Math_CosS(this->actor.shape.rot.y) * val) + this->actor.world.pos.z;
-        params = (this->actor.params == ENDEKUNUTS_GET_FF00_2) ? ENDEKUNUTS_GET_FF00_2 : ENDEKUNUTS_GET_FF00_0;
+        params = (this->actor.params == MADSCRUB_TYPE_REGULAR) ? MADSCRUB_TYPE_REGULAR : MADSCRUB_TYPE_EVASIVE;
 
         if (Actor_Spawn(&play->actorCtx, play, ACTOR_EN_NUTSBALL, pos.x, pos.y, pos.z, this->actor.world.rot.x,
                         this->actor.shape.rot.y, 0, params) != NULL) {
             Actor_PlaySfx(&this->actor, NA_SE_EN_NUTS_THROW);
         }
-    } else if ((this->unk_190 >= 2) && Animation_OnFrame(&this->skelAnime, 12.0f)) {
+    } else if ((this->timer >= 2) && Animation_OnFrame(&this->skelAnime, 12.0f)) {
         Animation_MorphToPlayOnce(&this->skelAnime, &gDekuScrubSpitAnim, -3.0f);
-        if (this->unk_190 != 0) {
-            this->unk_190--;
+        if (this->timer != 0) {
+            this->timer--;
         }
     }
 }
 
+
+// burried in ground maybe sinking into ground
 void func_808BDC9C(EnDekunuts* this) {
     Animation_MorphToPlayOnce(&this->skelAnime, &gDekuScrubBurrowAnim, -5.0f);
-    this->unk_190 = 0;
+    this->timer = 0;
     Actor_PlaySfx(&this->actor, NA_SE_EN_NUTS_DOWN);
     this->actionFunc = func_808BDD54;
 }
@@ -340,19 +347,19 @@ void func_808BDC9C(EnDekunuts* this) {
 void func_808BDCF0(EnDekunuts* this) {
     Animation_MorphToPlayOnce(&this->skelAnime, &gDekuScrubBurrowAnim, -5.0f);
     this->collider.base.acFlags &= ~AC_ON;
-    this->unk_190 = 80;
+    this->timer = 80;
     Actor_PlaySfx(&this->actor, NA_SE_EN_NUTS_DOWN);
     this->actionFunc = func_808BDD54;
 }
 
 void func_808BDD54(EnDekunuts* this, PlayState* play) {
     if (SkelAnime_Update(&this->skelAnime)) {
-        if (this->unk_190 != 0) {
-            this->unk_190--;
+        if (this->timer != 0) {
+            this->timer--;
         }
 
-        if (this->unk_190 == 0) {
-            func_808BD428(this);
+        if (this->timer == 0) {
+            EnDekuNuts_SetupPeriscope(this);
         }
     } else {
         this->collider.dim.height = (s32)((3.0f - CLAMP(this->skelAnime.curFrame, 1.0f, 3.0f)) * 12.0f) + 5;
@@ -378,8 +385,8 @@ void func_808BDE7C(EnDekunuts* this) {
 
 void func_808BDEF8(EnDekunuts* this, PlayState* play) {
     if (SkelAnime_Update(&this->skelAnime)) {
-        this->unk_192 = BINANG_ROT180(this->actor.yawTowardsPlayer);
-        this->unk_18D = 3;
+        this->escapeDirection = BINANG_ROT180(this->actor.yawTowardsPlayer);
+        this->timer18D = 3;
         func_808BDF60(this);
     }
     Math_ApproachS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 2, 0xE38);
@@ -387,8 +394,8 @@ void func_808BDEF8(EnDekunuts* this, PlayState* play) {
 
 void func_808BDF60(EnDekunuts* this) {
     Animation_PlayLoop(&this->skelAnime, &gDekuScrubRunAnim);
-    this->unk_190 = 2;
-    this->unk_18C = 0;
+    this->timer = 2;
+    this->walkingSfxToggle = false;
     this->collider.base.acFlags |= AC_ON;
     this->actionFunc = func_808BDFB8;
 }
@@ -399,55 +406,55 @@ void func_808BDFB8(EnDekunuts* this, PlayState* play) {
 
     SkelAnime_Update(&this->skelAnime);
     if (Animation_OnFrame(&this->skelAnime, 0.0f)) {
-        if (this->unk_190 != 0) {
-            this->unk_190--;
+        if (this->timer != 0) {
+            this->timer--;
         }
     }
 
-    if (this->unk_18C != 0) {
+    if (this->walkingSfxToggle) {
         Actor_PlaySfx(&this->actor, NA_SE_EN_NUTS_WALK);
-        this->unk_18C = 0;
+        this->walkingSfxToggle = false;
     } else {
-        this->unk_18C = 1;
+        this->walkingSfxToggle = true;
     }
 
     Math_StepToF(&this->actor.speed, 7.5f, 1.0f);
-    if (!Math_SmoothStepToS(&this->actor.world.rot.y, this->unk_192, 1, 0xE38, 0xB6)) {
+    if (!Math_SmoothStepToS(&this->actor.world.rot.y, this->escapeDirection, 1, 0xE38, 0xB6)) {
         if (this->actor.bgCheckFlags & 0x20) {
-            this->unk_192 = Actor_WorldYawTowardPoint(&this->actor, &this->actor.home.pos);
+            this->escapeDirection = Actor_WorldYawTowardPoint(&this->actor, &this->actor.home.pos);
         } else if (this->actor.bgCheckFlags & 8) {
-            this->unk_192 = this->actor.wallYaw;
-        } else if (this->unk_18D == 0) {
+            this->escapeDirection = this->actor.wallYaw;
+        } else if (this->timer18D == 0) {
             yaw = Actor_WorldYawTowardPoint(&this->actor, &this->actor.home.pos);
             yaw2 = yaw - this->actor.yawTowardsPlayer;
             if (ABS_ALT(yaw2) > 0x2000) {
-                this->unk_192 = yaw;
+                this->escapeDirection = yaw;
             } else {
-                this->unk_192 = (((yaw2 >= 0) ? 1 : -1) * -0x2000) + this->actor.yawTowardsPlayer;
+                this->escapeDirection = (((yaw2 >= 0) ? 1 : -1) * -0x2000) + this->actor.yawTowardsPlayer;
             }
         } else {
-            this->unk_192 = BINANG_ROT180(this->actor.yawTowardsPlayer);
+            this->escapeDirection = BINANG_ROT180(this->actor.yawTowardsPlayer);
         }
     }
 
     this->actor.shape.rot.y = BINANG_ROT180(this->actor.world.rot.y);
-    if ((this->unk_18D == 0) && (Actor_WorldDistXZToPoint(&this->actor, &this->actor.home.pos) < 20.0f) &&
+    if ((this->timer18D == 0) && (Actor_WorldDistXZToPoint(&this->actor, &this->actor.home.pos) < 20.0f) &&
         (fabsf(this->actor.world.pos.y - this->actor.home.pos.y) < 2.0f)) {
         this->actor.colChkInfo.mass = MASS_IMMOVABLE;
         this->actor.flags &= ~ACTOR_FLAG_20;
         this->actor.speed = 0.0f;
         func_808BDC9C(this);
-    } else if (this->unk_190 == 0) {
+    } else if (this->timer == 0) {
         func_808BE1CC(this);
     }
 }
 
 void func_808BE1CC(EnDekunuts* this) {
     Animation_PlayLoop(&this->skelAnime, &gDekuScrubPantingAnim);
-    this->unk_190 = 3;
+    this->timer = 3;
     this->actor.speed = 0.0f;
-    if (this->unk_18D != 0) {
-        this->unk_18D--;
+    if (this->timer18D != 0) {
+        this->timer18D--;
     }
     this->actionFunc = func_808BE22C;
 }
@@ -455,19 +462,19 @@ void func_808BE1CC(EnDekunuts* this) {
 void func_808BE22C(EnDekunuts* this, PlayState* play) {
     SkelAnime_Update(&this->skelAnime);
     if (Animation_OnFrame(&this->skelAnime, 0.0f)) {
-        if (this->unk_190 != 0) {
-            this->unk_190--;
+        if (this->timer != 0) {
+            this->timer--;
         }
     }
 
-    if (this->unk_190 == 0) {
+    if (this->timer == 0) {
         func_808BDF60(this);
     }
 }
 
 void func_808BE294(EnDekunuts* this, s32 arg1) {
     Animation_MorphToPlayOnce(&this->skelAnime, &gDekuScrubDamageAnim, -3.0f);
-    if (this->actor.params == ENDEKUNUTS_GET_FF00_0) {
+    if (this->actor.params == MADSCRUB_TYPE_EVASIVE) {
         this->actor.speed = 10.0f;
         if (arg1 != 0) {
             func_800BE504(&this->actor, &this->collider);
@@ -500,13 +507,13 @@ void func_808BE3A8(EnDekunuts* this) {
 }
 
 void func_808BE3FC(EnDekunuts* this, PlayState* play) {
-    if (this->unk_190 != 0) {
-        this->unk_190--;
+    if (this->timer != 0) {
+        this->timer--;
     }
 
-    if (this->unk_190 == 0) {
-        func_808BD3B4(this, play);
-        if (this->actor.params == ENDEKUNUTS_GET_FF00_1) {
+    if (this->timer == 0) {
+        EnDekuNuts_Thaw(this, play);
+        if (this->actor.params == MADSCRUB_TYPE_PASSIVE) {
             func_808BDCF0(this);
         } else if (this->actor.colChkInfo.health == 0) {
             func_808BE294(this, 0);
@@ -570,21 +577,21 @@ void func_808BE73C(EnDekunuts* this, PlayState* play) {
         Actor_SetDropFlag(&this->actor, &this->collider.info);
         if ((this->drawDmgEffType != ACTOR_DRAW_DMGEFF_FROZEN_NO_SFX) ||
             !(this->collider.info.acHitInfo->toucher.dmgFlags & 0xDB0B3)) {
-            func_808BD3B4(this, play);
-            if ((this->actor.colChkInfo.mass == 50) || (this->actor.params != ENDEKUNUTS_GET_FF00_0)) {
-                if ((this->actor.params != ENDEKUNUTS_GET_FF00_1) && !Actor_ApplyDamage(&this->actor)) {
+            EnDekuNuts_Thaw(this, play);
+            if ((this->actor.colChkInfo.mass == 50) || (this->actor.params != MADSCRUB_TYPE_EVASIVE)) {
+                if ((this->actor.params != MADSCRUB_TYPE_PASSIVE) && !Actor_ApplyDamage(&this->actor)) {
                     Enemy_StartFinishingBlow(play, &this->actor);
                 }
 
-                if (this->actor.params == ENDEKUNUTS_GET_FF00_1) {
+                if (this->actor.params == MADSCRUB_TYPE_PASSIVE) {
                     func_808BDCF0(this);
                     return;
                 }
 
                 if (this->actor.colChkInfo.damageEffect == 3) {
-                    func_808BD348(this);
+                    EnDekuNuts_Freeze(this);
                     if (this->actor.colChkInfo.health == 0) {
-                        this->unk_190 = 3;
+                        this->timer = 3;
                         this->collider.base.acFlags &= ~AC_ON;
                     }
                     func_808BE3A8(this);
@@ -592,7 +599,7 @@ void func_808BE73C(EnDekunuts* this, PlayState* play) {
                 }
 
                 if (this->actor.colChkInfo.damageEffect == 1) {
-                    this->unk_190 = 40;
+                    this->timer = 40;
                     Actor_SetColorFilter(&this->actor, 0, 255, 0, 40);
                     Actor_PlaySfx(&this->actor, NA_SE_EN_COMMON_FREEZE);
                     func_808BE3A8(this);
@@ -617,15 +624,15 @@ void func_808BE73C(EnDekunuts* this, PlayState* play) {
                 }
 
                 func_808BE294(this, 1);
-            } else if (this->actor.params == ENDEKUNUTS_GET_FF00_0) {
+            } else if (this->actor.params == MADSCRUB_TYPE_EVASIVE) {
                 func_808BDE7C(this);
             }
         }
     } else if ((this->actor.colChkInfo.mass == MASS_IMMOVABLE) && (play->actorCtx.unk2 != 0) &&
                (this->actor.xyzDistToPlayerSq < SQ(200.0f))) {
-        if (this->actor.params == ENDEKUNUTS_GET_FF00_1) {
+        if (this->actor.params == MADSCRUB_TYPE_PASSIVE) {
             func_808BDCF0(this);
-        } else if (this->actor.params == ENDEKUNUTS_GET_FF00_0) {
+        } else if (this->actor.params == MADSCRUB_TYPE_EVASIVE) {
             func_808BDE7C(this);
         } else if (this->actor.colChkInfo.health != 0) {
             this->actor.colChkInfo.health = 0;
@@ -687,7 +694,7 @@ s32 EnDekunuts_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec
                 return 0;
             }
             Matrix_Scale(arg1, arg2, arg3, MTXMODE_APPLY);
-        } else if ((limbIndex == DEKU_SCRUB_LIMB_HEAD) && (this->actor.params == ENDEKUNUTS_GET_FF00_2)) {
+        } else if ((limbIndex == DEKU_SCRUB_LIMB_HEAD) && (this->actor.params == MADSCRUB_TYPE_REGULAR)) {
             rot->z = this->actor.world.rot.x;
         }
     }
@@ -727,8 +734,61 @@ void EnDekunuts_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
     }
 }
 
+/*
+void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
+    EnDekunuts* this = THIS; // replace with THIS actor
+    // with explanation comments
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // the dlist will be written in the opa buffer because that buffer is larger,
+    // but executed from the overlay buffer (overlay draws last, for example the hud is drawn to overlay)
+    gfx = POLY_OPA_DISP + 1;
+    gSPDisplayList(OVERLAY_DISP++, gfx);
+
+    // initialize GfxPrint struct
+    GfxPrint_Init(&printer);
+    GfxPrint_Open(&printer, gfx);
+
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
+    GfxPrint_SetPos(&printer, 1, 10);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+
+    { // address locations
+        u32 convertedAddr = (u32)Fault_ConvertAddress((void*)this->actionFunc);
+        GfxPrint_SetPos(&printer, 1, 11);
+        GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
+        GfxPrint_SetPos(&printer, 1, 12);
+        GfxPrint_Printf(&printer, "actionfunc actual ram:  %X", this->actionFunc);
+    }
+
+    GfxPrint_SetPos(&printer, 1, 13);
+    
+    //GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
+    //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
+    GfxPrint_Printf(&printer, "timer %X", this->timer);
+
+    // end of text printing
+    gfx = GfxPrint_Close(&printer);
+    GfxPrint_Destroy(&printer);
+
+    gSPEndDisplayList(gfx++);
+    // make the opa dlist jump over the part that will be executed as part of overlay
+    gSPBranchList(POLY_OPA_DISP, gfx);
+    POLY_OPA_DISP = gfx;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+    //Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+} // */
+
+
+
+
 void EnDekunuts_Draw(Actor* thisx, PlayState* play) {
     EnDekunuts* this = THIS;
+    //Debug_PrintToScreen(thisx, play); // put this in your actors draw func
 
     SkelAnime_DrawOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, EnDekunuts_OverrideLimbDraw,
                       EnDekunuts_PostLimbDraw, &this->actor);
