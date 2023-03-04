@@ -23,29 +23,33 @@ typedef enum {
 } DampeType;
 
 #define TKFLAGS1_UNK_00 0
-#define TKFLAGS1_UNK_01 1 << 0
-#define TKFLAGS1_UNK_02 1 << 1
-#define TKFLAGS1_UNK_04 1 << 2
-#define TKFLAGS1_UNK_08 1 << 3
-#define TKFLAGS1_UNK_10 1 << 4
-#define TKFLAGS1_UNK_20 1 << 5
-#define TKFLAGS1_UNK_40 1 << 6
-#define TKFLAGS1_UNK_80 1 << 7
+#define TKFLAGS1_UNK_01 (1 << 0)
+#define TKFLAGS1_UNK_02 (1 << 1)
+#define TKFLAGS1_UNK_04 (1 << 2)
+#define TKFLAGS1_UNK_08 (1 << 3)
+#define TKFLAGS1_UNK_10 (1 << 4)
+#define TKFLAGS1_UNK_20 (1 << 5)
+#define TKFLAGS1_UNK_40 (1 << 6)
+#define TKFLAGS1_UNK_80 (1 << 7)
 
 // used during big po dig minigame?
 #define TKFLAGS2_UNK_00  0
-#define TKFLAGS2_UNK_01  1 << 0
-#define TKFLAGS2_UNK_02  1 << 1
-#define TKFLAGS2_UNK_04  1 << 2
-#define TKFLAGS2_UNK_08  1 << 3
-#define TKFLAGS2_UNK_10  1 << 4
-#define TKFLAGS2_UNK_20  1 << 5
-#define TKFLAGS2_UNK_40  1 << 6
-#define TKFLAGS2_UNK_80  1 << 7
-#define TKFLAGS2_UNK_100 1 << 8
-#define TKFLAGS2_STOPPED 1 << 9
-#define TKFLAGS2_UNK_400 1 << 10
-#define TKFLAGS2_UNK_800 1 << 11
+#define TKFLAGS2_RIDING_ELEVATOR  (1 << 0)
+#define TKFLAGS2_UNK_02   (1 << 1)
+#define TKFLAGS2_UNK_04   (1 << 2)
+#define TKFLAGS2_UNK_08   (1 << 3)
+#define TKFLAGS2_UNK_10   (1 << 4)
+#define TKFLAGS2_UNK_20   (1 << 5)
+#define TKFLAGS2_UNK_40   (1 << 6)
+#define TKFLAGS2_UNK_80   (1 << 7)
+#define TKFLAGS2_UNK_100  (1 << 8)
+#define TKFLAGS2_STOPPED  (1 << 9)
+#define TKFLAGS2_UNK_400  (1 << 10)
+#define TKFLAGS2_UNK_800  (1 << 11)
+#define TKFLAGS2_UNK_1000 (1 << 12)
+#define TKFLAGS2_UNK_2000 (1 << 13)
+#define TKFLAGS2_UNK_4000 (1 << 14)
+#define TKFLAGS2_UNK_8000 (1 << 15)
 
 // state of dampe digging
 typedef enum {

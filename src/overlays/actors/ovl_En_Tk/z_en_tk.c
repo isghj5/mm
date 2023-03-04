@@ -348,7 +348,7 @@ void EnTk_WalkingOutside(EnTk* this, PlayState* play) {
         this->skelAnime.playSpeed = 0.0f;
     }
 
-    if (this->tkFlags2 & 0x10) {
+    if (this->tkFlags2 & TKFLAGS2_UNK_10) {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_RUN, &this->animIndex);
         sp48 = 1.0f;
         sp44 = 22.0f;
@@ -456,7 +456,7 @@ s32 func_80AECE60(EnTk* this, PlayState* play) {
     }
 
     door = NULL;
-    if (!(this->tkFlags2 & 0xC00)) {
+    if (!(this->tkFlags2 & (TKFLAGS2_UNK_400 | TKFLAGS2_UNK_800))) {
         Actor* doorIter = NULL;
 
         do {
@@ -465,7 +465,7 @@ s32 func_80AECE60(EnTk* this, PlayState* play) {
                 if (Actor_XZDistanceBetweenActors(&this->actor, doorIter) <= 120.0f) {
                     if (ABS(BINANG_SUB(Actor_YawToPoint(&this->actor, &doorIter->world.pos),
                                        this->actor.shape.rot.y)) <= 0x2000) {
-                        this->tkFlags2 |= 0x400;
+                        this->tkFlags2 |= TKFLAGS2_UNK_400;
                         door = (EnDoor*)doorIter;
                         break;
                     }
@@ -488,7 +488,7 @@ s32 func_80AECE60(EnTk* this, PlayState* play) {
         } while (doorIter != NULL);
     }
 
-    if ((door != NULL) && (this->tkFlags2 & 0x400)) {
+    if ((door != NULL) && (this->tkFlags2 & TKFLAGS2_UNK_400)) {
         Vec3f sp5C;
 
         Actor_OffsetOfPointInActorCoords(&this->actor, &sp5C, &door->dyna.actor.world.pos);
@@ -709,7 +709,7 @@ void EnTk_DigGameIdle(EnTk* this, PlayState* play) {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_STARTLE_LOOP, &this->animIndex);
     }
 
-    if (!(this->tkFlags2 & 0x40)) {
+    if (!(this->tkFlags2 & TKFLAGS2_UNK_40)) {
         dampeSearchIter = NULL;
 
         do {
@@ -719,8 +719,7 @@ void EnTk_DigGameIdle(EnTk* this, PlayState* play) {
                     Math_Vec3f_Copy(&this->unk_2EC, &dampeSearchIter->world.pos);
                     Math_Vec3s_Copy(&this->unk_2F8, &dampeSearchIter->world.rot);
                     Actor_Kill(dampeSearchIter);
-                    // bug? the dampeSearchIter was already kill
-                    this->tkFlags2 |= 0x40;
+                    this->tkFlags2 |= TKFLAGS2_UNK_40;
                     break;
                 }
                 dampeSearchIter = dampeSearchIter->next;
@@ -729,12 +728,12 @@ void EnTk_DigGameIdle(EnTk* this, PlayState* play) {
     }
 
     if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
-        this->tkFlags2 &= ~0x80;
+        this->tkFlags2 &= ~TKFLAGS2_UNK_80;
         this->actor.flags &= ~ACTOR_FLAG_10000;
         play->msgCtx.msgMode = 0;
         play->msgCtx.msgLength = 0;
         EnTk_ChooseNextDialogue(this, play);
-    } else if (!(this->tkFlags2 & 0x80)) {
+    } else if (!(this->tkFlags2 & TKFLAGS2_UNK_80)) {
         if (this->actor.xzDistToPlayer < 100.0f) {
             func_8013E8F8(&this->actor, play, 100.0f, 100.0f, PLAYER_IA_NONE, 0x4000, 0x4000);
         }
@@ -784,7 +783,7 @@ void EnTk_SetupDigGameIdleFoundSpot(EnTk* this, PlayState* play) {
     this->actor.speedXZ = 0.0f;
     SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
     this->actor.flags |= ACTOR_FLAG_10000;
-    this->tkFlags2 |= 0x80;
+    this->tkFlags2 |= TKFLAGS2_UNK_80;
     this->actionFunc = EnTk_DigGameIdle;
 }
 
@@ -799,7 +798,7 @@ void EnTk_ChooseNextDialogue(EnTk* this, PlayState* play) {
 
             switch (this->digGameState) {
                 case DAMPE_DIG_GAME_STATE_IDLE:
-                    this->tkFlags2 &= ~0x1000;
+                    this->tkFlags2 &= ~TKFLAGS2_UNK_1000;
                     if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_52_80)) {
                         this->textId = 0x1405; // Who are you? Not a ghost are you?
                     } else {
@@ -877,7 +876,7 @@ void EnTk_TalkDigGame(EnTk* this, PlayState* play) {
             if (Message_ShouldAdvance(play)) {
                 switch (play->msgCtx.currentTextId) {
                     case 0x1404: // (Screaming) They're out! Go away!
-                        this->tkFlags2 |= 0x1000;
+                        this->tkFlags2 |= TKFLAGS2_UNK_1000;
                         EnTk_SetupDigGameIdle(this, play);
                         break;
 
@@ -915,7 +914,7 @@ void EnTk_TalkDigGame(EnTk* this, PlayState* play) {
                         break;
 
                     case 0x140D: // Something here, want me to dig? y/n
-                        this->tkFlags2 |= 2;
+                        this->tkFlags2 |= TKFLAGS2_UNK_02;
                         if (play->msgCtx.choiceIndex == 0) { // yes
                             func_8019F208();
                             play->msgCtx.msgMode = 0x44;
@@ -1009,7 +1008,7 @@ void EnTk_Digging(EnTk* this, PlayState* play) {
         Actor_PlaySfxAtPos(&this->actor, NA_SE_EV_DIG_UP);
     }
 
-    if (!(this->tkFlags2 & 0x20)) {
+    if (!(this->tkFlags2 & TKFLAGS2_UNK_20)) {
         if (Animation_OnFrame(&this->skelAnime, 37.0f)) {
             bigPoe = NULL;
             do {
@@ -1018,7 +1017,7 @@ void EnTk_Digging(EnTk* this, PlayState* play) {
                 if (bigPoe != NULL) {
                     if ((bigPoe->params == ENBIGPO_CHOSENFIRE) && (Actor_DistanceBetweenActors(&this->actor, bigPoe) < 80.0f)) {
                         bigPoe->params = ENBIGPO_REVEALEDFIRE;
-                        this->tkFlags2 |= 0x20;
+                        this->tkFlags2 |= TKFLAGS2_UNK_20;
                         this->bigpoFlameFoundCount++;
                     }
                     bigPoe = bigPoe->next;
@@ -1041,7 +1040,7 @@ void func_80AEE650(EnTk* this, PlayState* play) {
 }
 
 void func_80AEE6B8(EnTk* this, PlayState* play) {
-    if (this->tkFlags2 & 0x20) {
+    if (this->tkFlags2 & TKFLAGS2_UNK_20) {
         if (this->bigpoFlameFoundCount >= 3) {
             ActorCutscene_Stop(this->cutscenes[0]);
             func_801477B4(play);
@@ -1049,7 +1048,7 @@ void func_80AEE6B8(EnTk* this, PlayState* play) {
         } else if (SubS_StartActorCutscene(&this->actor, 0x7C, this->cutscenes[0], SUBS_CUTSCENE_SET_UNK_LINK_FIELDS)) {
             this->digGameState = DAMPE_DIG_GAME_STATE_FOUND_FLAME;
             EnTk_ChooseNextDialogue(this, play);
-            this->tkFlags2 &= ~0x20;
+            this->tkFlags2 &= ~TKFLAGS2_UNK_20;
         }
     } else if (SubS_StartActorCutscene(&this->actor, 0x7C, this->cutscenes[0], SUBS_CUTSCENE_SET_UNK_LINK_FIELDS)) {
         this->digGameState = DAMPE_DIG_GAME_STATE_FOUND_NOTHING;
@@ -1093,7 +1092,7 @@ s32 EnTk_CheckFoundDigSpot(EnTk* this, PlayState* play) {
         (func_800C9BB8(&play->colCtx, sp38, sp34) == 1) && (this->digGameMovingState == (u32)DAMPE_DIG_GAME_MOVING_STATE_FOLLOWING) &&
         (this->actor.xyzDistToPlayerSq <= SQ(115.0f)) &&
         func_80AEE7E0(&this->actor.world.pos, 100.0f, this->unk_324, this->unk_36C) &&
-        (((this->tkFlags2 & 2) && (Math_Vec3f_DistXZ(&this->unk_300, &sp28) >= 100.0f)) || !(this->tkFlags2 & 2)) &&
+        (((this->tkFlags2 & TKFLAGS2_RIDING_ELEVATOR) && (Math_Vec3f_DistXZ(&this->unk_300, &sp28) >= 100.0f)) || !(this->tkFlags2 & TKFLAGS2_RIDING_ELEVATOR)) &&
         !Play_InCsMode(play)) {
         Math_Vec3f_Copy(&this->unk_300, &sp28);
         ret = true;
@@ -1106,7 +1105,7 @@ void EnTk_DigGameWalking(EnTk* this, PlayState* play) {
 
     EnTk_CheckDigGameMovingState(this, play);
     if (Math_Vec3f_DistXZ(&this->actor.world.pos, &this->unk_300) >= 100.0f) {
-        this->tkFlags2 &= ~2;
+        this->tkFlags2 &= ~TKFLAGS2_RIDING_ELEVATOR;
     }
 
     if (EnTk_CheckFoundDigSpot(this, play)) {
@@ -1119,7 +1118,7 @@ void EnTk_DigGameWalking(EnTk* this, PlayState* play) {
 s32 EnTk_GetNewDigGameMovingState(EnTk* this, PlayState* play) {
     s32 newState;
 
-    if (this->tkFlags2 & 1) {
+    if (this->tkFlags2 & TKFLAGS2_RIDING_ELEVATOR) {
         newState = DAMPE_DIG_GAME_MOVING_STATE_RIDING_ELEVATOR;
     } else if (this->actor.xyzDistToPlayerSq < SQ(60.0f)) {
         newState = DAMPE_DIG_GAME_MOVING_STATE_STANDING;
@@ -1231,7 +1230,7 @@ void EnTk_FollowFuncLost(EnTk* this, PlayState* play) {
         }
     }
 
-    if (this->tkFlags2 & 0x200) {
+    if (this->tkFlags2 & TKFLAGS2_STOPPED) {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
     } else {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_WALK2, &this->animIndex);
@@ -1244,8 +1243,9 @@ void EnTk_FollowFuncLost(EnTk* this, PlayState* play) {
     }
 
     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_NONE) && !Play_InCsMode(play) && (this->unk_2C6-- <= 0)) {
+        // Where did you go? Please walk slower
         Message_StartTextbox(play, 0x140C, NULL);
-        this->tkFlags2 |= 0x4000;
+        this->tkFlags2 |= TKFLAGS2_UNK_4000;
         this->unk_2C6 = 200;
     }
 }
@@ -1260,7 +1260,7 @@ void EnTk_SetFollowFuncFollowing(EnTk* this, PlayState* play) {
 void EnTk_FollowFuncFollowing(EnTk* this, PlayState* play) {
     f32 sp2C;
 
-    if (this->tkFlags2 & 0x200) {
+    if (this->tkFlags2 & TKFLAGS2_STOPPED) {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_REST, &this->animIndex);
     } else {
         SubS_ChangeAnimationBySpeedInfo(&this->skelAnime, sAnimations, DAMPE_ANIM_WALK2, &this->animIndex);
@@ -1349,7 +1349,7 @@ void EnTk_UpdateDigGame(Actor* thisx, PlayState* play) {
         Actor_PlaySfxAtPos(&this->actor, NA_SE_EN_GOLON_WALK);
     }
 
-    this->tkFlags2 &= ~1;
+    this->tkFlags2 &= ~TKFLAGS2_RIDING_ELEVATOR;
 
     if (this->actor.floorBgId != BGCHECK_SCENE) {
         BgDanpeiMovebg* platform = (BgDanpeiMovebg*)DynaPoly_GetActor(&play->colCtx, this->actor.floorBgId);
@@ -1358,7 +1358,7 @@ void EnTk_UpdateDigGame(Actor* thisx, PlayState* play) {
             if (platform->dyna.actor.id == ACTOR_BG_DANPEI_MOVEBG) {
                 platform->unk_1CC |= 1;
                 if (platform->unk_1CC & 2) {
-                    this->tkFlags2 |= 1;
+                    this->tkFlags2 |= TKFLAGS2_RIDING_ELEVATOR;
                 }
             }
         } else {
@@ -1374,13 +1374,13 @@ void EnTk_UpdateDigGame(Actor* thisx, PlayState* play) {
 
     if ((this->type == DAMPE_TYPE_DIG_GAME_NPC) && (func_800C9B40(&play->colCtx, this->actor.floorPoly, this->actor.floorBgId) == 12)) {
         Math_Vec3f_Copy(&this->actor.world.pos, &this->actor.prevPos);
-        this->tkFlags2 |= 0x200;
+        this->tkFlags2 |= TKFLAGS2_STOPPED;
         this->actor.velocity.y = 0.0f;
     } else {
-        this->tkFlags2 &= ~0x200;
+        this->tkFlags2 &= ~TKFLAGS2_STOPPED;
     }
 
-    if (!(this->tkFlags2 & 0x200)) {
+    if (!(this->tkFlags2 & TKFLAGS2_STOPPED)) {
         if (!(this->actor.bgCheckFlags & 1)) {
             func_800B9010(&this->actor, NA_SE_EV_HONEYCOMB_FALL - SFX_FLAG);
         } else if (this->actor.bgCheckFlags & 2) {
