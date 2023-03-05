@@ -127,7 +127,8 @@ void EnStream_Update(Actor* thisx, PlayState* play) {
     EnStream* this = THIS;
 
     this->actionFunc(this, play);
-    func_800B8FE8(&this->actor, NA_SE_EV_WHIRLPOOL - SFX_FLAG);
+    //func_800B8FE8(&this->actor, NA_SE_EV_WHIRLPOOL - SFX_FLAG);
+    Actor_PlaySfxAtPos(&this->actor, NA_SE_EV_WHIRLPOOL - SFX_FLAG);
 }
 
 void EnStream_Draw(Actor* thisx, PlayState* play) {
