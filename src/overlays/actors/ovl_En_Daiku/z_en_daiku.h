@@ -30,7 +30,9 @@ typedef struct EnDaiku {
     /* 0x25C */ s16 unk_25C;
     /* 0x25E */ s16 unk_25E;
     /* 0x260 */ s16 unk_260;
-    /* 0x262 */ UNK_TYPE1 unk_262[0x2];
+    ///* 0x262 */ UNK_TYPE1 unk_262[0x2];
+    /* 0x262 */ s8 randomChoice;
+    /* 0x263 */ s8 randomThing2;
     /* 0x264 */ s16 unk_264;
     /* 0x266 */ s16 unk_266;
     /* 0x268 */ UNK_TYPE1 unk_268[0x4];

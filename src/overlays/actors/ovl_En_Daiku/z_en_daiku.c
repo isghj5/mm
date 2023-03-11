@@ -33,8 +33,12 @@ ActorInit En_Daiku_InitVars = {
     (ActorFunc)EnDaiku_Draw,
 };
 
+// ugh
 static u16 sTextIds[] = {
-    0x061C, 0x061A, 0x061B, 0x061C, 0x061C, 0x061D, 0x061E, 0x061F, 0x061C, 0x0620, 0x0621, 0x0622,
+ 0x061C, 0x061A, 0x061B,
+ 0x061C, 0x061C, 0x061D,
+ 0x061E, 0x061F, 0x061C,
+ 0x0620, 0x0621, 0x0622,
 };
 
 static ColliderCylinderInit sCylinderInit = {
@@ -91,14 +95,17 @@ void EnDaiku_Init(Actor* thisx, PlayState* play) {
         if (CHECK_WEEKEVENTREG(WEEKEVENTREG_63_80) || ((gSaveContext.save.day == 3) && gSaveContext.save.isNight)) {
             Actor_Kill(&this->actor);
         }
-    } else if ((gSaveContext.save.day == 3) && gSaveContext.save.isNight) {
+    } else if ((gSaveContext.save.day == 3) && this->type <= 3 && gSaveContext.save.isNight) {
         Actor_Kill(&this->actor);
     }
+
+    this->randomChoice = Rand_Next() % 4;
 
     Math_Vec3f_Copy(&this->unk_26C, &this->actor.world.pos);
     this->unk_280 = this->actor.world.rot.y;
     this->actor.gravity = -3.0f;
 
+    Actor_SetFocus(&this->actor, 65.0f);
     switch (this->type) {
         case ENDAIKU_PARAMS_FF_0:
             this->unk_27E = this->type * 4 + 4;
@@ -117,8 +124,21 @@ void EnDaiku_Init(Actor* thisx, PlayState* play) {
             SkelAnime_InitFlex(play, &this->skelAnime, &object_daiku_Skel_00A850, &object_daiku_Anim_001114,
                                this->jointTable, this->morphTable, OBJECT_DAIKU_LIMB_MAX);
             break;
+        //case 4: exists in actor draw but not here..? migt be bug
+        case 5: // happy
+            SkelAnime_InitFlex(play, &this->skelAnime, &object_daiku_Skel_00A850, &object_daiku_Anim_00C92C,
+                               this->jointTable, this->morphTable, OBJECT_DAIKU_LIMB_MAX);
+            EnDaiku2_SetIdle(this);
+            return;
+        case 6: // sad
+            SkelAnime_InitFlex(play, &this->skelAnime, &object_daiku_Skel_00A850, &object_daiku_Anim_00C234,
+                               this->jointTable, this->morphTable, OBJECT_DAIKU_LIMB_MAX);
+            Actor_SetFocus(&this->actor, 25.0f);
+            EnDaiku2_SetIdle(this);
+            return;
     }
 
+    // why set the animation above when we get reset in next funcion?
     func_80943820(this);
 }
 
@@ -142,6 +162,27 @@ void func_809437C8(EnDaiku* this) {
     }
 }
 
+EnDaiku2_Idle(EnDaiku* this, PlayState* play){
+  if (Player_GetMask(play) == PLAYER_MASK_KAFEIS_MASK) {
+      this->actor.textId = 0x2365;
+  }
+  if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+      func_80943BC0(this);
+      return;
+  }
+
+
+}
+
+EnDaiku2_SetIdle(EnDaiku* this){
+    this->unk_28C = Rand_Next() % ARRAY_COUNT(sTextIds);
+    this->actor.textId = sTextIds[this->unk_28C];
+    this->unk_280 = this->actor.shape.rot.y;
+    this->unk_28A = 0;
+    this->actionFunc = func_809438F8;
+}
+
+// set actionfunc
 void func_80943820(EnDaiku* this) {
     s32 day = gSaveContext.save.day - 1;
 
@@ -164,7 +205,11 @@ void func_80943820(EnDaiku* this) {
     this->actor.textId = sTextIds[this->unk_28C];
     this->unk_280 = this->actor.shape.rot.y;
     this->unk_28A = 0;
-    this->actionFunc = func_809438F8;
+    if (this->type <= 4){
+      this->actionFunc = func_809438F8;
+    } else {
+      this->actionFunc = EnDaiku2_Idle; 
+    }
 }
 
 void func_809438F8(EnDaiku* this, PlayState* play) {
@@ -275,7 +320,7 @@ void EnDaiku_Update(Actor* thisx, PlayState* play) {
 
     Actor_SetScale(&this->actor, 0.01f);
     this->actor.shape.rot.y = this->actor.world.rot.y;
-    Actor_SetFocus(&this->actor, 65.0f);
+    //Actor_SetFocus(&this->actor, 65.0f);
     Actor_MoveWithGravity(&this->actor);
     Math_SmoothStepToS(&this->unk_260, this->unk_266, 1, 0xBB8, 0);
     Math_SmoothStepToS(&this->unk_25E, this->unk_264, 1, 0xBB8, 0);
@@ -297,6 +342,7 @@ s32 EnDaiku_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
 }
 
 void EnDaiku_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
+    // different hair styles
     static Gfx* D_809440D4[] = {
         object_daiku_DL_0070C0,
         object_daiku_DL_006FB0,
@@ -308,9 +354,15 @@ void EnDaiku_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* ro
     OPEN_DISPS(play->state.gfxCtx);
 
     if (limbIndex == 15) {
-        gSPDisplayList(POLY_OPA_DISP++, D_809440D4[this->type]);
+        if (this->type <= 3){
+          gSPDisplayList(POLY_OPA_DISP++, D_809440D4[this->type]);
+        } else{
+          gSPDisplayList(POLY_OPA_DISP++, D_809440D4[this->randomChoice]);
+
+        }
     }
 
+    // pick
     if ((this->type == ENDAIKU_PARAMS_FF_3) && (limbIndex == 8)) {
         gSPDisplayList(POLY_OPA_DISP++, object_daiku_DL_008EC8);
     }
@@ -342,7 +394,7 @@ void EnDaiku_Draw(Actor* thisx, PlayState* play) {
             gDPSetEnvColor(POLY_OPA_DISP++, 200, 0, 150, 255);
             break;
 
-        case 4:
+        case 4: // ??
             gDPSetEnvColor(POLY_OPA_DISP++, 200, 0, 0, 255);
             break;
     }
