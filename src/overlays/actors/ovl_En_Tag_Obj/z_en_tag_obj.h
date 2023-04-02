@@ -1,14 +1,16 @@
-#ifndef Z_EN_TAG_OBJ_H
-#define Z_EN_TAG_OBJ_H
+#ifndef Z_CUBE
+#define Z_CUBE
 
 #include "global.h"
 
-struct EnTagObj;
+struct CUBE;
+
+typedef void (*CUBEActionFunc)(struct CUBE*, PlayState*);
 
 typedef struct EnTagObj {
-    /* 0x000 */ Actor actor;
-    /* 0x144 */ UNK_TYPE1 unk_144[0x50];
-    /* 0x194 */ s32 hasSpawnedSeahorse;
-} EnTagObj; // size = 0x198
+    /* 0x000 */ DynaPolyActor dyna;
+    /* 0x15C */ CUBEActionFunc actionFunc;
+    /* 0x160 */ s32 timer;
+} CUBE; // size = 0x198
 
-#endif // Z_EN_TAG_OBJ_H
+#endif // Z_CUBE
