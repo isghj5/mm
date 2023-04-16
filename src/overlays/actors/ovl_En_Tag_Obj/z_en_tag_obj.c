@@ -10,7 +10,7 @@
 
 #include "objects/gameplay_keep/gameplay_keep.h"
 
-#define FLAGS (ACTOR_FLAG_10)
+#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_80)
 
 #define THIS ((CUBE*)thisx)
 
@@ -38,7 +38,7 @@ ActorInit En_Tag_Obj_InitVars = {
 static InitChainEntry sInitChain[] = {
     ICHAIN_F32(uncullZoneScale, 400, ICHAIN_CONTINUE),
     ICHAIN_F32(uncullZoneForward, 5000, ICHAIN_CONTINUE),
-    ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_STOP), // scale
+    ICHAIN_VEC3F_DIV1000(scale, 66, ICHAIN_STOP), // scale
 };
 
 
@@ -51,6 +51,7 @@ void CUBE_Init(Actor* thisx, PlayState* play) {
     this->dyna.actor.params = 1;
     this->actionFunc = CUBE_Idle;
     this->dyna.actor.home.pos.y += 5;
+    CUBE_EXTRA_STATE = 0x0;
 }
 
 void CUBE_Destroy(Actor* thisx, PlayState* play) {
@@ -60,15 +61,24 @@ void CUBE_Destroy(Actor* thisx, PlayState* play) {
 }
 
 void CUBE_Idle(CUBE* this, PlayState* play) {
+    //s32 rotTarget = (CUBE_EXTRA_STATE & 0x1) ? (0x2000) : (0) ;
+
+    //Math_SmoothStepToS(&this->dyna.actor.world.rot.x, rotTarget, 1, 50, 0); 
+    //Math_SmoothStepToS(&this->dyna.actor.world.rot.x, 0x4500, 20, 500, 10); 
+    //if (this->dyna.actor.world.rot.z < 0x4500) {
+        //this->dyna.actor.world.rot.z += 0x100;
+    //}
+
     if (((this->dyna.actor.params == 1) && (DynaPolyActor_IsInRidingMovingState(&this->dyna))) ||
         ((this->dyna.actor.params == -1) && (!DynaPolyActor_IsInRidingMovingState(&this->dyna)))) {
-        //this->timer = 96;
         this->timer = 96;
         this->actionFunc = CUBE_Elevate;
     } else {
         if (this->timer == 0) {
             this->timer = 48;
+            CUBE_EXTRA_STATE ^= 0x1;
         }
+
         this->timer--;
         if (this->dyna.actor.params == 1) {
             this->dyna.actor.world.pos.y = (sin_rad(this->timer * (M_PI / 24.0f)) * 5.0f) + this->dyna.actor.home.pos.y;

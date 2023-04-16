@@ -13,4 +13,8 @@ typedef struct EnTagObj {
     /* 0x160 */ s32 timer;
 } CUBE; // size = 0x198
 
+#define CUBE_EXTRA_STATE (this->dyna.actor.home.rot.x)
+#define CUBE_TWIST 0x1
+// params gets used to control height and direction
+
 #endif // Z_CUBE
