@@ -93,10 +93,10 @@ void EnDs2n2_ChooseText(EnDs2n* this, PlayState* play) {
 }
 
 void EnDs2n2_Dialogue(EnDs2n* this, PlayState* play) {
-    u8 msgState = Message_GetState(&play->msgCtx);
     u8 shouldAdvance = Message_ShouldAdvance(play);
 
     if (shouldAdvance) {
+      u8 msgState = Message_GetState(&play->msgCtx);
       if (msgState == 5 || msgState == 6) {
         if (this->actor.textId == 0x12D4 //|| this->actor.textId == 0x06C6 
           || this->actor.textId == 0x0D6B|| this->actor.textId == 0x06C2 ) { // good to sell
@@ -145,22 +145,29 @@ void EnDs2n_Idle(EnDs2n* this, PlayState* play) {
   // 6C7 ....
   // 2A3A: I am not sus
 
-  if ( this->actor.xzDistToPlayer < 100.0f && ABS(this->actor.yawTowardsPlayer) <= 0x4000) {
-    Player* player = GET_PLAYER(play);
+  // restructured to match EnSth's order
+  if (Actor_ProcessTalkRequest(&this->actor, &play->state)){
+      this->actionFunc = EnDs2n2_Dialogue;
 
-    // attempt dialogue with player
-    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
-        this->actionFunc = EnDs2n2_Dialogue;
+  } else if ( this->actor.xzDistToPlayer < 100.0f && ABS(this->actor.yawTowardsPlayer) <= 0x4000) {
+      EnDs2n2_ChooseText(this, play);
+      func_800B8614(&this->actor, play, 120.0f); // enables talking prompt
 
-    }else if (!(player->stateFlags1 & 0x800000)){
-        EnDs2n2_ChooseText(this, play);
-        func_800B8614(&this->actor, play, 120.0f); // enables talking prompt
-    }
-
-  } else { // not close enough
-    //this->overrideEyeTexIndex = 0;
-    //this->mouthTexIndex = 0;
   }
+
+  //if ( this->actor.xzDistToPlayer < 100.0f && ABS(this->actor.yawTowardsPlayer) <= 0x4000) {
+    //Player* player = GET_PLAYER(play);
+
+    //// attempt dialogue with player
+    //if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+        //this->actionFunc = EnDs2n2_Dialogue;
+
+    //}else if (!(player->stateFlags1 & 0x800000)){
+        //EnDs2n2_ChooseText(this, play);
+        //func_800B8614(&this->actor, play, 120.0f); // enables talking prompt
+    //}
+
+  //}
 
 }
 
