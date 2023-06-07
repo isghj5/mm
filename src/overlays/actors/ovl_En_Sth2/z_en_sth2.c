@@ -22,12 +22,13 @@ ActorInit En_Sth2_InitVars = {
     ACTOR_EN_STH2,
     ACTORCAT_NPC,
     FLAGS,
-    GAMEPLAY_KEEP,
+    //GAMEPLAY_KEEP,
+    OBJECT_STH,
     sizeof(EnSth2),
     (ActorFunc)EnSth2_Init,
     (ActorFunc)EnSth2_Destroy,
-    (ActorFunc)EnSth2_Update,
-    (ActorFunc)NULL,
+    (ActorFunc)EnSth2_UpdateActionFunc,
+    (ActorFunc)EnSth2_Draw,
 };
 
 #include "overlays/ovl_En_Sth2/ovl_En_Sth2.c"
@@ -35,18 +36,22 @@ ActorInit En_Sth2_InitVars = {
 void EnSth2_Init(Actor* thisx, PlayState* play) {
     EnSth2* this = THIS;
 
-    this->objIndex = Object_GetIndex(&play->objectCtx, OBJECT_STH);
+    //this->objIndex = Object_GetIndex(&play->objectCtx, OBJECT_STH);
     Actor_SetScale(&this->actor, 0.01f);
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 36.0f);
-    this->unused = 0;
+    //this->unused = 0;
 
     if (play->actorCtx.flags & ACTORCTX_FLAG_1) {
         this->actor.flags |= (ACTOR_FLAG_10 | ACTOR_FLAG_20);
-    } else {
-        Actor_Kill(&this->actor);
-        return;
+    //} else {
+        //Actor_Kill(&this->actor);
+        //return;
     }
     this->actionFunc = EnSth2_UpdateSkelAnime;
+    //EnSth2_Update(thisx, play);
+        SkelAnime_InitFlex(play, &this->skelAnime, &gSthSkel, &gEnSth2WavingHandAnim, this->jointTable,
+                           this->morphTable, STH_LIMB_MAX);
+        Animation_PlayLoop(&this->skelAnime, &gEnSth2WavingHandAnim);
 }
 
 void EnSth2_Destroy(Actor* thisx, PlayState* play) {
@@ -57,18 +62,18 @@ void EnSth2_UpdateSkelAnime(EnSth2* this, PlayState* play) {
 }
 
 void EnSth2_Update(Actor* thisx, PlayState* play) {
-    s32 pad;
-    EnSth2* this = THIS;
+    //s32 pad;
+    //EnSth2* this = THIS;
 
-    if (Object_IsLoaded(&play->objectCtx, this->objIndex)) {
-        this->actor.objBankIndex = this->objIndex;
-        Actor_SetObjectDependency(play, &this->actor);
-        SkelAnime_InitFlex(play, &this->skelAnime, &gSthSkel, &gEnSth2WavingHandAnim, this->jointTable,
-                           this->morphTable, STH_LIMB_MAX);
-        Animation_PlayLoop(&this->skelAnime, &gEnSth2WavingHandAnim);
-        this->actor.update = EnSth2_UpdateActionFunc;
-        this->actor.draw = EnSth2_Draw;
-    }
+    //if (Object_IsLoaded(&play->objectCtx, this->objIndex)) {
+        //this->actor.objBankIndex = this->objIndex;
+        //Actor_SetObjectDependency(play, &this->actor);
+        //SkelAnime_InitFlex(play, &this->skelAnime, &gSthSkel, &gEnSth2WavingHandAnim, this->jointTable,
+                           //this->morphTable, STH_LIMB_MAX);
+        //Animation_PlayLoop(&this->skelAnime, &gEnSth2WavingHandAnim);
+        //this->actor.update = EnSth2_UpdateActionFunc;
+        //this->actor.draw = EnSth2_Draw;
+    //}
 }
 
 void EnSth2_UpdateActionFunc(Actor* thisx, PlayState* play) {
@@ -78,7 +83,7 @@ void EnSth2_UpdateActionFunc(Actor* thisx, PlayState* play) {
 }
 
 s32 EnSth2_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    s32 pad;
+    //s32 pad;
 
     if (limbIndex == STH_LIMB_HEAD) {
         *dList = gEnSth2HeadDL;
@@ -105,18 +110,20 @@ void EnSth2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot
     }
 }
 
-void EnSth2_Draw(Actor* thisx, PlayState* play2) {
-    static Color_RGB8 sEnvColors[] = {
+void EnSth2_Draw(Actor* thisx, PlayState* play) {
+    static Color_RGB8 shirtColors[] = {
         { 190, 110, 0 }, { 0, 180, 110 }, { 0, 255, 80 }, { 255, 160, 60 }, { 190, 230, 250 }, { 240, 230, 120 },
     };
-    PlayState* play = play2;
+    //PlayState* play = play2;
     EnSth2* this = THIS;
+    u8 color = STH2_GET_COLOR(thisx);
 
     OPEN_DISPS(play->state.gfxCtx);
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     gSPSegment(POLY_OPA_DISP++, 0x08,
-               Gfx_EnvColor(play->state.gfxCtx, sEnvColors[1].r, sEnvColors[1].g, sEnvColors[1].b, 255));
+               //Gfx_EnvColor(play->state.gfxCtx, shirtColors[1].r, shirtColors[1].g, shirtColors[1].b, 255));
+               Gfx_EnvColor(play->state.gfxCtx, shirtColors[color].r, shirtColors[color].g, shirtColors[color].b, 255));
     gSPSegment(POLY_OPA_DISP++, 0x09, Gfx_EnvColor(play->state.gfxCtx, 90, 110, 130, 255));
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                           EnSth2_OverrideLimbDraw, EnSth2_PostLimbDraw, &this->actor);
