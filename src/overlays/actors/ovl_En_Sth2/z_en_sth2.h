@@ -9,7 +9,10 @@ struct EnSth2;
 typedef void (*EnSth2ActionFunc)(struct EnSth2*, PlayState*);
 
 // vanilla had no params, these are new in modding
+#define STH2_GET_BALD(thisx) ((thisx)->params &0xF000)
+//#define STH2_GET_BALD(thisx) ((thisx)->params >> 0xE) & 0x1
 #define STH2_GET_COLOR(thisx) ((thisx)->params >> 0xC) & 0x7 
+#define STH2_GET_TYPE(thisx) (thisx)->params & 0xF 
 
 
 typedef struct EnSth2 {
@@ -20,6 +23,10 @@ typedef struct EnSth2 {
     ///* 0x248 */ s16 unused;
     ///* 0x24A */ u8 objIndex;
     /* 0x24C */ EnSth2ActionFunc actionFunc;
+                ColliderCylinder collider;
+                Vec3s headRot;
+                Vec3s torsoRot;
+                u8 flags; // 1 = rotation imune
 } EnSth2; // size = 0x250
 
 #endif // Z_EN_STH2_H
