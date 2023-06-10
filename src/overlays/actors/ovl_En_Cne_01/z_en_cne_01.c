@@ -231,9 +231,9 @@ void EnCne01_Talk(EnCne01* this, PlayState* play) {
 
         case TEXT_STATE_5: // blue arrow mid-multiple text
             // supposed to be used for continue, but we use continue dialogue as one off
+            // "have you guys talked about the moon in town" used for orangi
             if (!Message_ShouldAdvance(play)) return;
 
-            //Message_StartTextbox(play, this->textId, NULL); // wy is this here
             func_801477B4(play);
             EnCne02_SetupFaceForward(this);
 
@@ -268,13 +268,17 @@ void EnCne01_Talk(EnCne01* this, PlayState* play) {
     }
 }
 
+// bug: first time approaching her does not enable text, have to walk far away and walk back???
+
 // 1479 ;; oh thanks here is something ffor thing
 s32 EnCne01_TestIsTalking(EnCne01* this, PlayState* play) {
     s32 isTalking = false; // this is not test if talking, this is test if started talking, this frame
+    const u16 talkingAngle = 0x64;
     s16 yaw = ABS_ALT(this->actor.shape.rot.y - this->actor.yawTowardsPlayer);
     //if (DECR(this->dialogueTimer) != 0) return;
 
-    if (yaw < 0x64 && Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+    //if (yaw < 0x64 && (this->actor.xzDistToPlayer < 100) && Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+    if (yaw < talkingAngle && Actor_ProcessTalkRequest(&this->actor, &play->state)) {
         isTalking = true;
         //this->textId = 0x10B9; // Invalid textId, produces empty textbox
         if (CNE_GET_TYPE(&this->actor) == CNE_TYPE_VENESA){
@@ -309,9 +313,10 @@ s32 EnCne01_TestIsTalking(EnCne01* this, PlayState* play) {
         this->prevActionFunc = this->actionFunc;
         this->actionFunc = EnCne01_Talk;
 
-    } else if (yaw < 100) {
-        //func_800B8614(&this->actor, play, 90.0f); // is 90 the units of distance?
-        func_800B8614(&this->actor, play, 200.0f); // is 90 the units of distance?
+    } else if (yaw < talkingAngle) {
+        // migth be angle, have an issue where you can walk behind her and keep talking
+        func_800B8614(&this->actor, play, 90.0f); // is 90 the units of distance?
+        //func_800B8614(&this->actor, play, 200.0f); // is 90 the units of distance?
 
     }
 
@@ -319,7 +324,7 @@ s32 EnCne01_TestIsTalking(EnCne01* this, PlayState* play) {
 }
 
 void EnCne01_Init(Actor* thisx, PlayState* play) {
-    s32 pad;
+    //s32 pad;
     EnCne01* this = THIS;
 
     //this->enHy.animObjIndex = SubS_GetObjectIndex(OBJECT_OS_ANIME, play);
@@ -389,7 +394,8 @@ void EnCne01_Init(Actor* thisx, PlayState* play) {
     if (CNE_GET_PATH(&this->actor) == 0x3F) {
         this->actionFunc = EnCne01_FaceForward;
     } else {
-        this->actionFunc = EnCne01_Walk;
+        //this->actionFunc = EnCne01_Walk;
+        this->actionFunc = EnCne01_FaceForward;
     }
 
 
