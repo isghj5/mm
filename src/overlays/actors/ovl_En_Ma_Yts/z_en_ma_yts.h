@@ -32,9 +32,15 @@ typedef struct EnMaYts {
     /* 0x334 */ s16 endCreditsFlag;
     /* 0x336 */ s16 hasBow;
     /* 0x338 */ u16 textId; // DUMB of course it had one
+    /* 0x33A */ s16 watchdogTimer;
 } EnMaYts; // size = 0x33C
 
 extern const ActorInit En_Ma_Yts_InitVars;
+
+// parse type? weird
+#define EN_MA_YTS_PARSE_TYPE(actor) ((((actor)->params)&0xF000) >> 12)
+#define EN_MA_YTS_PARAM(enMaYtsType) ((enMaYtsType) << 12)
+#define EN_MA_YTS2_DIALOGUE_WATCHDOG(this) ((this)->watchdogTimer) 
 
 typedef enum {
     /* 0 */ MA_YTS_TYPE_BARN,
@@ -57,9 +63,6 @@ typedef enum {
 // unused week event reg settings we can use to detect already spoken to
 #define ROMANI_SET_NEWEVENT gSaveContext.save.weekEventReg[21] |= 0x10
 #define ROMANI_GET_NEWEVENT gSaveContext.save.weekEventReg[21] &= 0x10
-
-#define EN_MA_YTS_PARSE_TYPE(actor) ((((actor)->params)&0xF000) >> 12)
-#define EN_MA_YTS_PARAM(enMaYtsType) ((enMaYtsType) << 12)
 
 /**
  * MA_YTS_TYPE_BARN: In the barn, accompanying Cremia. Cremia's actor will handle her dialogue if spoken to.

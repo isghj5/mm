@@ -225,29 +225,63 @@ void EnMaYts2_SetupSing(EnMaYts* this);
 void EnMaYts2_ChooseNewText(EnMaYts* this, PlayState* play);
 void EnMaYts2_SittingNew(EnMaYts* this, PlayState* play);
 void EnMaYts2_SittingTalkNew(EnMaYts* this, PlayState* play);
+void EnMaYts2_StandingTalk(EnMaYts* this, PlayState* play);
 
+// seems its safest to make sure that when talking you can only take care of talking, do not merge this logic into another actionfunc withoutjank
+// BUG: if we try to close this with regular dialogue we get stuck in a state that isnt zero, its fine so long as you dont pull out the ocarina
+void EnMaYts2_Talking(EnMaYts* this, PlayState* play){
+  s16 talkState = Message_GetState(&play->msgCtx);
+
+  if(EN_MA_YTS2_DIALOGUE_WATCHDOG(this)++ == (30 * 20)){
+    func_801477B4(play); // ends dialogue
+    //Message_CloseTextbox(play); 
+    //play->
+    this->actionFunc = EnMaYts2_StandingTalk;
+  }
+
+  if (Message_ShouldAdvance(play)){
+    func_801477B4(play); // ends dialogue
+    //Message_CloseTextbox(play);
+    this->actionFunc = EnMaYts2_StandingTalk;
+  }
+
+}
+
+
+// TODO FIX THIS
 void EnMaYts2_StandingTalk(EnMaYts* this, PlayState* play) {
+
+    // TODO this is a hotfix, not sure how we get here but we can get in dialogue and be in this function which is bad
+    if (Message_GetState(&play->msgCtx) != 0) func_801477B4(play); // ends dialogue
+
+    //if(this->actor.xzDistToPlayer > 20.0f){
     if(this->actor.xzDistToPlayer > 100.0f){
         if (this->type == MA_YTS_TYPE_SINGING){
           // player has left, go back to singing
           // TODO figure out how to animate it smoother since she sorta starts doing it instantly
           EnMaYts2_SetupSing(this);
         }else { // just standing normally
+          // why is this here? why is this not somewhere else??
           if (CURRENT_DAY == 1) {
-            this->overrideEyeTexIndex = 0;
+            this->overrideEyeTexIndex = false;
           } else {
             // her half eye is kinda half-asleep sleepwalky
-            this->overrideEyeTexIndex = 1; // force half eye
+            this->overrideEyeTexIndex = true; // force half eye
           }
         }
-    } else if (Message_GetState(&play->msgCtx) == 5 && Message_ShouldAdvance(play)) {
-        func_801477B4(play); // ends dialogue
-        if (this->actor.textId == 0x296D) {this->randomTextIndex = 1;}
+    }//} else if (Message_GetState(&play->msgCtx) == 5 && Message_ShouldAdvance(play)) {
+        //func_801477B4(play); // ends dialogue
+        //if (this->actor.textId == 0x296D) {this->randomTextIndex = 1;}
+    /*
+    } else if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+        EN_MA_YTS2_DIALOGUE_WATCHDOG(this) =  0;
+        this->actionFunc = EnMaYts2_Talking;
     } else {
         // waiting for dialogue prompt and close by
         EnMaYts2_ChooseNewText(this, play);
         func_800B8614(&this->actor, play, 120.0f); // enables talking prompt
-    }
+        
+    } // */
 }
 
 void EnMaYts2_SetupStandingTalk(EnMaYts* this) {
@@ -298,34 +332,45 @@ void EnMaYts2_ChooseNewText(EnMaYts* this, PlayState* play) {
 
 }
 
-void EnMaYts2_Sing(EnMaYts* this, PlayState* play) {
+void EnMaYts2_Singing(EnMaYts* this, PlayState* play) {
     // ripped from GuruGuru, because his proxmity music isn't jank like EnYb
     // using carriage music because if she shows up in romani ranch its just weird to hear ranch music ontop of ranch music
     // wish I could include a basic singing music in here...
-    //func_801A1D44(&this->actor.projectedPos, NA_BGM_CREMIA_CARRIAGE, 540.0f); // 540 is this range or speed?
-    func_801A1D44(&this->actor.projectedPos, NA_BGM_CREMIA_CARRIAGE, 2500.0f); // 540 is this range or speed?
+    //func_801A1D44(&this->actor.projectedPos, NA_BGM_CREMIA_CARRIAGE, 540.0f); // 
+    func_801A1D44(&this->actor.projectedPos, NA_BGM_CREMIA_CARRIAGE, 2000.0f); // value is range
 
-    if (ABS(this->actor.yawTowardsPlayer) <= 0x4000) {
+    if (this->actor.xzDistToPlayer < 200 && ABS(this->actor.yawTowardsPlayer) <= 0x4000) {
         EnMaYts2_ChooseNewText(this, play);
 
-        func_800B8614(&this->actor, play, 120.0f); // enables talking prompt
+        /*
         if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
-          EnMaYts2_SetupStandingTalk(this);
-        }
+          //EnMaYts2_SetupStandingTalk(this);
+          EnMaYts_ChangeAnim(this, 0); // change anim to standing
+          this->overrideEyeTexIndex = 0; // regular blinking eyes 
+          this->actionFunc = EnMaYts2_Talking;
+
+        } else {
+          func_800B8614(&this->actor, play, 120.0f); // enables talking prompt for next frame
+
+        } // */
     }
 }
 
 void EnMaYts2_SetupSing(EnMaYts* this) {
     EnMaYts_ChangeAnim(this, 4); // singing 
     this->overrideEyeTexIndex = 2; // sing with eyes closed
-    this->actionFunc = EnMaYts2_Sing;
+    this->actionFunc = EnMaYts2_Singing;
 }
 
 
 void EnMaYts2_SittingTalkNew(EnMaYts* this, PlayState* play) {
-    u8 msgState = Message_GetState(&play->msgCtx);
+    u8 msgState = Message_GetState(&play->msgCtx); // dont know why vanilla does this first, might be a state reset thing
     u8 shouldAdvance = Message_ShouldAdvance(play);
 
+    if(EN_MA_YTS2_DIALOGUE_WATCHDOG(this)++ == (30 * 20)){
+      func_801477B4(play); // ends dialogue
+      this->actionFunc = EnMaYts2_SittingNew;
+    }
     // if player succeded in helping sisters, they should sell or give milk/chatou
     // 3395: explaining what chatou is
     // 278E will you try?
@@ -381,7 +426,6 @@ void EnMaYts2_SittingTalkNew(EnMaYts* this, PlayState* play) {
 void EnMaYts2_SittingNew(EnMaYts* this, PlayState* play) {
   if ( this->actor.xzDistToPlayer < 100.0f && ABS(this->actor.yawTowardsPlayer) <= 0x4000) {
     Player* player = GET_PLAYER(play);
-
 
     if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
         this->actionFunc = EnMaYts2_SittingTalkNew;
@@ -731,7 +775,7 @@ s32 EnMaYts_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
     EnMaYts* this = THIS;
     Vec3s sp4;
 
-    if (this->actionFunc != EnMaYts2_Sing){ // shes distracted by singing to notice you
+    if (this->actionFunc != EnMaYts2_Singing){ // shes distracted by singing to notice you
       if (limbIndex == ROMANI_LIMB_HEAD) {
           sp4 = this->unk_1D8.unk_08;
           rot->x += sp4.y;
@@ -762,7 +806,7 @@ void EnMaYts_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* ro
     }
 }
 
-/*
+///*
 void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     EnMaYts* this = THIS;
     // with explanation comments
@@ -799,7 +843,7 @@ void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
     GfxPrint_Printf(&printer, "mesgState  %X", Message_GetState(&play->msgCtx));
     GfxPrint_SetPos(&printer, 1, 15);
-    GfxPrint_Printf(&printer, "textid %X", &this->actor.textId);
+    GfxPrint_Printf(&printer, "timer %hd", EN_MA_YTS2_DIALOGUE_WATCHDOG(this));
 
     // end of text printing
     gfx = GfxPrint_Close(&printer);
