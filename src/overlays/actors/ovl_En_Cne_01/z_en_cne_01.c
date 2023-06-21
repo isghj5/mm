@@ -219,6 +219,12 @@ void EnCne01_Talk(EnCne01* this, PlayState* play) {
 
     Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 4, 0xFA0, 1);
 
+    if (++this->dialogueTimer >= (20 * 45)){
+      func_801477B4(play);
+      EnCne02_SetupFaceForward(this);
+
+    }
+
     talkState = Message_GetState(&play->msgCtx);
     //this->inMsgState3 = (talkState == TEXT_STATE_3) ? true : false;
     this->inMsgState3 = (talkState == TEXT_STATE_3); 
@@ -273,7 +279,7 @@ void EnCne01_Talk(EnCne01* this, PlayState* play) {
 // 1479 ;; oh thanks here is something ffor thing
 s32 EnCne01_TestIsTalking(EnCne01* this, PlayState* play) {
     s32 isTalking = false; // this is not test if talking, this is test if started talking, this frame
-    const u16 talkingAngle = 0x64;
+    const u16 talkingAngle = 0x100;
     s16 yaw = ABS_ALT(this->actor.shape.rot.y - this->actor.yawTowardsPlayer);
     //if (DECR(this->dialogueTimer) != 0) return;
 
@@ -311,6 +317,7 @@ s32 EnCne01_TestIsTalking(EnCne01* this, PlayState* play) {
         //Message_StartTextbox(play, this->textId, NULL);
         Message_StartTextbox(play, this->textId, &this->actor);
         this->prevActionFunc = this->actionFunc;
+        this->dialogueTimer = 0;
         this->actionFunc = EnCne01_Talk;
 
     } else if (yaw < talkingAngle) {
@@ -530,6 +537,8 @@ void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
 
     GfxPrint_SetPos(&printer, 1, 15);
     GfxPrint_Printf(&printer, "TestFunc %X", &EnCne01_Talk);
+    GfxPrint_SetPos(&printer, 1, 16);
+    GfxPrint_Printf(&printer, "timer %X", this->dialogueTimer);
 
     // end of text printing
     gfx = GfxPrint_Close(&printer);

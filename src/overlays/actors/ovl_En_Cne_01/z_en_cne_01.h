@@ -31,7 +31,7 @@ typedef struct EnCne01 {
                 s16 headObjIndex;
                 s16 textId;
                 s16 stateFlags;
-                //s16 dialogueTimer;
+                s16 dialogueTimer;
                 Actor* moonPtr;
                 AnimationHeader* defaultAnim;
                 AnimationHeader* curAnim;
