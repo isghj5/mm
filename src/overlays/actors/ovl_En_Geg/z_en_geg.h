@@ -2,6 +2,7 @@
 #define Z_EN_GEG_H
 
 #include "global.h"
+#include "objects/object_oF1d_map/object_oF1d_map.h"
 
 struct EnGeg;
 
@@ -21,8 +22,8 @@ typedef struct EnGeg {
     /* 0x242 */ s16 unk_242;
     /* 0x244 */ s16 unk_244;
     /* 0x248 */ s32 goronObjIndex;
-    /* 0x24C */ Vec3s jointTable[18];
-    /* 0x2B8 */ Vec3s morphTable[18];
+    /* 0x24C */ Vec3s jointTable[GORON_LIMB_MAX];
+    /* 0x2B8 */ Vec3s morphTable[GORON_LIMB_MAX];
     /* 0x324 */ UNK_TYPE1 unk324[0x144];
     /* 0x468 */ s16 unk_468;
     /* 0x46A */ s16 unk_46A;
@@ -46,15 +47,26 @@ typedef struct EnGeg {
     /* 0x4E4 */ Vec3f unk_4E4;
 } EnGeg; // size = 0x4F0
 
-#define GEG_FLAG_CLEAR         0
-#define GEG_FLAG_ROLLING     0x1
-#define GEG_FLAG_2           0x2
-#define GEG_FLAG_4           0x4
-#define GEG_FLAG_8           0x8
-#define GEG_FLAG_10         0x10
-#define GEG_FLAG_20         0x20
-#define GEG_FLAG_40         0x40
-#define GEG_FLAG_80         0x80
-#define GEG_FLAG_100       0x100
+#define GEG_FLAG_CLEAR              0
+#define GEG_FLAG_ROLLING          0x1
+#define GEG_FLAG_2                0x2
+#define GEG_FLAG_4                0x4
+#define GEG_FLAG_8                0x8
+#define GEG_FLAG_10              0x10
+#define GEG_FLAG_20              0x20
+#define GEG_FLAG_MASK_GIVEN      0x40
+#define GEG_FLAG_80              0x80
+#define GEG_FLAG_100            0x100
+
+typedef enum EnGegAnimation {
+  /* 0 */ GEG_ANIM_00,
+  /* 1 */ GEG_ANIM_01,
+  /* 2 */ GEG_ANIM_02,
+  /* 3 */ GEG_ANIM_03,
+  /* 4 */ GEG_ANIM_04,
+  /* 5 */ GEG_ANIM_05,
+} EnGegAnimation;
+
+
 
 #endif // Z_EN_GEG_H

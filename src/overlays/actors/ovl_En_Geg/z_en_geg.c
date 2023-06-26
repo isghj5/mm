@@ -7,7 +7,6 @@
 #include "z_en_geg.h"
 #include "overlays/actors/ovl_En_Bom/z_en_bom.h"
 #include "overlays/effects/ovl_Effect_Ss_Hahen/z_eff_ss_hahen.h"
-#include "objects/object_oF1d_map/object_oF1d_map.h"
 #include "objects/object_taisou/object_taisou.h"
 #include "objects/object_hakugin_demo/object_hakugin_demo.h"
 #include "objects/gameplay_keep/gameplay_keep.h"
@@ -150,66 +149,69 @@ static AnimationInfoS sAnimationInfo[] = {
     { &gGoronStandingIdleAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },
 };
 
-u16 func_80BB16D0(EnGeg* this) {
+// TODO: more specific function name
+// get next textId
+u16 EnGeg_GetTextId(EnGeg* this) {
     switch (this->textId) {
-        case 0xD5E:
-            return 0xD5F;
-        case 0xD5F:
-            return 0xD60;
-        case 0xD60:
-            return 0xD61;
-        case 0xD62:
-            return 0xD63;
-        case 0xD64:
-            return 0xD65;
-        case 0xD66:
-            return 0xD67;
-        case 0xD67:
-            return 0xD68;
-        case 0xD68:
-            return 0xD69;
-        case 0xD6A:
-            return 0xD6B;
-        case 0xD6B:
-            return 0xD6C;
-        case 0xD6C:
-            return 0xD6D;
-        case 0xD6E:
-            return 0xD6F;
-        case 0xD70:
-            return 0xD71;
-        case 0xD71:
-            return 0xD72;
-        case 0xD73:
-            return 0xD74;
-        case 0xD74:
-            return 0xD75;
-        case 0xD89:
-            return 0xD8A;
+        case 0xD5E: // Whoa ! (attention grabbing call) 
+            return 0xD5F; // I am up here!
+        case 0xD5F: // I am up here! 
+            return 0xD60; // I am sorry to bother you
+        case 0xD60: // I am sorry to bother you
+            return 0xD61; // But I am hungry
+        case 0xD62: // Too cold and hungry, dying
+            return 0xD63; // I want to eat something chewy
+        case 0xD64: // (Wrong Item) I am happy but...
+            return 0xD65; // (Wrong Item) I cannot eat this
+        case 0xD66: // This is sirloin! Best rock
+            return 0xD67; // My favorite meal, Bless
+        case 0xD67: // My favorite meal, Bless
+            return 0xD68; // My energy has returned
+        case 0xD68: // My energy has returned
+            return 0xD69; // I am coming, please wait
+        case 0xD6A: // (Darmani) Oh I was wondering who it was
+            return 0xD6B; // (Darmani) Why, it's darmani!
+        case 0xD6B: // (Darmani) Why, it's darmani!
+            return 0xD6C; // (Darmani) ..of course darmani knows my favorite food
+        case 0xD6C: // (Darmani) ..of course darmani knows my favorite food
+            return 0xD6D; // (Darmani) Please accept this as thanks
+        case 0xD6E: // (Not-Darmani) Thanks to you, my energy has returned
+            return 0xD6F; // (Not-Darmani) Here is a token reward 
+        case 0xD70: // It was well crafted, they will think you are Don Gero
+            return 0xD71; // I hope spring comes soon
+        case 0xD71: // I hope spring comes soon
+            return 0xD72; // But spring is not here yet, going back to village
+        case 0xD73: // (Mask already obtained) I want to give you my mask
+            return 0xD74; // (Mask already obtained) But you can have money instead
+        case 0xD74: // (Mask already obtained) But you can have money instead
+            return 0xD75; // (Mask already obtained) Cold, going back to village
+        case 0xD89: // You are Don Gero! I have come here to setup frog choir, but winter
+            return 0xD8A; // To make things worse, I am hungry
     }
     return 0;
 }
 
-void func_80BB178C(EnGeg* this, PlayState* play) {
-    Vec3f sp34 = this->actor.world.pos;
+void EnGeg_UpdateCollider(EnGeg* this, PlayState* play) {
+    Vec3f curPos = this->actor.world.pos;
     Collider* collider;
 
-    if (this->flags & 1) {
-        this->colliderSphere.dim.worldSphere.center.x = sp34.x;
-        this->colliderSphere.dim.worldSphere.center.y = sp34.y;
+    if (this->flags & GEG_FLAG_ROLLING) {
+        this->colliderSphere.dim.worldSphere.center.x = curPos.x;
+        this->colliderSphere.dim.worldSphere.center.y = curPos.y;
         this->colliderSphere.dim.worldSphere.center.y += (s16)this->actor.shape.yOffset;
-        this->colliderSphere.dim.worldSphere.center.z = sp34.z;
+        this->colliderSphere.dim.worldSphere.center.z = curPos.z;
         this->colliderSphere.dim.modelSphere.radius = 20;
         this->colliderSphere.dim.worldSphere.radius =
             this->colliderSphere.dim.modelSphere.radius * this->colliderSphere.dim.scale;
         collider = &this->colliderSphere.base;
+
     } else {
         f32 radius = 24.0f;
         f32 height = 62.0f;
 
-        this->colliderCylinder.dim.pos.x = sp34.x;
-        this->colliderCylinder.dim.pos.y = sp34.y;
-        this->colliderCylinder.dim.pos.z = sp34.z;
+        this->colliderCylinder.dim.pos.x = curPos.x;
+        this->colliderCylinder.dim.pos.y = curPos.y;
+        this->colliderCylinder.dim.pos.z = curPos.z;
         this->colliderCylinder.dim.radius = radius;
         this->colliderCylinder.dim.height = height;
         collider = &this->colliderCylinder.base;
@@ -321,10 +323,10 @@ void EnGeg_Blink(EnGeg* this) {
     }
 }
 
-void func_80BB1D04(EnGeg* this) {
+void EnGeg_UpdateFocusPos(EnGeg* this) {
     f32 temp;
 
-    if (this->flags & 1) {
+    if (this->flags & GEG_FLAG_ROLLING) {
         temp = this->actor.shape.yOffset;
     } else {
         temp = 58.0f;
@@ -382,6 +384,7 @@ void EnGeg_SetAnimation(EnGeg* this, PlayState* play) {
     SubS_ChangeAnimationByInfoS(&this->skelAnime, sAnimationInfo, this->animationIndex);
 }
 
+// TODO what is this?
 s32 func_80BB2088(EnGeg* this, PlayState* play) {
     if (DECR(this->unk_242) != 0) {
         this->unk_468 = 0;
@@ -566,7 +569,7 @@ void func_80BB26EC(EnGeg* this, PlayState* play) {
                 return;
         }
 
-        this->textId = func_80BB16D0(this);
+        this->textId = EnGeg_GetTextId(this);
         Message_StartTextbox(play, this->textId, &this->actor);
     }
 }
@@ -606,7 +609,7 @@ void func_80BB27D4(EnGeg* this, PlayState* play) {
                 break;
 
             default:
-                this->textId = func_80BB16D0(this);
+                this->textId = EnGeg_GetTextId(this);
                 Message_StartTextbox(play, this->textId, &this->actor);
                 break;
         }
@@ -630,7 +633,7 @@ void func_80BB2944(EnGeg* this, PlayState* play) {
             this->nextCsId = this->csIdList[4];
             this->actionFunc = func_80BB2520;
         } else {
-            this->textId = func_80BB16D0(this);
+            this->textId = EnGeg_GetTextId(this);
             Message_ContinueTextbox(play, this->textId);
         }
     }
@@ -646,7 +649,7 @@ void func_80BB2A54(EnGeg* this, PlayState* play) {
             play->msgCtx.stateTimer = 4;
             this->actionFunc = func_80BB347C;
         } else {
-            this->textId = func_80BB16D0(this);
+            this->textId = EnGeg_GetTextId(this);
             Message_StartTextbox(play, this->textId, &this->actor);
         }
     }
@@ -807,7 +810,7 @@ void func_80BB31B8(EnGeg* this, PlayState* play) {
         this->actor.parent = NULL;
         SET_WEEKEVENTREG(WEEKEVENTREG_61_01);
         if (getItemId == GI_MASK_DON_GERO) {
-            this->flags |= 0x40;
+            this->flags |= GEG_FLAG_MASK_GIVEN;
         }
         this->actionFunc = func_80BB32AC;
     } else {
@@ -917,8 +920,8 @@ void EnGeg_Update(Actor* thisx, PlayState* play) {
     func_80BB2088(this, play);
     EnGeg_Blink(this);
     SubS_FillLimbRotTables(play, this->unk_238, this->unk_232, ARRAY_COUNT(this->unk_238));
-    func_80BB1D04(this);
-    func_80BB178C(this, play);
+    EnGeg_UpdateFocusPos(this);
+    EnGeg_UpdateCollider(this, play);
 }
 
 s32 func_80BB3728(s16 arg0, s16 arg1, Vec3f* arg2, Vec3s* arg3, s32 arg4, s32 arg5) {
@@ -960,8 +963,8 @@ void EnGeg_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
     Vec3f sp38 = { 1.0f, 5.0f, -0.5f };
     Vec3f sp2C = { -1.0f, 5.0f, -0.5f };
 
-    if (limbIndex == 17) {
-        if (!(this->flags & 0x40)) {
+    if (limbIndex == GORON_LIMB_HEAD) {
+        if (!(this->flags & GEG_FLAG_MASK_GIVEN)) {
             Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
             OPEN_DISPS(play->state.gfxCtx);
@@ -994,7 +997,7 @@ void EnGeg_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
     s32 phi_v1;
 
     switch (limbIndex) {
-        case 17:
+        case GORON_LIMB_HEAD:
             if (this->flags & 2) {
                 phi_v1 = true;
             } else {
@@ -1019,7 +1022,7 @@ void EnGeg_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
             Matrix_Push();
             break;
 
-        case 10:
+        case GORON_LIMB_BODY:
             if (this->flags & 2) {
                 phi_v1 = true;
             } else {
