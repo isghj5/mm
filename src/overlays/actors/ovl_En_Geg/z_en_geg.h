@@ -32,11 +32,11 @@ typedef struct EnGeg {
     /* 0x47C */ Vec3s unk_47C;
     /* 0x484 */ Vec3f unk_484;
     /* 0x490 */ Vec3s unk_490;
-    /* 0x496 */ u16 unk_496;
+    /* 0x496 */ u16 textId;
     /* 0x498 */ s16 csId;
     /* 0x49A */ s16 nextCsId;
     /* 0x49C */ s16 csIdList[8];
-    /* 0x4AC */ s32 unk_4AC;
+    /* 0x4AC */ s32 animationIndex;
     /* 0x4B0 */ s16 unk_4B0;
     /* 0x4B4 */ Vec3f unk_4B4;
     /* 0x4C0 */ Vec3f unk_4C0[2];
@@ -45,5 +45,16 @@ typedef struct EnGeg {
     /* 0x4E0 */ s16 unk_4E0;
     /* 0x4E4 */ Vec3f unk_4E4;
 } EnGeg; // size = 0x4F0
+
+#define GEG_FLAG_CLEAR         0
+#define GEG_FLAG_ROLLING     0x1
+#define GEG_FLAG_2           0x2
+#define GEG_FLAG_4           0x4
+#define GEG_FLAG_8           0x8
+#define GEG_FLAG_10         0x10
+#define GEG_FLAG_20         0x20
+#define GEG_FLAG_40         0x40
+#define GEG_FLAG_80         0x80
+#define GEG_FLAG_100       0x100
 
 #endif // Z_EN_GEG_H
