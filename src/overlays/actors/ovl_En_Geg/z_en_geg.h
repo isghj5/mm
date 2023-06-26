@@ -13,14 +13,14 @@ typedef struct EnGeg {
     /* 0x188 */ EnGegActionFunc actionFunc;
     /* 0x18C */ ColliderCylinder colliderCylinder;
     /* 0x1D8 */ ColliderSphere colliderSphere;
-    /* 0x230 */ u16 unk_230;
+    /* 0x230 */ u16 flags;
     /* 0x232 */ s16 unk_232[3];
     /* 0x238 */ s16 unk_238[3];
-    /* 0x23E */ s16 unk_23E;
-    /* 0x240 */ s16 unk_240;
+    /* 0x23E */ s16 blinkState;
+    /* 0x240 */ s16 blinkTimer;
     /* 0x242 */ s16 unk_242;
     /* 0x244 */ s16 unk_244;
-    /* 0x248 */ s32 unk_248;
+    /* 0x248 */ s32 goronObjIndex;
     /* 0x24C */ Vec3s jointTable[18];
     /* 0x2B8 */ Vec3s morphTable[18];
     /* 0x324 */ UNK_TYPE1 unk324[0x144];
