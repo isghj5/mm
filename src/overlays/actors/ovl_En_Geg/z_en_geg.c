@@ -24,15 +24,15 @@ void EnGeg_WaitForObject(EnGeg* this, PlayState* play);
 void EnGeg_Idle(EnGeg* this, PlayState* play);
 void func_80BB2520(EnGeg* this, PlayState* play);
 void func_80BB26EC(EnGeg* this, PlayState* play);
-void func_80BB27D4(EnGeg* this, PlayState* play);
+void EnGeg_Talk(EnGeg* this, PlayState* play);
 void func_80BB2944(EnGeg* this, PlayState* play);
 void func_80BB2A54(EnGeg* this, PlayState* play);
 void func_80BB2B1C(EnGeg* this, PlayState* play);
 void func_80BB2E00(EnGeg* this, PlayState* play);
 void func_80BB2F7C(EnGeg* this, PlayState* play);
 void func_80BB30B4(EnGeg* this, PlayState* play);
-void func_80BB31B8(EnGeg* this, PlayState* play);
-void func_80BB32AC(EnGeg* this, PlayState* play);
+void EnGeg_GiveReward(EnGeg* this, PlayState* play);
+void EnGeg_PostRewardTalk(EnGeg* this, PlayState* play);
 void func_80BB3318(EnGeg* this, PlayState* play);
 void func_80BB347C(EnGeg* this, PlayState* play);
 
@@ -270,14 +270,21 @@ Vec3f* func_80BB19C0(Vec3f* arg0, EnGeg* this, PlayState* play) {
     return arg0;
 }
 
+typedef enum EnGegThrownStatus{
+  /* 0 */ GEG_THROWN_NOTHING,
+  /* 1 */ GEG_THROWN_ROCK_SIRLOIN,
+  /* 2 */ GEG_THROWN_2,
+  /* 3 */ GEG_THROWN_3,
+} EnGegThrownStatus;
+
 u8 EnGeg_GetNearbyThrownStatus(EnGeg* this, PlayState* play) {
     Actor* explosive;
-    Actor* mm = SubS_FindActor(play, NULL, ACTORCAT_ITEMACTION, ACTOR_EN_MM);
+    Actor* rockSirloin = SubS_FindActor(play, NULL, ACTORCAT_ITEMACTION, ACTOR_EN_MM);
 
-    if (mm != NULL) {
-        this->unk_4B0 = Math_Vec3f_Yaw(&this->actor.world.pos, &mm->world.pos);
-        if (func_80BB18FC(this, mm)) {
-            return 1;
+    if (rockSirloin != NULL) {
+        this->yawTowardsThrownItem = Math_Vec3f_Yaw(&this->actor.world.pos, &rockSirloin->world.pos);
+        if (func_80BB18FC(this, rockSirloin)) {
+            return GEG_THROWN_ROCK_SIRLOIN;
         }
     }
 
@@ -285,12 +292,12 @@ u8 EnGeg_GetNearbyThrownStatus(EnGeg* this, PlayState* play) {
 
     while (explosive != NULL) {
         if ((explosive->id == ACTOR_EN_BOM) && func_80BB18FC(this, explosive)) {
-            this->unk_4B0 = Math_Vec3f_Yaw(&this->actor.world.pos, &explosive->world.pos);
+            this->yawTowardsThrownItem = Math_Vec3f_Yaw(&this->actor.world.pos, &explosive->world.pos);
             if (this->flags & 0x200) {
-                return 0;
+                return GEG_THROWN_NOTHING;
             }
 
-            if (((EnBom*)explosive)->isPowderKeg == 0) {
+            if (((EnBom*)explosive)->isPowderKeg == false) {
                 return 2;
             }
 
@@ -300,7 +307,7 @@ u8 EnGeg_GetNearbyThrownStatus(EnGeg* this, PlayState* play) {
     }
 
     this->flags &= ~0x200;
-    return 0;
+    return GEG_THROWN_NOTHING;
 }
 
 void EnGeg_GetCs(EnGeg* this) {
@@ -441,15 +448,15 @@ void EnGeg_Idle(EnGeg* this, PlayState* play) {
         this->flags &= ~0x8;
         if (Actor_ProcessTalkRequest(&this->actor, &play->state) && (this->flags & 4)) {
             if (thrownStatus == 1) {
-                this->textId = 0xD66;
+                this->textId = 0xD66; // That's it! Rock sirloin!
                 this->nextCsId = this->csIdList[3];
             } else if (thrownStatus == 2) {
-                this->textId = 0xD64;
+                this->textId = 0xD64; // (Wrong item) I am glad you tried, but
                 this->nextCsId = this->csIdList[2];
                 this->flags &= ~4;
-            } else if (thrownStatus == 3) {
+            } else if (thrownStatus == 3) { //
                 this->flags |= 0x200;
-                this->textId = 0xD64;
+                this->textId = 0xD64; // (Wrong item) I am glad you tried, but 
                 this->nextCsId = this->csIdList[2];
                 this->flags &= ~4;
             }
@@ -465,10 +472,10 @@ void EnGeg_Idle(EnGeg* this, PlayState* play) {
         this->flags &= ~4;
         if (CHECK_WEEKEVENTREG(WEEKEVENTREG_35_40)) {
             if (Actor_ProcessTalkRequest(&this->actor, &play->state) && (this->flags & 8)) {
-                this->textId = 0xD62;
+                this->textId = 0xD62; // So cold and hungry, not going to make it
                 Message_StartTextbox(play, this->textId, &this->actor);
                 this->flags &= ~8;
-                this->actionFunc = func_80BB27D4;
+                this->actionFunc = EnGeg_Talk;
             } else if ((this->actor.xzDistToPlayer < 300.0f) && this->actor.isTargeted) {
                 func_800B8614(&this->actor, play, 300.0f);
                 this->flags |= 8;
@@ -531,10 +538,10 @@ void func_80BB2520(EnGeg* this, PlayState* play) {
                 this->actionFunc = func_80BB2B1C;
                 break;
 
-            case 0xD69:
-            case 0xD72:
-            case 0xD75:
-            case 0xD8B:
+            case 0xD69: // I am coming down, wait
+            case 0xD72: // But spring is not here yet, going back to village
+            case 0xD75: // (Mask already obtained) Cold, going back to village
+            case 0xD8B: // I applogize for not keeping my promise, going back to village
                 this->goronObjIndex = Object_GetIndex(&play->objectCtx, OBJECT_OF1D_MAP);
                 if (this->goronObjIndex >= 0) {
                     this->animationIndex = 4;
@@ -555,12 +562,12 @@ void func_80BB2520(EnGeg* this, PlayState* play) {
 void func_80BB26EC(EnGeg* this, PlayState* play) {
     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_5) && Message_ShouldAdvance(play)) {
         switch (this->textId) {
-            case 0xD5E:
+            case 0xD5E: // Whoa! (attention grabbing)
                 this->nextCsId = this->csIdList[1];
                 this->actionFunc = func_80BB2520;
                 break;
 
-            case 0xD61:
+            case 0xD61: // I am sorry to bother you
                 CutsceneManager_Stop(this->csId);
                 play->msgCtx.msgMode = 0x43;
                 play->msgCtx.stateTimer = 4;
@@ -574,33 +581,33 @@ void func_80BB26EC(EnGeg* this, PlayState* play) {
     }
 }
 
-void func_80BB27D4(EnGeg* this, PlayState* play) {
+void EnGeg_Talk(EnGeg* this, PlayState* play) {
     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_5) && Message_ShouldAdvance(play)) {
         switch (this->textId) {
-            case 0xD63:
+            case 0xD63: // I just want to eat more before I die
                 play->msgCtx.msgMode = 0x43;
                 play->msgCtx.stateTimer = 4;
                 this->actionFunc = EnGeg_Idle;
                 break;
 
-            case 0xD69:
+            case 0xD69: // I am coming down to talk
                 this->nextCsId = this->csIdList[6];
                 play->msgCtx.msgMode = 0x43;
                 play->msgCtx.stateTimer = 4;
                 this->actionFunc = func_80BB2520;
                 break;
 
-            case 0xD6D:
-            case 0xD6F:
-            case 0xD8A:
+            case 0xD6D: // (Darmani) Please accept this as thanks
+            case 0xD6F: // (Not-Darmani) Here is a token reward 
+            case 0xD8A: // (Wearing Mask) I shall return the rupees you gave me and go back to village
                 play->msgCtx.msgMode = 0x43;
                 play->msgCtx.stateTimer = 4;
-                this->actionFunc = func_80BB31B8;
+                this->actionFunc = EnGeg_GiveReward;
                 break;
 
-            case 0xD72:
-            case 0xD75:
-            case 0xD8B:
+            case 0xD72: // But spring is not here yet, going back to village
+            case 0xD75: // (Mask already obtained) Cold, going back to village
+            case 0xD8B: // I applogize for not keeping my promise, going back to village
                 play->msgCtx.msgMode = 0x43;
                 play->msgCtx.stateTimer = 4;
                 this->flags &= ~0x10;
@@ -641,7 +648,7 @@ void func_80BB2944(EnGeg* this, PlayState* play) {
 
 void func_80BB2A54(EnGeg* this, PlayState* play) {
     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_5) && Message_ShouldAdvance(play)) {
-        if (this->textId == 0xD65) {
+        if (this->textId == 0xD65) { // (Wrong item given) I cannot eat this
             CutsceneManager_Stop(this->csId);
             this->flags &= ~0x10;
             this->unk_244 = 65;
@@ -679,7 +686,7 @@ void func_80BB2B1C(EnGeg* this, PlayState* play) {
                 this->animationIndex = 13;
                 EnGeg_SetAnimation(this, play);
             }
-            this->actionFunc = func_80BB27D4;
+            this->actionFunc = EnGeg_Talk;
         } else {
             if (CutsceneManager_GetCurrentCsId() == CS_ID_GLOBAL_TALK) {
                 CutsceneManager_Stop(CS_ID_GLOBAL_TALK);
@@ -783,7 +790,7 @@ void func_80BB30B4(EnGeg* this, PlayState* play) {
             this->textId = 0xD6E;
         }
         Message_StartTextbox(play, this->textId, &this->actor);
-        this->actionFunc = func_80BB27D4;
+        this->actionFunc = EnGeg_Talk;
         this->actor.flags &= ~ACTOR_FLAG_10000;
     } else if (this->actor.xzDistToPlayer < 150.0f) {
         this->actor.flags |= ACTOR_FLAG_10000;
@@ -791,37 +798,37 @@ void func_80BB30B4(EnGeg* this, PlayState* play) {
     }
 }
 
-void func_80BB31B8(EnGeg* this, PlayState* play) {
+void EnGeg_GiveReward(EnGeg* this, PlayState* play) {
     s32 getItemId = GI_MASK_DON_GERO;
 
     if (INV_CONTENT(ITEM_MASK_DON_GERO) == ITEM_MASK_DON_GERO) {
         if (Player_GetMask(play) == PLAYER_MASK_DON_GERO) {
-            this->textId = 0xD8B;
+            this->textId = 0xD8B; // I applogize for not keeping my promise, going back to village
             getItemId = GI_RUPEE_PURPLE;
         } else {
-            this->textId = 0xD73;
+            this->textId = 0xD73; // I was going to give you my mask... (but rupee instead)
             getItemId = GI_RUPEE_PURPLE;
         }
     } else {
-        this->textId = 0xD70;
+        this->textId = 0xD70; // The mask is well crafted, you can be a frog
     }
 
     if (Actor_HasParent(&this->actor, play)) {
         this->actor.parent = NULL;
-        SET_WEEKEVENTREG(WEEKEVENTREG_61_01);
+        SET_WEEKEVENTREG(WEEKEVENTREG_ROCK_SIRLOIN_GIVEN);
         if (getItemId == GI_MASK_DON_GERO) {
             this->flags |= GEG_FLAG_MASK_GIVEN;
         }
-        this->actionFunc = func_80BB32AC;
+        this->actionFunc = EnGeg_PostRewardTalk;
     } else {
         Actor_OfferGetItem(&this->actor, play, getItemId, 300.0f, 300.0f);
     }
 }
 
-void func_80BB32AC(EnGeg* this, PlayState* play) {
+void EnGeg_PostRewardTalk(EnGeg* this, PlayState* play) {
     if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
         Message_StartTextbox(play, this->textId, &this->actor);
-        this->actionFunc = func_80BB27D4;
+        this->actionFunc = EnGeg_Talk;
     } else {
         func_800B85E0(&this->actor, play, 400.0f, PLAYER_IA_MINUS1);
     }
@@ -871,8 +878,7 @@ void EnGeg_Init(Actor* thisx, PlayState* play) {
     s32 pad2;
     s32 effectParams[] = { 0x3E, 0xF64 }; // TODO look this up, we should have all effects decomped by now
 
-    // TODO name weekeventreg
-    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_61_01)) {
+    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_ROCK_SIRLOIN_GIVEN)) {
         Actor_Kill(&this->actor);
         return;
     }
