@@ -240,6 +240,7 @@ s32 func_80BB18FC(EnGeg* this, Actor* actor) {
     return false;
 }
 
+// checks left and right angles?
 Vec3f* func_80BB19C0(Vec3f* arg0, EnGeg* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
     Vec3f sp40;
@@ -273,8 +274,8 @@ Vec3f* func_80BB19C0(Vec3f* arg0, EnGeg* this, PlayState* play) {
 typedef enum EnGegThrownStatus{
   /* 0 */ GEG_THROWN_NOTHING,
   /* 1 */ GEG_THROWN_ROCK_SIRLOIN,
-  /* 2 */ GEG_THROWN_2,
-  /* 3 */ GEG_THROWN_3,
+  /* 2 */ GEG_THROWN_BOMB,
+  /* 3 */ GEG_THROWN_KEG,
 } EnGegThrownStatus;
 
 u8 EnGeg_GetNearbyThrownStatus(EnGeg* this, PlayState* play) {
@@ -298,10 +299,10 @@ u8 EnGeg_GetNearbyThrownStatus(EnGeg* this, PlayState* play) {
             }
 
             if (((EnBom*)explosive)->isPowderKeg == false) {
-                return 2;
+                return GEG_THROWN_BOMB;
+            } else {
+                return GEG_THROWN_KEG;
             }
-
-            return 3;
         }
         explosive = explosive->next;
     }
@@ -331,16 +332,16 @@ void EnGeg_Blink(EnGeg* this) {
 }
 
 void EnGeg_UpdateFocusPos(EnGeg* this) {
-    f32 temp;
+    f32 heightOffset;
 
     if (this->flags & GEG_FLAG_ROLLING) {
-        temp = this->actor.shape.yOffset;
+        heightOffset = this->actor.shape.yOffset;
     } else {
-        temp = 58.0f;
+        heightOffset = 58.0f;
     }
 
     this->actor.focus.pos.x = this->actor.world.pos.x;
-    this->actor.focus.pos.y = temp + this->actor.world.pos.y;
+    this->actor.focus.pos.y = heightOffset + this->actor.world.pos.y;
     this->actor.focus.pos.z = this->actor.world.pos.z;
     this->actor.focus.rot.x = this->actor.world.rot.x;
     this->actor.focus.rot.y = this->actor.world.rot.y;
@@ -404,6 +405,7 @@ s32 func_80BB2088(EnGeg* this, PlayState* play) {
 
     if (Actor_IsFacingAndNearPlayer(&this->actor, 300.0f, 0x7FF8) &&
         ((this->animationIndex == 5) || ((this->animationIndex == 13) && (this->textId == 0xD69)))) {
+        // text: I am coming down, please wait
         this->flags |= 2;
         func_80BB1D64(this, play);
     } else {
@@ -444,17 +446,17 @@ void EnGeg_Idle(EnGeg* this, PlayState* play) {
     u8 thrownStatus = EnGeg_GetNearbyThrownStatus(this, play);
 
     // TODO try turning this into a switch?
-    if (thrownStatus != 0) { // zero is no-event
+    if (thrownStatus != GEG_THROWN_NOTHING) { // zero is no-event
         this->flags &= ~0x8;
         if (Actor_ProcessTalkRequest(&this->actor, &play->state) && (this->flags & 4)) {
-            if (thrownStatus == 1) {
+            if (thrownStatus == GEG_THROWN_ROCK_SIRLOIN) {
                 this->textId = 0xD66; // That's it! Rock sirloin!
                 this->nextCsId = this->csIdList[3];
-            } else if (thrownStatus == 2) {
+            } else if (thrownStatus == GEG_THROWN_BOMB) {
                 this->textId = 0xD64; // (Wrong item) I am glad you tried, but
                 this->nextCsId = this->csIdList[2];
                 this->flags &= ~4;
-            } else if (thrownStatus == 3) { //
+            } else if (thrownStatus == GEG_THROWN_KEG) {
                 this->flags |= 0x200;
                 this->textId = 0xD64; // (Wrong item) I am glad you tried, but 
                 this->nextCsId = this->csIdList[2];
@@ -518,7 +520,7 @@ void func_80BB2520(EnGeg* this, PlayState* play) {
                 this->actionFunc = func_80BB26EC;
                 break;
 
-            case 0xD64:
+            case 0xD64: // (Wrong Item) I am happy but...
                 this->flags &= ~0x20;
                 this->actionFunc = func_80BB2A54;
                 break;
@@ -739,7 +741,7 @@ void func_80BB2E00(EnGeg* this, PlayState* play) {
         if (Animation_OnFrame(&this->skelAnime, 0.0f)) {
             this->flags |= GEG_FLAG_ROLLING;
             this->actor.shape.yOffset = 14.0f;
-            if (this->textId == 0xD69) {
+            if (this->textId == 0xD69) { // I am coming down, please wait
                 func_80BB19C0(&this->unk_4E4, this, play);
                 this->actionFunc = func_80BB2F7C;
             } else {
@@ -930,6 +932,7 @@ void EnGeg_Update(Actor* thisx, PlayState* play) {
     EnGeg_UpdateCollider(this, play);
 }
 
+// called from our limb draw function for head and torso
 s32 func_80BB3728(s16 arg0, s16 arg1, Vec3f* arg2, Vec3s* arg3, s32 arg4, s32 arg5) {
     Vec3f sp7C;
     Vec3f sp70 = gZeroVec3f;
