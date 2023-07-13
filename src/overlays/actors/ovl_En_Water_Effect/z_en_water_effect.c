@@ -565,7 +565,7 @@ void func_80A5A184(Actor* thisx, PlayState* play2) {
 
                 gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx),
                           G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
-                gSPDisplayList(POLY_OPA_DISP++, gameplay_keep_DL_06AB30);
+                gSPDisplayList(POLY_OPA_DISP++, gGreenBrownDirtClodDL);
             }
         }
     }

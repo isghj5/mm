@@ -848,7 +848,7 @@ void EnFamos_DrawDebris(EnFamos* this, PlayState* play) {
             gSPMatrix(&dispOpa[3 + i * 2], Matrix_NewMtx(play->state.gfxCtx),
                       G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 
-            gSPDisplayList(&dispOpa[4 + i * 2], &gameplay_keep_DL_06AB30); // greenish brown rock DL
+            gSPDisplayList(&dispOpa[4 + i * 2], &gGreenBrownDirtClodDL); // greenish brown rock DL
         }
 
         POLY_OPA_DISP = &dispOpa[3 + (ARRAY_COUNT(this->rocks) * 2)];

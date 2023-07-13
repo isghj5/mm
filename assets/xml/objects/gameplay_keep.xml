@@ -1310,8 +1310,8 @@
         
         <DList Name="gameplay_keep_DL_06A800" Offset="0x6A800" />
         <Texture Name="gameplay_keep_Tex_06A880" OutName="tex_06A880" Format="i8" Width="16" Height="16" Offset="0x6A880" />
-        <DList Name="gameplay_keep_DL_06AB30" Offset="0x6AB30" />
-        <Texture Name="gameplay_keep_Tex_06ABF8" OutName="tex_06ABF8" Format="rgba16" Width="36" Height="36" Offset="0x6ABF8" />
+        <DList Name="gGreenBrownDirtClodDL" Offset="0x6AB30" />
+        <Texture Name="gGreenBrownDirtClodTex" OutName="green_brown_dirt_clod" Format="rgba16" Width="36" Height="36" Offset="0x6ABF8" />
         <TextureAnimation Name="gameplay_keep_Matanimheader_06B6A0" Offset="0x6B6A0" />
         <TextureAnimation Name="gameplay_keep_Matanimheader_06B730" Offset="0x6B730" />
         <Blob Name="gameplay_keep_Blob_06B750" Size="0x3BC" Offset="0x6B750" />

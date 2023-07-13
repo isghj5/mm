@@ -39,11 +39,11 @@ typedef struct EnGeg {
     /* 0x49C */ s16 csIdList[8];
     /* 0x4AC */ s32 animationIndex;
     /* 0x4B0 */ s16 yawTowardsThrownItem;
-    /* 0x4B4 */ Vec3f unk_4B4;
-    /* 0x4C0 */ Vec3f unk_4C0[2];
+    /* 0x4B4 */ Vec3f sirloinDebrisPos;
+    /* 0x4C0 */ Vec3f sirloinDebrisVel[2];
     /* 0x4D8 */ s16 unk_4D8;
     /* 0x4DC */ s32 unk_4DC;
-    /* 0x4E0 */ s16 unk_4E0;
+    /* 0x4E0 */ s16 sirloinEatingTimer;
     /* 0x4E4 */ Vec3f unk_4E4;
 } EnGeg; // size = 0x4F0
 

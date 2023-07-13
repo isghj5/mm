@@ -278,7 +278,7 @@ void EnEstone_DrawEffects(EnEstone* this, PlayState* play) {
             gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
             gDPSetPrimColor(POLY_OPA_DISP++, 0x00, 0x80, 255, 255, 255, 255);
             gDPSetEnvColor(POLY_OPA_DISP++, 255, 255, 255, 255);
-            gSPDisplayList(POLY_OPA_DISP++, gameplay_keep_DL_06AB30);
+            gSPDisplayList(POLY_OPA_DISP++, gGreenBrownDirtClodDL);
         }
     }
 

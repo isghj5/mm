@@ -498,6 +498,8 @@ void EnGeg_Idle(EnGeg* this, PlayState* play) {
     }
 }
 
+// We come here from multiple places? man why did you make this complicated
+// We come here after thanking player for sirloin
 void func_80BB2520(EnGeg* this, PlayState* play) {
     if (this->flags & 0x10) {
         CutsceneManager_Stop(this->csId);
@@ -515,8 +517,8 @@ void func_80BB2520(EnGeg* this, PlayState* play) {
         this->flags |= 0x10;
 
         switch (this->textId) {
-            case 0xD5E:
-            case 0xD5F:
+            case 0xD5E: // Whoa ! (attention grabbing call) 
+            case 0xD5F: // I am up here! 
                 this->actionFunc = func_80BB26EC;
                 break;
 
@@ -525,7 +527,7 @@ void func_80BB2520(EnGeg* this, PlayState* play) {
                 this->actionFunc = func_80BB2A54;
                 break;
 
-            case 0xD66:
+            case 0xD66: // That's it! Rock sirloin!
                 this->goronObjIndex = Object_GetIndex(&play->objectCtx, OBJECT_OF1D_MAP);
                 if (this->goronObjIndex >= 0) {
                     this->animationIndex = 19;
@@ -535,7 +537,7 @@ void func_80BB2520(EnGeg* this, PlayState* play) {
                 this->actionFunc = func_80BB2944;
                 break;
 
-            case 0xD67:
+            case 0xD67: // My favorite meal, Bless
                 this->csId = this->csIdList[5];
                 this->actionFunc = func_80BB2B1C;
                 break;
@@ -625,6 +627,7 @@ void EnGeg_Talk(EnGeg* this, PlayState* play) {
     }
 }
 
+// first cutscene dialogue after having rock sirloin thrown at him
 void func_80BB2944(EnGeg* this, PlayState* play) {
     u8 talkState = Message_GetState(&play->msgCtx);
     s16 curFrame = this->skelAnime.curFrame;
@@ -636,7 +639,7 @@ void func_80BB2944(EnGeg* this, PlayState* play) {
             EnGeg_SetAnimation(this, play);
         }
     } else if ((talkState == TEXT_STATE_5) && Message_ShouldAdvance(play)) {
-        if (this->textId == 0xD67) {
+        if (this->textId == 0xD67) { // My favorite meal, Bless
             play->msgCtx.msgMode = 0x43;
             play->msgCtx.stateTimer = 4;
             this->nextCsId = this->csIdList[4];
@@ -664,13 +667,14 @@ void func_80BB2A54(EnGeg* this, PlayState* play) {
     }
 }
 
+// devouring the flesh
 void func_80BB2B1C(EnGeg* this, PlayState* play) {
-    Vec3f sp74;
-    f32 temp_f20;
+    Vec3f sirloinDebrisAccel;
+    f32 velModifier;
     s16 i;
-    f32 sp68;
+    f32 sirloinDebrisScale;
 
-    this->actor.child->world.pos = this->unk_4B4;
+    this->actor.child->world.pos = this->sirloinDebrisPos;
     this->actor.child->shape.rot = this->actor.shape.rot;
 
     if (CutsceneManager_GetCurrentCsId() != this->csIdList[4]) {
@@ -681,14 +685,16 @@ void func_80BB2B1C(EnGeg* this, PlayState* play) {
             }
             this->flags |= 0x10;
             CutsceneManager_StartWithPlayerCsAndSetFlag(this->csId, &this->actor);
-            this->textId = 0xD68;
+            this->textId = 0xD68; // My energy has returned
             Message_ContinueTextbox(play, this->textId);
+
             this->goronObjIndex = Object_GetIndex(&play->objectCtx, OBJECT_TAISOU);
             if (this->goronObjIndex >= 0) {
                 this->animationIndex = 13;
                 EnGeg_SetAnimation(this, play);
             }
             this->actionFunc = EnGeg_Talk;
+
         } else {
             if (CutsceneManager_GetCurrentCsId() == CS_ID_GLOBAL_TALK) {
                 CutsceneManager_Stop(CS_ID_GLOBAL_TALK);
@@ -696,27 +702,28 @@ void func_80BB2B1C(EnGeg* this, PlayState* play) {
             CutsceneManager_Queue(this->csId);
         }
     } else {
-        temp_f20 = this->unk_4E0 * 0.005f;
-        sp68 = this->unk_4E0 * 0.07f;
+        velModifier = this->sirloinEatingTimer * 0.005f;
+        sirloinDebrisScale = this->sirloinEatingTimer * 0.07f;
 
-        sp74.x = Rand_Centered() * temp_f20;
-        sp74.y = Rand_Centered() * temp_f20;
-        sp74.z = Rand_Centered() * temp_f20;
+        sirloinDebrisAccel.x = Rand_Centered() * velModifier;
+        sirloinDebrisAccel.y = Rand_Centered() * velModifier;
+        sirloinDebrisAccel.z = Rand_Centered() * velModifier;
 
         this->actor.child->scale.x *= 0.98f;
         this->actor.child->scale.y *= 0.98f;
         this->actor.child->scale.z *= 0.98f;
 
-        if (this->unk_4E0 > 70) {
-            for (i = 0; i < ARRAY_COUNT(this->unk_4C0); i++) {
-                this->unk_4C0[i].x *= temp_f20;
-                this->unk_4C0[i].y *= temp_f20;
-                this->unk_4C0[i].z *= temp_f20;
-                EffectSsHahen_Spawn(play, &this->unk_4B4, &this->unk_4C0[i], &sp74, HAHEN_SMALL, sp68, GAMEPLAY_KEEP,
-                                    15, gameplay_keep_DL_06AB30);
+        if (this->sirloinEatingTimer > 70) {
+            for (i = 0; i < ARRAY_COUNT(this->sirloinDebrisVel); i++) {
+                this->sirloinDebrisVel[i].x *= velModifier;
+                this->sirloinDebrisVel[i].y *= velModifier;
+                this->sirloinDebrisVel[i].z *= velModifier;
+                EffectSsHahen_Spawn(play, &this->sirloinDebrisPos, &this->sirloinDebrisVel[i], &sirloinDebrisAccel,
+         HAHEN_SMALL, sirloinDebrisScale, GAMEPLAY_KEEP,
+                                    15, gGreenBrownDirtClodDL);
             }
         }
-        this->unk_4E0--;
+        this->sirloinEatingTimer--;
     }
     AudioSfx_LowerSfxSettingsReverb(&this->actor.projectedPos, true);
     Audio_PlaySfx_WithSfxSettingsReverb(&this->actor.projectedPos, NA_SE_EN_GOLON_SIRLOIN_EAT - SFX_FLAG);
@@ -907,7 +914,7 @@ void EnGeg_Init(Actor* thisx, PlayState* play) {
 
     Effect_Add(play, &this->unk_4DC, 4, 0, 0, &effectParams);
     thisx->draw = NULL; //! BUG: this gets overwritten two lines down
-    this->unk_4E0 = 100;
+    this->sirloinEatingTimer = 100;
     this->actor.draw = EnGeg_Draw;
     this->actionFunc = EnGeg_WaitForObject;
 }
@@ -967,7 +974,7 @@ s32 EnGeg_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
 }
 
 void EnGeg_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    static Vec3f D_80BB407C = { -1500.0f, 1500.0f, 0.0f };
+    static Vec3f sSirloinEffectHomePos = { -1500.0f, 1500.0f, 0.0f };
     EnGeg* this = THIS;
     Vec3f sp38 = { 1.0f, 5.0f, -0.5f };
     Vec3f sp2C = { -1.0f, 5.0f, -0.5f };
@@ -991,11 +998,11 @@ void EnGeg_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
         sp2C.y += 2.0f * Rand_Centered();
         sp2C.z += Rand_Centered();
 
-        Matrix_MultVec3f(&D_80BB407C, &this->unk_4B4);
+        Matrix_MultVec3f(&sSirloinEffectHomePos, &this->sirloinDebrisPos);
         Matrix_Push();
         Matrix_RotateYS(this->actor.shape.rot.y, MTXMODE_NEW);
-        Matrix_MultVec3f(&sp38, &this->unk_4C0[0]);
-        Matrix_MultVec3f(&sp2C, &this->unk_4C0[1]);
+        Matrix_MultVec3f(&sp38, &this->sirloinDebrisVel[0]);
+        Matrix_MultVec3f(&sp2C, &this->sirloinDebrisVel[1]);
         Matrix_Pop();
     }
 }
@@ -1101,6 +1108,57 @@ void EnGeg_DrawRolling(EnGeg* this, PlayState* play) {
     CLOSE_DISPS(play->state.gfxCtx);
 }
 
+
+/*
+void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
+    EnGeg* this = THIS; // replace with THIS actor
+    // with explanation comments
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // the dlist will be written in the opa buffer because that buffer is larger,
+    // but executed from the overlay buffer (overlay draws last, for example the hud is drawn to overlay)
+    gfx = POLY_OPA_DISP + 1;
+    gSPDisplayList(OVERLAY_DISP++, gfx);
+
+    // initialize GfxPrint struct
+    GfxPrint_Init(&printer);
+    GfxPrint_Open(&printer, gfx);
+
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
+    GfxPrint_SetPos(&printer, 1, 10);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+
+    { // address locations
+        u32 convertedAddr = (u32)Fault_ConvertAddress((void*)this->actionFunc);
+        GfxPrint_SetPos(&printer, 1, 11);
+        GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
+        GfxPrint_SetPos(&printer, 1, 12);
+        GfxPrint_Printf(&printer, "actionfunc actual ram:  %X", this->actionFunc);
+    }
+
+    GfxPrint_SetPos(&printer, 1, 13);
+    
+    //GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
+    //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
+    GfxPrint_Printf(&printer, "mesgState %X", Message_GetState(&play->msgCtx));
+
+    // end of text printing
+    gfx = GfxPrint_Close(&printer);
+    GfxPrint_Destroy(&printer);
+
+    gSPEndDisplayList(gfx++);
+    // make the opa dlist jump over the part that will be executed as part of overlay
+    gSPBranchList(POLY_OPA_DISP, gfx);
+    POLY_OPA_DISP = gfx;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+    //Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+} // */
+
+
 void EnGeg_Draw(Actor* thisx, PlayState* play) {
     EnGeg* this = THIS;
 
@@ -1109,4 +1167,5 @@ void EnGeg_Draw(Actor* thisx, PlayState* play) {
     } else {
         EnGeg_DrawSkeleton(this, play);
     }
+    //Debug_PrintToScreen(thisx, play);
 }

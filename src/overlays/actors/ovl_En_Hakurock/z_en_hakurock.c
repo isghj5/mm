@@ -346,7 +346,7 @@ void func_80B228F4(Actor* thisx, PlayState* play) {
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     gDPSetPrimColor(POLY_OPA_DISP++, 0, 0x80, 255, 185, 24, 255);
     gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
-    gSPDisplayList(POLY_OPA_DISP++, gameplay_keep_DL_06AB30);
+    gSPDisplayList(POLY_OPA_DISP++, gGreenBrownDirtClodDL);
 
     CLOSE_DISPS(play->state.gfxCtx);
 }

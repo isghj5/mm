@@ -800,7 +800,7 @@ void func_80A292A8(EnBigpamet* this, PlayState* play) {
             Matrix_Scale(ptr->unk_20, ptr->unk_20, ptr->unk_20, MTXMODE_APPLY);
 
             gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
-            gSPDisplayList(POLY_OPA_DISP++, gameplay_keep_DL_06AB30);
+            gSPDisplayList(POLY_OPA_DISP++, gGreenBrownDirtClodDL);
         }
 
         CLOSE_DISPS(play->state.gfxCtx);
