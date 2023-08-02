@@ -62,6 +62,7 @@ void ShotSun_Init(Actor* thisx, PlayState* play) {
         this->actor.flags |= ACTOR_FLAG_2000000;
         this->actionFunc = ShotSun_UpdateForOcarina;
         this->actor.flags |= ACTOR_FLAG_CANT_LOCK_ON;
+
     } else {
         Collider_InitCylinder(play, &this->collider);
         Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
@@ -107,18 +108,21 @@ void ShotSun_SpawnFairy(ShotSun* this, PlayState* play2) {
 }
 
 void ShotSun_TriggerFairy(ShotSun* this, PlayState* play) {
-    if ((this->actor.csId == CS_ID_NONE) || CutsceneManager_IsNext(this->actor.csId)) {
-        if (this->actor.csId != CS_ID_NONE) {
-            CutsceneManager_Start(this->actor.csId, &this->actor);
-        }
+    //if ((this->actor.csId == CS_ID_NONE) || CutsceneManager_IsNext(this->actor.csId)) {
+        //if (this->actor.csId != CS_ID_NONE) {
+            //CutsceneManager_Start(this->actor.csId, &this->actor);
+        //}
         this->actionFunc = ShotSun_SpawnFairy;
         this->timer = 50;
+        // vanilla this crahes, variant 11 does not exist in MM
+        //Actor_Spawn(&play->actorCtx, play, ACTOR_DEMO_KANKYO, this->actor.home.pos.x, this->actor.home.pos.y,
+                    //this->actor.home.pos.z, 0, 0, 0, 0x11);
         Actor_Spawn(&play->actorCtx, play, ACTOR_DEMO_KANKYO, this->actor.home.pos.x, this->actor.home.pos.y,
-                    this->actor.home.pos.z, 0, 0, 0, 0x11);
+                    this->actor.home.pos.z, 0, 0, 0, 0x0);
         Audio_PlaySfx_AtPos(&this->actor.projectedPos, NA_SE_EV_TRE_BOX_APPEAR);
-    } else {
-        CutsceneManager_Queue(this->actor.csId);
-    }
+    //} else {
+        //CutsceneManager_Queue(this->actor.csId);
+    //}
 }
 
 void ShotSun_UpdateForOcarina(ShotSun* this, PlayState* play) {
