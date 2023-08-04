@@ -55,9 +55,9 @@ void ShotSun_Init(Actor* thisx, PlayState* play) {
     s32 pad;
     ShotSun* this = THIS;
 
-    if ((SHOTSUN_GET_FF(thisx) == SHOTSUN_FAIRY_SPAWNER_SUNS) ||
-        (SHOTSUN_GET_FF(thisx) == SHOTSUN_FAIRY_SPAWNER_STORMS)) {
-        this->unk_19C = 0;
+    if ((SHOTSUN_GET_TYPE(thisx) == SHOTSUN_FAIRY_SPAWNER_SUNS) ||
+        (SHOTSUN_GET_TYPE(thisx) == SHOTSUN_FAIRY_SPAWNER_STORMS)) {
+        this->fairySpawnerState = SPAWNER_OUT_OF_RANGE; // never read after here
         this->actor.flags |= ACTOR_FLAG_10;
         this->actor.flags |= ACTOR_FLAG_2000000;
         this->actionFunc = ShotSun_UpdateForOcarina;
@@ -74,14 +74,14 @@ void ShotSun_Init(Actor* thisx, PlayState* play) {
 void ShotSun_Destroy(Actor* thisx, PlayState* play) {
     ShotSun* this = THIS;
 
-    if ((SHOTSUN_GET_FF(thisx) != SHOTSUN_FAIRY_SPAWNER_SUNS) &&
-        (SHOTSUN_GET_FF(thisx) != SHOTSUN_FAIRY_SPAWNER_STORMS)) {
+    if ((SHOTSUN_GET_TYPE(thisx) != SHOTSUN_FAIRY_SPAWNER_SUNS) &&
+        (SHOTSUN_GET_TYPE(thisx) != SHOTSUN_FAIRY_SPAWNER_STORMS)) {
         Collider_DestroyCylinder(play, &this->collider);
     }
 }
 
 void ShotSun_SpawnFairy(ShotSun* this, PlayState* play2) {
-    s32 params = SHOTSUN_GET_FF(&this->actor);
+    s32 type = SHOTSUN_GET_TYPE(&this->actor);
     s32 fairyType = 0;
     PlayState* play = play2;
 
@@ -89,7 +89,7 @@ void ShotSun_SpawnFairy(ShotSun* this, PlayState* play2) {
         this->timer--;
     } else {
         CutsceneManager_Stop(this->actor.csId);
-        switch (params) {
+        switch (type) {
             case SHOTSUN_FAIRY_SPAWNER_SUNS:
                 fairyType = FAIRY_TYPE_7;
                 break;
@@ -101,6 +101,7 @@ void ShotSun_SpawnFairy(ShotSun* this, PlayState* play2) {
             default:
                 break;
         }
+
         Actor_Spawn(&play->actorCtx, play, ACTOR_EN_ELF, this->actor.home.pos.x, this->actor.home.pos.y,
                     this->actor.home.pos.z, 0, 0, 0, FAIRY_PARAMS(fairyType, false, 0));
         Actor_Kill(&this->actor);
@@ -109,12 +110,12 @@ void ShotSun_SpawnFairy(ShotSun* this, PlayState* play2) {
 
 void ShotSun_TriggerFairy(ShotSun* this, PlayState* play) {
     //if ((this->actor.csId == CS_ID_NONE) || CutsceneManager_IsNext(this->actor.csId)) {
-        //if (this->actor.csId != CS_ID_NONE) {
+      //if (this->actor.csId != CS_ID_NONE) {
             //CutsceneManager_Start(this->actor.csId, &this->actor);
         //}
         this->actionFunc = ShotSun_SpawnFairy;
         this->timer = 50;
-        // vanilla this crahes, variant 11 does not exist in MM
+        //! @bug: This Demo_Kankyo spawn will crash because parameter 0x11 is an invalid value (type goes up to 4)
         //Actor_Spawn(&play->actorCtx, play, ACTOR_DEMO_KANKYO, this->actor.home.pos.x, this->actor.home.pos.y,
                     //this->actor.home.pos.z, 0, 0, 0, 0x11);
         Actor_Spawn(&play->actorCtx, play, ACTOR_DEMO_KANKYO, this->actor.home.pos.x, this->actor.home.pos.y,
@@ -126,18 +127,18 @@ void ShotSun_TriggerFairy(ShotSun* this, PlayState* play) {
 }
 
 void ShotSun_UpdateForOcarina(ShotSun* this, PlayState* play) {
-    s32 params = SHOTSUN_GET_FF(&this->actor);
+    s32 type = SHOTSUN_GET_TYPE(&this->actor);
 
     if (play->msgCtx.ocarinaMode == 3) {
         switch (play->msgCtx.lastPlayedSong) {
             case OCARINA_SONG_STORMS:
-                if (params == SHOTSUN_FAIRY_SPAWNER_STORMS) {
+                if (type == SHOTSUN_FAIRY_SPAWNER_STORMS) {
                     this->actionFunc = ShotSun_TriggerFairy;
                     play->msgCtx.ocarinaMode = 4;
                 }
                 break;
             case OCARINA_SONG_SUNS:
-                if (params == SHOTSUN_FAIRY_SPAWNER_SUNS) {
+                if (type == SHOTSUN_FAIRY_SPAWNER_SUNS) {
                     this->actionFunc = ShotSun_TriggerFairy;
                     play->msgCtx.ocarinaMode = 4;
                 }
