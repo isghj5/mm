@@ -63,6 +63,10 @@ void ShotSun_Init(Actor* thisx, PlayState* play) {
         this->actionFunc = ShotSun_UpdateForOcarina;
         this->actor.flags |= ACTOR_FLAG_CANT_LOCK_ON;
 
+        if ( ! CHECK_QUEST_ITEM(QUEST_SONG_STORMS)){
+            this->actor.flags &= ACTOR_FLAG_1;
+        }
+
     } else {
         Collider_InitCylinder(play, &this->collider);
         Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
