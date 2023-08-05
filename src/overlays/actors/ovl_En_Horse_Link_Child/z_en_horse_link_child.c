@@ -175,15 +175,14 @@ void EnHorseLinkChild_Init(Actor* thisx, PlayState* play) {
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawHorse, 20.0f);
 
-    this->action = OOT_EPONA_ACTION_GREET_PLAYER;
+    //this->action = OOT_EPONA_ACTION_GREET_PLAYER;
+    //this->animIndex = OOT_EPONA_ANIMATION_IDLE;
     this->actor.speed = 0.0f;
     this->actor.focus.pos = this->actor.world.pos;
     this->actor.focus.pos.y += 70.0f;
 
     Skin_Init(&play->state, &this->skin, &gEponaSkel, &gEponaGallopAnim);
-    this->animIndex = OOT_EPONA_ANIMATION_IDLE;
 
-    // this gets overwritten by EnHorseLinkChild_SetupLonLonIdle below
     Animation_PlayOnce(&this->skin.skelAnime, sAnimations[OOT_EPONA_ANIMATION_IDLE]);
 
     Collider_InitCylinder(play, &this->colldierCylinder);
@@ -194,11 +193,12 @@ void EnHorseLinkChild_Init(Actor* thisx, PlayState* play) {
     this->footstepCounter = 0;
     this->eyeTexIndex = 0;
 
-    if (gSaveContext.sceneLayer >= 4) { // IS_CUTSCENE_LAYER in OOT
-        EnHorseLinkChild_SetupLonLonIdle(this);
-    } else {
-        EnHorseLinkChild_SetupLonLonIdle(this);
-    }
+    //if (gSaveContext.sceneLayer >= 4) { // IS_CUTSCENE_LAYER in OOT
+    //if (gHorseIsMounted) { // we only want fake-epona to be following player when epona is being ridden
+        EnHorseLinkChild_SetupWaitForPlayer(this, OOT_EPONA_ANIMATION_IDLE);
+    //} else {
+        //EnHorseLinkChild_SetupActionFunc5(this);
+    //}
 
     this->actor.home.rot.z = this->actor.world.rot.z = this->actor.shape.rot.z = 0;
 }
@@ -255,7 +255,10 @@ void EnHorseLinkChild_WaitForPlayer(EnHorseLinkChild* this, PlayState* play) {
 
     if (SkelAnime_Update(&this->skin.skelAnime)) {
         if ((distToPlayer < 1000.0f) && (distToPlayer > 70.0f)) {
-            EnHorseLinkChild_SetupGreetPlayer(this);
+            if (gHorseIsMounted)
+              EnHorseLinkChild_SetupGreetPlayer(this);
+            else
+              EnHorseLinkChild_SetupActionFunc4(this);
             return;
         }
 
@@ -647,10 +650,100 @@ s32 EnHorseLinkChild_OverrideSkinDraw(Actor* thisx, PlayState* play, s32 limbInd
     return true;
 }
 
+void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
+    EnHorseLinkChild* this = THIS; // replace with THIS actor
+    // with explanation comments
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // the dlist will be written in the opa buffer because that buffer is larger,
+    // but executed from the overlay buffer (overlay draws last, for example the hud is drawn to overlay)
+    gfx = POLY_OPA_DISP + 1;
+    gSPDisplayList(OVERLAY_DISP++, gfx);
+
+    // initialize GfxPrint struct
+    GfxPrint_Init(&printer);
+    GfxPrint_Open(&printer, gfx);
+
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
+    GfxPrint_SetPos(&printer, 1, 10);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+
+    { // address locations
+        //void* actionFuncAddr = this->actionFunc;
+        void* actionFuncAddr = sActionFuncs[this->action];
+        u32 convertedAddr = (u32) Fault_ConvertAddress(actionFuncAddr);
+        GfxPrint_SetPos(&printer, 1, 11);
+        GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
+        GfxPrint_SetPos(&printer, 1, 12);
+        GfxPrint_Printf(&printer, "actionfunc actual ram:  %X", actionFuncAddr);
+
+    }
+
+    GfxPrint_SetPos(&printer, 1, 13);
+    
+    //GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
+    //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
+    GfxPrint_Printf(&printer, "mesgState %X", Message_GetState(&play->msgCtx));
+
+    // end of text printing
+    gfx = GfxPrint_Close(&printer);
+    GfxPrint_Destroy(&printer);
+
+    gSPEndDisplayList(gfx++);
+    // make the opa dlist jump over the part that will be executed as part of overlay
+    gSPBranchList(POLY_OPA_DISP, gfx);
+    POLY_OPA_DISP = gfx;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+    //Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+} // */
+
+void EnHorseLinkChildNew_Tint(Actor* thisx, PlayState* play, s16 intensity){
+    EnHorseLinkChild* this = THIS;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    Gfx* displayListHead;
+    f32 cos;
+    //Color_RGBA8 color = { 0, 0, 0, 255 }; // just black works, but I want to neutralize her red some
+    // too blue
+    //Color_RGBA8 color = { 0x20, 0xBE, 0xFF, 255 }; // 20BEFF: oposite of her color
+    Color_RGBA8 color = { 0x2, 0xB, 0xF, 255 }; // 20BEFF: oposite of her color
+
+    //cos = Math_CosS((0x4000 / intensity) * ); //arg2
+    cos = Math_CosS(this->timer); //arg2
+
+    displayListHead = POLY_OPA_DISP;
+
+    gDPPipeSync(displayListHead++);
+
+    gDPSetFogColor(displayListHead++, color.r, color.g, color.b, color.a);
+    gSPFogPosition(displayListHead++, 0, (s16)(2800.0f * fabsf(cos)) + 1700);
+
+    POLY_OPA_DISP = displayListHead;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+
+
+    // run func_800AE5A0 after drawing her
+}
+
+
 void EnHorseLinkChild_Draw(Actor* thisx, PlayState* play) {
     EnHorseLinkChild* this = THIS;
 
+    EnHorseLinkChildNew_Tint(thisx, play, 1); 
+    
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     func_80138258(&this->actor, play, &this->skin, EnHorseLinkChild_PostSkinDraw, EnHorseLinkChild_OverrideSkinDraw,
                   true);
+  
+    func_800AE5A0(play);
+
+    if (BREG(86)) {
+      Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+    }
 }
