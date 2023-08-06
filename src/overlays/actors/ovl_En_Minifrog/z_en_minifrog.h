@@ -5,9 +5,9 @@
 
 struct EnMinifrog;
 
-typedef void (*EnMinifrogActionFunc)(struct EnMinifrog*, GlobalContext*);
+typedef void (*EnMinifrogActionFunc)(struct EnMinifrog*, PlayState*);
 
-#define EN_MINIFROG_IS_RETURNED(this) ((((this)->actor.params)&0xF0) >> 4)
+#define EN_MINIFROG_IS_RETURNED(thisx) ((((thisx)->params) & 0xF0) >> 4)
 
 typedef enum {
     /* 0x00 */ MINIFROG_YELLOW,         // Mountain Village
@@ -19,16 +19,16 @@ typedef enum {
 } MinifrogType;
 
 typedef enum {
-    /* 0x00 */ MINIFROG_STATE_JUMP,
-    /* 0x01 */ MINIFROG_STATE_AIR,
-    /* 0x02 */ MINIFROG_STATE_GROUND
+    /* 0 */ MINIFROG_STATE_JUMP,
+    /* 1 */ MINIFROG_STATE_AIR,
+    /* 2 */ MINIFROG_STATE_GROUND
 } MinifrogJumpState;
 
 typedef struct EnMinifrog {
     /* 0x000 */ Actor actor;
     /* 0x144 */ SkelAnime skelAnime;
-    /* 0x188 */ Vec3s limbDrawTable[24];
-    /* 0x218 */ Vec3s transitionDrawTable[24];
+    /* 0x188 */ Vec3s jointTable[24];
+    /* 0x218 */ Vec3s morphTable[24];
     /* 0x2A8 */ EnMinifrogActionFunc actionFunc;
     /* 0x2AC */ struct EnMinifrog* frog;
     /* 0x2B0 */ s16 frogIndex;
@@ -37,7 +37,5 @@ typedef struct EnMinifrog {
     /* 0x2B6 */ u16 flags;
     /* 0x2B8 */ ColliderCylinder collider;
 } EnMinifrog; // size = 0x304
-
-extern const ActorInit En_Minifrog_InitVars;
 
 #endif // Z_EN_MINIFROG_H

@@ -1,84 +1,83 @@
-#ifndef _MACROS_H_
-#define _MACROS_H_
+#ifndef MACROS_H
+#define MACROS_H
 
-#include "convert.h"
-#include "stdint.h"
+#include "libc/stdint.h"
+#include "ultra64/convert.h"
+#include "main.h"
+
+#define SCREEN_WIDTH  320
+#define SCREEN_HEIGHT 240
+#define SCREEN_WIDTH_HIRES 640
+#define SCREEN_HEIGHT_HIRES 480
+
+#define HIRES_BUFFER_WIDTH  576
+#define HIRES_BUFFER_HEIGHT 454
+
+#define PROJECTED_TO_SCREEN_X(projectedPos, invW) ((projectedPos).x * (invW) * (SCREEN_WIDTH / 2) + (SCREEN_WIDTH / 2))
+#define PROJECTED_TO_SCREEN_Y(projectedPos, invW) ((projectedPos).y * (invW) * (-SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 2))
 
 #define ARRAY_COUNT(arr) (s32)(sizeof(arr) / sizeof(arr[0]))
 #define ARRAY_COUNTU(arr) (u32)(sizeof(arr) / sizeof(arr[0]))
 
-#define HW_REG(reg, type) *(volatile type*)((reg) | 0xa0000000)
+#define ARRAY_COUNT_2D(arr) (ARRAY_COUNT(arr) * ARRAY_COUNT(arr[0]))
 
-// TODO: After uintptr_t cast change should have an AVOID_UB target that just toggles the KSEG0 bit in the address
-// rather than add/sub 0x80000000
-#define PHYSICAL_TO_VIRTUAL(addr) ((uintptr_t)(addr) + 0x80000000)
-#define PHYSICAL_TO_VIRTUAL2(addr) ((uintptr_t)(addr)-0x80000000)
-#define VIRTUAL_TO_PHYSICAL(addr) (uintptr_t)((u8*)(addr)-0x80000000)
+// TODO: After uintptr_t cast change should have an AVOID_UB target that just toggles the KSEG0 bit in the address rather than add/sub 0x80000000
+#define PHYSICAL_TO_VIRTUAL(addr) ((uintptr_t)(addr) + RDRAM_CACHED)
+#define VIRTUAL_TO_PHYSICAL(addr) (uintptr_t)((u8*)(addr) - RDRAM_CACHED)
 #define SEGMENTED_TO_VIRTUAL(addr) (void*)(PHYSICAL_TO_VIRTUAL(gSegments[SEGMENT_NUMBER(addr)]) + SEGMENT_OFFSET(addr))
 
-// Currently most often called ctxt in MM, TODO: Refactor names when its used
-#define ACTIVE_CAM globalCtx->cameraPtrs[globalCtx->activeCamera]
-#define MAIN_CAM 0
+#define GET_ACTIVE_CAM(play) ((play)->cameraPtrs[(play)->activeCamId])
 
-#define SET_NEXT_GAMESTATE(curState, newInit, newStruct)    \
-    (curState)->nextGameStateInit = (GameStateFunc)newInit; \
-    (curState)->nextGameStateSize = sizeof(newStruct)
+#define GET_PLAYER(play) ((Player*)(play)->actorCtx.actorLists[ACTORCAT_PLAYER].first)
 
-#define PLAYER ((Player*)globalCtx->actorCtx.actorList[ACTORCAT_PLAYER].first)
+#define GET_FIRST_ENEMY(play) ((Actor*)(play)->actorCtx.actorLists[ACTORCAT_ENEMY].first)
 
-// linkAge still exists in MM, but is always set to 0 (always adult)
-// There are remnants of these macros from OOT, but they are essentially useless
-//#define LINK_IS_CHILD (gSaveContext.linkAge != 0)
-#define LINK_IS_ADULT (gSaveContext.linkAge == 0)
+#define CLOCK_TIME(hr, min) (s32)(((hr) * 60 + (min)) * 0x10000 / (24 * 60))
+#define CLOCK_TIME_MINUTE  (CLOCK_TIME(0, 1))
+#define CLOCK_TIME_HOUR (CLOCK_TIME(1, 0))
+#define DAY_LENGTH (CLOCK_TIME(24, 0))
 
-#define CURRENT_DAY (gSaveContext.day % 5)
+#define TIME_TO_HOURS_F(time) ((time) * (24.0f / 0x10000))
+#define TIME_TO_MINUTES_F(time) ((time) * ((24.0f * 60.0f) / 0x10000)) // 0.021972656f
+#define TIME_TO_MINUTES_ALT_F(time) ((time) / (0x10000 / (24.0f * 60.0f)))
+#define TIME_TO_SECONDS_F(time) ((time) * ((24.0f * 60.0f * 60.0f) / 0x10000))
 
-#define CLOCK_TIME(hr, min) ((s32)(((hr) * 60 + (min)) * 0x10000 / (24 * 60)))
-
-#define SLOT(item) gItemSlots[item]
-#define AMMO(item) gSaveContext.inventory.ammo[SLOT(item)]
-#define INV_CONTENT(item) gSaveContext.inventory.items[SLOT(item)]
-
-#define ALL_EQUIP_VALUE_VOID(equip) \
-    ((((void)0, gSaveContext.inventory.equipment) & gEquipMasks[equip]) >> gEquipShifts[equip])
-#define CUR_EQUIP_VALUE_VOID(equip) \
-    ((((void)0, gSaveContext.equips.equipment) & gEquipMasks[equip]) >> gEquipShifts[equip])
-#define CUR_UPG_VALUE_VOID(upg) \
-    ((((void)0, gSaveContext.inventory.upgrades) & gUpgradeMasks[upg]) >> gUpgradeShifts[upg])
-
-#define ALL_EQUIP_VALUE(equip) ((gSaveContext.inventory.equipment & gEquipMasks[equip]) >> gEquipShifts[equip])
-#define CUR_EQUIP_VALUE(equip) ((gSaveContext.equips.equipment & gEquipMasks[equip]) >> gEquipShifts[equip])
-#define CUR_UPG_VALUE(upg) ((gSaveContext.inventory.upgrades & gUpgradeMasks[upg]) >> gUpgradeShifts[upg])
-#define CHECK_QUEST_ITEM(item) (((void)0, gSaveContext.inventory.questItems) & gBitFlags[item])
+#define CLOCK_TIME_F(hr, min) (((hr) * 60.0f + (min)) * (0x10000 / (24.0f * 60.0f)))
+#define CLOCK_TIME_ALT_F(hr, min) (((hr) * 60.0f + (min)) / (24.0f * 60.0f / 0x10000))
+#define CLOCK_TIME_ALT2_F(hr, min) ((((hr) + (min) / 60.0f) * 60.0f) / (24.0f * 60.0f / 0x10000))
+#define CLOCK_TIME_HOUR_F (CLOCK_TIME_F(1, 0))
 
 #define CAPACITY(upg, value) gUpgradeCapacities[upg][value]
-#define CUR_CAPACITY(upg) CAPACITY(upg, CUR_UPG_VALUE(upg) - 4)
+#define CUR_CAPACITY(upg) CAPACITY(upg, CUR_UPG_VALUE(upg))
 
-#define CONTROLLER1(globalCtx) (&(globalCtx)->state.input[0])
-#define CONTROLLER2(globalCtx) (&(globalCtx)->state.input[1])
-#define CONTROLLER3(globalCtx) (&(globalCtx)->state.input[2])
-#define CONTROLLER4(globalCtx) (&(globalCtx)->state.input[3])
+// To be used with `Magic_Add`, but ensures enough magic is added to fill the magic bar to capacity
+#define MAGIC_FILL_TO_CAPACITY (((void)0, gSaveContext.magicFillTarget) + (gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired + 1) * MAGIC_NORMAL_METER)
+
+#define CONTROLLER1(gameState) (&(gameState)->input[0])
+#define CONTROLLER2(gameState) (&(gameState)->input[1])
+#define CONTROLLER3(gameState) (&(gameState)->input[2])
+#define CONTROLLER4(gameState) (&(gameState)->input[3])
 
 #define CHECK_BTN_ALL(state, combo) (~((state) | ~(combo)) == 0)
 #define CHECK_BTN_ANY(state, combo) (((state) & (combo)) != 0)
 
-extern GraphicsContext* __gfxCtx;
+#define CHECK_FLAG_ALL(flags, mask) (((flags) & (mask)) == (mask))
 
-#define WORK_DISP __gfxCtx->work.p
-#define POLY_OPA_DISP __gfxCtx->polyOpa.p
-#define POLY_XLU_DISP __gfxCtx->polyXlu.p
-#define OVERLAY_DISP __gfxCtx->overlay.p
+#define ALIGN8(val) (((val) + 7) & ~7)
+#define ALIGN16(val) (((val) + 0xF) & ~0xF)
+#define ALIGN64(val) (((val) + 0x3F) & ~0x3F)
+#define ALIGN256(val) (((val) + 0xFF) & ~0xFF)
 
-// __gfxCtx shouldn't be used directly.
-// Use the DISP macros defined above when writing to display buffers.
-#define OPEN_DISPS(gfxCtx)                  \
-    {                                       \
-        GraphicsContext* __gfxCtx = gfxCtx; \
-        s32 __dispPad
-
-#define CLOSE_DISPS(gfxCtx) \
-    }                       \
-    (void)0
+#define BIT_FLAG_TO_SHIFT(flag) \
+    ((flag & 0x80) ? 7 : \
+    (flag & 0x40) ? 6 : \
+    (flag & 0x20) ? 5 : \
+    (flag & 0x10) ? 4 : \
+    (flag & 0x8) ? 3 : \
+    (flag & 0x4) ? 2 : \
+    (flag & 0x2) ? 1 : \
+    (flag & 0x1) ? 0 : \
+    0)
 
 /**
  * `x` vertex x
@@ -97,25 +96,23 @@ extern GraphicsContext* __gfxCtx;
 #define VTX_T(x, y, z, s, t, cr, cg, cb, a) \
     { { x, y, z }, 0, { s, t }, { cr, cg, cb, a }, }
 
-#define GRAPH_ALLOC(gfxCtx, size) ((void*)((gfxCtx)->polyOpa.d = (Gfx*)((u8*)(gfxCtx)->polyOpa.d - (size))))
-
-#define ALIGN8(val) (((val) + 7) & ~7)
-#define ALIGN16(val) (((val) + 0xF) & ~0xF)
-
 #define SQ(x) ((x) * (x))
 #define ABS(x) ((x) >= 0 ? (x) : -(x))
 #define ABS_ALT(x) ((x) < 0 ? -(x) : (x))
-#define DECR(x) ((x) == 0 ? 0 : ((x) -= 1))
+#define DECR(x) ((x) == 0 ? 0 : --(x))
 
 #define CLAMP(x, min, max) ((x) < (min) ? (min) : (x) > (max) ? (max) : (x))
 #define CLAMP_MAX(x, max) ((x) > (max) ? (max) : (x))
 #define CLAMP_MIN(x, min) ((x) < (min) ? (min) : (x))
 
-#define SWAP(type, a, b)  \
-    {                     \
-        type _temp = (a); \
-        (a) = (b);        \
-        (b) = _temp;      \
-    }
+#define ROUND(x) (s32)(((x) >= 0.0) ? ((x) + 0.5) : ((x) - 0.5))
 
-#endif // _MACROS_H_
+#define SWAP(type, a, b)    \
+    {                       \
+        type _temp = (a);   \
+        (a) = (b);          \
+        (b) = _temp;        \
+    }                       \
+    (void)0
+
+#endif // MACROS_H

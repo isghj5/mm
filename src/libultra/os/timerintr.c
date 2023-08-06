@@ -29,7 +29,7 @@ void __osTimerInterrupt(void) {
     if (__osTimerList->next == __osTimerList) {
         return;
     }
-    while (1) {
+    while (true) {
         t = __osTimerList->next;
         if (t == __osTimerList) {
             __osSetCompare(0);
@@ -49,7 +49,7 @@ void __osTimerInterrupt(void) {
             t->next = NULL;
             t->prev = NULL;
             if (t->mq != NULL) {
-                osSendMesg(t->mq, t->msg, 0);
+                osSendMesg(t->mq, t->msg, OS_MESG_NOBLOCK);
             }
             if (t->interval != 0) {
                 t->value = t->interval;
@@ -84,9 +84,8 @@ OSTime __osInsertTimer(OSTimer* t) {
     savedMask = __osDisableInt();
 
     for (timep = __osTimerList->next, tim = t->value; timep != __osTimerList && tim > timep->value;
-         tim -= timep->value, timep = timep->next) {
-        ;
-    }
+         tim -= timep->value, timep = timep->next) {}
+
     t->value = tim;
     if (timep != __osTimerList) {
         timep->value -= tim;

@@ -1,24 +1,18 @@
 #include "ZPath.h"
 
-#include "BitConverter.h"
 #include "Globals.h"
-#include "StringHelper.h"
+#include "Utils/BitConverter.h"
+#include "Utils/StringHelper.h"
+#include "WarningHandler.h"
 #include "ZFile.h"
 
-REGISTER_ZFILENODE(Path, ZPath);
+REGISTER_ZFILENODE(Path, ZPath);      // Old name that is being kept for backwards compatability
+REGISTER_ZFILENODE(PathList, ZPath);  // New name that may be used in future XMLs
 
 ZPath::ZPath(ZFile* nParent) : ZResource(nParent)
 {
 	numPaths = 1;
 	RegisterOptionalAttribute("NumPaths", "1");
-}
-
-void ZPath::ExtractFromXML(tinyxml2::XMLElement* reader, uint32_t nRawDataIndex)
-{
-	ZResource::ExtractFromXML(reader, nRawDataIndex);
-
-	parent->AddDeclarationArray(rawDataIndex, DeclarationAlignment::Align4, pathways.size() * 8,
-	                            GetSourceTypeName(), name, pathways.size(), "");
 }
 
 void ZPath::ParseXML(tinyxml2::XMLElement* reader)
@@ -28,10 +22,12 @@ void ZPath::ParseXML(tinyxml2::XMLElement* reader)
 	numPaths = StringHelper::StrToL(registeredAttributes.at("NumPaths").value);
 
 	if (numPaths < 1)
-		throw std::runtime_error(
-			StringHelper::Sprintf("ZPath::ParseXML: Fatal error in '%s'.\n"
-		                          "\t Invalid value for attribute 'NumPaths': '%i'\n",
-		                          name.c_str(), numPaths));
+	{
+		HANDLE_ERROR_RESOURCE(
+			WarningType::InvalidAttributeValue, parent, this, rawDataIndex,
+			StringHelper::Sprintf("invalid value '%d' found for 'NumPaths' attribute", numPaths),
+			"Should be at least '1'");
+	}
 }
 
 void ZPath::ParseRawData()
@@ -40,11 +36,11 @@ void ZPath::ParseRawData()
 
 	uint32_t currentPtr = rawDataIndex;
 
+	pathways.reserve(numPaths);
 	for (size_t pathIndex = 0; pathIndex < numPaths; pathIndex++)
 	{
 		PathwayEntry path(parent);
-		path.SetRawDataIndex(currentPtr);
-		path.ParseRawData();
+		path.ExtractFromFile(currentPtr);
 
 		if (path.GetListAddress() == 0)
 			break;
@@ -62,9 +58,23 @@ void ZPath::DeclareReferences(const std::string& prefix)
 		entry.DeclareReferences(prefix);
 }
 
+Declaration* ZPath::DeclareVar(const std::string& prefix, const std::string& bodyStr)
+{
+	std::string auxName = name;
+
+	if (name == "")
+		auxName = GetDefaultName(prefix);
+
+	Declaration* decl =
+		parent->AddDeclarationArray(rawDataIndex, GetDeclarationAlignment(), GetRawDataSize(),
+	                                GetSourceTypeName(), name, pathways.size(), bodyStr);
+	decl->staticConf = staticConf;
+	return decl;
+}
+
 std::string ZPath::GetBodySourceCode() const
 {
-	std::string declaration = "";
+	std::string declaration;
 
 	size_t index = 0;
 	for (const auto& entry : pathways)
@@ -78,20 +88,6 @@ std::string ZPath::GetBodySourceCode() const
 	}
 
 	return declaration;
-}
-
-std::string ZPath::GetSourceOutputCode(const std::string& prefix)
-{
-	std::string declaration = GetBodySourceCode();
-
-	Declaration* decl = parent->GetDeclaration(rawDataIndex);
-	if (decl == nullptr || decl->isPlaceholder)
-		parent->AddDeclarationArray(rawDataIndex, DeclarationAlignment::Align4, pathways.size() * 8,
-		                            GetSourceTypeName(), name, pathways.size(), declaration);
-	else
-		decl->text = declaration;
-
-	return "";
 }
 
 std::string ZPath::GetSourceTypeName() const
@@ -131,13 +127,11 @@ void PathwayEntry::ParseRawData()
 
 	uint32_t currentPtr = GETSEGOFFSET(listSegmentAddress);
 
+	points.reserve(numPoints);
 	for (int32_t i = 0; i < numPoints; i++)
 	{
 		ZVector vec(parent);
-		vec.SetRawDataIndex(currentPtr);
-		vec.SetScalarType(ZScalarType::ZSCALAR_S16);
-		vec.SetDimensions(3);
-		vec.ParseRawData();
+		vec.ExtractFromBinary(currentPtr, ZScalarType::ZSCALAR_S16, 3);
 
 		currentPtr += vec.GetRawDataSize();
 		points.push_back(vec);
@@ -150,12 +144,18 @@ void PathwayEntry::DeclareReferences(const std::string& prefix)
 	if (points.empty())
 		return;
 
+	std::string pointsName;
+	bool addressFound = Globals::Instance->GetSegmentedPtrName(listSegmentAddress, parent, "Vec3s",
+	                                                           pointsName, false);
+	if (addressFound)
+		return;
+
 	std::string declaration = "";
 
 	size_t index = 0;
 	for (const auto& point : points)
 	{
-		declaration += StringHelper::Sprintf("\t%s,", point.GetBodySourceCode().c_str());
+		declaration += StringHelper::Sprintf("\t{ %s },", point.GetBodySourceCode().c_str());
 
 		if (index < points.size() - 1)
 			declaration += "\n";
@@ -163,30 +163,36 @@ void PathwayEntry::DeclareReferences(const std::string& prefix)
 		index++;
 	}
 
-	Declaration* decl = parent->GetDeclaration(GETSEGOFFSET(listSegmentAddress));
+	uint32_t pointsOffset = Seg2Filespace(listSegmentAddress, parent->baseAddress);
+	Declaration* decl = parent->GetDeclaration(pointsOffset);
 	if (decl == nullptr)
 	{
-		parent->AddDeclarationArray(GETSEGOFFSET(listSegmentAddress), DeclarationAlignment::Align4,
-		                            DeclarationPadding::Pad4, points.size() * 6,
-		                            points.at(0).GetSourceTypeName(),
-		                            StringHelper::Sprintf("%sPathwayList0x%06X", prefix.c_str(),
-		                                                  GETSEGOFFSET(listSegmentAddress)),
+		pointsName = StringHelper::Sprintf("%sPathwayList_%06X", prefix.c_str(), pointsOffset);
+		parent->AddDeclarationArray(pointsOffset, points.at(0).GetDeclarationAlignment(),
+		                            points.size() * 6, points.at(0).GetSourceTypeName(), pointsName,
 		                            points.size(), declaration);
 	}
 	else
-		decl->text = declaration;
+		decl->declBody = declaration;
 }
 
 std::string PathwayEntry::GetBodySourceCode() const
 {
-	std::string declaration = "";
-	std::string listName = parent->GetDeclarationPtrName(listSegmentAddress);
+	std::string declaration;
+	std::string listName;
+	Globals::Instance->GetSegmentedPtrName(listSegmentAddress, parent, "Vec3s", listName);
 
 	if (Globals::Instance->game == ZGame::MM_RETAIL)
 		declaration +=
 			StringHelper::Sprintf("%i, %i, %i, %s", numPoints, unk1, unk2, listName.c_str());
 	else
-		declaration += StringHelper::Sprintf("%i, %s", numPoints, listName.c_str());
+	{
+		if (numPoints > 0)
+			declaration +=
+				StringHelper::Sprintf("ARRAY_COUNT(%s), %s", listName.c_str(), listName.c_str());
+		else
+			declaration += StringHelper::Sprintf("%i, %s", numPoints, listName.c_str());
+	}
 
 	return declaration;
 }

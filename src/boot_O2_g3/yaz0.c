@@ -1,11 +1,13 @@
+#include "prevent_bss_reordering.h"
 #include "global.h"
+#include "fault.h"
 
 u8 sYaz0DataBuffer[0x400];
 u8* sYaz0CurDataEnd;
-u32 sYaz0CurRomStart;
+uintptr_t sYaz0CurRomStart;
 u32 sYaz0CurSize;
 u8* sYaz0MaxPtr;
-u8* D_8009BE20;
+void* gYaz0DecompressDstEnd;
 
 void* Yaz0_FirstDMA() {
     u32 pad0;
@@ -17,7 +19,7 @@ void* Yaz0_FirstDMA() {
     curSize = (u32)sYaz0CurDataEnd - (u32)sYaz0DataBuffer;
     dmaSize = (curSize > sYaz0CurSize) ? sYaz0CurSize : curSize;
 
-    DmaMgr_DMARomToRam(sYaz0CurRomStart, sYaz0DataBuffer, dmaSize);
+    DmaMgr_DmaRomToRam(sYaz0CurRomStart, sYaz0DataBuffer, dmaSize);
     sYaz0CurRomStart += dmaSize;
     sYaz0CurSize -= dmaSize;
     return sYaz0DataBuffer;
@@ -40,7 +42,7 @@ void* Yaz0_NextDMA(void* curSrcPos) {
     }
 
     if (dmaSize != 0) {
-        DmaMgr_DMARomToRam(sYaz0CurRomStart, dst + restSize, dmaSize);
+        DmaMgr_DmaRomToRam(sYaz0CurRomStart, dst + restSize, dmaSize);
         sYaz0CurRomStart += dmaSize;
         sYaz0CurSize -= dmaSize;
         if (!sYaz0CurSize) {
@@ -57,11 +59,11 @@ void* Yaz0_NextDMA(void* curSrcPos) {
 }
 
 typedef struct {
-    /* 0x00 */ u32 magic; // Yaz0
-    /* 0x04 */ u32 decSize;
-    /* 0x08 */ u32 compInfoOffset;   // only used in mio0
-    /* 0x0C */ u32 uncompDataOffset; // only used in mio0
-} Yaz0Header;                        // size = 0x10
+    /* 0x0 */ u32 magic; // Yaz0
+    /* 0x4 */ u32 decSize;
+    /* 0x8 */ u32 compInfoOffset;   // only used in mio0
+    /* 0xC */ u32 uncompDataOffset; // only used in mio0
+} Yaz0Header;                       // size = 0x10
 
 #define YAZ0_MAGIC 0x59617A30 // "Yaz0"
 
@@ -117,12 +119,12 @@ s32 Yaz0_DecompressImpl(u8* src, u8* dst) {
         bitIdx--;
     } while (dst != dstEnd);
 
-    D_8009BE20 = dstEnd;
+    gYaz0DecompressDstEnd = dstEnd;
 
     return 0;
 }
 
-void Yaz0_Decompress(u32 romStart, void* dst, u32 size) {
+void Yaz0_Decompress(uintptr_t romStart, void* dst, size_t size) {
     s32 status;
     u32 pad;
     char sp80[0x50];

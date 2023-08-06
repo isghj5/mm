@@ -2,28 +2,28 @@
 
 /**
  * Indices of the columns of this array:
- * - index 0x00: PLAYER_MASK_MASK_OF_TRUTH
+ * - index 0x00: PLAYER_MASK_TRUTH
  * - index 0x01: PLAYER_MASK_KAFEIS_MASK
- * - index 0x02: PLAYER_MASK_ALL_NIGHT_MASK
- * - index 0x03: PLAYER_MASK_BUNNY_HOOD
- * - index 0x04: PLAYER_MASK_KEATON_MASK
- * - index 0x05: PLAYER_MASK_GAROS_MASK
- * - index 0x06: PLAYER_MASK_ROMANIS_MASK
- * - index 0x07: PLAYER_MASK_CIRCUS_LEADERS_MASK
- * - index 0x08: PLAYER_MASK_POSTMANS_HAT
- * - index 0x09: PLAYER_MASK_COUPLES_MASK
- * - index 0x0A: PLAYER_MASK_GREAT_FAIRYS_MASK
- * - index 0x0B: PLAYER_MASK_GIBDO_MASK
- * - index 0x0C: PLAYER_MASK_DON_GEROS_MASK
- * - index 0x0D: PLAYER_MASK_KAMAROS_MASK
- * - index 0x0E: PLAYER_MASK_CAPTAINS_HAT
- * - index 0x0F: PLAYER_MASK_STONE_MASK
- * - index 0x10: PLAYER_MASK_BREMEN_MASK
- * - index 0x11: PLAYER_MASK_BLAST_MASK
- * - index 0x12: PLAYER_MASK_MASK_OF_SCENTS
+ * - index 0x02: PLAYER_MASK_ALL_NIGHT
+ * - index 0x03: PLAYER_MASK_BUNNY
+ * - index 0x04: PLAYER_MASK_KEATON
+ * - index 0x05: PLAYER_MASK_GARO
+ * - index 0x06: PLAYER_MASK_ROMANI
+ * - index 0x07: PLAYER_MASK_CIRCUS_LEADER
+ * - index 0x08: PLAYER_MASK_POSTMAN
+ * - index 0x09: PLAYER_MASK_COUPLE
+ * - index 0x0A: PLAYER_MASK_GREAT_FAIRY
+ * - index 0x0B: PLAYER_MASK_GIBDO
+ * - index 0x0C: PLAYER_MASK_DON_GERO
+ * - index 0x0D: PLAYER_MASK_KAMARO
+ * - index 0x0E: PLAYER_MASK_CAPTAIN
+ * - index 0x0F: PLAYER_MASK_STONE
+ * - index 0x10: PLAYER_MASK_BREMEN
+ * - index 0x11: PLAYER_MASK_BLAST
+ * - index 0x12: PLAYER_MASK_SCENTS
  */
 // clang-format off
-static u16 sReactionTextIds[][PLAYER_MASK_GIANTS_MASK - 1] = {
+static u16 sReactionTextIds[][PLAYER_MASK_GIANT - 1] = {
     /* 0x00 */ { 0 },
     /* 0x01 */ { 0 },
     /* 0x02 */ { 0 },
@@ -43,15 +43,15 @@ static u16 sReactionTextIds[][PLAYER_MASK_GIANTS_MASK - 1] = {
     /* 0x10 */ { 0 },
     /* 0x11 */ { 0x0000, 0x236B, 0x0000, 0x0000, 0x236C, 0x0000,
                  0x0000, 0x236D, 0x0000, 0x0000, 0x0000, 0x0000,
-                 0x0000, 0x0000, 0x0000, 0x236E, 0x0000, 0x0000, 0x0000 },
+                 0x0000, 0x0000, 0x0000, 0x236E, 0x0000, 0x0000, 0x0000 }, // FACE_REACTION_SET_JIM
     /* 0x12 */ { 0x2348, 0x2349, 0x234A, 0x0000, 0x234B, 0x2348,
                  0x234C, 0x2348, 0x234D, 0x234E, 0x2348, 0x2348,
-                 0x2348, 0x2348, 0x2348, 0x234F, 0x2348, 0x2348, 0x2350 },
+                 0x2348, 0x2348, 0x2348, 0x234F, 0x2348, 0x2348, 0x2350 }, // FACE_REACTION_SET_BOMBERS
     /* 0x13 */ { 0 },
     /* 0x14 */ { 0 },
     /* 0x15 */ { 0x2351, 0x2352, 0x2353, 0x2354, 0x2355, 0x2356,
                  0x2357, 0x2356, 0x2358, 0x2359, 0x2356, 0x235A,
-                 0x2353, 0x235A, 0x235A, 0x235B, 0x2354, 0x2351, 0x235C },
+                 0x2353, 0x235A, 0x235A, 0x235B, 0x2354, 0x2351, 0x235C }, // FACE_REACTION_SET_BOMBERS_HIDEOUT_GUARD
     /* 0x16 */ { 0 },
     /* 0x17 */ { 0 },
     /* 0x18 */ { 0 },
@@ -77,24 +77,24 @@ static u16 sReactionTextIds[][PLAYER_MASK_GIANTS_MASK - 1] = {
     /* 0x2C */ { 0 },
     /* 0x2D */ { 0x233B, 0x233C, 0x233D, 0x233E, 0x233F, 0x233B,
                  0x2340, 0x2341, 0x2342, 0x2343, 0x2344, 0x2345,
-                 0x2346, 0x233B, 0x2345, 0x2347, 0x233D, 0x233B, 0x233D },
+                 0x2346, 0x233B, 0x2345, 0x2347, 0x233D, 0x233B, 0x233D }, // FACE_REACTION_SET_TREASURE_CHEST_SHOP_GAL
     /* 0x2E */ { 0 },
     /* 0x2F */ { 0x2328, 0x2329, 0x232A, 0x232B, 0x2328, 0x2328,
                  0x232C, 0x2328, 0x232D, 0x232E, 0x2328, 0x2328,
-                 0x2328, 0x232F, 0x2330, 0x2331, 0x2332, 0x2333, 0x2328 },
+                 0x2328, 0x232F, 0x2330, 0x2331, 0x2332, 0x2333, 0x2328 }, // FACE_REACTION_SET_CURIOSITY_SHOP_MAN
     /* 0x30 */ { 0x236F, 0x2370, 0x236F, 0x0000, 0x236F, 0x236F,
                  0x236F, 0x236F, 0x0000, 0x236F, 0x236F, 0x236F,
-                 0x236F, 0x236F, 0x2371, 0x2372, 0x236F, 0x236F, 0x236F },
+                 0x236F, 0x236F, 0x2371, 0x2372, 0x236F, 0x236F, 0x236F }, // FACE_REACTION_SET_TOWN_SHOOTING_GALLERY_MAN
     /* 0x31 */ { 0x2373, 0x2374, 0x2373, 0x0000, 0x2373, 0x2373,
                  0x2373, 0x2373, 0x0000, 0x2375, 0x2376, 0x2373,
-                 0x2373, 0x2373, 0x2377, 0x2378, 0x2373, 0x2373, 0x2373 },
+                 0x2373, 0x2373, 0x2377, 0x2378, 0x2373, 0x2373, 0x2373 }, // FACE_REACTION_SET_SWAMP_SHOOTING_GALLERY_MAN
     /* 0x32 */ { 0 },
     /* 0x33 */ { 0 },
     /* 0x34 */ { 0 },
     /* 0x35 */ { 0 },
     /* 0x36 */ { 0x0000, 0x2334, 0x0000, 0x0000, 0x0000, 0x0000,
                  0x2335, 0x0000, 0x2336, 0x2337, 0x0000, 0x0000,
-                 0x0000, 0x0000, 0x2338, 0x2339, 0x0000, 0x233A, 0x0000 },
+                 0x0000, 0x0000, 0x2338, 0x2339, 0x0000, 0x233A, 0x0000 }, // FACE_REACTION_SET_PART_TIMER
     /* 0x37 */ { 0 },
     /* 0x38 */ { 0 },
     /* 0x39 */ { 0 },
@@ -178,9 +178,9 @@ static u16 sReactionTextIds[][PLAYER_MASK_GIANTS_MASK - 1] = {
 };
 // clang-format on
 
-u16 Text_GetFaceReaction(GlobalContext* globalCtx, u32 reactionSet) {
-    if ((Player_GetMask(globalCtx) > PLAYER_MASK_NONE) && (Player_GetMask(globalCtx) < PLAYER_MASK_GIANTS_MASK)) {
-        return sReactionTextIds[reactionSet][Player_GetMask(globalCtx) - 1];
+u16 Text_GetFaceReaction(PlayState* play, FaceReactionSet reactionSet) {
+    if ((Player_GetMask(play) > PLAYER_MASK_NONE) && (Player_GetMask(play) < PLAYER_MASK_GIANT)) {
+        return sReactionTextIds[reactionSet][Player_GetMask(play) - 1];
     }
     return 0;
 }

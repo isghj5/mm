@@ -7,7 +7,7 @@
 #define _PROUT(fmt, _size)                 \
     if (_size > 0) {                       \
         arg = (void*)pfn(arg, fmt, _size); \
-        if (arg != 0)                      \
+        if (arg != NULL)                   \
             x.nchar += _size;              \
         else                               \
             return x.nchar;                \
@@ -24,12 +24,6 @@
             _PROUT(src, i);          \
         }                            \
     }
-
-#define FLAGS_SPACE 1
-#define FLAGS_PLUS 2
-#define FLAGS_MINUS 4
-#define FLAGS_HASH 8
-#define FLAGS_ZERO 16
 
 char spaces[] = "                                ";
 char zeroes[] = "00000000000000000000000000000000";
@@ -48,7 +42,7 @@ int _Printf(PrintCallback pfn, void* arg, const char* fmt, va_list ap) {
         unsigned char ac[0x20];
 
         s = fmt;
-        while ((c = *s) != 0 && c != '%') {
+        while (((c = *s) != 0) && (c != '%')) {
             s++;
         }
         _PROUT((char*)fmt, s - fmt);
@@ -57,8 +51,7 @@ int _Printf(PrintCallback pfn, void* arg, const char* fmt, va_list ap) {
         }
         fmt = ++s;
         x.flags = 0;
-        // TODO the cast isn't necessary because strchr should take it in as const, but it currently doesn't
-        for (; (t = strchr((char*)fchar, *s)) != NULL; s++) {
+        for (; (t = strchr(fchar, *s)) != NULL; s++) {
             x.flags |= fbit[t - fchar];
         }
         if (*s == '*') {
@@ -213,7 +206,7 @@ void _Putfld(_Pft* px, va_list* pap, unsigned char code, unsigned char* ac) {
         case 's':
             px->s = va_arg(*pap, char*);
             px->n1 = strlen(px->s);
-            if (px->prec >= 0 && px->n1 > px->prec) {
+            if ((px->prec >= 0) && (px->n1 > px->prec)) {
                 px->n1 = px->prec;
             }
             break;

@@ -1,99 +1,141 @@
 #include "global.h"
 
-void BcCheck3_BgActorInit(DynaPolyActor* actor, UNK_TYPE4 param_2) {
-    actor->bgId = -1;
-    actor->unk148 = 0;
-    actor->unk14C = 0;
-    actor->unk154 = param_2;
-    actor->unk_158 = 0;
+/**
+ * @param transformFlags How other actors standing on the dynapoly actor's collision move when the dynapoly actor moves.
+ *   See `DYNA_TRANSFORM_POS`, `DYNA_TRANSFORM_ROT_Y`.
+ */
+void DynaPolyActor_Init(DynaPolyActor* dynaActor, s32 transformFlags) {
+    dynaActor->bgId = -1;
+    dynaActor->pushForce = 0.0f;
+    dynaActor->unk14C = 0.0f;
+    dynaActor->transformFlags = transformFlags;
+    dynaActor->interactFlags = 0;
 }
 
-void BgCheck3_LoadMesh(GlobalContext* globalCtx, DynaPolyActor* actor, CollisionHeader* meshHeader) {
-    CollisionHeader* header;
+void DynaPolyActor_LoadMesh(PlayState* play, DynaPolyActor* dynaActor, CollisionHeader* meshHeader) {
+    CollisionHeader* header = NULL;
 
-    header = NULL;
-    BgCheck_RelocateMeshHeader(meshHeader, &header);
-    actor->bgId = BgCheck_AddActorMesh(globalCtx, &globalCtx->colCtx.dyna, actor, header);
+    CollisionHeader_GetVirtual(meshHeader, &header);
+    dynaActor->bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, &dynaActor->actor, header);
 }
 
-void BgCheck3_ResetFlags(DynaPolyActor* actor) {
-    actor->unk_158 = 0;
+void DynaPolyActor_UnsetAllInteractFlags(DynaPolyActor* dynaActor) {
+    dynaActor->interactFlags = 0;
 }
 
-void func_800CAE88(DynaPolyActor* actor) {
-    actor->unk_158 |= 1;
+void DynaPolyActor_SetActorOnTop(DynaPolyActor* dynaActor) {
+    dynaActor->interactFlags |= DYNA_INTERACT_ACTOR_ON_TOP;
 }
 
-void func_800CAE9C(DynaPolyActor* actor) {
-    actor->unk_158 |= 2;
+void DynaPolyActor_SetPlayerOnTop(DynaPolyActor* dynaActor) {
+    dynaActor->interactFlags |= DYNA_INTERACT_PLAYER_ON_TOP;
 }
 
-void func_800CAEB0(CollisionContext* colCtx, s32 index) {
-    DynaPolyActor* actor;
+void DynaPoly_SetPlayerOnTop(CollisionContext* colCtx, s32 bgId) {
+    DynaPolyActor* dynaActor = DynaPoly_GetActor(colCtx, bgId);
 
-    actor = BgCheck_GetActorOfMesh(colCtx, index);
-    if (actor != (DynaPolyActor*)0x0) {
-        func_800CAE9C(actor);
+    if (dynaActor != NULL) {
+        DynaPolyActor_SetPlayerOnTop(dynaActor);
     }
 }
 
-void func_800CAEE0(DynaPolyActor* actor) {
-    actor->unk_158 |= 4;
+void DynaPolyActor_SetPlayerAbove(DynaPolyActor* dynaActor) {
+    dynaActor->interactFlags |= DYNA_INTERACT_PLAYER_ABOVE;
 }
 
-void func_800CAEF4(CollisionContext* colCtx, s32 index) {
-    DynaPolyActor* actor;
+void DynaPoly_SetPlayerAbove(CollisionContext* colCtx, s32 bgId) {
+    DynaPolyActor* dynaActor = DynaPoly_GetActor(colCtx, bgId);
 
-    actor = BgCheck_GetActorOfMesh(colCtx, index);
-    if (actor != (DynaPolyActor*)0x0) {
-        func_800CAEE0(actor);
+    if (dynaActor != NULL) {
+        DynaPolyActor_SetPlayerAbove(dynaActor);
     }
 }
 
-void func_800CAF24(DynaPolyActor* actor) {
-    actor->unk_158 |= 8;
+void DynaPolyActor_SetActorOnSwitch(DynaPolyActor* dynaActor) {
+    dynaActor->interactFlags |= DYNA_INTERACT_ACTOR_ON_SWITCH;
 }
 
-void func_800CAF38(DynaPolyActor* actor) {
-    actor->unk_158 |= 0x10;
+void DynaPolyActor_SetActorOnHeavySwitch(DynaPolyActor* dynaActor) {
+    dynaActor->interactFlags |= DYNA_INTERACT_ACTOR_ON_HEAVY_SWITCH;
 }
 
-s32 func_800CAF4C(DynaPolyActor* actor) {
-    if (actor->unk_158 & 1) {
-        return 1;
+s32 DynaPolyActor_IsActorOnTop(DynaPolyActor* dynaActor) {
+    if (dynaActor->interactFlags & DYNA_INTERACT_ACTOR_ON_TOP) {
+        return true;
     } else {
-        return 0;
+        return false;
     }
 }
 
-s32 func_800CAF70(DynaPolyActor* actor) {
-    if (actor->unk_158 & 2) {
-        return 1;
+s32 DynaPolyActor_IsPlayerOnTop(DynaPolyActor* dynaActor) {
+    if (dynaActor->interactFlags & DYNA_INTERACT_PLAYER_ON_TOP) {
+        return true;
     } else {
-        return 0;
+        return false;
     }
 }
 
-s32 func_800CAF94(DynaPolyActor* actor) {
-    if (actor->unk_158 & 4) {
-        return 1;
+s32 DynaPolyActor_IsPlayerAbove(DynaPolyActor* dynaActor) {
+    if (dynaActor->interactFlags & DYNA_INTERACT_PLAYER_ABOVE) {
+        return true;
     } else {
-        return 0;
+        return false;
     }
 }
 
-s32 func_800CAFB8(DynaPolyActor* actor) {
-    if (actor->unk_158 & 8) {
-        return 1;
+s32 DynaPolyActor_IsSwitchPressed(DynaPolyActor* dynaActor) {
+    if (dynaActor->interactFlags & DYNA_INTERACT_ACTOR_ON_SWITCH) {
+        return true;
     } else {
-        return 0;
+        return false;
     }
 }
 
-s32 func_800CAFDC(DynaPolyActor* actor) {
-    if (actor->unk_158 & 0x10) {
-        return 1;
+s32 DynaPolyActor_IsHeavySwitchPressed(DynaPolyActor* dynaActor) {
+    if (dynaActor->interactFlags & DYNA_INTERACT_ACTOR_ON_HEAVY_SWITCH) {
+        return true;
     } else {
-        return 0;
+        return false;
     }
+}
+
+s32 DynaPolyActor_ValidateMove(PlayState* play, DynaPolyActor* dynaActor, s16 startRadius, s16 endRadius,
+                               s16 startHeight) {
+    Vec3f startPos;
+    Vec3f endPos;
+    Vec3f intersectionPos;
+    f32 sin = Math_SinS(dynaActor->yRotation);
+    f32 cos = Math_CosS(dynaActor->yRotation);
+    s32 bgId;
+    CollisionPoly* poly;
+    f32 adjustedStartRadius;
+    f32 adjustedEndRadius;
+    f32 sign = (0.0f <= dynaActor->pushForce) ? 1.0f : -1.0f;
+
+    adjustedStartRadius = (f32)startRadius - 0.1f;
+    startPos.x = dynaActor->actor.world.pos.x + (adjustedStartRadius * cos);
+    startPos.y = dynaActor->actor.world.pos.y + startHeight;
+    startPos.z = dynaActor->actor.world.pos.z - (adjustedStartRadius * sin);
+
+    adjustedEndRadius = (f32)endRadius - 0.1f;
+    endPos.x = sign * adjustedEndRadius * sin + startPos.x;
+    endPos.y = startPos.y;
+    endPos.z = sign * adjustedEndRadius * cos + startPos.z;
+
+    if (BgCheck_EntityLineTest3(&play->colCtx, &startPos, &endPos, &intersectionPos, &poly, true, false, false, true,
+                                &bgId, &dynaActor->actor, 0.0f)) {
+        return false;
+    }
+
+    startPos.x = (dynaActor->actor.world.pos.x * 2.0f) - startPos.x;
+    startPos.z = (dynaActor->actor.world.pos.z * 2.0f) - startPos.z;
+    endPos.x = sign * adjustedEndRadius * sin + startPos.x;
+    endPos.z = sign * adjustedEndRadius * cos + startPos.z;
+
+    if (BgCheck_EntityLineTest3(&play->colCtx, &startPos, &endPos, &intersectionPos, &poly, true, false, false, true,
+                                &bgId, &dynaActor->actor, 0.0f)) {
+        return false;
+    }
+
+    return true;
 }

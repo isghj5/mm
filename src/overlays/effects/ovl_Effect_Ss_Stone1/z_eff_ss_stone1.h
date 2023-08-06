@@ -4,10 +4,8 @@
 #include "global.h"
 
 typedef struct {
-    /* 0x00 */ Vec3f pos;
-    /* 0x00 */ s32 unk_C;
+    /* 0x0 */ Vec3f pos;
+    /* 0xC */ s32 reg0;
 } EffectSsStone1InitParams; // size = 0x10
-
-extern const EffectSsInit Effect_Ss_Stone1_InitVars;
 
 #endif
