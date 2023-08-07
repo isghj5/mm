@@ -15,7 +15,7 @@ void EnBoj03_Destroy(Actor* thisx, PlayState* play);
 void EnBoj03_Update(Actor* thisx, PlayState* play);
 void EnBoj03_Draw(Actor* thisx, PlayState* play);
 
-const ActorInit En_Boj_03_InitVars = {
+ActorInit En_Boj_03_InitVars = {
     ACTOR_EN_BOJ_03,
     ACTORCAT_NPC,
     FLAGS,
@@ -29,9 +29,12 @@ const ActorInit En_Boj_03_InitVars = {
 
 void EnBoj03_Init(Actor* thisx, PlayState* play) {
 }
+
 void EnBoj03_Destroy(Actor* thisx, PlayState* play) {
 }
+
 void EnBoj03_Update(Actor* thisx, PlayState* play) {
 }
+
 void EnBoj03_Draw(Actor* thisx, PlayState* play) {
 }

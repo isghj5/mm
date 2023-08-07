@@ -58,7 +58,7 @@ void __osContGetInitData(u8* pattern, OSContStatus* data) {
     ptr = (u8*)__osContPifRam.ramarray;
     for (i = 0; i < __osMaxControllers; i++, ptr += sizeof(requestHeader), data++) {
         requestHeader = *(__OSContRequestHeader*)ptr;
-        data->errno = (requestHeader.rxsize & 0xc0) >> 4;
+        data->errno = (requestHeader.rxsize & 0xC0) >> 4;
         if (data->errno == 0) {
             data->type = requestHeader.typel << 8 | requestHeader.typeh;
             data->status = requestHeader.status;
@@ -74,11 +74,11 @@ void __osPackRequestData(u8 poll) {
     __OSContRequestHeader requestHeader;
     s32 i;
 
-    for (i = 0; i < 0xF; i++) {
+    for (i = 0; i < ARRAY_COUNT(__osContPifRam.ramarray); i++) {
         __osContPifRam.ramarray[i] = 0;
     }
 
-    __osContPifRam.status = 1;
+    __osContPifRam.status = CONT_CMD_READ_BUTTON;
     ptr = (u8*)__osContPifRam.ramarray;
     requestHeader.align = 255;
     requestHeader.txsize = 1;
