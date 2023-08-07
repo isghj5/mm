@@ -13,7 +13,7 @@ You will need to prepare a local version of the project with a copied base ROM (
 From inside your local project, run the following command:
 
 ```bash
-docker build . -t mm
+docker build . -t mm --network host
 ```
 
 This will build a docker image with the name of `mm`, to verify the image was made you can run the command
