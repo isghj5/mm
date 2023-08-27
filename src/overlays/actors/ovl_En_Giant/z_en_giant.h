@@ -4,7 +4,7 @@
 #include "global.h"
 #include "objects/object_giant/object_giant.h"
 
-#define GIANT_TYPE(thisx) ((thisx)->params & 0xF)
+#define GIANT_TYPE(thisx) ((thisx)->params & 0xFF)
 
 /**
  * The giants are divided into types based on where in the game they appear.
@@ -35,7 +35,8 @@ typedef enum {
     /* 12 */ GIANT_TYPE_MOUNTAIN_CLOCK_TOWER_FAILURE,
     /* 13 */ GIANT_TYPE_CANYON_CLOCK_TOWER_FAILURE,
     /* 14 */ GIANT_TYPE_SWAMP_CLOCK_TOWER_FAILURE,
-    /* 15 */ GIANT_TYPE_OCEAN_CLOCK_TOWER_FAILURE
+    /* 15 */ GIANT_TYPE_OCEAN_CLOCK_TOWER_FAILURE,
+    /* 16 */ GIANT_TYPE_VACATION
 } GiantType;
 
 struct EnGiant;
@@ -50,12 +51,13 @@ typedef struct EnGiant {
     /* 0x248 */ s16 animIndex;
     /* 0x24A */ u16 cueType;
     /* 0x24C */ u16 cueId;
-    /* 0x24E */ s16 alpha;
+    /* 0x24E */ u16 alpha;
     /* 0x250 */ u16 sfxId;
     /* 0x254 */ MtxF headDrawMtxF;
     /* 0x294 */ s16 faceIndex;
     /* 0x296 */ s16 blinkTimer;
     /* 0x298 */ EnGiantActionFunc actionFunc;
+                s16 timer;
 } EnGiant; // size = 0x29C
 
 #endif // Z_EN_GIANT_H

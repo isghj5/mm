@@ -19,6 +19,8 @@ void EnGiant_PerformClockTowerSuccessActions(EnGiant* this, PlayState* play);
 void EnGiant_PlayClockTowerFailureAnimation(EnGiant* this, PlayState* play);
 void EnGiant_PerformCutsceneActions(EnGiant* this, PlayState* play);
 
+void EnGiant_EnjoyVacation(EnGiant* this, PlayState* play);
+
 #define GIANT_TYPE_IS_NOT_TERMINA_FIELD(type) (type > GIANT_TYPE_OCEAN_TERMINA_FIELD)
 #define GIANT_TYPE_IS_TERMINA_FIELD(type) (type <= GIANT_TYPE_OCEAN_TERMINA_FIELD)
 #define GIANT_TYPE_IS_CLOCK_TOWER_SUCCESS(type) \
@@ -92,7 +94,7 @@ static AnimationHeader* sAnimations[] = {
 };
 
 void EnGiant_ChangeAnim(EnGiant* this, s16 animIndex) {
-    if (animIndex >= GIANT_ANIM_LOOK_UP_START && animIndex < GIANT_ANIM_MAX) {
+    if (animIndex >= 0 && animIndex < GIANT_ANIM_MAX) {
         if (((this->animIndex == GIANT_ANIM_WALKING_LOOP) && (animIndex != GIANT_ANIM_WALKING_LOOP)) ||
             ((animIndex == GIANT_ANIM_WALKING_LOOP) && (this->animIndex != GIANT_ANIM_WALKING_LOOP))) {
             Animation_Change(&this->skelAnime, sAnimations[animIndex], 1.0f, 0.0f,
@@ -160,7 +162,7 @@ void EnGiant_Init(Actor* thisx, PlayState* play) {
     SkelAnime_InitFlex(play, &this->skelAnime, &gGiantSkel, &gGiantLargeStrideAnim, this->jointTable, this->morphTable,
                        GIANT_LIMB_MAX);
     EnGiant_ChangeAnim(this, GIANT_ANIM_IDLE_LOOP);
-    this->cueId = GIANT_CUE_ID_NONE;
+    //this->cueId = GIANT_CUE_ID_NONE; // why? you always overwrite it down below
     this->actionFunc = EnGiant_PerformCutsceneActions;
     this->actor.draw = NULL;
     this->alpha = 0;
@@ -187,6 +189,24 @@ void EnGiant_Init(Actor* thisx, PlayState* play) {
             this->cueType = CS_CMD_ACTOR_CUE_456;
             break;
 
+        case GIANT_TYPE_VACATION:
+            this->cueId = GIANT_CUE_ID_NONE;
+            this->actor.draw = EnGiant_Draw;
+            this->alpha = 0;
+            this->actor.velocity.y = 0.0f;
+            this->actor.terminalVelocity = 0.0f;
+            this->actor.gravity = 0.0f;
+            EnGiant_ChangeAnim(this, 1); //looking up
+            this->actionFunc = EnGiant_EnjoyVacation;
+
+            //Actor_Spawn(&play->actorCtx, play, ACTOR_DEMO_KANKYO,
+                //this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z, 
+                //0, 0, 0,
+                //0x1); // giants bubbles
+
+            return; //might as well leave now thats as deep as we need to go
+            //break;
+
         default:
             this->cueType = CS_CMD_ACTOR_CUE_453;
             break;
@@ -199,7 +219,7 @@ void EnGiant_Init(Actor* thisx, PlayState* play) {
         }
 
         this->cueType = CS_CMD_ACTOR_CUE_453;
-        Actor_SetScale(&this->actor, 0.32f);
+        //Actor_SetScale(&this->actor, 0.32f);
         this->actionFunc = EnGiant_PerformClockTowerSuccessActions;
         Animation_Change(&this->skelAnime, &gGiantRaisedArmsStartAnim, 0.0f,
                          Animation_GetLastFrame(&gGiantRaisedArmsStartAnim) - 1.0f,
@@ -211,7 +231,7 @@ void EnGiant_Init(Actor* thisx, PlayState* play) {
     }
 
     if (GIANT_TYPE_IS_CLOCK_TOWER_FAILURE(type)) {
-        Actor_SetScale(&this->actor, 0.32f);
+        //Actor_SetScale(&this->actor, 0.32f);
         this->actionFunc = EnGiant_PlayClockTowerFailureAnimation;
         Animation_Change(&this->skelAnime, &gGiantStruggleLoopAnim, 1.0f, 0.0f,
                          Animation_GetLastFrame(&gGiantStruggleStartAnim), ANIMMODE_LOOP, 0.0f);
@@ -337,6 +357,7 @@ void EnGiant_ChangeAnimBasedOnCueId(EnGiant* this) {
     }
 }
 
+// called from vanilla actionfunc
 void EnGiant_UpdateAlpha(EnGiant* this) {
     switch (this->cueId) {
         case GIANT_CUE_ID_FALLING_OVER:
@@ -456,7 +477,7 @@ void EnGiant_PlayClockTowerFailureAnimation(EnGiant* this, PlayState* play) {
 }
 
 void EnGiant_PerformCutsceneActions(EnGiant* this, PlayState* play) {
-    this->actor.draw = EnGiant_Draw;
+    this->actor.draw = EnGiant_Draw; // ...
 
     if (Cutscene_IsCueInChannel(play, this->cueType)) {
         Cutscene_ActorTranslateAndYaw(&this->actor, play, Cutscene_GetCueChannel(play, this->cueType));
@@ -474,14 +495,132 @@ void EnGiant_PerformCutsceneActions(EnGiant* this, PlayState* play) {
     EnGiant_PlaySound(this);
     EnGiant_PlayAndUpdateAnimation(this);
 }
+/*
+     GIANT_ANIM_LOOK_UP_START,
+     GIANT_ANIM_LOOK_UP_LOOP,
+     GIANT_ANIM_FALLING_OVER,
+     GIANT_ANIM_RAISED_ARMS_START,
+     GIANT_ANIM_RAISED_ARMS_LOOP,
+     GIANT_ANIM_STRUGGLE_START,
+     GIANT_ANIM_STRUGGLE_LOOP,
+     GIANT_ANIM_IDLE_LOOP,
+     GIANT_ANIM_WALKING_LOOP,
+     GIANT_ANIM_BIG_CALL_START,
+     GIANT_ANIM_BIG_CALL_LOOP,
+     GIANT_ANIM_BIG_CALL_END,
+     GIANT_ANIM_SMALL_CALL_START,
+     GIANT_ANIM_SMALL_CALL_LOOP,
+     GIANT_ANIM_SMALL_CALL_END,
+     GIANT_ANIM_MAX
+ */
+
+void EnGiant2_DecideAnimationChange(EnGiant* this, PlayState* play){
+  
+    u16 visibleSeconds = 10 ;
+  
+    //EnGiant_ChangeAnim(this, GIANT_ANIM_SMALL_CALL_START);
+
+    ///*
+    // chance change of animation
+    //
+    f32 animationRoll = Rand_ZeroFloat(100.0f);
+
+    if (animationRoll < 2.0f){ // falling over
+      visibleSeconds = 3;
+      EnGiant_ChangeAnim(this, GIANT_ANIM_FALLING_OVER );
+
+    }else if (animationRoll < 10.0f){ // calling
+      visibleSeconds = 5;
+      EnGiant_ChangeAnim(this, GIANT_ANIM_SMALL_CALL_START);
+
+    }else if (animationRoll < 30.0f){ // arms up
+      visibleSeconds = 8;
+      EnGiant_ChangeAnim(this, GIANT_ANIM_RAISED_ARMS_START);
+
+    }else if (animationRoll < 60.0f){ // staring straight
+      visibleSeconds = (u16) Rand_ZeroFloat(5.0f) + 7;
+  
+      EnGiant_ChangeAnim(this, GIANT_ANIM_IDLE_LOOP);
+
+    } else { // staring up at the sky
+      visibleSeconds = (u16) Rand_ZeroFloat(5.0f) + 7;
+      
+      EnGiant_ChangeAnim(this, GIANT_ANIM_LOOK_UP_START);
+
+    } // */
+
+    this->timer = 20 * visibleSeconds;
+}
+
+void EnGiant_EnjoyVacation(EnGiant* this, PlayState* play) {
+
+  // update chest and face towards player 
+
+  if(SkelAnime_Update(&this->skelAnime)){ // animation has ended
+    // might not need to do this
+    if (this->animIndex == GIANT_ANIM_LOOK_UP_START 
+      || this->animIndex == GIANT_ANIM_RAISED_ARMS_START 
+      || this->animIndex == GIANT_ANIM_SMALL_CALL_START){
+      EnGiant_ChangeToStartOrLoopAnimation(this, this->animIndex);
+    } else {
+
+      // for some reason these animations dont loop, we have to manually loop them
+      EnGiant_ChangeAnim(this, this->animIndex);
+    }
+  }
+
+  // we want the giant to appear and then disappear from time to time
+  
+  if (this->timer == 0 && this->alpha == 0){
+    // invisible timer is up
+    EnGiant2_DecideAnimationChange(this,play);
+
+  }else if (this->timer == 0 /*  && this->alpha == 0xFF */){
+    // visible timer is up
+    //u16 visibleSeconds = ((u16) Rand_ZeroFloat(60.0f)) + 30;
+    u16 visibleSeconds = 5; // testing
+    this->timer = -20 * visibleSeconds;
+  }
+
+
+  // 4 is too slow, you can see all of the weird xlu texture overlapping, lets get this over with in under a second
+  if (this->timer > 0 && this->alpha < 0xFF){ // become visible
+    this->alpha += 16;
+  } else if (this->timer < 0 && this->alpha > 0x0){ // become invisible
+    this->alpha -= 16;
+  }
+
+  CLAMP(this->alpha, 0, 0xFF);
+  
+  
+
+  // head tracking is dead, nothing doing
+  //if (this->actor.xzDistToPlayer < 100.0f) {
+  //if () {
+      // OSN doesnt need to check angle or distance, maybe that is unneccessary
+      //Actor_TrackPlayer(play, &this->actor, &this->headRot, &this->chestRot, this->actor.focus.pos);
+
+      //this->chestRot.x = this->chestRot.y = this->chestRot.z = 0; // this broke chest rotation
+  //} else {
+      //Math_SmoothStepToS(&this->headRot.x, 0, 0x6, 0x1838, 0x64);
+      //Math_SmoothStepToS(&this->headRot.y, 0, 0x6, 0x1838, 0x64);
+      //Math_SmoothStepToS(&this->chestRot.x, 0, 0x6, 0x1838, 0x64);
+      //Math_SmoothStepToS(&this->chestRot.y, 0, 0x6, 0x1838, 0x64);
+  //}
+}
 
 void EnGiant_Update(Actor* thisx, PlayState* play) {
     EnGiant* this = THIS;
     s32 blinkTimerTemp;
 
     this->actionFunc(this, play);
-    Actor_MoveWithGravity(&this->actor);
-    Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
+    if (GIANT_TYPE(&this->actor) == GIANT_TYPE_VACATION){
+      Actor_MoveWithoutGravity(&this->actor);
+
+    } else {
+      Actor_MoveWithGravity(&this->actor);
+      Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
+    }
 
     if (this->blinkTimer == 0) {
         blinkTimerTemp = 0;
@@ -497,9 +636,95 @@ void EnGiant_Update(Actor* thisx, PlayState* play) {
     if (this->faceIndex >= 3) {
         this->faceIndex = 0;
     }
+    
+    this->timer = (this->timer < 0) ? (this->timer++) : (this->timer--);
+}
+
+
+void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
+    EnGiant* this = THIS; // replace with THIS actor
+    // with explanation comments
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // the dlist will be written in the opa buffer because that buffer is larger,
+    // but executed from the overlay buffer (overlay draws last, for example the hud is drawn to overlay)
+    gfx = POLY_OPA_DISP + 1;
+    gSPDisplayList(OVERLAY_DISP++, gfx);
+
+    // initialize GfxPrint struct
+    GfxPrint_Init(&printer);
+    GfxPrint_Open(&printer, gfx);
+
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
+    GfxPrint_SetPos(&printer, 1, 10);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+
+    { // address locations
+        void* actionFuncAddr = this->actionFunc;
+        u32 convertedAddr = (u32) Fault_ConvertAddress(actionFuncAddr);
+        GfxPrint_SetPos(&printer, 1, 11);
+        GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
+        GfxPrint_SetPos(&printer, 1, 12);
+        GfxPrint_Printf(&printer, "actionfunc actual ram:  %X", actionFuncAddr);
+
+    }
+
+    GfxPrint_SetPos(&printer, 1, 13);
+    
+    //GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
+    //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
+    GfxPrint_Printf(&printer, "timer %X", this->timer);
+    GfxPrint_SetPos(&printer, 1, 14);
+    GfxPrint_Printf(&printer, "alpha %X", this->alpha);
+
+    // end of text printing
+    gfx = GfxPrint_Close(&printer);
+    GfxPrint_Destroy(&printer);
+
+    gSPEndDisplayList(gfx++);
+    // make the opa dlist jump over the part that will be executed as part of overlay
+    gSPBranchList(POLY_OPA_DISP, gfx);
+    POLY_OPA_DISP = gfx;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+    //if (BREG(86)) 
+    //  Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+} // */
+
+
+// issue: his head is his body, it rotates everything, so hes face deskgin
+s32 EnGiant_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx,
+                           Gfx** gfx) {
+  //EnGiant* this = (EnGiant*) thisx;
+
+  //if (limbIndex == GIANT_LIMB_HEAD) {
+    //OPEN_DISPS(play->state.gfxCtx);
+
+    // OSN
+    //Matrix_RotateXS(this->headRot.x, MTXMODE_APPLY);
+    //Matrix_RotateYS(this->headRot.y, MTXMODE_APPLY);
+    //Matrix_RotateXS(0x5000, MTXMODE_APPLY);
+    //rot->x += this->chestRot.x;
+    //rot->z += this->chestRot.z;
+    //rot->x += 0x2000;
+    //rot->z += 0x2000;
+    
+    //en_sth
+    //rot->x += this->headRot.y;
+    //rot->z += this->headRot.x;
+
+
+    //CLOSE_DISPS(play->state.gfxCtx);
+  //}
+
+
 }
 
 void EnGiant_PostLimbDrawOpa(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
+    EnGiant* this = THIS;
     if (limbIndex == GIANT_LIMB_HEAD) {
         OPEN_DISPS(play->state.gfxCtx);
 
@@ -552,4 +777,7 @@ void EnGiant_Draw(Actor* thisx, PlayState* play) {
 
         CLOSE_DISPS(play->state.gfxCtx);
     }
+
+    //if (BREG(86)) 
+      Debug_PrintToScreen(thisx, play); // put this in your actors draw func
 }
