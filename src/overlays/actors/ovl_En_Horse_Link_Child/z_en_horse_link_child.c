@@ -165,8 +165,58 @@ f32 EnHorseLinkChild_GetAnimSpeed(EnHorseLinkChild* this) {
     return animSpeed;
 }
 
+
+/// This is a copy of Skin_Init but we check if malloc returns null, because if it does that means our actor cannot spawn, and we must depart
+bool Epona2_SkinInitFixed(GameState* gameState, Skin* skin, SkeletonHeader* skeletonHeader, AnimationHeader* animationHeader){
+
+    s32 limbCount;
+    s32 i;
+    SkinLimb** skeleton;
+    SkeletonHeader* virtSkelHeader = Lib_SegmentedToVirtual(skeletonHeader);
+
+    skin->limbCount = virtSkelHeader->limbCount;
+    skin->skeletonHeader = virtSkelHeader;
+    limbCount = skin->skeletonHeader->limbCount;
+
+    skeleton = Lib_SegmentedToVirtual(skin->skeletonHeader->segment);
+    skin->vtxTable = ZeldaArena_Malloc(limbCount * sizeof(SkinLimbVtx));
+
+    if (skin->vtxTable == NULL) return false;
+
+    for (i = 0; i < limbCount; i++) {
+        SkinLimbVtx* vtxEntry = &skin->vtxTable[i];
+
+        if ((((SkinLimb*)Lib_SegmentedToVirtual(skeleton[i]))->segmentType != SKIN_LIMB_TYPE_ANIMATED) ||
+            (((SkinLimb*)Lib_SegmentedToVirtual(skeleton[i]))->segment == NULL)) {
+            vtxEntry->index = 0;
+
+            vtxEntry->buf[0] = NULL;
+            vtxEntry->buf[1] = NULL;
+        } else {
+            SkinAnimatedLimbData* animatedLimbData =
+                Lib_SegmentedToVirtual((((SkinLimb*)Lib_SegmentedToVirtual(skeleton[i]))->segment));
+
+            { s32 tmp; }
+
+            vtxEntry->index = 0;
+            vtxEntry->buf[0] = ZeldaArena_Malloc(animatedLimbData->totalVtxCount * sizeof(Vtx));
+            if (skin->vtxTable == NULL) return false;
+            vtxEntry->buf[1] = ZeldaArena_Malloc(animatedLimbData->totalVtxCount * sizeof(Vtx));
+            if (skin->vtxTable == NULL) return false;
+
+            Skin_InitAnimatedLimb(gameState, skin, i);
+        }
+    }
+
+    SkelAnime_InitSkin(gameState, &skin->skelAnime, skeletonHeader, animationHeader);
+
+    return true;
+}
+
+
 void EnHorseLinkChild_Init(Actor* thisx, PlayState* play) {
     EnHorseLinkChild* this = THIS;
+    bool skinTest;
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
     Actor_SetScale(&this->actor, 64.8f * 0.0001f);
@@ -181,7 +231,14 @@ void EnHorseLinkChild_Init(Actor* thisx, PlayState* play) {
     this->actor.focus.pos = this->actor.world.pos;
     this->actor.focus.pos.y += 70.0f;
 
-    Skin_Init(&play->state, &this->skin, &gEponaSkel, &gEponaGallopAnim);
+    // ERROR: if we fail to allocate skin its a crash, gotta replace this function
+    //Skin_Init(&play->state, &this->skin, &gEponaSkel, &gEponaGallopAnim);
+    skinTest = Epona2_SkinInitFixed(&play->state, &this->skin, &gEponaSkel, &gEponaGallopAnim);
+
+    if (! skinTest){
+      Actor_Kill(this);
+      return;
+    }
 
     Animation_PlayOnce(&this->skin.skelAnime, sAnimations[OOT_EPONA_ANIMATION_IDLE]);
 
@@ -686,7 +743,7 @@ void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     
     //GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
     //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
-    GfxPrint_Printf(&printer, "mesgState %X", Message_GetState(&play->msgCtx));
+    GfxPrint_Printf(&printer, "skin vtx size %X", sizeof(this->skin));
 
     // end of text printing
     gfx = GfxPrint_Close(&printer);
@@ -743,7 +800,8 @@ void EnHorseLinkChild_Draw(Actor* thisx, PlayState* play) {
   
     func_800AE5A0(play);
 
-    if (BREG(86)) {
+    if (BREG(86))
+    {
       Debug_PrintToScreen(thisx, play); // put this in your actors draw func
     }
 }
