@@ -81,7 +81,7 @@ static f32 D_80942DFC[] = {
     10.0f,
 };
 
-static Gfx* D_80942E0C[][3] = {
+static Gfx* sGoroiwaBrokenFragments[][3] = {
     { gGoroiwaSilverRockChunk1DL, gGoroiwaSilverRockChunk2DL, gGoroiwaSilverRockChunk3DL },
     { gGoroiwaRedRockChunk1DL, gGoroiwaRedRockChunk2DL, gGoroiwaRedRockChunk3DL },
     { gGoroiwaSnowBallChunk1DL, gGoroiwaSnowBallChunk2DL, gGoroiwaSnowBallChunk3DL },
@@ -682,14 +682,14 @@ void func_80940090(EnGoroiwa* this, PlayState* play) {
         for (i = 0, phi_s7 = 0; i < spD8; i++, phi_s7 += spA8) {
             if ((i & 3) == 0) {
                 phi_f22 = 1.0f;
-                phi_s1 = D_80942E0C[sp120][2];
+                phi_s1 = sGoroiwaBrokenFragments[sp120][2];
                 phi_s2 = -0x118;
                 phi_s3 = 0;
                 phi_s0 = 0x40;
             } else {
                 phi_s2 = -0x190;
                 if ((i & 3) == 1) {
-                    phi_s1 = D_80942E0C[sp120][1];
+                    phi_s1 = sGoroiwaBrokenFragments[sp120][1];
                     phi_s2 = -0x154;
                     phi_s3 = 0;
                     phi_f22 = 0.9f;
@@ -699,7 +699,7 @@ void func_80940090(EnGoroiwa* this, PlayState* play) {
                         phi_s0 = 0x40;
                     }
                 } else {
-                    phi_s1 = D_80942E0C[sp120][0];
+                    phi_s1 = sGoroiwaBrokenFragments[sp120][0];
                     phi_s3 = 1;
                     phi_f22 = 0.8f;
                     if ((s32)Rand_Next() > 0) {
@@ -815,6 +815,7 @@ void func_80940588(PlayState* play, Vec3f* arg1, Gfx* arg2[], Color_RGBA8* arg3,
     }
 }
 
+// spawns a fragment upon destruction
 void func_80940A1C(PlayState* play, Vec3f* arg1, Gfx** arg2, Color_RGBA8* arg3, Color_RGBA8* arg4, f32 arg5) {
     s32 i;
     Vec3f spE8;
@@ -951,21 +952,23 @@ void EnGoroiwa_Init(Actor* thisx, PlayState* play) {
     EnGoroiwa* this = THIS;
     f32 temp_f0;
     s32 pathID = ENGOROIWA_GET_PATH(&this->actor);
-    s32 sp28 = pathID * 8; // TODO attempt consol
+    s32 pad;
     Path* path = &play->setupPathList[pathID];
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
+
     this->actor.world.rot.x = 0;
     this->actor.world.rot.z = 0;
     this->actor.world.rot.y = Rand_Next() & 0xFFFF;
     this->actor.shape.rot.y = this->actor.world.rot.y;
     this->actor.shape.rot.x = 0;
     this->actor.shape.rot.z = 0;
+
     func_8093E8A0(this);
     func_8093E91C(this);
     func_8093E9B0(this, play);
 
-    if (sp28 == 0x7F8) {
+    if (pathID == 0xFF) {
         Actor_Kill(&this->actor);
         return;
     }
@@ -1076,7 +1079,7 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
             sp80.x = this->actor.world.pos.x;
             sp80.y = this->actor.world.pos.y + this->unk_1DC;
             sp80.z = this->actor.world.pos.z;
-            func_80940588(play, &sp80, D_80942E0C[params], &D_80942E30[params], &D_80942E3C[params],
+            func_80940588(play, &sp80, sGoroiwaBrokenFragments[params], &D_80942E30[params], &D_80942E3C[params],
                           this->actor.scale.x);
             func_80941274(this, play);
             phi_s0_2 = true;
@@ -1323,7 +1326,7 @@ void func_8094220C(EnGoroiwa* this, PlayState* play) {
     f32 phi_f12;
     f32 temp_f20;
     f32 spAC;
-    s32 params;
+    s32 color;
     Vec3f sp9C;
     s16 sp9A;
 
@@ -1370,12 +1373,12 @@ void func_8094220C(EnGoroiwa* this, PlayState* play) {
 
                 if (((ptr->unk_00.y + (this->unk_1DC - temp_f20)) < ptr->unk_18) ||
                     (ptr->unk_18 < (BGCHECK_Y_MIN + 10))) {
-                    params = ENGOROIWA_GET_COLOR(&this->actor);
+                    color = ENGOROIWA_GET_COLOR(&this->actor);
                     ptr->unk_2D |= 1;
                     sp9C.x = ptr->unk_00.x;
                     sp9C.y = (ptr->unk_00.y - ptr->unk_10) + 10.0f;
                     sp9C.z = ptr->unk_00.z;
-                    func_80940A1C(play, &sp9C, D_80942E0C[params], &D_80942E30[params], &D_80942E3C[params],
+                    func_80940A1C(play, &sp9C, sGoroiwaBrokenFragments[color], &D_80942E30[color], &D_80942E3C[color],
                                   this->actor.scale.x);
                 }
             }
@@ -1607,8 +1610,10 @@ void EnGoroiwa_Draw(Actor* thisx, PlayState* play) {
     s32 color = ENGOROIWA_GET_COLOR(&this->actor);
 
     if (this->actionFunc == func_8094220C) {
+        // draw half only, as unit has broken
         func_80942B1C(this, play);
     } else if (this->actionFunc != func_80942604) {
+        // draw regular
         Gfx_DrawDListOpa(play, sGoroiwaTextures[color]);
     }
     //!BUG: Uncaught case (this->actionFunc == func_80942604), assumed they did not want to draw there
