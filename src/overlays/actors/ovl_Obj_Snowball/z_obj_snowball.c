@@ -92,9 +92,9 @@ static Color_RGBA8 D_80B04FB8 = { 180, 180, 180, 255 };
 static Vec3f D_80B04FBC = { 0.0f, 0.3f, 0.0f };
 
 static Gfx* D_80B04FC8[] = {
-    object_goroiwa_DL_0072F0,
-    object_goroiwa_DL_0077D0,
-    object_goroiwa_DL_007C60,
+    gGoroiwaSnowBallChunk1DL,
+    gGoroiwaSnowBallChunk2DL,
+    gGoroiwaSnowBallChunk3DL,
 };
 
 static InitChainEntry sInitChain[] = {
@@ -792,7 +792,7 @@ void ObjSnowball_Update(Actor* thisx, PlayState* play) {
 void ObjSnowball_Draw(Actor* thisx, PlayState* play) {
     ObjSnowball* this = THIS;
 
-    Gfx_DrawDListOpa(play, object_goroiwa_DL_008B90);
+    Gfx_DrawDListOpa(play, gGoroiwaSnowBallDL);
 }
 
 void func_80B04D34(Actor* thisx, PlayState* play) {
@@ -813,7 +813,7 @@ void func_80B04D34(Actor* thisx, PlayState* play) {
 
             Matrix_SetTranslateRotateYXZ(ptr->unk_00.x, ptr->unk_00.y, ptr->unk_00.z, &sp80);
             Matrix_Scale(this->actor.scale.x, this->actor.scale.y, this->actor.scale.z, MTXMODE_APPLY);
-            Gfx_DrawDListOpa(play, object_goroiwa_DL_0082D0);
+            Gfx_DrawDListOpa(play, gGoroiwaSnowBallHalfDL);
 
             if ((ptr->unk_28 != NULL) && (ptr->unk_2C > 0)) {
                 OPEN_DISPS(play->state.gfxCtx);

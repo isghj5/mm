@@ -82,9 +82,9 @@ static f32 D_80942DFC[] = {
 };
 
 static Gfx* D_80942E0C[][3] = {
-    { object_goroiwa_DL_0042B0, object_goroiwa_DL_004960, object_goroiwa_DL_004EF0 },
-    { object_goroiwa_DL_0003B0, object_goroiwa_DL_0028E0, object_goroiwa_DL_002D70 },
-    { object_goroiwa_DL_0072F0, object_goroiwa_DL_0077D0, object_goroiwa_DL_007C60 },
+    { gGoroiwaSilverRockChunk1DL, gGoroiwaSilverRockChunk2DL, gGoroiwaSilverRockChunk3DL },
+    { gGoroiwaRedRockChunk1DL, gGoroiwaRedRockChunk2DL, gGoroiwaRedRockChunk3DL },
+    { gGoroiwaSnowBallChunk1DL, gGoroiwaSnowBallChunk2DL, gGoroiwaSnowBallChunk3DL },
 };
 
 static Color_RGBA8 D_80942E30[] = {
@@ -1551,15 +1551,16 @@ void func_80942B1C(EnGoroiwa* this, PlayState* play) {
     s32 i;
     EnGoroiwaStruct* ptr;
     s32 color = ENGOROIWA_GET_COLOR(&this->actor);
-    Gfx* phi_fp;
+    Gfx* halfDL;
     MtxF sp88;
     Vec3s sp80;
 
     if (color == ENGOROIWA_COLOR_REDROCK) {
-        phi_fp = object_goroiwa_DL_0032E0;
+        halfDL = gGoroiwaRedRockHalfDL; 
     } else {
-        phi_fp = object_goroiwa_DL_0082D0;
+        halfDL = gGoroiwaSnowBallHalfDL;
     }
+    // NOTE: missing silver chunk, not found in the object either
 
     for (i = 0; i < ARRAY_COUNT(this->unk_1E8); i++) {
         ptr = &this->unk_1E8[i];
@@ -1571,7 +1572,7 @@ void func_80942B1C(EnGoroiwa* this, PlayState* play) {
 
             Matrix_SetTranslateRotateYXZ(ptr->unk_00.x, ptr->unk_00.y, ptr->unk_00.z, &sp80);
             Matrix_Scale(this->actor.scale.x, this->actor.scale.y, this->actor.scale.z, MTXMODE_APPLY);
-            Gfx_DrawDListOpa(play, phi_fp);
+            Gfx_DrawDListOpa(play, halfDL);
 
             if ((ptr->unk_28 != 0) && (ptr->unk_2C > 0)) {
                 OPEN_DISPS(play->state.gfxCtx);
@@ -1598,9 +1599,9 @@ void func_80942B1C(EnGoroiwa* this, PlayState* play) {
 
 void EnGoroiwa_Draw(Actor* thisx, PlayState* play) {
     static Gfx* sGoroiwaTextures[] = {
-        object_goroiwa_DL_005C20, // grey rock
-        object_goroiwa_DL_003B40, // red rock
-        object_goroiwa_DL_008B90, // now ball
+        gGoroiwaSilverRockDL,
+        gGoroiwaRedRockDL,
+        gGoroiwaSnowBallDL,
     };
     EnGoroiwa* this = THIS;
     s32 color = ENGOROIWA_GET_COLOR(&this->actor);
@@ -1610,4 +1611,5 @@ void EnGoroiwa_Draw(Actor* thisx, PlayState* play) {
     } else if (this->actionFunc != func_80942604) {
         Gfx_DrawDListOpa(play, sGoroiwaTextures[color]);
     }
+    //!BUG: Uncaught case (this->actionFunc == func_80942604), assumed they did not want to draw there
 }
