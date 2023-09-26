@@ -14,6 +14,11 @@ typedef s32 (*EnGoroiwaUnkFunc)(struct EnGoroiwa*);
 #define ENGOROIWA_GET_300(thisx) (((thisx)->params >> 0x8) & 3)
 #define ENGOROIWA_GET_PATH(thisx) ((thisx)->params & 0xFF)
 
+#define ENGOROIWA_GET_ROT_Y(thisx) ((thisx)->home.rot.y)
+#define ENGOROIWA_GET_ROT_ROLLINGSFX_UPPER(this) ((this)->actor.home.rot.x) >> 1 & 3
+#define ENGOROIWA_GET_ROT_ROLLINGSFX_LOWER(this) ((this)->actor.home.rot.x & 0x1)
+#define ENGOROIWA_GET_ROT_Z(thisx) ((thisx)->home.rot.z)
+
 typedef enum {
     /* 0 */ ENGOROIWA_300_0,
     /* 1 */ ENGOROIWA_300_1,
@@ -74,7 +79,7 @@ typedef struct EnGoroiwa {
     /* 0x1DA */ s16 unk_1DA;
     /* 0x1DC */ f32 unk_1DC;
     /* 0x1E0 */ f32 unk_1E0;
-    /* 0x1E4 */ s8 unk_1E4;
+    /* 0x1E4 */ s8 rollingSFXUpperIndex; // pulled from home.rot.x, the & 1 bit is pulled jit 
     /* 0x1E5 */ u8 unk_1E5;
     /* 0x1E6 */ s8 unk_1E6;
     /* 0x1E7 */ s8 unk_1E7;

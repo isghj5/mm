@@ -87,22 +87,22 @@ static Gfx* sGoroiwaBrokenFragments[][3] = {
     { gGoroiwaSnowBallChunk1DL, gGoroiwaSnowBallChunk2DL, gGoroiwaSnowBallChunk3DL },
 };
 
-static Color_RGBA8 D_80942E30[] = {
+static Color_RGBA8 sGoriwaUnkPrimColors[] = {
     { 190, 195, 200, 255 },
     { 170, 130, 90, 255 },
 };
 
-static Color_RGBA8 D_80942E38 = { 250, 250, 250, 255 };
+static Color_RGBA8 sGoriwaSoftSpritePrimColor = { 250, 250, 250, 255 };
 
-static Color_RGBA8 D_80942E3C[] = {
+static Color_RGBA8 sGoriwaUnkEnvColors[] = {
     { 130, 135, 140, 255 },
     { 100, 60, 20, 255 },
 };
 
-static Color_RGBA8 D_80942E44 = { 180, 180, 180, 255 };
+static Color_RGBA8 sGoriwaSoftSpriteEnvColor = { 180, 180, 180, 255 };
 
-static Vec3f D_80942E48 = { 0.0f, 0.0f, 0.0f };
-static Vec3f D_80942E54 = { 0.0f, 0.3f, 0.0f };
+static Vec3f sGoriwaSoftSpriteVelocity = { 0.0f, 0.0f, 0.0f };
+static Vec3f sGoriwaSoftSpriteAccel = { 0.0f, 0.3f, 0.0f };
 static Vec3f D_80942E60 = { 0.0f, 1.0f, 0.0f };
 static Vec3f D_80942E6C = { 0.0f, 0.0f, 1.0f };
 
@@ -183,8 +183,9 @@ s32 func_8093EAD4(Vec3f* arg0, Vec3f* arg1) {
     return true;
 }
 
-void func_8093EB58(EnGoroiwa* this, PlayState* play) {
-    this->unk_1E4 = (this->actor.home.rot.x >> 1) & 3;
+void EnGoriwa_GetRollingSFXUpper(EnGoroiwa* this, PlayState* play) {
+    // home.rot.x >> 3 & 1
+    this->rollingSFXUpperIndex = ENGOROIWA_GET_ROT_ROLLINGSFX_UPPER(this);
 }
 
 f32 func_8093EB74(EnGoroiwa* this, PlayState* play) {
@@ -206,14 +207,14 @@ f32 func_8093EB74(EnGoroiwa* this, PlayState* play) {
     return temp_f20;
 }
 
-void func_8093EC50(EnGoroiwa* this) {
-    Vec3s* var = &this->curPathPoints[this->unk_1D8];
-    Vec3f sp18;
+void EnGoriwa_AdjustYaw(EnGoroiwa* this) {
+    Vec3s* nextPathPoint = &this->curPathPoints[this->unk_1D8];
+    Vec3f targetPoint;
 
-    sp18.x = var->x;
-    sp18.y = var->y;
-    sp18.z = var->z;
-    this->actor.world.rot.y = Math_Vec3f_Yaw(&this->actor.world.pos, &sp18);
+    targetPoint.x = nextPathPoint->x;
+    targetPoint.y = nextPathPoint->y;
+    targetPoint.z = nextPathPoint->z;
+    this->actor.world.rot.y = Math_Vec3f_Yaw(&this->actor.world.pos, &targetPoint);
 }
 
 void func_8093ECD4(EnGoroiwa* this) {
@@ -261,6 +262,7 @@ void func_8093EDD8(EnGoroiwa* this, PlayState* play) {
     this->unk_1DA = 1;
 }
 
+// from init
 void func_8093EE18(EnGoroiwa* this, PlayState* play) {
     this->path = play->setupPathList[ENGOROIWA_GET_PATH(&this->actor)].count - 1;
     this->unk_1D6 = this->actor.home.rot.y;
@@ -295,8 +297,8 @@ s32 func_8093EEDC(EnGoroiwa* this) {
     return 0;
 }
 
-void func_8093EF54(PlayState* play, Vec3f* arg1, Color_RGBA8* arg2, Color_RGBA8* arg3, f32 arg4) {
-    Vec3f spC4;
+void func_8093EF54(PlayState* play, Vec3f* arg1, Color_RGBA8* primColor, Color_RGBA8* envColor, f32 arg4) {
+    Vec3f pos;
     f32 temp_f0;
     f32 temp_f20;
     f32 temp_f24;
@@ -318,12 +320,13 @@ void func_8093EF54(PlayState* play, Vec3f* arg1, Color_RGBA8* arg2, Color_RGBA8*
 
     for (i = 0, phi_s0 = 0; i < temp_f16; i++, phi_s0 += temp) {
         // clang-format off
-        temp_f20 = Rand_ZeroOne(); spC4.x = (Math_SinS(phi_s0) * (temp_f24 * ((temp_f20 * 0.5f) + 0.5f))) + arg1->x;
-        spC4.y = ((Rand_ZeroOne() - 0.5f) * temp_f30) + arg1->y;
-        temp_f20 = Rand_ZeroOne(); spC4.z = (Math_CosS(phi_s0) * (temp_f24 * ((temp_f20 * 0.5f) + 0.5f))) + arg1->z;
+        temp_f20 = Rand_ZeroOne(); pos.x = (Math_SinS(phi_s0) * (temp_f24 * ((temp_f20 * 0.5f) + 0.5f))) + arg1->x;
+        pos.y = ((Rand_ZeroOne() - 0.5f) * temp_f30) + arg1->y;
+        temp_f20 = Rand_ZeroOne(); pos.z = (Math_CosS(phi_s0) * (temp_f24 * ((temp_f20 * 0.5f) + 0.5f))) + arg1->z;
         // clang-format on
 
-        func_800B0E48(play, &spC4, &D_80942E48, &D_80942E54, arg2, arg3, (Rand_ZeroOne() * temp_f28) + temp_f26,
+        // spawn soft_sprite_old
+        func_800B0E48(play, &pos, &sGoriwaSoftSpriteVelocity, &sGoriwaSoftSpriteAccel, primColor, envColor, (Rand_ZeroOne() * temp_f28) + temp_f26,
                       temp_f26);
     }
 }
@@ -358,7 +361,7 @@ s32 func_8093F34C(EnGoroiwa* this) {
     f32 x;
     f32 z;
 
-    Math_StepToF(&this->actor.speed, D_80942DFC[this->unk_1E4], 0.3f);
+    Math_StepToF(&this->actor.speed, D_80942DFC[this->rollingSFXUpperIndex], 0.3f);
     Actor_UpdateVelocityWithGravity(&this->actor);
     temp_v0 = &this->curPathPoints[this->unk_1D8];
     this->actor.velocity.y *= 0.97f;
@@ -393,7 +396,7 @@ s32 func_8093F498(EnGoroiwa* this) {
     sp2C.y = temp_v0->y;
     sp2C.z = temp_v0->z;
 
-    Math_StepToF(&this->actor.speed, D_80942DFC[this->unk_1E4], 0.3f);
+    Math_StepToF(&this->actor.speed, D_80942DFC[this->rollingSFXUpperIndex], 0.3f);
     Math_Vec3f_Diff(&sp2C, &this->actor.world.pos, &this->actor.velocity);
 
     velocityMagnitude = Math3D_Vec3fMagnitude(&this->actor.velocity);
@@ -422,7 +425,7 @@ s32 func_8093F5EC(EnGoroiwa* this) {
         this->actor.velocity.y = 0.0f;
     }
 
-    Math_StepToF(&this->actor.velocity.y, D_80942DFC[this->unk_1E4] * 0.5f, 0.18f);
+    Math_StepToF(&this->actor.velocity.y, D_80942DFC[this->rollingSFXUpperIndex] * 0.5f, 0.18f);
     this->actor.world.pos.x = sp18->x;
     this->actor.world.pos.z = sp18->z;
 
@@ -481,8 +484,8 @@ s32 func_8093F6F8(EnGoroiwa* this, PlayState* play) {
                         sp48.y = temp_f14 + 10.0f;
                         sp48.z = this->actor.world.pos.z;
 
-                        func_8093EF54(play, &sp48, &D_80942E30[ENGOROIWA_GET_COLOR(&this->actor)],
-                                      &D_80942E3C[ENGOROIWA_GET_COLOR(&this->actor)], this->actor.scale.x);
+                        func_8093EF54(play, &sp48, &sGoriwaUnkPrimColors[ENGOROIWA_GET_COLOR(&this->actor)],
+                                      &sGoriwaUnkEnvColors[ENGOROIWA_GET_COLOR(&this->actor)], this->actor.scale.x);
                     }
                     Actor_PlaySfx(&this->actor, NA_SE_EV_BIGBALL_BOUND);
                 }
@@ -729,7 +732,7 @@ void func_80940090(EnGoroiwa* this, PlayState* play) {
                 sp100.y += ((Rand_ZeroOne() * 1400.0f) - 600.0f) * this->actor.scale.y;
                 sp100.z += ((Rand_ZeroOne() * 1200.0f) - 600.0f) * this->actor.scale.z;
 
-                func_800B0E48(play, &sp100, &D_80942E48, &D_80942E54, &D_80942E30[sp120], &D_80942E3C[sp120],
+                func_800B0E48(play, &sp100, &sGoriwaSoftSpriteVelocity, &sGoriwaSoftSpriteAccel, &sGoriwaUnkPrimColors[sp120], &sGoriwaUnkEnvColors[sp120],
                               (Rand_ZeroOne() * 50.0f) + (400.0f * spEC), (Rand_ZeroOne() * 60.0f) + (500.0f * spEC));
             }
         }
@@ -740,11 +743,11 @@ void func_80940090(EnGoroiwa* this, PlayState* play) {
     }
 }
 
-void func_80940588(PlayState* play, Vec3f* arg1, Gfx* arg2[], Color_RGBA8* arg3, Color_RGBA8* arg4, f32 arg5) {
+void func_80940588(PlayState* play, Vec3f* arg1, Gfx* arg2[], Color_RGBA8* primColor, Color_RGBA8* envColor, f32 arg5) {
     Gfx* phi_s7;
     Vec3f sp100;
     Vec3f spF4;
-    Vec3f spE8;
+    Vec3f pos;
     f32 temp_f20;
     f32 spB0;
     s32 j;
@@ -806,19 +809,23 @@ void func_80940588(PlayState* play, Vec3f* arg1, Gfx* arg2[], Color_RGBA8* arg3,
                              ((Rand_ZeroOne() * 100.0f) + 170.0f) * arg5, spC8, 0, 0x36, -1, OBJECT_GOROIWA, phi_s7);
 
         for (j = 0; j < 2; j++) {
-            spE8.x = (((Rand_ZeroOne() * 1000.0f) - 500.0f) * arg5) + sp100.x;
-            spE8.y = (((Rand_ZeroOne() * 1300.0f) - 500.0f) * arg5) + sp100.y;
-            spE8.z = (((Rand_ZeroOne() * 1000.0f) - 500.0f) * arg5) + sp100.z;
-            func_800B0E48(play, &spE8, &D_80942E48, &D_80942E54, arg3, arg4, (Rand_ZeroOne() * 80.0f) + spB0,
+            pos.x = (((Rand_ZeroOne() * 1000.0f) - 500.0f) * arg5) + sp100.x;
+            pos.y = (((Rand_ZeroOne() * 1300.0f) - 500.0f) * arg5) + sp100.y;
+            pos.z = (((Rand_ZeroOne() * 1000.0f) - 500.0f) * arg5) + sp100.z;
+
+            // spawn soft_sprite_old
+            func_800B0E48(play, &pos, &sGoriwaSoftSpriteVelocity, &sGoriwaSoftSpriteAccel, primColor, envColor, 
+                          (Rand_ZeroOne() * 80.0f) + spB0,
                           (Rand_ZeroOne() * 70.0f) + spAC);
         }
     }
 }
 
 // spawns a fragment upon destruction
-void func_80940A1C(PlayState* play, Vec3f* arg1, Gfx** arg2, Color_RGBA8* arg3, Color_RGBA8* arg4, f32 arg5) {
+// arg5 might be scale
+void func_80940A1C(PlayState* play, Vec3f* arg1, Gfx** arg2, Color_RGBA8* primColor, Color_RGBA8* envColor, f32 arg5) {
     s32 i;
-    Vec3f spE8;
+    Vec3f pos;
     Vec3f spDC;
     s32 phi_s2;
     s32 phi_s0;
@@ -838,15 +845,15 @@ void func_80940A1C(PlayState* play, Vec3f* arg1, Gfx** arg2, Color_RGBA8* arg3, 
     for (i = 0, phi_s6 = 0; i < spC8; i++, phi_s6 += spA8) {
         temp_f20 = (Rand_ZeroOne() * arg5 * 400.0f) + 20.0f;
 
-        spE8.x = Math_SinS((s32)(Rand_ZeroOne() * spA8) + phi_s6) * temp_f20;
-        spE8.y = (Rand_ZeroOne() - 0.2f) * temp_f20 * 0.8f;
-        spE8.z = Math_CosS((s32)(Rand_ZeroOne() * spA8) + phi_s6) * temp_f20;
+        pos.x = Math_SinS((s32)(Rand_ZeroOne() * spA8) + phi_s6) * temp_f20;
+        pos.y = (Rand_ZeroOne() - 0.2f) * temp_f20 * 0.8f;
+        pos.z = Math_CosS((s32)(Rand_ZeroOne() * spA8) + phi_s6) * temp_f20;
 
-        spDC.x = spE8.x * 0.17f;
+        spDC.x = pos.x * 0.17f;
         spDC.y = (Rand_ZeroOne() * 14.0f) + 3.0f;
-        spDC.z = spE8.z * 0.17f;
+        spDC.z = pos.z * 0.17f;
 
-        Math_Vec3f_Sum(&spE8, arg1, &spE8);
+        Math_Vec3f_Sum(&pos, arg1, &pos);
 
         if ((i & 3) == 0) {
             phi_s1 = arg2[2];
@@ -874,14 +881,15 @@ void func_80940A1C(PlayState* play, Vec3f* arg1, Gfx** arg2, Color_RGBA8* arg3, 
             }
         }
 
-        EffectSsKakera_Spawn(play, &spE8, &spDC, &spE8, phi_s2, phi_s0, 30, 0, 0,
+        EffectSsKakera_Spawn(play, &pos, &spDC, &pos, phi_s2, phi_s0, 30, 0, 0,
                              ((Rand_ZeroOne() * 150.0f) + 250.0f) * arg5, phi_s3, 0, 0x36, -1, OBJECT_GOROIWA, phi_s1);
 
-        spE8.x += ((Rand_ZeroOne() * 800.0f) - 400.0f) * arg5;
-        spE8.y += ((Rand_ZeroOne() * 800.0f) - 250.0f) * arg5;
-        spE8.z += ((Rand_ZeroOne() * 800.0f) - 400.0f) * arg5;
+        pos.x += ((Rand_ZeroOne() * 800.0f) - 400.0f) * arg5;
+        pos.y += ((Rand_ZeroOne() * 800.0f) - 250.0f) * arg5;
+        pos.z += ((Rand_ZeroOne() * 800.0f) - 400.0f) * arg5;
 
-        func_800B0E48(play, &spE8, &D_80942E48, &D_80942E54, arg3, arg4, (Rand_ZeroOne() * 60.0f) + spAC,
+        // spawn soft_sprite_old
+        func_800B0E48(play, &pos, &sGoriwaSoftSpriteVelocity, &sGoriwaSoftSpriteAccel, primColor, envColor, (Rand_ZeroOne() * 60.0f) + spAC,
                       (Rand_ZeroOne() * 30.0f) + spAC);
     }
 }
@@ -890,7 +898,7 @@ void func_80940E38(EnGoroiwa* this, PlayState* play) {
     f32 sp5C;
     s32 pad;
     f32 sp54;
-    Vec3f sp48;
+    Vec3f pos;
     s16 sp46;
     s16 temp_a0;
 
@@ -907,11 +915,12 @@ void func_80940E38(EnGoroiwa* this, PlayState* play) {
                     sp54 = this->unk_1DC;
                 }
 
-                sp48.x = (Math_SinS(sp46) * sp54) + this->actor.world.pos.x;
-                sp48.y = this->actor.world.pos.y + 20.0f;
-                sp48.z = (Math_CosS(sp46) * sp54) + this->actor.world.pos.z;
+                pos.x = (Math_SinS(sp46) * sp54) + this->actor.world.pos.x;
+                pos.y = this->actor.world.pos.y + 20.0f;
+                pos.z = (Math_CosS(sp46) * sp54) + this->actor.world.pos.z;
 
-                func_800B0E48(play, &sp48, &D_80942E48, &D_80942E54, &D_80942E38, &D_80942E44,
+                // spawn soft_sprite_old
+                func_800B0E48(play, &pos, &sGoriwaSoftSpriteVelocity, &sGoriwaSoftSpriteAccel, &sGoriwaSoftSpritePrimColor, &sGoriwaSoftSpriteEnvColor,
                               (Rand_ZeroOne() * 600.0f) + (600.0f * (this->actor.scale.x + 0.1f) * 0.5f),
                               (s32)(Rand_ZeroOne() * 50.0f) + 30);
             }
@@ -920,26 +929,28 @@ void func_80940E38(EnGoroiwa* this, PlayState* play) {
 }
 
 void func_80941060(EnGoroiwa* this, PlayState* play) {
-    Vec3f spAC;
-    Vec3f spA0;
-    Vec3f sp94;
+    Vec3f accel;
+    Vec3f vel;
+    Vec3f pos;
     Vec3s* vec = &this->collider.elements[0].info.bumper.hitPos;
     s32 i;
 
     for (i = 0; i < 4; i++) {
-        sp94.x = ((Rand_ZeroOne() * 14.0f) - 7.0f) + vec->x;
-        sp94.y = ((Rand_ZeroOne() * 14.0f) - 7.0f) + vec->y;
-        sp94.z = ((Rand_ZeroOne() * 14.0f) - 7.0f) + vec->z;
+        pos.x = ((Rand_ZeroOne() * 14.0f) - 7.0f) + vec->x;
+        pos.y = ((Rand_ZeroOne() * 14.0f) - 7.0f) + vec->y;
+        pos.z = ((Rand_ZeroOne() * 14.0f) - 7.0f) + vec->z;
 
-        spA0.x = (Rand_ZeroOne() - 0.5f) * 1.6f;
-        spA0.y = -0.8f;
-        spA0.z = (Rand_ZeroOne() - 0.5f) * 1.6f;
+        vel.x = (Rand_ZeroOne() - 0.5f) * 1.6f;
+        vel.y = -0.8f;
+        vel.z = (Rand_ZeroOne() - 0.5f) * 1.6f;
 
-        spAC.x = spA0.x * -0.06f;
-        spAC.y = spA0.y * -0.06f;
-        spAC.z = spA0.z * -0.06f;
+        accel.x = vel.x * -0.06f;
+        accel.y = vel.y * -0.06f;
+        accel.z = vel.z * -0.06f;
 
-        func_800B0E48(play, &sp94, &spA0, &spAC, &D_80942E38, &D_80942E44, (s32)(Rand_ZeroOne() * 30.0f) + 15,
+        // spawn soft_sprite_old
+        func_800B0E48(play, &pos, &vel, &accel, &sGoriwaSoftSpritePrimColor, &sGoriwaSoftSpriteEnvColor, 
+                      (s32)(Rand_ZeroOne() * 30.0f) + 15,
                       (s32)(Rand_ZeroOne() * 40.0f) + 30);
     }
 }
@@ -968,6 +979,8 @@ void EnGoroiwa_Init(Actor* thisx, PlayState* play) {
     func_8093E91C(this);
     func_8093E9B0(this, play);
 
+    // ?? is this so that, in the event the player flips a switch and stops them dropping
+    // the spawner can just change the type the path? but why would the spawner not just stop spawning?
     if (pathID == 0xFF) {
         Actor_Kill(&this->actor);
         return;
@@ -978,21 +991,22 @@ void EnGoroiwa_Init(Actor* thisx, PlayState* play) {
         return;
     }
 
-    if ((this->actor.home.rot.y >= (path->count - 1)) && (this->actor.home.rot.y < 0)) {
+    if ((ENGOROIWA_GET_ROT_Y(thisx) >= (path->count - 1)) && (ENGOROIWA_GET_ROT_Y(thisx) < 0)) {
         this->actor.home.rot.y = 0;
     }
 
     CollisionCheck_SetInfo(&this->actor.colChkInfo, NULL, &sColChkInfoInit);
     ActorShape_Init(&this->actor.shape, 595.0f, ActorShadow_DrawCircle, 9.4f);
     this->actor.shape.shadowAlpha = 200;
-    func_8093EB58(this, play);
+
+    EnGoriwa_GetRollingSFXUpper(this, play);
 
     this->curPathPoints = Lib_SegmentedToVirtual(path->points);
 
     func_8093EE18(this, play);
-    func_8093EE64(this, this->actor.home.rot.y);
+    func_8093EE64(this, ENGOROIWA_GET_ROT_Y(thisx));
     func_8093EEBC(this);
-    func_8093EC50(this);
+    EnGoriwa_AdjustYaw(this);
 
     if (ENGOROIWA_GET_3000(&this->actor) == ENGOROIWA_3000_2) {
         temp_f0 = func_8093EB74(this, play);
@@ -1000,7 +1014,7 @@ void EnGoroiwa_Init(Actor* thisx, PlayState* play) {
         if (temp_f0 < 0.1f) {
             this->unk_1E0 = 0.0f;
         } else {
-            this->unk_1E0 = (D_80942DFC[this->unk_1E4] * ((s32)play->state.framerateDivisor * 0.5f)) / temp_f0;
+            this->unk_1E0 = (D_80942DFC[this->rollingSFXUpperIndex] * ((s32)play->state.framerateDivisor * 0.5f)) / temp_f0;
             this->unk_1E0 *= 0.020000001f; // TODO
             if (this->unk_1E0 > 0.00037f) {
                 this->unk_1E0 = 0.00037f;
@@ -1053,7 +1067,7 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
                 temp2 = Math_SinS(ptr->unk_1E);
                 temp3 = Math_SinS(this->actor.world.rot.y);
 
-                ptr->unk_0C = ((1.0f / D_80942DFC[this->unk_1E4]) * (temp3 * 14.0f * this->actor.speed)) +
+                ptr->unk_0C = ((1.0f / D_80942DFC[this->rollingSFXUpperIndex]) * (temp3 * 14.0f * this->actor.speed)) +
                               (temp2 * (temp + 5.0f));
 
                 ptr->unk_10 = (Rand_ZeroOne() * 11.0f) + 20.0f;
@@ -1061,7 +1075,7 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
                 temp = Rand_ZeroOne();
                 temp2 = Math_CosS(ptr->unk_1E);
                 temp3 = Math_CosS(this->actor.world.rot.y);
-                ptr->unk_14 = ((1.0f / D_80942DFC[this->unk_1E4]) * ((temp3 * 14.0f) * this->actor.speed)) +
+                ptr->unk_14 = ((1.0f / D_80942DFC[this->rollingSFXUpperIndex]) * ((temp3 * 14.0f) * this->actor.speed)) +
                               (temp2 * (temp + 5.0f));
 
                 ptr->unk_1C = 0;
@@ -1079,7 +1093,7 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
             sp80.x = this->actor.world.pos.x;
             sp80.y = this->actor.world.pos.y + this->unk_1DC;
             sp80.z = this->actor.world.pos.z;
-            func_80940588(play, &sp80, sGoroiwaBrokenFragments[params], &D_80942E30[params], &D_80942E3C[params],
+            func_80940588(play, &sp80, sGoroiwaBrokenFragments[params], &sGoriwaUnkPrimColors[params], &sGoriwaUnkEnvColors[params],
                           this->actor.scale.x);
             func_80941274(this, play);
             phi_s0_2 = true;
@@ -1124,7 +1138,7 @@ void func_80941A10(EnGoroiwa* this, PlayState* play) {
         &func_8093F498,
         &func_8093F34C,
     };
-    static u16 D_80942E9C[][2] = {
+    static u16 sGoroiwaRollingSfx[][2] = {
         { NA_SE_EV_BIGBALL_ROLL - SFX_FLAG, NA_SE_EV_BIGBALL_ROLL_SR - SFX_FLAG },
         { NA_SE_EV_BIGBALL_ROLL_2 - SFX_FLAG, NA_SE_EV_BIGBALL_ROLL_SR_2 - SFX_FLAG },
         { NA_SE_EV_BIGBALL_ROLL_3 - SFX_FLAG, NA_SE_EV_BIGBALL_ROLL_SR_3 - SFX_FLAG },
@@ -1212,7 +1226,8 @@ void func_80941A10(EnGoroiwa* this, PlayState* play) {
         }
 
         if (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) {
-            Actor_PlaySfx(&this->actor, D_80942E9C[this->unk_1E4][this->actor.home.rot.x & 1]);
+            //Actor_PlaySfx(&this->actor, sGoroiwaRollingSfx[this->rollingSFXUpperIndex][this->actor.home.rot.x & 1]);
+            Actor_PlaySfx(&this->actor, sGoroiwaRollingSfx[this->rollingSFXUpperIndex][ENGOROIWA_GET_ROT_ROLLINGSFX_LOWER(this)]);
         }
     }
 }
@@ -1378,7 +1393,8 @@ void func_8094220C(EnGoroiwa* this, PlayState* play) {
                     sp9C.x = ptr->unk_00.x;
                     sp9C.y = (ptr->unk_00.y - ptr->unk_10) + 10.0f;
                     sp9C.z = ptr->unk_00.z;
-                    func_80940A1C(play, &sp9C, sGoroiwaBrokenFragments[color], &D_80942E30[color], &D_80942E3C[color],
+
+                    func_80940A1C(play, &sp9C, sGoroiwaBrokenFragments[color], &sGoriwaUnkPrimColors[color], &sGoriwaUnkEnvColors[color],
                                   this->actor.scale.x);
                 }
             }
@@ -1481,7 +1497,7 @@ void EnGoroiwa_Update(Actor* thisx, PlayState* play) {
         this->actionFunc(this, play);
 
         if (this->actor.update != NULL) {
-            func_8093EC50(this);
+            EnGoriwa_AdjustYaw(this);
 
             if (sp5C) {
                 func_80940E38(this, play);
