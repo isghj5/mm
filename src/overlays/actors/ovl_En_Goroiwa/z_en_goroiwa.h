@@ -8,11 +8,11 @@ struct EnGoroiwa;
 typedef void (*EnGoroiwaActionFunc)(struct EnGoroiwa*, PlayState*);
 typedef s32 (*EnGoroiwaUnkFunc)(struct EnGoroiwa*);
 
-#define ENGOROIWA_GET_C000(thisx) (((thisx)->params >> 0xE) & 3)
+#define ENGOROIWA_GET_COLOR(thisx) (((thisx)->params >> 0xE) & 3)
 #define ENGOROIWA_GET_3000(thisx) (((thisx)->params >> 0xC) & 3)
 #define ENGOROIWA_GET_400(thisx) (((thisx)->params >> 0xA) & 1)
 #define ENGOROIWA_GET_300(thisx) (((thisx)->params >> 0x8) & 3)
-#define ENGOROIWA_GET_FF(thisx) ((thisx)->params & 0xFF)
+#define ENGOROIWA_GET_PATH(thisx) ((thisx)->params & 0xFF)
 
 typedef enum {
     /* 0 */ ENGOROIWA_300_0,
@@ -32,9 +32,10 @@ typedef enum {
 } EnGoroiwaParam3000;
 
 typedef enum {
-    /* 1 */ ENGOROIWA_C000_1 = 1,
-    /* 2 */ ENGOROIWA_C000_2
-} EnGoroiwaParamC000;
+    /* 0 */ ENGOROIWA_COLOR_SILVERROCK, // unused in MM
+    /* 1 */ ENGOROIWA_COLOR_REDROCK,
+    /* 2 */ ENGOROIWA_COLOR_SNOWBALL
+} EnGoroiwaColors;
 
 typedef struct {
     /* 0x00 */ Vec3f unk_00;
@@ -66,10 +67,10 @@ typedef struct EnGoroiwa {
     /* 0x1CA */ s16 unk_1CA;
     /* 0x1CC */ s16 unk_1CC;
     /* 0x1CE */ s16 unk_1CE;
-    /* 0x1D0 */ Vec3s* unk_1D0;
-    /* 0x1D4 */ s16 unk_1D4;
+    /* 0x1D0 */ Vec3s* curPathPoints;
+    /* 0x1D4 */ s16 path;
     /* 0x1D6 */ s16 unk_1D6;
-    /* 0x1D8 */ s16 unk_1D8;
+    /* 0x1D8 */ s16 unk_1D8; // index of path?
     /* 0x1DA */ s16 unk_1DA;
     /* 0x1DC */ f32 unk_1DC;
     /* 0x1E0 */ f32 unk_1E0;
@@ -78,7 +79,7 @@ typedef struct EnGoroiwa {
     /* 0x1E6 */ s8 unk_1E6;
     /* 0x1E7 */ s8 unk_1E7;
     /* 0x1E8 */ EnGoroiwaStruct unk_1E8[2];
-    /* 0x248 */ s32 unk_248;
+    /* 0x248 */ s32 effectIndex;
 } EnGoroiwa; // size = 0x24C
 
 #endif // Z_EN_GOROIWA_H

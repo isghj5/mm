@@ -1,4 +1,5 @@
 ﻿<Root>
+    <!-- Rolling Boulders and Giant Snowball -->
     <File Name="object_goroiwa" Segment="6">
         <DList Name="object_goroiwa_DL_0003B0" Offset="0x3B0" /> <!-- Original name is "Z2_goron_hahenAT_model" -->
         <Texture Name="object_goroiwa_Tex_000520" OutName="tex_000520" Format="rgba16" Width="32" Height="32" Offset="0x520" />
