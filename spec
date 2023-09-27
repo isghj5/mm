@@ -531,7 +531,6 @@ beginseg
     include "build/data/code/z_message.data.o"
     include "build/data/code/z_message.bss.o"
     include "build/src/code/z_message_nes.o"
-    include "build/data/code/z_message_nes.data.o"
     include "build/src/code/z_message_staff.o"
     include "build/src/code/z_player_call.o"
     include "build/src/code/z_shrink_window.o"
@@ -2057,8 +2056,7 @@ beginseg
     name "ovl_En_Ge3"
     compress
     include "build/src/overlays/actors/ovl_En_Ge3/z_en_ge3.o"
-    include "build/data/ovl_En_Ge3/ovl_En_Ge3.data.o"
-    include "build/data/ovl_En_Ge3/ovl_En_Ge3.reloc.o"
+    include "build/src/overlays/actors/ovl_En_Ge3/ovl_En_Ge3_reloc.o"
 endseg
 
 beginseg
@@ -2441,8 +2439,7 @@ beginseg
     name "ovl_Dm_Hina"
     compress
     include "build/src/overlays/actors/ovl_Dm_Hina/z_dm_hina.o"
-    include "build/data/ovl_Dm_Hina/ovl_Dm_Hina.data.o"
-    include "build/data/ovl_Dm_Hina/ovl_Dm_Hina.reloc.o"
+    include "build/src/overlays/actors/ovl_Dm_Hina/ovl_Dm_Hina_reloc.o"
 endseg
 
 beginseg
