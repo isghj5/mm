@@ -74,6 +74,7 @@ static ColliderJntSphInit sJntSphInit = {
 
 static CollisionCheckInfoInit sColChkInfoInit = { 0, 12, 60, MASS_HEAVY };
 
+// speeds, cut in half
 static f32 D_80942DFC[] = {
     10.0f,
     12.0f,
@@ -191,11 +192,12 @@ s32 EnGoriwa_Vec3fNormalize(Vec3f* retVec, Vec3f* a) {
     return true;
 }
 
-void EnGoriwa_GetRollingSFXUpper(EnGoroiwa* this, PlayState* play) {
+void EnGoroiwa_GetRollingSFXUpper(EnGoroiwa* this, PlayState* play) {
     // home.rot.x >> 1 & 3
     this->rollingSFXUpperIndex = ENGOROIWA_GET_ROT_ROLLINGSFX_UPPER(this);
 }
 
+// gets path distance, total or dist to end?
 f32 func_8093EB74(EnGoroiwa* this, PlayState* play) {
     s32 i;
     Path* path = &play->setupPathList[ENGOROIWA_GET_PATH(&this->actor)];
@@ -216,8 +218,8 @@ f32 func_8093EB74(EnGoroiwa* this, PlayState* play) {
 }
 
 // EnGoroiwa_FaceNextWaypoint in OOT
-void EnGoriwa_AdjustYaw(EnGoroiwa* this) {
-    Vec3s* nextPathPoint = &this->curPathPoints[this->prevWaypoint];
+void EnGoroiwa_AdjustYaw(EnGoroiwa* this) {
+    Vec3s* nextPathPoint = &this->curPathPoints[this->nextWaypoint];
     Vec3f targetPoint;
 
     targetPoint.x = nextPathPoint->x;
@@ -226,57 +228,57 @@ void EnGoriwa_AdjustYaw(EnGoroiwa* this) {
     this->actor.world.rot.y = Math_Vec3f_Yaw(&this->actor.world.pos, &targetPoint);
 }
 
-// Name pulled from OOT
-void EnGoroiwa_GetPrevWaypointDiff(EnGoroiwa* this) {
+// exact copy of OoT version
+void EnGoroiwa_CheckEndOfPath(EnGoroiwa* this) {
     s32 loopMode = ENGOROIWA_GET_LOOPMODE(&this->actor);
 
-    if (this->prevWaypoint < 0) {
-        if ((loopMode == ENGOROIWA_300_0) || (loopMode == ENGOROIWA_300_1)) {
-            this->prevWaypoint = this->path - 1;
-            this->unk_1DA = -1;
-            this->unk_1D6 = this->path;
-        } else if (loopMode == ENGOROIWA_300_3) {
-            this->unk_1D6 = 0;
-            this->prevWaypoint = 1;
-            this->unk_1DA = 1;
+    if (this->nextWaypoint < 0) {
+        if ((loopMode == ENGOROIWA_LOOPMODE_ONEWAY) || (loopMode == ENGOROIWA_LOOPMODE_ONEWAY_BREAK)) {
+            this->currentWaypoint = this->endWaypoint;
+            this->nextWaypoint = this->endWaypoint - 1;
+            this->pathDirection = -1;
+        } else if (loopMode == ENGOROIWA_LOOPMODE_ROUNDTRIP) {
+            this->currentWaypoint = 0;
+            this->nextWaypoint = 1;
+            this->pathDirection = 1;
         }
-    } else if (this->path < this->prevWaypoint) {
-        if ((loopMode == ENGOROIWA_300_0) || (loopMode == ENGOROIWA_300_1)) {
-            this->unk_1D6 = 0;
-            this->prevWaypoint = 1;
-            this->unk_1DA = 1;
-        } else if (loopMode == ENGOROIWA_300_3) {
-            this->unk_1D6 = this->path;
-            this->prevWaypoint = this->path - 1;
-            this->unk_1DA = -1;
+    } else if (this->endWaypoint < this->nextWaypoint) {
+        if ((loopMode == ENGOROIWA_LOOPMODE_ONEWAY) || (loopMode == ENGOROIWA_LOOPMODE_ONEWAY_BREAK)) {
+            this->currentWaypoint = 0;
+            this->nextWaypoint = 1;
+            this->pathDirection = 1;
+        } else if (loopMode == ENGOROIWA_LOOPMODE_ROUNDTRIP) {
+            this->currentWaypoint = this->endWaypoint;
+            this->nextWaypoint = this->endWaypoint - 1;
+            this->pathDirection = -1;
         }
     }
 }
 
 void func_8093ED80(EnGoroiwa* this) {
-    this->unk_1D6 = this->prevWaypoint;
-    this->prevWaypoint += this->unk_1DA;
-    EnGoroiwa_GetPrevWaypointDiff(this);
+    this->currentWaypoint = this->nextWaypoint;
+    this->nextWaypoint += this->pathDirection;
+    EnGoroiwa_CheckEndOfPath(this);
 }
 
 void func_8093EDB0(EnGoroiwa* this) {
-    this->unk_1DA = -this->unk_1DA;
-    this->unk_1D6 = this->prevWaypoint;
-    this->prevWaypoint += this->unk_1DA;
+    this->pathDirection = -this->pathDirection;
+    this->currentWaypoint = this->nextWaypoint;
+    this->nextWaypoint += this->pathDirection;
 }
 
 void func_8093EDD8(EnGoroiwa* this, PlayState* play) {
-    this->path = play->setupPathList[ENGOROIWA_GET_PATH(&this->actor)].count - 1;
-    this->unk_1D6 = 0;
-    this->prevWaypoint = 1;
-    this->unk_1DA = 1;
+    this->endWaypoint = play->setupPathList[ENGOROIWA_GET_PATH(&this->actor)].count - 1;
+    this->currentWaypoint = 0;
+    this->nextWaypoint = 1;
+    this->pathDirection = 1;
 }
 
 void EnGoroiwa_InitPath(EnGoroiwa* this, PlayState* play) {
-    this->path = play->setupPathList[ENGOROIWA_GET_PATH(&this->actor)].count - 1;
-    this->unk_1D6 = this->actor.home.rot.y;
-    this->prevWaypoint = this->unk_1D6 + 1;
-    this->unk_1DA = 1;
+    this->endWaypoint = play->setupPathList[ENGOROIWA_GET_PATH(&this->actor)].count - 1;
+    this->currentWaypoint = ENGOROIWA_GET_ROT_Y(&this->actor);
+    this->nextWaypoint = this->currentWaypoint + 1;
+    this->pathDirection = 1;
 }
 
 void EnGoroiwa_TeleportToWaypoint(EnGoroiwa* this, s32 waypoint) {
@@ -296,8 +298,8 @@ void EnGoroiwa_InitRotation(EnGoroiwa* this) {
 
 //EnGoroiwa_GetAscendDirection in OOT?
 s32 func_8093EEDC(EnGoroiwa* this) {
-    Vec3s* temp_v1 = &this->curPathPoints[this->prevWaypoint];
-    Vec3s* temp_v0 = &this->curPathPoints[this->unk_1D6];
+    Vec3s* temp_v1 = &this->curPathPoints[this->nextWaypoint];
+    Vec3s* temp_v0 = &this->curPathPoints[this->currentWaypoint];
 
     if ((temp_v1->x == temp_v0->x) && (temp_v1->z == temp_v0->z)) {
         if (temp_v0->y < temp_v1->y) {
@@ -376,7 +378,7 @@ s32 func_8093F34C(EnGoroiwa* this) {
 
     Math_StepToF(&this->actor.speed, D_80942DFC[this->rollingSFXUpperIndex], 0.3f);
     Actor_UpdateVelocityWithGravity(&this->actor);
-    temp_v0 = &this->curPathPoints[this->prevWaypoint];
+    temp_v0 = &this->curPathPoints[this->nextWaypoint];
     this->actor.velocity.y *= 0.97f;
     x = temp_v0->x;
     z = temp_v0->z;
@@ -403,7 +405,7 @@ s32 func_8093F498(EnGoroiwa* this) {
     s32 pad;
     f32 velocityMagnitude;
     Vec3f sp2C;
-    Vec3s* temp_v0 = &this->curPathPoints[this->prevWaypoint];
+    Vec3s* temp_v0 = &this->curPathPoints[this->nextWaypoint];
 
     sp2C.x = temp_v0->x;
     sp2C.y = temp_v0->y;
@@ -432,7 +434,7 @@ s32 func_8093F498(EnGoroiwa* this) {
 
 s32 func_8093F5EC(EnGoroiwa* this) {
     s32 pad;
-    Vec3s* sp18 = &this->curPathPoints[this->prevWaypoint];
+    Vec3s* sp18 = &this->curPathPoints[this->nextWaypoint];
 
     if (this->actor.velocity.y < 0.0f) {
         this->actor.velocity.y = 0.0f;
@@ -453,7 +455,7 @@ s32 func_8093F5EC(EnGoroiwa* this) {
 
 s32 func_8093F6F8(EnGoroiwa* this, PlayState* play) {
     f32 temp_f14;
-    Vec3s* sp80 = &this->curPathPoints[this->prevWaypoint];
+    Vec3s* sp80 = &this->curPathPoints[this->nextWaypoint];
     f32 sp7C = sp80->y;
     f32 sp78;
     f32 temp_f2;
@@ -591,9 +593,9 @@ void func_8093FC00(EnGoroiwa* this) {
 
     func_8093ED80(this);
 
-    if (((loopMode == ENGOROIWA_300_0) || (loopMode == ENGOROIWA_300_1)) &&
-        ((this->unk_1D6 == 0) || (this->unk_1D6 == this->path))) {
-        EnGoroiwa_TeleportToWaypoint(this, this->unk_1D6);
+    if (((loopMode == ENGOROIWA_LOOPMODE_ONEWAY) || (loopMode == ENGOROIWA_LOOPMODE_ONEWAY_BREAK)) &&
+        ((this->currentWaypoint == 0) || (this->currentWaypoint == this->endWaypoint))) {
+        EnGoroiwa_TeleportToWaypoint(this, this->currentWaypoint);
     }
 }
 
@@ -987,7 +989,7 @@ void EnGoroiwa_PlaySnowballBrokenSound(EnGoroiwa* this, PlayState* play) {
 
 void EnGoroiwa_Init(Actor* thisx, PlayState* play) {
     EnGoroiwa* this = THIS;
-    f32 temp_f0;
+    f32 dist;
     s32 pathID = ENGOROIWA_GET_PATH(&this->actor);
     s32 pad;
     Path* path = &play->setupPathList[pathID];
@@ -1025,22 +1027,22 @@ void EnGoroiwa_Init(Actor* thisx, PlayState* play) {
     ActorShape_Init(&this->actor.shape, 595.0f, ActorShadow_DrawCircle, 9.4f);
     this->actor.shape.shadowAlpha = 200;
 
-    EnGoriwa_GetRollingSFXUpper(this, play);
+    EnGoroiwa_GetRollingSFXUpper(this, play);
 
     this->curPathPoints = Lib_SegmentedToVirtual(path->points);
 
     EnGoroiwa_InitPath(this, play); // InitPath
     EnGoroiwa_TeleportToWaypoint(this, ENGOROIWA_GET_ROT_Y(thisx));
     EnGoroiwa_InitRotation(this);
-    EnGoriwa_AdjustYaw(this);
+    EnGoroiwa_AdjustYaw(this);
 
     if (ENGOROIWA_GET_3000(&this->actor) == ENGOROIWA_3000_2) {
-        temp_f0 = func_8093EB74(this, play);
+        dist = func_8093EB74(this, play);
 
-        if (temp_f0 < 0.1f) {
+        if (dist < 0.1f) {
             this->unk_1E0 = 0.0f;
         } else {
-            this->unk_1E0 = (D_80942DFC[this->rollingSFXUpperIndex] * ((s32)play->state.framerateDivisor * 0.5f)) / temp_f0;
+            this->unk_1E0 = (D_80942DFC[this->rollingSFXUpperIndex] * ((s32)play->state.framerateDivisor * 0.5f)) / dist;
             this->unk_1E0 *= 0.020000001f; // TODO
             if (this->unk_1E0 > 0.00037f) {
                 this->unk_1E0 = 0.00037f;
@@ -1061,15 +1063,16 @@ void EnGoroiwa_Destroy(Actor* thisx, PlayState* play) {
     Effect_Destroy(play, this->effectIndex);
 }
 
-// returns bool
+// returns bool isBroken
 s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
     Actor* actor = &this->actor;
     s32 params = ENGOROIWA_GET_COLOR(&this->actor);
     EnGoroiwaStruct* ptr;
     s32 i;
-    s32 phi_s0_2 = false;
+    s32 isBroken = false;
     Vec3f sp80;
 
+    // why is silver singled out? does it not stop?
     if ((this->collider.base.acFlags & AC_HIT) && ((params == ENGOROIWA_COLOR_REDROCK) || (params == ENGOROIWA_COLOR_SNOWBALL))) {
         if (this->collider.elements->info.acHitInfo->toucher.dmgFlags & 0x4000) {
             s16 sp7E = BINANG_SUB(actor->yawTowardsPlayer, this->actor.world.rot.y);
@@ -1123,7 +1126,7 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
             func_80940588(play, &sp80, sGoroiwaBrokenFragments[params], &sGoriwaUnkPrimColors[params], &sGoriwaUnkEnvColors[params],
                           this->actor.scale.x);
             EnGoroiwa_PlaySnowballBrokenSound(this, play);
-            phi_s0_2 = true;
+            isBroken = true;
         } else if (((params == ENGOROIWA_COLOR_REDROCK) &&
                     (this->collider.elements->info.acHitInfo->toucher.dmgFlags & (0x400 | 0x100))) ||
                    ((params == ENGOROIWA_COLOR_SNOWBALL) && (this->collider.elements->info.acHitInfo->toucher.dmgFlags &
@@ -1136,7 +1139,7 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
             func_80940090(this, play);
             EnGoroiwa_PlaySnowballBrokenSound(this, play);
             func_809425CC(this);
-            phi_s0_2 = true;
+            isBroken = true;
         } else if ((params == ENGOROIWA_COLOR_SNOWBALL) && (this->unk_1E7 <= 0)) {
             func_80941060(this, play);
             this->unk_1E7 = 10;
@@ -1148,11 +1151,11 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
             this->unk_1E7--;
         }
 
-        if (phi_s0_2) {
+        if (isBroken) {
             Item_DropCollectibleRandom(play, NULL, &this->actor.world.pos, 0x20);
         }
     }
-    return phi_s0_2;
+    return isBroken;
 }
 
 void func_809419D0(EnGoroiwa* this) {
@@ -1176,17 +1179,17 @@ void func_80941A10(EnGoroiwa* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
     // in OOT this was a y offset for height in child vs adult, in this game its different
     s32 sp44 = ENGOROIWA_GET_400(&this->actor);
-    s32 sp40 = ENGOROIWA_GET_3000(&this->actor);
+    s32 param3000 = ENGOROIWA_GET_3000(&this->actor);
     s16 y;
     s32 pad2;
 
     if (!func_8094156C(this, play)) {
         if ((this->collider.base.atFlags & AT_HIT) && !(player->stateFlags3 & PLAYER_STATE3_80000)) {
-            s32 sp34 = this->actor.home.rot.z & 3;
+            s32 zRot = ENGOROIWA_GET_ROT_Z_3(this);
 
-            if (sp34 == 2) {
+            if (zRot == 2) {
                 func_80940090(this, play);
-                if (sp40 == ENGOROIWA_3000_2) {
+                if (param3000 == ENGOROIWA_3000_2) {
                     func_8093E8A0(this);
                     func_8093E91C(this);
                 }
@@ -1199,7 +1202,7 @@ void func_80941A10(EnGoroiwa* this, PlayState* play) {
                 y = this->actor.yawTowardsPlayer - this->actor.world.rot.y;
                 if ((y > -0x4000) && (y < 0x4000)) {
                     this->stateFlags |= 8;
-                    if (sp44 || (sp34 != 1)) {
+                    if (sp44 || (zRot != 1)) {
                         func_8093EDB0(this);
                     }
                 }
@@ -1207,7 +1210,7 @@ void func_80941A10(EnGoroiwa* this, PlayState* play) {
 
             func_800B8D50(play, &this->actor, 2.0f, this->actor.yawTowardsPlayer, 0.0f, 0);
 
-            if (sp34 == 2) {
+            if (zRot == 2) {
                 func_80941EB4(this);
             } else if (!sp44) {
                 func_80941EB4(this);
@@ -1217,29 +1220,29 @@ void func_80941A10(EnGoroiwa* this, PlayState* play) {
 
             Player_PlaySfx(player, NA_SE_PL_BODY_HIT);
 
-            if ((sp34 == 1) || (sp34 == 2)) {
+            if ((zRot == 1) || (zRot == 2)) {
                 this->unk_1CC = 50;
             }
         } else {
             if (D_80942E94[sp44](this)) {
                 s32 loopMode = ENGOROIWA_GET_LOOPMODE(&this->actor);
 
-                if ((loopMode == ENGOROIWA_300_1) && ((this->prevWaypoint == 0) || (this->prevWaypoint == this->path))) {
+                if ((loopMode == ENGOROIWA_LOOPMODE_ONEWAY_BREAK) && ((this->nextWaypoint == 0) || (this->nextWaypoint == this->endWaypoint))) {
                     func_80940090(this, play);
                     EnGoroiwa_PlaySnowballBrokenSound(this, play);
                 }
 
-                if (((loopMode == ENGOROIWA_300_1) || (loopMode == ENGOROIWA_300_0)) && (sp40 == ENGOROIWA_3000_2) &&
-                    ((this->prevWaypoint == 0) || (this->prevWaypoint == this->path))) {
+                if (((loopMode == ENGOROIWA_LOOPMODE_ONEWAY_BREAK) || (loopMode == ENGOROIWA_LOOPMODE_ONEWAY)) && (param3000 == ENGOROIWA_3000_2) &&
+                    ((this->nextWaypoint == 0) || (this->nextWaypoint == this->endWaypoint))) {
                     func_8093E8A0(this);
                     func_8093E91C(this);
                 }
 
                 func_8093FC00(this);
 
-                if ((loopMode == ENGOROIWA_300_3) && ((this->unk_1D6 == 0) || (this->unk_1D6 == this->path))) {
+                if ((loopMode == ENGOROIWA_LOOPMODE_ROUNDTRIP) && ((this->currentWaypoint == 0) || (this->currentWaypoint == this->endWaypoint))) {
                     func_80941EB4(this);
-                } else if (!sp44 && (this->unk_1D6 != 0) && (this->unk_1D6 != this->path)) {
+                } else if (!sp44 && (this->currentWaypoint != 0) && (this->currentWaypoint != this->endWaypoint)) {
                     loopMode = func_8093EEDC(this);
                     if (loopMode > 0) {
                         func_80941F54(this);
@@ -1273,7 +1276,7 @@ void func_80941DB4(EnGoroiwa* this) {
 void func_80941E28(EnGoroiwa* this, PlayState* play) {
     func_8093F34C(this);
     if ((this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) && (this->actor.velocity.y < 0.0f)) {
-        if ((this->stateFlags & 8) && ((this->actor.home.rot.z & 3) == 1)) {
+        if ((this->stateFlags & 8) && (ENGOROIWA_GET_ROT_Z_3(this) == 1)) {
             func_8093EDB0(this);
         }
         func_80941EB4(this);
@@ -1286,7 +1289,7 @@ void func_80941EB4(EnGoroiwa* this) {
     this->actionFunc = func_80941F10;
     this->actor.speed = 0.0f;
     EnGoriwa_UpdateFlags(this, 6);
-    this->timer = D_80942EAC[this->actor.home.rot.z & 3];
+    this->timer = D_80942EAC[ENGOROIWA_GET_ROT_Z_3(this)];
     this->unk_1C4 = 0.0f;
 }
 
@@ -1310,11 +1313,11 @@ void func_80941F54(EnGoroiwa* this) {
 void func_80941FA4(EnGoroiwa* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
 
-    if (func_8094156C(this, play) == 0) {
+    if (func_8094156C(this, play) == false) {
         if ((this->collider.base.atFlags & AT_HIT) && !(player->stateFlags3 & PLAYER_STATE3_80000)) {
             func_800B8D50(play, &this->actor, 2.0f, this->actor.yawTowardsPlayer, 0.0f, 0);
             Player_PlaySfx(player, NA_SE_PL_BODY_HIT);
-            if (((this->actor.home.rot.z & 3) == 1) || ((this->actor.home.rot.z & 3) == 2)) {
+            if ((ENGOROIWA_GET_ROT_Z_3(this) == 1) || (ENGOROIWA_GET_ROT_Z_3(this) == 2)) {
                 this->unk_1CC = 50;
             }
         } else if (func_8093F5EC(this)) {
@@ -1338,11 +1341,11 @@ void func_80942084(EnGoroiwa* this) {
 void func_809420F0(EnGoroiwa* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
 
-    if (func_8094156C(this, play) == 0) {
+    if (func_8094156C(this, play) == false) {
         if ((this->collider.base.atFlags & AT_HIT) && !(player->stateFlags3 & PLAYER_STATE3_80000)) {
             func_800B8D50(play, &this->actor, 2.0f, this->actor.yawTowardsPlayer, 0.0f, 0);
             Player_PlaySfx(player, NA_SE_PL_BODY_HIT);
-            if (((this->actor.home.rot.z & 3) == 1) || ((this->actor.home.rot.z & 3) == 2)) {
+            if (( ENGOROIWA_GET_ROT_Z_3(this) == 1) || (ENGOROIWA_GET_ROT_Z_3(this) == 2)) {
                 this->unk_1CC = 50;
             }
         } else if (func_8093F6F8(this, play)) {
@@ -1525,7 +1528,7 @@ void EnGoroiwa_Update(Actor* thisx, PlayState* play) {
         this->actionFunc(this, play);
 
         if (this->actor.update != NULL) {
-            EnGoriwa_AdjustYaw(this);
+            EnGoroiwa_AdjustYaw(this);
 
             if (sp5C) {
                 func_80940E38(this, play);

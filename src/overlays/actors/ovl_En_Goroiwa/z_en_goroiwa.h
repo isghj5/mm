@@ -18,12 +18,12 @@ typedef s32 (*EnGoroiwaUnkFunc)(struct EnGoroiwa*);
 // TODO add X back into this name
 #define ENGOROIWA_GET_ROT_ROLLINGSFX_UPPER(this) ((this)->actor.home.rot.x) >> 1 & 3
 #define ENGOROIWA_GET_ROT_ROLLINGSFX_LOWER(this) ((this)->actor.home.rot.x & 0x1)
-#define ENGOROIWA_GET_ROT_Z(thisx) ((thisx)->home.rot.z)
+#define ENGOROIWA_GET_ROT_Z_3(this) ((this)->actor.home.rot.z & 3)
 
 typedef enum {
-    /* 0 */ ENGOROIWA_300_0,
-    /* 1 */ ENGOROIWA_300_1,
-    /* 3 */ ENGOROIWA_300_3 = 3
+    /* 0 */ ENGOROIWA_LOOPMODE_ONEWAY,
+    /* 1 */ ENGOROIWA_LOOPMODE_ONEWAY_BREAK,
+    /* 3 */ ENGOROIWA_LOOPMODE_ROUNDTRIP = 3
 } EnGoroiwaLoopMode;
 
 typedef enum {
@@ -74,13 +74,14 @@ typedef struct EnGoroiwa {
     /* 0x1CC */ s16 unk_1CC;
     /* 0x1CE */ s16 unk_1CE;
     /* 0x1D0 */ Vec3s* curPathPoints;
-    /* 0x1D4 */ s16 path;
-    /* 0x1D6 */ s16 unk_1D6;
-    /* 0x1D8 */ s16 prevWaypoint;
-    /* 0x1DA */ s16 unk_1DA;
+    /* 0x1D4 */ s16 endWaypoint;
+    /* 0x1D6 */ s16 currentWaypoint;
+    /* 0x1D8 */ s16 nextWaypoint;
+    /* 0x1DA */ s16 pathDirection;
     /* 0x1DC */ f32 unk_1DC; // scale * 500ish
     /* 0x1E0 */ f32 unk_1E0;
     /* 0x1E4 */ s8 rollingSFXUpperIndex; // pulled from home.rot.x, the & 1 bit is pulled jit 
+    // also updates speed
     /* 0x1E5 */ u8 stateFlags; // cpy from oot
     /* 0x1E6 */ s8 unk_1E6;
     /* 0x1E7 */ s8 unk_1E7;
