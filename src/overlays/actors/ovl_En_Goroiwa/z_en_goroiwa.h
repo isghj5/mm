@@ -43,6 +43,9 @@ typedef enum {
     /* 2 */ ENGOROIWA_COLOR_SNOWBALL
 } EnGoroiwaColors;
 
+// state flags
+#define ENGOROIWA_STATE_INWATER 0x20
+
 typedef struct {
     /* 0x00 */ Vec3f unk_00;
     /* 0x0C */ f32 unk_0C;
@@ -68,9 +71,9 @@ typedef struct EnGoroiwa {
     /* 0x1A8 */ Vec3f unk_1A8;
     /* 0x1B4 */ Vec3f unk_1B4;
     /* 0x1C0 */ f32 unk_1C0;
-    /* 0x1C4 */ f32 unk_1C4;
+    /* 0x1C4 */ f32 rollRotSpeed;
     /* 0x1C8 */ s16 timer; // might be multi-user
-    /* 0x1CA */ s16 unk_1CA;
+    /* 0x1CA */ s16 bounceCount;
     /* 0x1CC */ s16 unk_1CC;
     /* 0x1CE */ s16 unk_1CE;
     /* 0x1D0 */ Vec3s* curPathPoints;

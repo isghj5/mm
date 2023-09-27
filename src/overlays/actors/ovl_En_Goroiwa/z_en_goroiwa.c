@@ -292,7 +292,7 @@ void EnGoroiwa_TeleportToWaypoint(EnGoroiwa* this, s32 waypoint) {
 // InitRotation in OOT
 void EnGoroiwa_InitRotation(EnGoroiwa* this) {
     this->unk_1B4.x = 1.0f;
-    this->unk_1C4 = 1.0f;
+    this->rollRotSpeed = 1.0f;
     this->unk_1A8.x = 1.0f;
 }
 
@@ -310,7 +310,7 @@ s32 func_8093EEDC(EnGoroiwa* this) {
     return 0;
 }
 
-// spawn array of some kind of effects
+// in OOT this was spawn dust
 void func_8093EF54(PlayState* play, Vec3f* arg1, Color_RGBA8* primColor, Color_RGBA8* envColor, f32 arg4) {
     Vec3f pos;
     f32 temp_f0;
@@ -453,22 +453,25 @@ s32 func_8093F5EC(EnGoroiwa* this) {
     return false;
 }
 
+// EnGoroiwa_MoveDownToNextWaypoint
+// almost copy of OOT version
 s32 func_8093F6F8(EnGoroiwa* this, PlayState* play) {
-    f32 temp_f14;
-    Vec3s* sp80 = &this->curPathPoints[this->nextWaypoint];
-    f32 sp7C = sp80->y;
-    f32 sp78;
-    f32 temp_f2;
+    f32 floorY;
+    Vec3s* nextPointPos = &this->curPathPoints[this->nextWaypoint];
+    f32 nextPointY = nextPointPos->y;
+    f32 thisY;
+    f32 yDistToFloor;
 
-    Math_StepToF(&this->actor.velocity.y, -18.367346f, 1.0f);
+    Math_StepToF(&this->actor.velocity.y, -18.367346f, 1.0f); // gravity is a universal constant
     this->actor.velocity.y *= 0.98f;
-    this->actor.world.pos.x = sp80->x;
-    this->actor.world.pos.z = sp80->z;
-    sp78 = this->actor.world.pos.y;
+
+    this->actor.world.pos.x = nextPointPos->x;
+    this->actor.world.pos.z = nextPointPos->z;
+    thisY = this->actor.world.pos.y;
     this->actor.world.pos.y += this->actor.velocity.y;
 
-    if ((this->actor.velocity.y < 0.0f) && (this->actor.world.pos.y <= sp7C)) {
-        if (this->unk_1CA == 0) {
+    if ((this->actor.velocity.y < 0.0f) && (this->actor.world.pos.y <= nextPointY)) {
+        if (this->bounceCount == 0) {
             if (this->actor.xzDistToPlayer < 400.0f) {
                 s16 quakeIndex = Quake_Request(GET_ACTIVE_CAM(play), QUAKE_TYPE_3);
 
@@ -477,29 +480,29 @@ s32 func_8093F6F8(EnGoroiwa* this, PlayState* play) {
                 Quake_SetDuration(quakeIndex, 7);
             }
 
-            this->unk_1C4 = 0.0f;
+            this->rollRotSpeed = 0.0f;
 
-            if (!(this->stateFlags & 0x20)) {
+            if (!(this->stateFlags & ENGOROIWA_STATE_INWATER)) {
                 CollisionPoly* poly;
-                Vec3f sp60;
+                Vec3f checkPos;
                 s32 pad[2];
                 s32 bgId;
-                Vec3f sp48;
+                Vec3f dustPos;
 
-                sp60.x = this->actor.world.pos.x;
-                sp60.y = this->actor.world.pos.y + 50.0f;
-                sp60.z = this->actor.world.pos.z;
+                checkPos.x = this->actor.world.pos.x;
+                checkPos.y = this->actor.world.pos.y + 50.0f;
+                checkPos.z = this->actor.world.pos.z;
 
-                temp_f14 = BgCheck_EntityRaycastFloor5_2(play, &play->colCtx, &poly, &bgId, &this->actor, &sp60);
-                temp_f2 = temp_f14 - this->actor.world.pos.y;
+                floorY = BgCheck_EntityRaycastFloor5_2(play, &play->colCtx, &poly, &bgId, &this->actor, &checkPos);
+                yDistToFloor = floorY - this->actor.world.pos.y;
 
-                if (fabsf(temp_f2) < (fabsf(this->actor.velocity.y) + 0.01f)) {
+                if (fabsf(yDistToFloor) < (fabsf(this->actor.velocity.y) + 0.01f)) {
                     if (this->actor.flags & ACTOR_FLAG_40) {
-                        sp48.x = this->actor.world.pos.x;
-                        sp48.y = temp_f14 + 10.0f;
-                        sp48.z = this->actor.world.pos.z;
+                        dustPos.x = this->actor.world.pos.x;
+                        dustPos.y = floorY + 10.0f;
+                        dustPos.z = this->actor.world.pos.z;
 
-                        func_8093EF54(play, &sp48, &sGoriwaUnkPrimColors[ENGOROIWA_GET_COLOR(&this->actor)],
+                        func_8093EF54(play, &dustPos, &sGoriwaUnkPrimColors[ENGOROIWA_GET_COLOR(&this->actor)],
                                       &sGoriwaUnkEnvColors[ENGOROIWA_GET_COLOR(&this->actor)], this->actor.scale.x);
                     }
                     Actor_PlaySfx(&this->actor, NA_SE_EV_BIGBALL_BOUND);
@@ -507,30 +510,30 @@ s32 func_8093F6F8(EnGoroiwa* this, PlayState* play) {
             }
         }
 
-        if (this->unk_1CA > 0) {
+        if (this->bounceCount >= 1) {
             this->stateFlags |= 0x40;
             return true;
         }
 
-        this->unk_1CA++;
+        this->bounceCount++;
         this->actor.velocity.y *= -0.3f;
-        this->actor.world.pos.y = sp7C - ((this->actor.world.pos.y - sp7C) * 0.3f);
+        this->actor.world.pos.y = nextPointY - ((this->actor.world.pos.y - nextPointY) * 0.3f);
     }
 
-    if (this->unk_1CA == 0) {
-        WaterBox* sp44;
-        f32 sp40;
+    if (this->bounceCount == 0) {
+        WaterBox* waterbox;
+        f32 waterSurfaceY;
 
-        if (WaterBox_GetSurface1_2(play, &play->colCtx, this->actor.world.pos.x, this->actor.world.pos.z, &sp40,
-                                   &sp44)) {
-            if ((this->actor.world.pos.y + this->unk_1DC) <= sp40) {
-                this->stateFlags |= 0x20;
-                if (sp40 < (this->unk_1DC + sp78)) {
+        if (WaterBox_GetSurface1_2(play, &play->colCtx, this->actor.world.pos.x, this->actor.world.pos.z, &waterSurfaceY,
+                                   &waterbox)) {
+            if ((this->actor.world.pos.y + this->unk_1DC) <= waterSurfaceY) {
+                this->stateFlags |= ENGOROIWA_STATE_INWATER;
+                if (waterSurfaceY < (this->unk_1DC + thisY)) {
                     if (this->actor.flags & ACTOR_FLAG_40) {
                         Vec3f sp34;
 
                         sp34.x = this->actor.world.pos.x;
-                        sp34.y = sp40;
+                        sp34.y = waterSurfaceY;
                         sp34.z = this->actor.world.pos.z;
                         EnGoroiwa_SpawnWaterEffects(play, &sp34, this->actor.scale.x);
                     }
@@ -548,6 +551,7 @@ s32 func_8093F6F8(EnGoroiwa* this, PlayState* play) {
     return false;
 }
 
+// UpdateRotation from OOT?
 void func_8093FAA4(EnGoroiwa* this, PlayState* play) {
     f32 temp;
     f32 tmp2;
@@ -565,7 +569,7 @@ void func_8093FAA4(EnGoroiwa* this, PlayState* play) {
         sp7C = this->unk_1C0;
     }
 
-    sp7C *= this->unk_1C4;
+    sp7C *= this->rollRotSpeed;
     if (!(this->stateFlags & 0x10)) {
         if (Math3D_LengthSquared(&this->actor.velocity) > 0.1f) {
             Math_Vec3f_Copy(&this->unk_1A8, &this->actor.velocity);
@@ -1161,7 +1165,7 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
 void func_809419D0(EnGoroiwa* this) {
     this->actionFunc = func_80941A10;
     EnGoriwa_UpdateFlags(this, 7);
-    this->unk_1C4 = 1.0f;
+    this->rollRotSpeed = 1.0f;
 }
 
 void func_80941A10(EnGoroiwa* this, PlayState* play) {
@@ -1270,7 +1274,7 @@ void func_80941DB4(EnGoroiwa* this) {
     this->actor.terminalVelocity = -15.0f;
     this->actor.speed *= 0.15f;
     this->actor.velocity.y = 5.0f;
-    this->unk_1C4 = 1.0f;
+    this->rollRotSpeed = 1.0f;
 }
 
 void func_80941E28(EnGoroiwa* this, PlayState* play) {
@@ -1290,7 +1294,7 @@ void func_80941EB4(EnGoroiwa* this) {
     this->actor.speed = 0.0f;
     EnGoriwa_UpdateFlags(this, 6);
     this->timer = D_80942EAC[ENGOROIWA_GET_ROT_Z_3(this)];
-    this->unk_1C4 = 0.0f;
+    this->rollRotSpeed = 0.0f;
 }
 
 void func_80941F10(EnGoroiwa* this, PlayState* play) {
@@ -1306,7 +1310,7 @@ void func_80941F10(EnGoroiwa* this, PlayState* play) {
 void func_80941F54(EnGoroiwa* this) {
     this->actionFunc = func_80941FA4;
     EnGoriwa_UpdateFlags(this, 7);
-    this->unk_1C4 = 0.0f;
+    this->rollRotSpeed = 0.0f;
     this->actor.velocity.y = fabsf(this->actor.speed) * 0.1f;
 }
 
@@ -1331,11 +1335,11 @@ void func_80941FA4(EnGoroiwa* this, PlayState* play) {
 void func_80942084(EnGoroiwa* this) {
     this->actionFunc = func_809420F0;
     EnGoriwa_UpdateFlags(this, 7);
-    this->unk_1C4 = 0.3f;
-    this->unk_1CA = 0;
+    this->rollRotSpeed = 0.3f;
+    this->bounceCount = 0;
     this->actor.velocity.y = fabsf(this->actor.speed) * -0.3f;
     this->stateFlags |= 0x10;
-    this->stateFlags &= ~0x20;
+    this->stateFlags &= ~ENGOROIWA_STATE_INWATER;
 }
 
 void func_809420F0(EnGoroiwa* this, PlayState* play) {
