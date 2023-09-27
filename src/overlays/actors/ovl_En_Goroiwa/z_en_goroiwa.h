@@ -45,6 +45,7 @@ typedef enum {
 
 // state flags
 #define ENGOROIWA_STATE_INWATER 0x20
+#define ENGOROIWA_STATE_40 0x40
 
 typedef struct {
     /* 0x00 */ Vec3f unk_00;
