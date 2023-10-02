@@ -44,6 +44,8 @@ typedef enum {
 } EnGoroiwaColors;
 
 // state flags
+#define ENGOROIWA_STATE_ 0x2
+#define ENGOROIWA_STATE_RETAIN_ROT_SPEED 0x10
 #define ENGOROIWA_STATE_INWATER 0x20
 #define ENGOROIWA_STATE_40 0x40
 
@@ -52,10 +54,11 @@ typedef struct {
     /* 0x0C */ f32 unk_0C;
     /* 0x10 */ f32 unk_10;
     /* 0x14 */ f32 unk_14;
-    /* 0x18 */ f32 unk_18;
-    /* 0x1C */ s16 unk_1C;
-    /* 0x1E */ s16 unk_1E;
-    /* 0x20 */ s16 unk_20;
+    /* 0x18 */ f32 floorHeight;
+    /* 0x1C */ Vec3s unk_1C;
+    ///* 0x1C */ s16 unk_1C;
+    ///* 0x1E */ s16 unk_1E;
+    ///* 0x20 */ s16 unk_20;
     /* 0x22 */ s16 unk_22;
     /* 0x24 */ s16 unk_24;
     /* 0x26 */ s16 unk_26;
@@ -70,12 +73,12 @@ typedef struct EnGoroiwa {
     /* 0x164 */ ColliderJntSphElement colliderElements[1];
     /* 0x1A4 */ EnGoroiwaActionFunc actionFunc;
     /* 0x1A8 */ Vec3f unk_1A8;
-    /* 0x1B4 */ Vec3f unk_1B4;
-    /* 0x1C0 */ f32 unk_1C0;
+    /* 0x1B4 */ Vec3f prevUnitRollAxis;
+    /* 0x1C0 */ f32 prevRollAngleDiff;
     /* 0x1C4 */ f32 rollRotSpeed;
     /* 0x1C8 */ s16 timer; // might be multi-user
     /* 0x1CA */ s16 bounceCount;
-    /* 0x1CC */ s16 unk_1CC;
+    /* 0x1CC */ s16 collisionDisabledTimer;
     /* 0x1CE */ s16 unk_1CE;
     /* 0x1D0 */ Vec3s* curPathPoints;
     /* 0x1D4 */ s16 endWaypoint;
