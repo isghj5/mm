@@ -118,23 +118,24 @@ static UNK_TYPE D_80942E8C[] = {
     0x1A1A2864,
 };
 
-void func_8093E8A0(EnGoroiwa* this) {
+
+void EnGoroiwa_ResetScale(EnGoroiwa* this) {
     s32 params = ENGOROIWA_GET_3000(&this->actor);
-    f32 phi_f2;
+    f32 scale;
 
     if (params == ENGOROIWA_3000_0) {
-        phi_f2 = 0.1f;
+        scale = 0.1f;
     } else if (params == ENGOROIWA_3000_1) {
-        phi_f2 = 0.05f;
+        scale = 0.05f;
     } else {
-        phi_f2 = (Rand_ZeroOne() * (f32)0.04) + 0.04f;
+        scale = (Rand_ZeroOne() * (f32)0.04) + 0.04f;
     }
 
-    Actor_SetScale(&this->actor, phi_f2);
+    Actor_SetScale(&this->actor, scale);
 }
 
-void func_8093E91C(EnGoroiwa* this) {
-    this->unk_1DC = this->actor.scale.x * 595.0f;
+void EnGoroiwa_SetModelHeight(EnGoroiwa* this) {
+    this->modelRadius = this->actor.scale.x * 595.0f;
 }
 
 // UpdateCollider in OOT
@@ -143,9 +144,9 @@ void EnGoroiwa_UpdateColliderPos(EnGoroiwa* this) {
     Sphere16* worldSphere = &this->collider.elements->dim.worldSphere;
 
     worldSphere->center.x = this->actor.world.pos.x;
-    worldSphere->center.y = this->actor.world.pos.y + this->unk_1DC;
+    worldSphere->center.y = this->actor.world.pos.y + this->modelRadius;
     worldSphere->center.z = this->actor.world.pos.z;
-    this->collider.elements->dim.worldSphere.radius = this->unk_1DC - 1.0f;
+    this->collider.elements->dim.worldSphere.radius = this->modelRadius - 1.0f;
 }
 
 // EnGoroiwa_InitCollider();
@@ -156,7 +157,7 @@ void EnGoroiwa_InitCollider(EnGoroiwa* this, PlayState* play) {
     Collider_InitJntSph(play, &this->collider);
     Collider_SetJntSph(play, &this->collider, &this->actor, &sJntSphInit, this->colliderElements);
     EnGoroiwa_UpdateColliderPos(this);
-    this->collider.elements[0].dim.worldSphere.radius = this->unk_1DC - 1.0f;
+    this->collider.elements[0].dim.worldSphere.radius = this->modelRadius - 1.0f;
 
     if ((params == ENGOROIWA_COLOR_REDROCK) || (params == ENGOROIWA_COLOR_SNOWBALL)) {
         this->collider.elements[0].info.bumper.dmgFlags |= (0x4000 | 0x400 | 0x100);
@@ -527,9 +528,9 @@ s32 EnGoroiwa_MoveDownToNextWaypoint(EnGoroiwa* this, PlayState* play) {
 
         if (WaterBox_GetSurface1_2(play, &play->colCtx, this->actor.world.pos.x, this->actor.world.pos.z,
                                    &waterSurfaceY, &waterbox)) {
-            if ((this->actor.world.pos.y + this->unk_1DC) <= waterSurfaceY) {
+            if ((this->actor.world.pos.y + this->modelRadius) <= waterSurfaceY) {
                 this->stateFlags |= ENGOROIWA_STATE_INWATER;
-                if (waterSurfaceY < (this->unk_1DC + thisY)) {
+                if (waterSurfaceY < (this->modelRadius + thisY)) {
                     if (this->actor.flags & ACTOR_FLAG_40) {
                         Vec3f waterHitPos;
 
@@ -565,7 +566,7 @@ void EnGoroiwa_UpdateRotation(EnGoroiwa* this, PlayState* play) {
     } else {
         // in OOT this divisor was static 59.2f
         tmp = Math3D_Distance(&this->actor.world.pos, &this->actor.prevPos);
-        tmp2 = tmp / this->unk_1DC;
+        tmp2 = tmp / this->modelRadius;
         this->prevRollAngleDiff = tmp2;
         rolAngleDiff = this->prevRollAngleDiff;
     }
@@ -699,7 +700,7 @@ void func_80940090(EnGoroiwa* this, PlayState* play) {
     if (this->actor.flags & ACTOR_FLAG_40) {
         halfScale = (this->actor.scale.x + 0.1f) * 0.5f;
         posPlus.x = this->actor.world.pos.x;
-        posPlus.y = this->actor.world.pos.y + this->unk_1DC;
+        posPlus.y = this->actor.world.pos.y + this->modelRadius;
         posPlus.z = this->actor.world.pos.z;
 
         //! FAKE:
@@ -758,7 +759,7 @@ void func_80940090(EnGoroiwa* this, PlayState* play) {
                                  0, 0x32, -1,
                                  OBJECT_GOROIWA, chunkDL);
 
-            if (this->unk_1E6 == 0) {
+            if (! this->replaceDustWithIce) {
                 pos.x += ((Rand_ZeroOne() * 1200.0f) - 600.0f) * this->actor.scale.x;
                 pos.y += ((Rand_ZeroOne() * 1400.0f) - 600.0f) * this->actor.scale.y;
                 pos.z += ((Rand_ZeroOne() * 1200.0f) - 600.0f) * this->actor.scale.z;
@@ -770,14 +771,14 @@ void func_80940090(EnGoroiwa* this, PlayState* play) {
             }
         }
 
-        if (this->unk_1E6 != 0) {
+        if (this->replaceDustWithIce) {
             EnGoroiwa_SpawnIceAndSmoke(this, play);
         }
     }
 }
 
 // chunkDLs is subarray of possible chunk dls based on color
-void func_80940588(PlayState* play, Vec3f* arg1, Gfx* chunkDLs[], Color_RGBA8* primColor, Color_RGBA8* envColor,
+void func_80940588(PlayState* play, Vec3f* posOffset, Gfx* chunkDLs[], Color_RGBA8* primColor, Color_RGBA8* envColor,
                    f32 arg5) {
     Gfx* chunkDL;
     Vec3f kakeraPos;
@@ -812,7 +813,7 @@ void func_80940588(PlayState* play, Vec3f* arg1, Gfx* chunkDLs[], Color_RGBA8* p
         vel.y = (Rand_ZeroOne() * 16.0f) + 3.0f;
         vel.z = kakeraPos.z * 0.19f;
 
-        Math_Vec3f_Sum(&kakeraPos, arg1, &kakeraPos);
+        Math_Vec3f_Sum(&kakeraPos, posOffset, &kakeraPos);
 
         if ((i & 3) == 0) {
             chunkDL = chunkDLs[0];
@@ -872,13 +873,13 @@ void func_80940A1C(PlayState* play, Vec3f* arg1, Gfx** chunkDLs, Color_RGBA8* pr
     Gfx* chunkDL;
     s32 spC8;
     f32 temp_f20;
-    f32 spAC;
+    f32 dustArg67Offset;
     s16 spA8;
     s16 phi_s6;
 
     spC8 = (s32)(scale * 35.0f) + 5;
     temp_f20 = (scale + 0.1f) * 0.5f;
-    spAC = 600.0f * temp_f20;
+    dustArg67Offset = 600.0f * temp_f20;
     spA8 = 0x10000 / spC8;
 
     for (i = 0, phi_s6 = 0; i < spC8; i++, phi_s6 += spA8) {
@@ -933,7 +934,7 @@ void func_80940A1C(PlayState* play, Vec3f* arg1, Gfx** chunkDLs, Color_RGBA8* pr
 
         // spawn SsDust
         func_800B0E48(play, &pos, &sGoriwaSoftSpriteVelocity, &sGoriwaSoftSpriteAccel, primColor, envColor,
-                      (Rand_ZeroOne() * 60.0f) + spAC, (Rand_ZeroOne() * 30.0f) + spAC);
+                      (Rand_ZeroOne() * 60.0f) + dustArg67Offset, (Rand_ZeroOne() * 30.0f) + dustArg67Offset);
     }
 }
 
@@ -953,9 +954,9 @@ void func_80940E38(EnGoroiwa* this, PlayState* play) {
                 sp46 = (s32)Rand_ZeroFloat(20000.0f) + this->unk_1CE;
                 temp_a0 = sp46 - this->actor.world.rot.y;
                 if (ABS(temp_a0) < 0x4000) {
-                    sp54 = Math_CosS(temp_a0) * 1.6f * this->unk_1DC;
+                    sp54 = Math_CosS(temp_a0) * 1.6f * this->modelRadius;
                 } else {
-                    sp54 = this->unk_1DC;
+                    sp54 = this->modelRadius;
                 }
 
                 pos.x = (Math_SinS(sp46) * sp54) + this->actor.world.pos.x;
@@ -1018,8 +1019,8 @@ void EnGoroiwa_Init(Actor* thisx, PlayState* play) {
     this->actor.shape.rot.x = 0;
     this->actor.shape.rot.z = 0;
 
-    func_8093E8A0(this);
-    func_8093E91C(this);
+    EnGoroiwa_ResetScale(this);
+    EnGoroiwa_SetModelHeight(this);
     EnGoroiwa_InitCollider(this, play);
 
     if (pathID == 0xFF) {
@@ -1085,7 +1086,7 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
     EnGoroiwaStruct* ptr;
     s32 i;
     s32 isBroken = false;
-    Vec3f sp80;
+    Vec3f posOffset;
 
     // why is silver singled out? does it not stop?
     if ((this->collider.base.acFlags & AC_HIT) &&
@@ -1098,49 +1099,49 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
 
             this->collisionDisabledTimer = 50;
             this->unk_1E8[0].unk_1C.y = BINANG_SUB(this->actor.yawTowardsPlayer, 0x4000);
-            this->unk_1E8[0].unk_24 = Rand_ZeroOne() * -600.0f;
+            this->unk_1E8[0].unk_22.y = Rand_ZeroOne() * -600.0f;
             this->unk_1E8[1].unk_1C.y = BINANG_ADD(this->actor.yawTowardsPlayer, 0x4000);
-            this->unk_1E8[1].unk_24 = Rand_ZeroOne() * 600.0f;
+            this->unk_1E8[1].unk_22.y = Rand_ZeroOne() * 600.0f;
 
             for (i = 0; i < ARRAY_COUNT(this->unk_1E8); i++) {
                 ptr = &this->unk_1E8[i];
 
                 ptr->unk_00.x = this->actor.world.pos.x;
-                ptr->unk_00.y = this->actor.world.pos.y + this->unk_1DC;
+                ptr->unk_00.y = this->actor.world.pos.y + this->modelRadius;
                 ptr->unk_00.z = this->actor.world.pos.z;
 
                 temp = Rand_ZeroOne();
                 temp2 = Math_SinS(ptr->unk_1C.y);
                 temp3 = Math_SinS(this->actor.world.rot.y);
 
-                ptr->unk_0C = ((1.0f / D_80942DFC[this->rollingSFXUpperIndex]) * (temp3 * 14.0f * this->actor.speed)) +
+                ptr->unk_0C.x = ((1.0f / D_80942DFC[this->rollingSFXUpperIndex]) * (temp3 * 14.0f * this->actor.speed)) +
                               (temp2 * (temp + 5.0f));
 
-                ptr->unk_10 = (Rand_ZeroOne() * 11.0f) + 20.0f;
+                ptr->unk_0C.y = (Rand_ZeroOne() * 11.0f) + 20.0f;
 
                 temp = Rand_ZeroOne();
                 temp2 = Math_CosS(ptr->unk_1C.y);
                 temp3 = Math_CosS(this->actor.world.rot.y);
-                ptr->unk_14 =
+                ptr->unk_0C.z =
                     ((1.0f / D_80942DFC[this->rollingSFXUpperIndex]) * ((temp3 * 14.0f) * this->actor.speed)) +
                     (temp2 * (temp + 5.0f));
 
                 ptr->unk_1C.x = 0;
                 ptr->unk_1C.z = 0;
-                ptr->unk_22 = (s32)(Rand_ZeroOne() * 400.0f) + 1100;
+                ptr->unk_22.x = (s32)(Rand_ZeroOne() * 400.0f) + 1100;
 
                 temp3 = Rand_ZeroOne();
                 temp2 = Math_CosS(sp7E);
-                ptr->unk_26 = (s32)(temp2 * 3000.0f) + (s32)(600.0f * (temp3 - 0.5f));
+                ptr->unk_22.z = (s32)(temp2 * 3000.0f) + (s32)(600.0f * (temp3 - 0.5f));
                 ptr->unk_2D = 0;
                 ptr->unk_2C = 0;
             }
 
             func_809421E0(this);
-            sp80.x = this->actor.world.pos.x;
-            sp80.y = this->actor.world.pos.y + this->unk_1DC;
-            sp80.z = this->actor.world.pos.z;
-            func_80940588(play, &sp80, sGoroiwaBrokenFragments[params], &sGoriwaUnkPrimColors[params],
+            posOffset.x = this->actor.world.pos.x;
+            posOffset.y = this->actor.world.pos.y + this->modelRadius;
+            posOffset.z = this->actor.world.pos.z;
+            func_80940588(play, &posOffset, sGoroiwaBrokenFragments[params], &sGoriwaUnkPrimColors[params],
                           &sGoriwaUnkEnvColors[params], this->actor.scale.x);
             EnGoroiwa_PlaySnowballBrokenSound(this, play);
             isBroken = true;
@@ -1151,26 +1152,26 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
             this->collisionDisabledTimer = 50;
             if ((params == ENGOROIWA_COLOR_SNOWBALL) &&
                 (this->collider.elements->info.acHitInfo->toucher.dmgFlags & 0x800)) {
-                this->unk_1E6 = 1;
+                this->replaceDustWithIce = true;
             }
 
             func_80940090(this, play);
             EnGoroiwa_PlaySnowballBrokenSound(this, play);
             func_809425CC(this);
             isBroken = true;
-        } else if ((params == ENGOROIWA_COLOR_SNOWBALL) && (this->unk_1E7 <= 0)) {
+        } else if ((params == ENGOROIWA_COLOR_SNOWBALL) && (this->timer2 <= 0)) {
             func_80941060(this, play);
-            this->unk_1E7 = 10;
+            this->timer2 = 10;
         }
     }
 
     if (params == ENGOROIWA_COLOR_SNOWBALL) {
-        if (this->unk_1E7 > 0) {
-            this->unk_1E7--;
+        if (this->timer2 > 0) {
+            this->timer2--;
         }
 
         if (isBroken) {
-            Item_DropCollectibleRandom(play, NULL, &this->actor.world.pos, 0x20);
+            Item_DropCollectibleRandom(play, NULL, &this->actor.world.pos, (2 << 4)); // drop table 2
         }
     }
     return isBroken;
@@ -1209,8 +1210,8 @@ void EnGoroiwa_Roll(EnGoroiwa* this, PlayState* play) {
             if (zRot == 2) {
                 func_80940090(this, play);
                 if (param3000 == ENGOROIWA_3000_2) {
-                    func_8093E8A0(this);
-                    func_8093E91C(this);
+                    EnGoroiwa_ResetScale(this);
+                    EnGoroiwa_SetModelHeight(this);
                 }
                 EnGoroiwa_PlaySnowballBrokenSound(this, play);
                 func_8093EDD8(this, play);
@@ -1262,8 +1263,8 @@ void EnGoroiwa_Roll(EnGoroiwa* this, PlayState* play) {
                      (local_s32.loopMode == ENGOROIWA_LOOPMODE_ONEWAY)) &&
                     (param3000 == ENGOROIWA_3000_2) &&
                     ((this->nextWaypoint == 0) || (this->nextWaypoint == this->endWaypoint))) {
-                    func_8093E8A0(this);
-                    func_8093E91C(this);
+                    EnGoroiwa_ResetScale(this);
+                    EnGoroiwa_SetModelHeight(this);
                 }
 
                 EnGoroiwa_NextWaypoint(this);
@@ -1397,8 +1398,8 @@ void func_8094220C(EnGoroiwa* this, PlayState* play) {
     s32 pad;
     EnGoroiwaStruct* ptr;
     s32 i;
-    s32 spD0;
-    Vec3f spC4;
+    Actor* outBgId;
+    Vec3f bgPos;
     Vec3f spB8;
     f32 phi_f12;
     f32 temp_f20;
@@ -1411,28 +1412,28 @@ void func_8094220C(EnGoroiwa* this, PlayState* play) {
         ptr = &this->unk_1E8[i];
 
         if (!(ptr->unk_2D & 1)) {
-            ptr->unk_10 -= 6.0f;
-            if (ptr->unk_10 < -20.0f) {
-                ptr->unk_10 = -20.0f;
+            ptr->unk_0C.y -= 6.0f;
+            if (ptr->unk_0C.y < -20.0f) {
+                ptr->unk_0C.y = -20.0f;
             }
-            ptr->unk_00.x += ptr->unk_0C;
-            ptr->unk_00.y += ptr->unk_10;
-            ptr->unk_00.z += ptr->unk_14;
+            ptr->unk_00.x += ptr->unk_0C.x;
+            ptr->unk_00.y += ptr->unk_0C.y;
+            ptr->unk_00.z += ptr->unk_0C.z;
 
-            ptr->unk_1C.x += ptr->unk_22;
-            ptr->unk_1C.y += ptr->unk_24;
-            ptr->unk_1C.z += ptr->unk_26;
+            ptr->unk_1C.x += ptr->unk_22.x;
+            ptr->unk_1C.y += ptr->unk_22.y;
+            ptr->unk_1C.z += ptr->unk_22.z;
 
-            spC4.x = ptr->unk_00.x;
-            spC4.y = ptr->unk_00.y + 25.0f;
-            spC4.z = ptr->unk_00.z;
+            bgPos.x = ptr->unk_00.x;
+            bgPos.y = ptr->unk_00.y + 25.0f;
+            bgPos.z = ptr->unk_00.z;
 
-            ptr->floorHeight = BgCheck_EntityRaycastFloor5(&play->colCtx, &ptr->unk_28, &spD0, &this->actor, &spC4);
+            ptr->floorHeight = BgCheck_EntityRaycastFloor5(&play->colCtx, &ptr->outPoly, &outBgId, &this->actor, &bgPos);
 
-            if (ptr->unk_10 <= 0.0f) {
+            if (ptr->unk_0C.y <= 0.0f) {
                 Matrix_RotateZYX(ptr->unk_1C.x, ptr->unk_1C.y, ptr->unk_1C.z, MTXMODE_NEW);
                 Matrix_MultVec3f(&D_80942E6C, &spB8);
-                temp_f20 = this->unk_1DC * 0.9f;
+                temp_f20 = this->modelRadius * 0.9f;
 
                 if (spB8.y > 0.0f) {
                     if (Math3D_AngleBetweenVectors(&D_80942E60, &spB8, &spAC)) {
@@ -1448,14 +1449,15 @@ void func_8094220C(EnGoroiwa* this, PlayState* play) {
                     }
                 }
 
-                if (((ptr->unk_00.y + (this->unk_1DC - temp_f20)) < ptr->floorHeight) ||
+                if (((ptr->unk_00.y + (this->modelRadius - temp_f20)) < ptr->floorHeight) ||
                     (ptr->floorHeight < (BGCHECK_Y_MIN + 10))) {
                     color = ENGOROIWA_GET_COLOR(&this->actor);
                     ptr->unk_2D |= 1;
                     sp9C.x = ptr->unk_00.x;
-                    sp9C.y = (ptr->unk_00.y - ptr->unk_10) + 10.0f;
+                    sp9C.y = (ptr->unk_00.y - ptr->unk_0C.y) + 10.0f;
                     sp9C.z = ptr->unk_00.z;
 
+                    
                     func_80940A1C(play, &sp9C, sGoroiwaBrokenFragments[color], &sGoriwaUnkPrimColors[color],
                                   &sGoriwaUnkEnvColors[color], this->actor.scale.x);
                 }
@@ -1528,7 +1530,7 @@ void EnGoroiwa_Update(Actor* thisx, PlayState* play) {
 
             this->actor.scale.y = this->actor.scale.x;
             this->actor.scale.z = this->actor.scale.x;
-            func_8093E91C(this);
+            EnGoroiwa_SetModelHeight(this);
             sp5C = true;
 
             if (this->actor.flags & ACTOR_FLAG_40) {
@@ -1657,7 +1659,7 @@ void func_80942B1C(EnGoroiwa* this, PlayState* play) {
             Matrix_Scale(this->actor.scale.x, this->actor.scale.y, this->actor.scale.z, MTXMODE_APPLY);
             Gfx_DrawDListOpa(play, halfDL);
 
-            if ((ptr->unk_28 != 0) && (ptr->unk_2C > 0)) {
+            if ((ptr->outPoly != NULL) && (ptr->unk_2C > 0)) {
                 OPEN_DISPS(play->state.gfxCtx);
 
                 Gfx_SetupDL44_Xlu(play->state.gfxCtx);
@@ -1666,7 +1668,7 @@ void func_80942B1C(EnGoroiwa* this, PlayState* play) {
                                   0, COMBINED);
                 gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 0, 0, 0, ptr->unk_2C);
 
-                func_800C0094(ptr->unk_28, ptr->unk_00.x, ptr->floorHeight, ptr->unk_00.z, &sp88);
+                func_800C0094(ptr->outPoly, ptr->unk_00.x, ptr->floorHeight, ptr->unk_00.z, &sp88);
                 Matrix_Put(&sp88);
                 Matrix_Scale(this->actor.scale.x * 7.5f, 1.0f, this->actor.scale.z * 7.5f, MTXMODE_APPLY);
 

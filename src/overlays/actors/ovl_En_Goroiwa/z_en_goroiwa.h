@@ -50,19 +50,15 @@ typedef enum {
 #define ENGOROIWA_STATE_40 0x40
 
 typedef struct {
-    /* 0x00 */ Vec3f unk_00;
-    /* 0x0C */ f32 unk_0C;
-    /* 0x10 */ f32 unk_10;
-    /* 0x14 */ f32 unk_14;
+    /* 0x00 */ Vec3f unk_00; // pos
+    /* 0x0C */ Vec3f unk_0C; // 
     /* 0x18 */ f32 floorHeight;
     /* 0x1C */ Vec3s unk_1C;
-    ///* 0x1C */ s16 unk_1C;
-    ///* 0x1E */ s16 unk_1E;
-    ///* 0x20 */ s16 unk_20;
-    /* 0x22 */ s16 unk_22;
-    /* 0x24 */ s16 unk_24;
-    /* 0x26 */ s16 unk_26;
-    /* 0x28 */ CollisionPoly* unk_28;
+    /* 0x22 */ Vec3s unk_22;
+    ///* 0x22 */ s16 unk_22;
+    ///* 0x24 */ s16 unk_24;
+    ///* 0x26 */ s16 unk_26;
+    /* 0x28 */ CollisionPoly* outPoly;
     /* 0x2C */ u8 unk_2C;
     /* 0x2D */ u8 unk_2D;
 } EnGoroiwaStruct; // size = 0x30
@@ -85,13 +81,13 @@ typedef struct EnGoroiwa {
     /* 0x1D6 */ s16 currentWaypoint;
     /* 0x1D8 */ s16 nextWaypoint;
     /* 0x1DA */ s16 pathDirection;
-    /* 0x1DC */ f32 unk_1DC; // scale * 500ish
-    /* 0x1E0 */ f32 unk_1E0;
+    /* 0x1DC */ f32 modelRadius; // medium confidence
+    /* 0x1E0 */ f32 unk_1E0; // param3000 vs 2 only
     /* 0x1E4 */ s8 rollingSFXUpperIndex; // pulled from home.rot.x, the & 1 bit is pulled jit 
     // also updates speed
     /* 0x1E5 */ u8 stateFlags; // cpy from oot
-    /* 0x1E6 */ s8 unk_1E6;
-    /* 0x1E7 */ s8 unk_1E7;
+    /* 0x1E6 */ s8 replaceDustWithIce;
+    /* 0x1E7 */ s8 timer2;
     /* 0x1E8 */ EnGoroiwaStruct unk_1E8[2];
     /* 0x248 */ s32 effectIndex;
 } EnGoroiwa; // size = 0x24C
