@@ -54,16 +54,26 @@ s16 ObjBoat_GetNextPoint(ObjBoat* this, Vec3f* nextPoint) {
     return ((this->direction > 0) ? yaw : yaw + 0x8000);
 }
 
+bool ObjBoat_Init2(ObjBoat* this, PlayState* play);
 void ObjBoat_Init(Actor* thisx, PlayState* play) {
-    s32 pad[2];
+    //s32 pad[2];
     Path* path;
     ObjBoat* this = THIS;
     Vec3f sp24;
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
-    DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS | DYNA_TRANSFORM_ROT_Y);
-    DynaPolyActor_LoadMesh(play, &this->dyna, &object_kaizoku_obj_Colheader_009A88);
-    if (thisx->params < 0) {
+
+    if ( ! ObjBoat_Init2(this, play)){
+      // padding to keep the actor from shifting, have to keep the regular code stable
+      this->direction = 1;
+      this->dyna.actor.home.rot.z = 1;
+
+      this->dyna.actor.update == Actor_Noop;
+      return;
+    }
+
+
+    if (thisx->params < 0) { // 0x8000 bit set
         this->dyna.actor.update = ObjBoat_UpdateCutscene;
     } else {
         path = &play->setupPathList[OBJBOAT_GET_PATH_INDEX(thisx)];
@@ -91,8 +101,9 @@ void ObjBoat_SetRotations(ObjBoat* this) {
     this->dyna.actor.shape.rot.z = Math_SinS(this->angle * 2) * 50.0f;
 }
 
+// wait for player on top
 void ObjBoat_Update(Actor* thisx, PlayState* play) {
-    s32 pad;
+    //s32 pad;
     ObjBoat* this = THIS;
     Player* player = GET_PLAYER(play);
     s32 isPlayerOnTop = DynaPolyActor_IsPlayerOnTop(&this->dyna);
@@ -204,4 +215,15 @@ void ObjBoat_Draw(Actor* thisx, PlayState* play) {
     ObjBoat* this = THIS;
 
     Gfx_DrawDListOpa(play, object_kaizoku_obj_DL_007630);
+}
+
+bool ObjBoat_Init2(ObjBoat* this, PlayState* play){
+    DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS | DYNA_TRANSFORM_ROT_Y);
+    DynaPolyActor_LoadMesh(play, &this->dyna, &object_kaizoku_obj_Colheader_009A88);
+
+    if (OBJBOAT_GET_STANDING_STILL(this)){
+      // no actionfunc, just uses a different update
+      return false;
+    }
+  return true;
 }
