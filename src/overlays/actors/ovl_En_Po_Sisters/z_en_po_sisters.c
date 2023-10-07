@@ -441,8 +441,8 @@ void EnPoSisters2_ChaseThroughWalls(EnPoSisters* this, PlayState* play){
   }
 
   //if player->actor.world.pos
-  if (this->actor.xzDistToPlayer > 1000){
-    if (Rand_ZeroFloat(10.0f) < 2.3f){
+  if (this->actor.xzDistToPlayer > 8000){
+    if (Rand_ZeroFloat(10.0f) < 1.9f){
       // chance of "warps behind you"
       // except I'm too lazy to lookup player angles and do trig
       EnPoSisters2_SetupWarpOutThroughWalls(this);
@@ -466,6 +466,8 @@ void EnPoSisters_SetupAimlessIdleFlying(EnPoSisters* this) {
     }
     this->idleFlyingAnimationCounter = Rand_S16Offset(15, 3);
     this->poSisterFlags |= (POSISTERS_FLAG_CHECK_Z_TARGET | POSISTERS_FLAG_UPDATE_SHAPE_ROT | POSISTERS_FLAG_CHECK_AC);
+    // changed from vanilla
+    this->poSisterFlags |= ~POSISTERS_FLAG_MATCH_PLAYER_HEIGHT; // idle, DO NOT
     this->actionFunc = EnPoSisters_AimlessIdleFlying;
 }
 
@@ -503,6 +505,8 @@ void EnPoSisters_AimlessIdleFlying(EnPoSisters* this, PlayState* play) {
  * Not yet agressive, gently flying/steering toward the player.
  */
 void EnPoSisters_SetupInvestigating(EnPoSisters* this) {
+    // new: moved here instead of always matching height during idle
+    this->poSisterFlags |= POSISTERS_FLAG_MATCH_PLAYER_HEIGHT;
     this->actionFunc = EnPoSisters_Investigating;
 }
 
@@ -1006,7 +1010,8 @@ void EnPoSisters_PoeSpawn(EnPoSisters* this, PlayState* play) {
     if (SkelAnime_Update(&this->skelAnime)) {
         this->color.a = 255;
         this->actor.flags |= ACTOR_FLAG_1;
-        this->poSisterFlags |= (POSISTERS_FLAG_UPDATE_BGCHECK_INFO | POSISTERS_FLAG_MATCH_PLAYER_HEIGHT);
+        //this->poSisterFlags |= (POSISTERS_FLAG_UPDATE_BGCHECK_INFO | POSISTERS_FLAG_MATCH_PLAYER_HEIGHT);
+        this->poSisterFlags |= (POSISTERS_FLAG_UPDATE_BGCHECK_INFO);
         if (this->type == POSISTER_TYPE_MEG) {
             EnPoSisters_MegCloneVanish(this, play);
         } else {
