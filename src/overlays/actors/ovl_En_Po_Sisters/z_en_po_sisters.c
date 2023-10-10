@@ -7,6 +7,8 @@
 #include "z_en_po_sisters.h"
 #include "objects/gameplay_keep/gameplay_keep.h"
 
+#include "overlays/actors/ovl_Obj_Hakaisi/z_obj_hakaisi.h"
+
 #define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_4 | ACTOR_FLAG_10 | ACTOR_FLAG_1000 | ACTOR_FLAG_4000)
 
 #define THIS ((EnPoSisters*)thisx)
@@ -47,6 +49,7 @@ void EnPoSisters_MegSurroundPlayer(EnPoSisters* this, PlayState* play);
 void EnPoSisters_SetupSpawnPo(EnPoSisters* this);
 void EnPoSisters_PoeSpawn(EnPoSisters* this, PlayState* play);
 
+void EnPoSisters_SetupMegSpawn(EnPoSisters* this, PlayState* play);
 
 // moved for easier finding in ovl bin
 ActorInit En_Po_Sisters_InitVars = {
@@ -194,20 +197,7 @@ void EnPoSisters_Init(Actor* thisx, PlayState* play) {
         // if flagged observer, they are a floating prop spawned by EnGb2 (po hut proprieter)
         EnPoSisters_SetupObserverIdle(this);
     } else if (this->type == POSISTER_TYPE_MEG) {
-        this->actor.room = -1;
-        if (this->megCloneId == POSISTER_MEG_REAL) {
-            this->actor.colChkInfo.health = 8;
-            this->collider.info.toucher.damage = 16;
-            this->collider.base.ocFlags1 = (OC1_TYPE_PLAYER | OC1_ON);
-            EnPoSisters_SpawnMegClones(this, play);
-            EnPoSisters_SetupSpawnPo(this);
-        } else {
-            this->actor.flags &= ~(ACTOR_FLAG_200 | ACTOR_FLAG_4000);
-            this->collider.info.elemType = ELEMTYPE_UNK4;
-            this->collider.info.bumper.dmgFlags |= (0x40000 | 0x1);
-            this->collider.base.ocFlags1 = OC1_NONE;
-            EnPoSisters_MegCloneVanish(this, NULL);
-        }
+        EnPoSisters_SetupMegSpawn(this, play);
     } else {
         this->actor.room = -1;
         EnPoSisters_SetupSpawnPo(this);
@@ -886,7 +876,11 @@ void EnPoSisters_MegCloneVanish(EnPoSisters* this, PlayState* play) {
 
     this->actor.draw = NULL;
     this->actor.flags &= ~ACTOR_FLAG_1;
-    this->invisibleTimer = 100; // 5 seconds
+    if (this->invisibleTimer < 0){
+      this->invisibleTimer = 40; // 2 seconds
+    }else{
+      this->invisibleTimer = 100; // 5 seconds
+    }
     this->poSisterFlags = POSISTERS_FLAG_UPDATE_FIRES;
     this->collider.base.colType = COLTYPE_HIT3;
     this->collider.base.acFlags &= ~AC_HARD;
@@ -995,6 +989,110 @@ void EnPoSisters_MegSurroundPlayer(EnPoSisters* this, PlayState* play) {
     EnPoSisters_MatchPlayerXZ(this, play);
 }
 
+void EnPoSisters_SpawnMegAndFriends(EnPoSisters* this, PlayState* play){
+    // if cry start, we need to reset I think
+    //Animation_Change(&this->skelAnime, &gPoeSistersDamagedAnim, 1.5f, 0.0f,
+        //Animation_GetLastFrame(&gPoeSistersDamagedAnim.common), ANIMMODE_ONCE, -3.0f);
+
+
+    // this is vanilla, moved from Init to here to keep tidy
+    if (this->megCloneId == POSISTER_MEG_REAL) {
+        this->actor.colChkInfo.health = 8;
+        this->collider.info.toucher.damage = 16;
+        this->collider.base.ocFlags1 = (OC1_TYPE_PLAYER | OC1_ON);
+        EnPoSisters_SpawnMegClones(this, play);
+        EnPoSisters_SetupSpawnPo(this);
+    } else {
+        this->actor.flags &= ~(ACTOR_FLAG_200 | ACTOR_FLAG_4000);
+        this->collider.info.elemType = ELEMTYPE_UNK4;
+        this->collider.info.bumper.dmgFlags |= (0x40000 | 0x1);
+        this->collider.base.ocFlags1 = OC1_NONE;
+        EnPoSisters_MegCloneVanish(this, NULL);
+    }
+}
+
+// this was partially ripped from OOT 
+void EnPoSisters_MegWaitForPlayer(EnPoSisters* this, PlayState* play) {
+    SkelAnime_Update(&this->skelAnime);
+    if (this->actor.xzDistToPlayer < 130.0f) {
+        //func_80AD9DF0(this, play);
+        // mild shock
+        if (this->fleeTimer == -1) { // timer not yet active
+          Animation_Change(&this->skelAnime, &gPoeSistersDamagedAnim, 1.5f, 0.0f,
+              Animation_GetLastFrame(&gPoeSistersDamagedAnim.common),
+              ANIMMODE_ONCE,
+             -1.0f);
+            this->fleeTimer = 10;
+        } else if (this->fleeTimer-- <= 0){ // timer is active
+            EnPoSisters_SpawnMegAndFriends(this, play);
+            this->invisibleTimer = -1;
+        } else {
+            Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 4, 0xC00, 0xC0);
+        }
+    }
+    if (Animation_OnFrame(&this->skelAnime, 0.0f)) {
+        Actor_PlaySfxAtPos(&this->actor, NA_SE_EN_PO_CRY);
+    }
+    //this->actor.shape.rot.y = this->actor.yawTowardsPlayer;
+}
+
+// separated because there are so many
+Actor* EnPoSisters_SearchForCryTarget(EnPoSisters* this, PlayState* play){
+  // ikana gravestone
+  Actor* searchResult = SubS_FindNearestActor(this, play, ACTORCAT_PROP, ACTOR_OBJ_HAKAISI);
+  if (searchResult != NULL){ return searchResult; } // if found, return
+
+  // darmani grave
+  searchResult = SubS_FindNearestActor(this, play, ACTORCAT_PROP, ACTOR_OBJ_GHAKA);
+  if (searchResult != NULL){ return searchResult; } // if found, return
+
+  // unused magic song stone and mikaus grave
+  searchResult = SubS_FindNearestActor(this, play, ACTORCAT_PROP, ACTOR_EN_SEKIHI);
+  if (searchResult != NULL && searchResult->update != NULL){ return searchResult; } // if found, return
+
+  // deku butlers son
+  searchResult = SubS_FindNearestActor(this, play, ACTORCAT_PROP, ACTOR_EN_NNH);
+  if (searchResult != NULL ){ return searchResult; } // if found, return
+
+  return NULL;
+}
+
+
+// we want meg to possibly sit and cry instead of instant-attack
+// new, going back to OOT style meg behavior
+void EnPoSisters_SetupMegSpawn(EnPoSisters* this, PlayState* play){
+    this->actor.room = -1;
+
+    // if we are not in the po arena
+    if (play->sceneId != SCENE_TOUGITES){
+      // search for grave actors
+      Actor* searchResult = EnPoSisters_SearchForCryTarget(this, play);
+
+      if (searchResult != NULL){
+        // if found, move po sister to new location
+        this->actor.world.pos.x = (Math_SinS(searchResult->shape.rot.y) * 75) + searchResult->world.pos.x;
+        this->actor.world.pos.z = (Math_CosS(searchResult->shape.rot.y) * 75) + searchResult->world.pos.z;
+        this->actor.world.pos.y = searchResult->world.pos.y + 5; // in case of hill, her hand will be off ground but better than clipping
+
+        // update rotation to face the actor
+        // YawBetweenActors will give is the angle pointed away from the grave, we need to rotate after
+        // BINANG_ROT180 does the oposite???
+        this->actor.world.rot.y = Actor_YawBetweenActors(this, searchResult);
+        this->actor.shape.rot.y = this->actor.world.rot.y;
+
+        // change animation to cry
+        Animation_Change(&this->skelAnime, &gPoeSistersMegCryAnim, 1.0f, 0.0f,
+                     Animation_GetLastFrame(&gPoeSistersMegCryAnim.common), ANIMMODE_LOOP, -3.0f);
+
+        this->actionFunc = EnPoSisters_MegWaitForPlayer;
+        this->fleeTimer = -1; // indicates player not seen yet
+        return;
+      }
+    }    
+
+    EnPoSisters_SpawnMegAndFriends(this, play);
+}
+
 /**
  *  First ActionFunc for all Combat variants (including Meg)
  */
@@ -1005,6 +1103,7 @@ void EnPoSisters_SetupSpawnPo(EnPoSisters* this) {
     this->poSisterFlags = POSISTERS_FLAG_UPDATE_FIRES;
     this->actionFunc = EnPoSisters_PoeSpawn;
 }
+
 
 void EnPoSisters_PoeSpawn(EnPoSisters* this, PlayState* play) {
     if (SkelAnime_Update(&this->skelAnime)) {
