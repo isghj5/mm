@@ -12,6 +12,7 @@
 #define THIS ((BgIngate*)thisx)
 
 void BgIngate_Init(Actor* thisx, PlayState* play2);
+bool BgIngate_Init2(Actor* thisx, PlayState* play);
 void BgIngate_Destroy(Actor* thisx, PlayState* play);
 void BgIngate_Update(Actor* thisx, PlayState* play);
 void BgIngate_Draw(Actor* thisx, PlayState* play);
@@ -321,9 +322,32 @@ void BgIngate_Init(Actor* thisx, PlayState* play2) {
     Vec3f sp2C;
     Vec3f sp20;
 
+    //if (thisx->params & 0xFF00 > 0){
+      //WaterBox* waterBox;
+      //// new version, still bg no path
+      //DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS | DYNA_TRANSFORM_ROT_Y);
+      //DynaPolyActor_LoadMesh(play, &this->dyna, &gSichitaiBoatCol);
+      //Actor_SetScale(&this->dyna.actor, 1.0f);
+      
+
+      //// if we are over water, move to surface
+      //if(WaterBox_GetSurface1(play, &play->colCtx, thisx->world.pos.x, thisx->world.pos.z, /*&waterSurface*/ &phi_a2, &waterBox)){
+        //thisx->world.pos.y = phi_a2;
+      //}
+      //return;
+    //}
+
+    if (BgIngate_Init2(thisx, play)){
+      // padding to shiftless
+      thisx->home.pos.x = 9;      
+      //thisx->params |= 0xFF;      
+
+      return;
+    }
+    
     if (BgIngate_FindActor(this, play, ACTORCAT_BG, ACTOR_BG_INGATE) == NULL) {
-        DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS | DYNA_TRANSFORM_ROT_Y);
-        DynaPolyActor_LoadMesh(play, &this->dyna, &gSichitaiBoatCol);
+        //DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS | DYNA_TRANSFORM_ROT_Y);
+        //DynaPolyActor_LoadMesh(play, &this->dyna, &gSichitaiBoatCol);
         this->unk160 = 0;
         this->unk160 |= 0x8;
         this->unk160 |= 0x10;
@@ -389,4 +413,27 @@ void BgIngate_Draw(Actor* thisx, PlayState* play) {
     gSPDisplayList(POLY_OPA_DISP++, gSichitaiBoatDL);
 
     CLOSE_DISPS(play->state.gfxCtx);
+}
+
+bool BgIngate_Init2(Actor* thisx, PlayState* play){
+  // because this is a rando modified actor, we have to keep shiftless
+  BgIngate* this = THIS;
+  s32 phi_a2;
+
+  DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS | DYNA_TRANSFORM_ROT_Y);
+  DynaPolyActor_LoadMesh(play, &this->dyna, &gSichitaiBoatCol);
+  Actor_SetScale(&this->dyna.actor, 1.0f);
+  
+  if (thisx->params & 0xFF00 > 0){
+      WaterBox* waterBox;
+      // new version, still bg no path
+
+
+      // if we are over water, move to surface
+      if(WaterBox_GetSurface1(play, &play->colCtx, thisx->world.pos.x, thisx->world.pos.z, /*&waterSurface*/ &phi_a2, &waterBox)){
+        thisx->world.pos.y = phi_a2;
+      }
+      return true;
+  }
+  return false;
 }
