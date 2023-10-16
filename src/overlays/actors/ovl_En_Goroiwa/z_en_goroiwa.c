@@ -936,42 +936,43 @@ void func_80940A1C(PlayState* play, Vec3f* arg1, Gfx** chunkDLs, Color_RGBA8* pr
     }
 }
 
-void func_80940E38(EnGoroiwa* this, PlayState* play) {
+// Called from update, this one cares about distance the other doesnt
+// the other one is called from falling actionfunc
+void EnGoroiwa_SpawnDust2(EnGoroiwa* this, PlayState* play) {
     f32 sp5C;
     s32 pad;
-    f32 sp54;
+    f32 modelRadius;
     Vec3f pos;
-    s16 sp46;
-    s16 temp_a0;
+    s16 randAngleOffset; // low confidence naming
+    s16 rotOffset;
 
-    if (this->actor.flags & ACTOR_FLAG_40) {
-        if (this->actor.xzDistToPlayer < 1000.0f) {
-            sp5C = (1000.0f - this->actor.xzDistToPlayer) * 0.0012f * (this->actor.speed * 0.1f);
-            if (Rand_ZeroOne() < sp5C) {
-                this->unk_1CE += 20000;
-                sp46 = (s32)Rand_ZeroFloat(20000.0f) + this->unk_1CE;
-                temp_a0 = sp46 - this->actor.world.rot.y;
-                if (ABS(temp_a0) < 0x4000) {
-                    sp54 = Math_CosS(temp_a0) * 1.6f * this->modelRadius;
-                } else {
-                    sp54 = this->modelRadius;
-                }
-
-                pos.x = (Math_SinS(sp46) * sp54) + this->actor.world.pos.x;
-                pos.y = this->actor.world.pos.y + 20.0f;
-                pos.z = (Math_CosS(sp46) * sp54) + this->actor.world.pos.z;
-
-                // spawn SsDust
-                func_800B0E48(play, &pos, &sGoriwaSoftSpriteVelocity, &sGoriwaSoftSpriteAccel,
-                              &sGoriwaSoftSpritePrimColor, &sGoriwaSoftSpriteEnvColor,
-                              (Rand_ZeroOne() * 600.0f) + (600.0f * (this->actor.scale.x + 0.1f) * 0.5f),
-                              (s32)(Rand_ZeroOne() * 50.0f) + 30);
+    if ((this->actor.flags & ACTOR_FLAG_40) && this->actor.xzDistToPlayer < 1000.0f) {
+        sp5C = (1000.0f - this->actor.xzDistToPlayer) * 0.0012f * (this->actor.speed * 0.1f);
+        if (Rand_ZeroOne() < sp5C) {
+            this->unk_1CE += 20000;
+            randAngleOffset = (s32)Rand_ZeroFloat(20000.0f) + this->unk_1CE;
+            rotOffset = randAngleOffset - this->actor.world.rot.y;
+            if (ABS(rotOffset) < 0x4000) {
+                modelRadius = Math_CosS(rotOffset) * 1.6f * this->modelRadius;
+            } else {
+                modelRadius = this->modelRadius;
             }
+
+            pos.x = (Math_SinS(randAngleOffset) * modelRadius) + this->actor.world.pos.x;
+            pos.y = this->actor.world.pos.y + 20.0f;
+            pos.z = (Math_CosS(randAngleOffset) * modelRadius) + this->actor.world.pos.z;
+
+            // spawn SsDust
+            func_800B0E48(play, &pos, &sGoriwaSoftSpriteVelocity, &sGoriwaSoftSpriteAccel,
+                          &sGoriwaSoftSpritePrimColor, &sGoriwaSoftSpriteEnvColor,
+                          (Rand_ZeroOne() * 600.0f) + (600.0f * (this->actor.scale.x + 0.1f) * 0.5f),
+                          (s32)(Rand_ZeroOne() * 50.0f) + 30);
         }
     }
 }
 
-void func_80941060(EnGoroiwa* this, PlayState* play) {
+// called after snowball type check, so might be white dust
+void EnGoroiwa_SpawnDust3(EnGoroiwa* this, PlayState* play) {
     Vec3f accel;
     Vec3f vel;
     Vec3f pos;
@@ -1057,7 +1058,7 @@ void EnGoroiwa_Init(Actor* thisx, PlayState* play) {
             this->unk_1E0 = 0.0f;
         } else {
             this->unk_1E0 = (D_80942DFC[this->rollingSFXUpperIndex] * ((s32)play->state.framerateDivisor * 0.5f)) / dist;
-            this->unk_1E0 *= 0.020000001f; // 3CA3D70B
+            this->unk_1E0 *= 0.020000001f; // 0x3CA3D70B
             if (this->unk_1E0 > 0.00037f) {
                 this->unk_1E0 = 0.00037f;
             } else if (this->unk_1E0 < 0.00015f) {
@@ -1158,7 +1159,7 @@ s32 func_8094156C(EnGoroiwa* this, PlayState* play) {
             func_809425CC(this);
             isBroken = true;
         } else if ((params == ENGOROIWA_COLOR_SNOWBALL) && (this->timer2 <= 0)) {
-            func_80941060(this, play);
+            EnGoroiwa_SpawnDust3(this, play);
             this->timer2 = 10;
         }
     }
@@ -1565,7 +1566,7 @@ void EnGoroiwa_Update(Actor* thisx, PlayState* play) {
             EnGoroiwa_AdjustYaw(this);
 
             if (sp5C) {
-                func_80940E38(this, play);
+                EnGoroiwa_SpawnDust2(this, play);
             }
 
             switch (ENGOROIWA_GET_400(&this->actor)) {

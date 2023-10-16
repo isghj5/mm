@@ -75,7 +75,7 @@ typedef struct EnGoroiwa {
     /* 0x1C8 */ s16 timer; // might be multi-use
     /* 0x1CA */ s16 bounceCount;
     /* 0x1CC */ s16 collisionDisabledTimer;
-    /* 0x1CE */ s16 unk_1CE;
+    /* 0x1CE */ s16 unk_1CE; // incremented in 20000 increments, used for dust spawn
     /* 0x1D0 */ Vec3s* curPathPoints;
     /* 0x1D4 */ s16 endWaypoint;
     /* 0x1D6 */ s16 currentWaypoint;
