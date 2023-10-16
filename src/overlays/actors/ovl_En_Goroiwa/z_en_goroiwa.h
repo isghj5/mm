@@ -38,29 +38,29 @@ typedef enum {
 } EnGoroiwaParam3000;
 
 typedef enum {
-    /* 0 */ ENGOROIWA_COLOR_SILVERROCK, // unused in MM
+    /* 0 */ ENGOROIWA_COLOR_SILVERROCK, // deku shrine
     /* 1 */ ENGOROIWA_COLOR_REDROCK,
     /* 2 */ ENGOROIWA_COLOR_SNOWBALL
 } EnGoroiwaColors;
 
 // state flags
-#define ENGOROIWA_STATE_ 0x2
+#define ENGOROIWA_STATE_ENABLE_AT 0x1
+#define ENGOROIWA_STATE_ENABLE_AC 0x2
+#define ENGOROIWA_STATE_ENABLE_OC 0x4
+#define ENGOROIWA_STATE_PLAYER_IN_THE_WAY 0x8
 #define ENGOROIWA_STATE_RETAIN_ROT_SPEED 0x10
-#define ENGOROIWA_STATE_INWATER 0x20
+#define ENGOROIWA_STATE_IN_WATER 0x20
 #define ENGOROIWA_STATE_40 0x40
 
 typedef struct {
-    /* 0x00 */ Vec3f unk_00; // pos
+    /* 0x00 */ Vec3f unk_00; // pos ?
     /* 0x0C */ Vec3f unk_0C; // 
     /* 0x18 */ f32 floorHeight;
     /* 0x1C */ Vec3s unk_1C;
     /* 0x22 */ Vec3s unk_22;
-    ///* 0x22 */ s16 unk_22;
-    ///* 0x24 */ s16 unk_24;
-    ///* 0x26 */ s16 unk_26;
     /* 0x28 */ CollisionPoly* outPoly;
-    /* 0x2C */ u8 unk_2C;
-    /* 0x2D */ u8 unk_2D;
+    /* 0x2C */ u8 shadowAlpha;
+    /* 0x2D */ u8 flags;
 } EnGoroiwaStruct; // size = 0x30
 
 typedef struct EnGoroiwa {
@@ -72,7 +72,7 @@ typedef struct EnGoroiwa {
     /* 0x1B4 */ Vec3f prevUnitRollAxis;
     /* 0x1C0 */ f32 prevRollAngleDiff;
     /* 0x1C4 */ f32 rollRotSpeed;
-    /* 0x1C8 */ s16 timer; // might be multi-user
+    /* 0x1C8 */ s16 timer; // might be multi-use
     /* 0x1CA */ s16 bounceCount;
     /* 0x1CC */ s16 collisionDisabledTimer;
     /* 0x1CE */ s16 unk_1CE;
@@ -83,9 +83,10 @@ typedef struct EnGoroiwa {
     /* 0x1DA */ s16 pathDirection;
     /* 0x1DC */ f32 modelRadius; // medium confidence
     /* 0x1E0 */ f32 unk_1E0; // param3000 vs 2 only
-    /* 0x1E4 */ s8 rollingSFXUpperIndex; // pulled from home.rot.x, the & 1 bit is pulled jit 
+    // TODO 1E4 needs to be renamed as it gets used for at least two things
     // also updates speed
-    /* 0x1E5 */ u8 stateFlags; // cpy from oot
+    /* 0x1E4 */ s8 rollingSFXUpperIndex; // pulled from home.rot.x, the & 1 bit is pulled jit 
+    /* 0x1E5 */ u8 stateFlags; // some flags changed from OOT
     /* 0x1E6 */ s8 replaceDustWithIce;
     /* 0x1E7 */ s8 timer2;
     /* 0x1E8 */ EnGoroiwaStruct unk_1E8[2];

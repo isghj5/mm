@@ -92,9 +92,9 @@ static Color_RGBA8 D_80B04FB8 = { 180, 180, 180, 255 };
 static Vec3f D_80B04FBC = { 0.0f, 0.3f, 0.0f };
 
 static Gfx* D_80B04FC8[] = {
-    gGoroiwaSnowBallChunk1DL,
-    gGoroiwaSnowBallChunk2DL,
-    gGoroiwaSnowBallChunk3DL,
+    gGoroiwaSnowBallFragment1DL,
+    gGoroiwaSnowBallFragment2DL,
+    gGoroiwaSnowBallFragment3DL,
 };
 
 static InitChainEntry sInitChain[] = {

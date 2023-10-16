@@ -70,10 +70,10 @@ Color_RGBA8 D_80B3A914 = { 250, 250, 250, 255 };
 Color_RGBA8 D_80B3A918 = { 180, 180, 180, 255 };
 
 Gfx* D_80B3A91C[] = {
-    gGoroiwaSnowBallChunk1DL,
-    gGoroiwaSnowBallChunk2DL,
-    gGoroiwaSnowBallChunk3DL,
-    gGoroiwaSnowBallChunk3DL,
+    gGoroiwaSnowBallFragment1DL,
+    gGoroiwaSnowBallFragment2DL,
+    gGoroiwaSnowBallFragment3DL,
+    gGoroiwaSnowBallFragment3DL,
 };
 
 Vec3f D_80B3A92C = { 0.0f, 0.3f, 0.0f };
