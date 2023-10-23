@@ -1082,7 +1082,7 @@ void EnGoroiwa_Destroy(Actor* thisx, PlayState* play) {
 s32 EnGoroiwa_TestBreak(EnGoroiwa* this, PlayState* play) {
     Actor* actor = &this->actor;
     s32 params = ENGOROIWA_GET_COLOR(&this->actor);
-    EnGoroiwaStruct* ptr;
+    EnGoroiwaFragmentStruct* fragment;
     s32 i;
     s32 isBroken = false;
     Vec3f posOffset;
@@ -1097,44 +1097,44 @@ s32 EnGoroiwa_TestBreak(EnGoroiwa* this, PlayState* play) {
             f32 sinOfRot;
 
             this->collisionDisabledTimer = 50;
-            this->unk_1E8[0].unk_1C.y = BINANG_SUB(this->actor.yawTowardsPlayer, 0x4000);
-            this->unk_1E8[0].unk_22.y = Rand_ZeroOne() * -600.0f;
-            this->unk_1E8[1].unk_1C.y = BINANG_ADD(this->actor.yawTowardsPlayer, 0x4000);
-            this->unk_1E8[1].unk_22.y = Rand_ZeroOne() * 600.0f;
+            this->fragments[0].unk_1C.y = BINANG_SUB(this->actor.yawTowardsPlayer, 0x4000);
+            this->fragments[0].unk_22.y = Rand_ZeroOne() * -600.0f;
+            this->fragments[1].unk_1C.y = BINANG_ADD(this->actor.yawTowardsPlayer, 0x4000);
+            this->fragments[1].unk_22.y = Rand_ZeroOne() * 600.0f;
 
-            for (i = 0; i < ARRAY_COUNT(this->unk_1E8); i++) {
-                ptr = &this->unk_1E8[i];
+            for (i = 0; i < ARRAY_COUNT(this->fragments); i++) {
+                fragment = &this->fragments[i];
 
-                ptr->unk_00.x = this->actor.world.pos.x;
-                ptr->unk_00.y = this->actor.world.pos.y + this->modelRadius;
-                ptr->unk_00.z = this->actor.world.pos.z;
+                fragment->unk_00.x = this->actor.world.pos.x;
+                fragment->unk_00.y = this->actor.world.pos.y + this->modelRadius;
+                fragment->unk_00.z = this->actor.world.pos.z;
 
                 temp = Rand_ZeroOne();
-                temp2 = Math_SinS(ptr->unk_1C.y);
+                temp2 = Math_SinS(fragment->unk_1C.y);
                 sinOfRot = Math_SinS(this->actor.world.rot.y);
 
-                ptr->unk_0C.x =
+                fragment->unk_0C.x =
                     ((1.0f / D_80942DFC[this->rollingSFXUpperIndex]) * (sinOfRot * 14.0f * this->actor.speed)) +
                     (temp2 * (temp + 5.0f));
 
-                ptr->unk_0C.y = (Rand_ZeroOne() * 11.0f) + 20.0f;
+                fragment->unk_0C.y = (Rand_ZeroOne() * 11.0f) + 20.0f;
 
                 temp = Rand_ZeroOne();
-                temp2 = Math_CosS(ptr->unk_1C.y);
+                temp2 = Math_CosS(fragment->unk_1C.y);
                 sinOfRot = Math_CosS(this->actor.world.rot.y);
-                ptr->unk_0C.z =
+                fragment->unk_0C.z =
                     ((1.0f / D_80942DFC[this->rollingSFXUpperIndex]) * ((sinOfRot * 14.0f) * this->actor.speed)) +
                     (temp2 * (temp + 5.0f));
 
-                ptr->unk_1C.x = 0;
-                ptr->unk_1C.z = 0;
-                ptr->unk_22.x = (s32)(Rand_ZeroOne() * 400.0f) + 1100;
+                fragment->unk_1C.x = 0;
+                fragment->unk_1C.z = 0;
+                fragment->unk_22.x = (s32)(Rand_ZeroOne() * 400.0f) + 1100;
 
                 sinOfRot = Rand_ZeroOne();
                 temp2 = Math_CosS(sp7E);
-                ptr->unk_22.z = (s32)(temp2 * 3000.0f) + (s32)(600.0f * (sinOfRot - 0.5f));
-                ptr->flags = 0;
-                ptr->shadowAlpha = 0;
+                fragment->unk_22.z = (s32)(temp2 * 3000.0f) + (s32)(600.0f * (sinOfRot - 0.5f));
+                fragment->flags = 0;
+                fragment->shadowAlpha = 0;
             }
 
             func_809421E0(this);
@@ -1389,7 +1389,7 @@ void EnGoroiwa_MoveDown(EnGoroiwa* this, PlayState* play) {
     }
 }
 
-// setup... what
+// spawns fragments
 void func_809421E0(EnGoroiwa* this) {
     this->actionFunc = func_8094220C;
     EnGoriwa_UpdateFlags(this, 0);
@@ -1397,7 +1397,7 @@ void func_809421E0(EnGoroiwa* this) {
 
 void func_8094220C(EnGoroiwa* this, PlayState* play) {
     s32 pad;
-    EnGoroiwaStruct* ptr;
+    EnGoroiwaFragmentStruct* fragment;
     s32 i;
     s32 outBgId;
     Vec3f bgPos;
@@ -1409,31 +1409,31 @@ void func_8094220C(EnGoroiwa* this, PlayState* play) {
     Vec3f sp9C;
     s16 shadowAlpha;
 
-    for (i = 0; i < ARRAY_COUNT(this->unk_1E8); i++) {
-        ptr = &this->unk_1E8[i];
+    for (i = 0; i < ARRAY_COUNT(this->fragments); i++) {
+        fragment = &this->fragments[i];
 
-        if (!(ptr->flags & 1)) {
-            ptr->unk_0C.y -= 6.0f;
-            if (ptr->unk_0C.y < -20.0f) {
-                ptr->unk_0C.y = -20.0f;
+        if (!(fragment->flags & ENGOROIWA_FRAGMENT_STATE_ENABLE)) {
+            fragment->unk_0C.y -= 6.0f;
+            if (fragment->unk_0C.y < -20.0f) {
+                fragment->unk_0C.y = -20.0f;
             }
-            ptr->unk_00.x += ptr->unk_0C.x;
-            ptr->unk_00.y += ptr->unk_0C.y;
-            ptr->unk_00.z += ptr->unk_0C.z;
+            fragment->unk_00.x += fragment->unk_0C.x;
+            fragment->unk_00.y += fragment->unk_0C.y;
+            fragment->unk_00.z += fragment->unk_0C.z;
 
-            ptr->unk_1C.x += ptr->unk_22.x;
-            ptr->unk_1C.y += ptr->unk_22.y;
-            ptr->unk_1C.z += ptr->unk_22.z;
+            fragment->unk_1C.x += fragment->unk_22.x;
+            fragment->unk_1C.y += fragment->unk_22.y;
+            fragment->unk_1C.z += fragment->unk_22.z;
 
-            bgPos.x = ptr->unk_00.x;
-            bgPos.y = ptr->unk_00.y + 25.0f;
-            bgPos.z = ptr->unk_00.z;
+            bgPos.x = fragment->unk_00.x;
+            bgPos.y = fragment->unk_00.y + 25.0f;
+            bgPos.z = fragment->unk_00.z;
 
-            ptr->floorHeight =
-                BgCheck_EntityRaycastFloor5(&play->colCtx, &ptr->outPoly, &outBgId, &this->actor, &bgPos);
+            fragment->floorHeight =
+                BgCheck_EntityRaycastFloor5(&play->colCtx, &fragment->outPoly, &outBgId, &this->actor, &bgPos);
 
-            if (ptr->unk_0C.y <= 0.0f) {
-                Matrix_RotateZYX(ptr->unk_1C.x, ptr->unk_1C.y, ptr->unk_1C.z, MTXMODE_NEW);
+            if (fragment->unk_0C.y <= 0.0f) {
+                Matrix_RotateZYX(fragment->unk_1C.x, fragment->unk_1C.y, fragment->unk_1C.z, MTXMODE_NEW);
                 Matrix_MultVec3f(&D_80942E6C, &secondAngle);
                 temp_f20 = this->modelRadius * 0.9f;
 
@@ -1451,13 +1451,13 @@ void func_8094220C(EnGoroiwa* this, PlayState* play) {
                     }
                 }
 
-                if (((ptr->unk_00.y + (this->modelRadius - temp_f20)) < ptr->floorHeight) ||
-                    (ptr->floorHeight < (BGCHECK_Y_MIN + 10))) {
+                if (((fragment->unk_00.y + (this->modelRadius - temp_f20)) < fragment->floorHeight) ||
+                    (fragment->floorHeight < (BGCHECK_Y_MIN + 10))) {
                     color = ENGOROIWA_GET_COLOR(&this->actor);
-                    ptr->flags |= 1;
-                    sp9C.x = ptr->unk_00.x;
-                    sp9C.y = (ptr->unk_00.y - ptr->unk_0C.y) + 10.0f;
-                    sp9C.z = ptr->unk_00.z;
+                    fragment->flags |= ENGOROIWA_FRAGMENT_STATE_ENABLE;
+                    sp9C.x = fragment->unk_00.x;
+                    sp9C.y = (fragment->unk_00.y - fragment->unk_0C.y) + 10.0f;
+                    sp9C.z = fragment->unk_00.z;
 
                     // spawn broken chunks
                     func_80940A1C(play, &sp9C, sGoroiwaBrokenFragments[color], &sGoriwaUnkPrimColors[color],
@@ -1467,7 +1467,8 @@ void func_8094220C(EnGoroiwa* this, PlayState* play) {
         }
     }
 
-    if ((this->unk_1E8[0].flags & 1) && (this->unk_1E8[1].flags & 1)) {
+    // if both are already spawned, fade the original orb shadow
+    if ((this->fragments[0].flags & ENGOROIWA_FRAGMENT_STATE_ENABLE) && (this->fragments[1].flags & ENGOROIWA_FRAGMENT_STATE_ENABLE)) {
         EnGoroiwa_SetupFadeToDeath(this);
         return;
     }
@@ -1476,15 +1477,15 @@ void func_8094220C(EnGoroiwa* this, PlayState* play) {
     Math_StepToS(&shadowAlpha, 0, 40);
     this->actor.shape.shadowAlpha = shadowAlpha;
 
-    for (i = 0; i < ARRAY_COUNT(this->unk_1E8); i++) {
-        ptr = &this->unk_1E8[i];
+    for (i = 0; i < ARRAY_COUNT(this->fragments); i++) {
+        fragment = &this->fragments[i];
 
-        if (ptr->flags & 1) {
-            ptr->shadowAlpha = 0;
+        if (fragment->flags & ENGOROIWA_FRAGMENT_STATE_ENABLE) {
+            fragment->shadowAlpha = 0;
         } else {
-            shadowAlpha = ptr->shadowAlpha;
+            shadowAlpha = fragment->shadowAlpha;
             Math_StepToS(&shadowAlpha, 160, 24);
-            ptr->shadowAlpha = shadowAlpha;
+            fragment->shadowAlpha = shadowAlpha;
         }
     }
 }
@@ -1643,7 +1644,7 @@ void EnGoroiwa_DrawFragments(EnGoroiwa* this, PlayState* play) {
     s32 pad;
     s32 pad2;
     s32 i;
-    EnGoroiwaStruct* ptr;
+    EnGoroiwaFragmentStruct* fragment;
     s32 color = ENGOROIWA_GET_COLOR(&this->actor);
     Gfx* halfDL;
     MtxF sp88;
@@ -1656,28 +1657,28 @@ void EnGoroiwa_DrawFragments(EnGoroiwa* this, PlayState* play) {
     }
     // NOTE: silver never breaks, so has no chunks
 
-    for (i = 0; i < ARRAY_COUNT(this->unk_1E8); i++) {
-        ptr = &this->unk_1E8[i];
+    for (i = 0; i < ARRAY_COUNT(this->fragments); i++) {
+        fragment = &this->fragments[i];
 
-        if (!(ptr->flags & 1)) {
-            sp80.x = ptr->unk_1C.x;
-            sp80.y = ptr->unk_1C.y;
-            sp80.z = ptr->unk_1C.z;
+        if (!(fragment->flags & ENGOROIWA_FRAGMENT_STATE_ENABLE)) {
+            sp80.x = fragment->unk_1C.x;
+            sp80.y = fragment->unk_1C.y;
+            sp80.z = fragment->unk_1C.z;
 
-            Matrix_SetTranslateRotateYXZ(ptr->unk_00.x, ptr->unk_00.y, ptr->unk_00.z, &sp80);
+            Matrix_SetTranslateRotateYXZ(fragment->unk_00.x, fragment->unk_00.y, fragment->unk_00.z, &sp80);
             Matrix_Scale(this->actor.scale.x, this->actor.scale.y, this->actor.scale.z, MTXMODE_APPLY);
             Gfx_DrawDListOpa(play, halfDL);
 
-            if ((ptr->outPoly != NULL) && (ptr->shadowAlpha > 0)) {
+            if ((fragment->outPoly != NULL) && (fragment->shadowAlpha > 0)) {
                 OPEN_DISPS(play->state.gfxCtx);
 
                 Gfx_SetupDL44_Xlu(play->state.gfxCtx);
 
                 gDPSetCombineLERP(POLY_XLU_DISP++, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, COMBINED, 0, 0,
                                   0, COMBINED);
-                gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 0, 0, 0, ptr->shadowAlpha);
+                gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 0, 0, 0, fragment->shadowAlpha);
 
-                func_800C0094(ptr->outPoly, ptr->unk_00.x, ptr->floorHeight, ptr->unk_00.z, &sp88);
+                func_800C0094(fragment->outPoly, fragment->unk_00.x, fragment->floorHeight, fragment->unk_00.z, &sp88);
                 Matrix_Put(&sp88);
                 Matrix_Scale(this->actor.scale.x * 7.5f, 1.0f, this->actor.scale.z * 7.5f, MTXMODE_APPLY);
 
@@ -1701,7 +1702,6 @@ void EnGoroiwa_Draw(Actor* thisx, PlayState* play) {
     s32 color = ENGOROIWA_GET_COLOR(&this->actor);
 
     if (this->actionFunc == func_8094220C) {
-        // draw broken pieces
         EnGoroiwa_DrawFragments(this, play);
     } else if (this->actionFunc != EnGoroiwa_FadeToDeath) {
         // draw regular

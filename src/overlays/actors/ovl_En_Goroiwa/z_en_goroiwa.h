@@ -59,6 +59,9 @@ typedef enum {
 #define ENGOROIWA_STATE_IN_WATER 0x20
 #define ENGOROIWA_STATE_40 0x40
 
+// flags for the fragments
+#define ENGOROIWA_FRAGMENT_STATE_ENABLE 0x1
+
 typedef struct {
     /* 0x00 */ Vec3f unk_00; // pos ?
     /* 0x0C */ Vec3f unk_0C; // 
@@ -68,7 +71,7 @@ typedef struct {
     /* 0x28 */ CollisionPoly* outPoly;
     /* 0x2C */ u8 shadowAlpha;
     /* 0x2D */ u8 flags;
-} EnGoroiwaStruct; // size = 0x30
+} EnGoroiwaFragmentStruct; // size = 0x30
 
 typedef struct EnGoroiwa {
     /* 0x000 */ Actor actor;
@@ -96,7 +99,7 @@ typedef struct EnGoroiwa {
     /* 0x1E5 */ u8 stateFlags; // some flags changed from OOT
     /* 0x1E6 */ s8 replaceDustWithIce;
     /* 0x1E7 */ s8 timer2;
-    /* 0x1E8 */ EnGoroiwaStruct unk_1E8[2];
+    /* 0x1E8 */ EnGoroiwaFragmentStruct fragments[2];
     /* 0x248 */ s32 effectIndex;
 } EnGoroiwa; // size = 0x24C
 
