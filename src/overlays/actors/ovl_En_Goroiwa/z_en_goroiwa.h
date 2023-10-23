@@ -43,6 +43,13 @@ typedef enum {
     /* 2 */ ENGOROIWA_COLOR_SNOWBALL
 } EnGoroiwaColors;
 
+typedef enum {
+    /* 0 */ ENGOROIWA_Z_0,
+    /* 1 */ ENGOROIWA_Z_1,
+    /* 2 */ ENGOROIWA_Z_2,
+    /* 3 */ ENGOROIWA_Z_3
+} EnGoroiwaZParamValues;
+
 // state flags
 #define ENGOROIWA_STATE_ENABLE_AT 0x1
 #define ENGOROIWA_STATE_ENABLE_AC 0x2
