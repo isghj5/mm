@@ -158,15 +158,15 @@ typedef enum EnIgAnimation {
 } EnIgAnimation;
 
 static AnimationInfoS sAnimationInfo[ENIG_ANIM_MAX] = {
-    { &object_dai_Anim_0048B4, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },  // ENIG_ANIM_0
+    { &object_dai_Anim_0048B4, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },  // ENIG_ANIM_0 // IDLE/standing
     { &object_dai_Anim_0048B4, 1.0f, 0, -1, ANIMMODE_LOOP, -4 }, // ENIG_ANIM_1
-    { &object_dai_Anim_005100, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },  // ENIG_ANIM_2
+    { &object_dai_Anim_005100, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },  // ENIG_ANIM_2 // WALKING
     { &object_dai_Anim_005100, 1.0f, 0, -1, ANIMMODE_LOOP, -4 }, // ENIG_ANIM_3
     { &object_dai_Anim_0010F8, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },  // ENIG_ANIM_4
-    { &object_dai_Anim_001E44, 1.0f, 0, -1, ANIMMODE_LOOP, -4 }, // ENIG_ANIM_5
+    { &object_dai_Anim_001E44, 1.0f, 0, -1, ANIMMODE_LOOP, -4 }, // ENIG_ANIM_5 // HEAD SCRATCH loop
     { &object_dai_Anim_0014BC, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },  // ENIG_ANIM_6
-    { &object_dai_Anim_003CAC, 1.0f, 0, -1, ANIMMODE_ONCE, -4 }, // ENIG_ANIM_7
-    { &object_dai_Anim_0040E0, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },  // ENIG_ANIM_8
+    { &object_dai_Anim_003CAC, 1.0f, 0, -1, ANIMMODE_ONCE, -4 }, // ENIG_ANIM_7 // SIT start
+    { &object_dai_Anim_0040E0, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },  // ENIG_ANIM_8 // SIT loop
     { &object_dai_Anim_0040E0, 1.0f, 0, -1, ANIMMODE_LOOP, -4 }, // ENIG_ANIM_9
 };
 
@@ -690,7 +690,7 @@ s32 func_80BF219C(EnIg* this, PlayState* play, ScheduleOutput* scheduleOutput) {
                 EnIg_ChangeAnim(this, ENIG_ANIM_1);
                 break;
 
-            case 4:
+            case 4: // sitting down
                 this->actor.world.rot.y += 0x8000;
                 this->actor.shape.rot.y = this->actor.world.rot.y;
                 SubS_SetOfferMode(&this->unk_3D0, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
@@ -862,9 +862,10 @@ s32 func_80BF293C(EnIg* this, PlayState* play) {
             Math_ApproachS(&this->actor.world.rot.y, this->actor.home.rot.y, 3, 0x2AA8);
         } else {
             this->actor.world.rot.y = this->actor.home.rot.y;
-            EnIg_ChangeAnim(this, ENIG_ANIM_7);
+            EnIg_ChangeAnim(this, ENIG_ANIM_7); // start sitting
         }
     } else if ((this->animIndex == ENIG_ANIM_7) && Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+        // this just means you can now talk to him as he sits down, 
         SubS_SetOfferMode(&this->unk_3D0, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
         EnIg_ChangeAnim(this, ENIG_ANIM_9);
     }
@@ -996,9 +997,10 @@ s32 EnIg_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
                           Gfx** gfx) {
     EnIg* this = THIS;
 
-    if (limbIndex == OBJECT_DAI_LIMB_0A) {
-        *dList = NULL;
-    }
+    // This appears to be a bug, it tries to remove the soul patch but does not work right
+    //if (limbIndex == OBJECT_DAI_LIMB_0A) {
+        //*dList = NULL;
+    //}
     return false;
 }
 
@@ -1013,8 +1015,8 @@ void EnIg_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
         Matrix_MultVec3f(&D_80BF3528, &this->actor.focus.pos);
         Math_Vec3s_Copy(&this->actor.focus.rot, &this->actor.world.rot);
 
-        gSPDisplayList((*gfx)++, object_dai_DL_008710);
-        gSPDisplayList((*gfx)++, object_dai_DL_0087B8);
+        gSPDisplayList((*gfx)++, object_dai_DL_008710); // hat emblem
+        gSPDisplayList((*gfx)++, object_dai_DL_0087B8); // hat blue
     }
 
     if (limbIndex == OBJECT_DAI_LIMB_0C) {
@@ -1027,9 +1029,9 @@ void EnIg_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
         Math_Vec3f_ToVec3s(&this->collider2.dim.worldSphere.center, &sp2C);
     }
 
-    if (limbIndex == OBJECT_DAI_LIMB_0A) {
-        Matrix_Get(&this->unk_190);
-    }
+    //if (limbIndex == OBJECT_DAI_LIMB_0A) {
+        //Matrix_Get(&this->unk_190);
+    //}
 }
 
 void EnIg_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx, Gfx** gfx) {
@@ -1082,10 +1084,11 @@ void EnIg_Draw(Actor* thisx, PlayState* play) {
         POLY_OPA_DISP = SubS_DrawTransformFlex(play, this->skelAnime.skeleton, this->skelAnime.jointTable,
                                                this->skelAnime.dListCount, EnIg_OverrideLimbDraw, EnIg_PostLimbDraw,
                                                EnIg_TransformLimbDraw, &this->actor, POLY_OPA_DISP);
-        Matrix_Put(&this->unk_190);
+        // completely unchanged anywhere
+        //Matrix_Put(&this->unk_190);
 
         gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
-        gSPDisplayList(POLY_OPA_DISP++, object_dai_DL_00C538);
+        //gSPDisplayList(POLY_OPA_DISP++, object_dai_DL_00C538); // beard
 
         CLOSE_DISPS(play->state.gfxCtx);
     }
