@@ -265,12 +265,13 @@ void func_80BF1354(EnIg* this, PlayState* play) {
     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider2.base);
 }
 
+// Blink
 void func_80BF13E4(EnIg* this) {
-    if ((this->unk_3D0 & 0x100) && (DECR(this->unk_3F0) == 0)) {
-        this->unk_3F2++;
-        if (this->unk_3F2 >= 4) {
+    if ((this->flags & 0x100) && (DECR(this->unk_3F0) == 0)) {
+        this->eyeIndex++;
+        if (this->eyeIndex >= 4) {
             this->unk_3F0 = Rand_S16Offset(30, 30);
-            this->unk_3F2 = 0;
+            this->eyeIndex = 0;
         }
     }
 }
@@ -310,17 +311,17 @@ void func_80BF14B0(EnIg* this) {
 }
 
 void func_80BF15EC(EnIg* this) {
-    if ((this->unk_3D0 & 0x20) && (this->unk_2A8 != 0)) {
+    if ((this->flags & 0x20) && (this->unk_2A8 != 0)) {
         if (DECR(this->unk_3EE) == 0) {
             func_80BF14B0(this);
-            this->unk_3D0 &= ~0x200;
-            this->unk_3D0 |= 0x80;
+            this->flags &= ~0x200;
+            this->flags |= 0x80;
             return;
         }
     }
 
-    if (this->unk_3D0 & 0x80) {
-        this->unk_3D0 &= ~0x80;
+    if (this->flags & 0x80) {
+        this->flags &= ~0x80;
         this->unk_3E4 = 0;
         this->unk_3E6 = 0;
         this->unk_3E8 = 0;
@@ -330,7 +331,7 @@ void func_80BF15EC(EnIg* this) {
     }
 
     if (DECR(this->unk_3EE) == 0) {
-        this->unk_3D0 |= 0x200;
+        this->flags |= 0x200;
     }
 }
 
@@ -439,15 +440,15 @@ s32* func_80BF1920(EnIg* this, PlayState* play) {
 s32 func_80BF19A0(EnIg* this, PlayState* play) {
     s32 ret = false;
 
-    if (((this->unk_3D0 & SUBS_OFFER_MODE_MASK) != SUBS_OFFER_MODE_NONE) &&
+    if (((this->flags & SUBS_OFFER_MODE_MASK) != SUBS_OFFER_MODE_NONE) &&
         Actor_ProcessTalkRequest(&this->actor, &play->state)) {
-        SubS_SetOfferMode(&this->unk_3D0, SUBS_OFFER_MODE_NONE, SUBS_OFFER_MODE_MASK);
+        SubS_SetOfferMode(&this->flags, SUBS_OFFER_MODE_NONE, SUBS_OFFER_MODE_MASK);
         this->unk_3F6 = 0;
         this->unk_3F8 = NULL;
         this->actor.child = this->unk_2A8;
         this->unk_29C = func_80BF1920(this, play);
         if ((this->scheduleResult != 2) && (this->scheduleResult != 3) && (this->scheduleResult != 4)) {
-            this->unk_3D0 |= 0x20;
+            this->flags |= 0x20;
         }
         this->actionFunc = func_80BF2BD4;
         ret = true;
@@ -491,7 +492,7 @@ s32 func_80BF1B40(EnIg* this, PlayState* play) {
     s32 pad;
 
     if (player->stateFlags1 & (PLAYER_STATE1_40 | PLAYER_STATE1_400 | PLAYER_STATE1_800)) {
-        this->unk_3D0 |= 0x400;
+        this->flags |= 0x400;
         if (this->unk_3D2 != temp) {
             if ((this->animIndex == ENIG_ANIM_2) || (this->animIndex == ENIG_ANIM_3)) {
                 EnIg_ChangeAnim(this, ENIG_ANIM_0);
@@ -503,9 +504,9 @@ s32 func_80BF1B40(EnIg* this, PlayState* play) {
             }
         }
         this->unk_3D2 = temp;
-    } else if (this->unk_3D0 & 0x400) {
+    } else if (this->flags & 0x400) {
         this->unk_3D2 = 0;
-        this->unk_3D0 &= ~0x400;
+        this->flags &= ~0x400;
 
         //! FAKE:
         if (1) {}
@@ -555,9 +556,9 @@ s32 func_80BF1D78(EnIg* this, PlayState* play, ScheduleOutput* scheduleOutput) {
 
     if (func_80BF1C44(this, play, scheduleOutput, ACTORCAT_NPC, ACTOR_EN_AN)) {
         EnIg_ChangeAnim(this, ENIG_ANIM_0);
-        SubS_SetOfferMode(&this->unk_3D0, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
-        this->unk_3D0 |= 0x20;
-        this->unk_3D0 |= 0x100;
+        SubS_SetOfferMode(&this->flags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
+        this->flags |= 0x20;
+        this->flags |= 0x100;
         sp2C = true;
     }
     return sp2C;
@@ -599,7 +600,7 @@ s32 func_80BF1DF4(EnIg* this, PlayState* play, ScheduleOutput* scheduleOutput) {
             this->unk_3E0 = scheduleOutput->time1 - scheduleOutput->time0;
             this->unk_3E2 = sp56 - scheduleOutput->time0;
             this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
-            this->unk_3D0 |= 0x100;
+            this->flags |= 0x100;
             EnIg_ChangeAnim(this, ENIG_ANIM_3);
             this->actor.gravity = 0.0f;
             ret = true;
@@ -647,10 +648,10 @@ s32 func_80BF1FA8(EnIg* this, PlayState* play, ScheduleOutput* scheduleOutput) {
         this->timePathWaypoint =
             (this->timePathElapsedTime / this->timePathWaypointTime) + (SUBS_TIME_PATHING_ORDER - 1);
 
-        this->unk_3D0 &= ~0x8;
-        this->unk_3D0 &= ~0x10;
-        SubS_SetOfferMode(&this->unk_3D0, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
-        this->unk_3D0 |= 0x100;
+        this->flags &= ~0x8;
+        this->flags &= ~0x10;
+        SubS_SetOfferMode(&this->flags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
+        this->flags |= 0x100;
         EnIg_ChangeAnim(this, ENIG_ANIM_2);
         this->actor.gravity = -1.0f;
         ret = true;
@@ -685,16 +686,16 @@ s32 func_80BF219C(EnIg* this, PlayState* play, ScheduleOutput* scheduleOutput) {
             case 2:
                 this->actor.home.rot.y = this->actor.world.rot.y;
                 this->actor.home.rot.y += 0x8000;
-                SubS_SetOfferMode(&this->unk_3D0, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
-                this->unk_3D0 |= 0x100;
+                SubS_SetOfferMode(&this->flags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
+                this->flags |= 0x100;
                 EnIg_ChangeAnim(this, ENIG_ANIM_1);
                 break;
 
             case 4: // sitting down
                 this->actor.world.rot.y += 0x8000;
                 this->actor.shape.rot.y = this->actor.world.rot.y;
-                SubS_SetOfferMode(&this->unk_3D0, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
-                this->unk_3D0 |= 0x100;
+                SubS_SetOfferMode(&this->flags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
+                this->flags |= 0x100;
                 EnIg_ChangeAnim(this, ENIG_ANIM_8);
                 break;
 
@@ -710,7 +711,7 @@ s32 func_80BF2368(EnIg* this, PlayState* play, ScheduleOutput* scheduleOutput) {
     s32 ret = false;
 
     this->actor.targetMode = TARGET_MODE_0;
-    this->unk_3D0 = 0;
+    this->flags = 0;
     this->actor.flags |= ACTOR_FLAG_TARGETABLE;
 
     switch (scheduleOutput->result) {
@@ -797,14 +798,14 @@ s32 func_80BF25E8(EnIg* this, PlayState* play) {
 
     SubS_TimePathing_FillKnots(knots, SUBS_TIME_PATHING_ORDER, this->timePath->count + SUBS_TIME_PATHING_ORDER);
 
-    if (!(this->unk_3D0 & 8)) {
+    if (!(this->flags & 8)) {
         timePathTargetPos = gZeroVec3f;
         SubS_TimePathing_Update(this->timePath, &this->timePathProgress, &this->timePathElapsedTime,
                                 this->timePathWaypointTime, this->timePathTotalTime, &this->timePathWaypoint, knots,
                                 &timePathTargetPos, this->timePathTimeSpeed);
         SubS_TimePathing_ComputeInitialY(play, this->timePath, this->timePathWaypoint, &timePathTargetPos);
         this->actor.world.pos.y = timePathTargetPos.y;
-        this->unk_3D0 |= 8;
+        this->flags |= 8;
     } else {
         timePathTargetPos = this->timePathTargetPos;
     }
@@ -823,7 +824,7 @@ s32 func_80BF25E8(EnIg* this, PlayState* play) {
     if (SubS_TimePathing_Update(this->timePath, &this->timePathProgress, &this->timePathElapsedTime,
                                 this->timePathWaypointTime, this->timePathTotalTime, &this->timePathWaypoint, knots,
                                 &this->timePathTargetPos, this->timePathTimeSpeed)) {
-        this->unk_3D0 |= 0x10;
+        this->flags |= 0x10;
     } else {
         sp70 = this->actor.world.pos;
         sp64 = this->timePathTargetPos;
@@ -841,11 +842,11 @@ s32 func_80BF25E8(EnIg* this, PlayState* play) {
 }
 
 s32 func_80BF2890(EnIg* this, PlayState* play) {
-    if ((this->unk_3D0 & 0x100) && (this->unk_3F2 == 2)) {
-        this->unk_3D0 &= ~0x100;
+    if ((this->flags & 0x100) && (this->eyeIndex == 2)) {
+        this->flags &= ~0x100;
     }
 
-    if (!(this->unk_3D0 & 0x100) && Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+    if (!(this->flags & 0x100) && Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
         if (this->unk_408 != 0) {
             Actor_PlaySfx(&this->actor, NA_SE_EN_GOLON_SNORE1);
         } else {
@@ -866,7 +867,7 @@ s32 func_80BF293C(EnIg* this, PlayState* play) {
         }
     } else if ((this->animIndex == ENIG_ANIM_7) && Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
         // this just means you can now talk to him as he sits down, 
-        SubS_SetOfferMode(&this->unk_3D0, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
+        SubS_SetOfferMode(&this->flags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
         EnIg_ChangeAnim(this, ENIG_ANIM_9);
     }
     return true;
@@ -933,9 +934,9 @@ void func_80BF2BD4(EnIg* this, PlayState* play) {
     Vec3f sp2C;
 
     if (func_8010BF58(&this->actor, play, this->unk_29C, this->unk_3F8, &this->unk_2A0)) {
-        SubS_SetOfferMode(&this->unk_3D0, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
-        this->unk_3D0 &= ~0x20;
-        this->unk_3D0 |= 0x200;
+        SubS_SetOfferMode(&this->flags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
+        this->flags &= ~0x20;
+        this->flags |= 0x200;
         this->unk_3EE = 20;
         this->unk_2A0 = 0;
         this->actionFunc = func_80BF2AF8;
@@ -948,22 +949,64 @@ void func_80BF2BD4(EnIg* this, PlayState* play) {
     }
 }
 
+void EnIg_SitIdle(EnIg* this, PlayState* play){
+  // do nothing? head turning?
+  
+    if (!(this->flags & 0x100) && Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+        if (this->unk_408 != 0) {
+            Actor_PlaySfx(&this->actor, NA_SE_EN_GOLON_SNORE1);
+        } else {
+            Actor_PlaySfx(&this->actor, NA_SE_EN_GOLON_SNORE2);
+        }
+        this->unk_408 ^= 1;
+    }
+
+}
+
+//void EnIg_SitDown(EnIg* this, PlayState* play){
+  // wait for sitting animation to complete
+  // once complete, switch to sitting idle
+
+//}
+
+//void EnIg_FollowPath(EnIg* this, PlayState* play) {
+  // move along path
+
+//}
+
 void EnIg_Init(Actor* thisx, PlayState* play) {
     EnIg* this = THIS;
+    this->type = (thisx->params & 0xFF00) >> 8;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 28.0f);
     SkelAnime_InitFlex(play, &this->skelAnime, &object_dai_Skel_0130D0, NULL, this->jointTable, this->morphTable,
                        OBJECT_DAI_LIMB_MAX);
-    this->animIndex = ENIG_ANIM_NONE;
-    EnIg_ChangeAnim(this, ENIG_ANIM_0);
+
     Collider_InitAndSetCylinder(play, &this->collider1, &this->actor, &sCylinderInit);
     Collider_InitAndSetSphere(play, &this->collider2, &this->actor, &sSphereInit);
     CollisionCheck_SetInfo2(&this->actor.colChkInfo, DamageTable_Get(0x16), &sColChkInfoInit);
     Actor_SetScale(&this->actor, 0.01f);
-    this->scheduleResult = 0;
     this->actor.gravity = 0.0f;
-    this->actionFunc = func_80BF2AF8;
-    this->actionFunc(this, play);
+
+
+    if (this->type == 0){ // vanilla
+
+      this->animIndex = ENIG_ANIM_NONE;
+      EnIg_ChangeAnim(this, ENIG_ANIM_0);
+      this->scheduleResult = 0;
+      this->actionFunc = func_80BF2AF8;
+      this->actionFunc(this, play);
+    } else{
+      // new version fallows a path and sits down, or just sits down
+      //this->animIndex = ENIG_ANIM_2; // WALKING
+      //this->flags &= ~0x100; // do NOT allow blinking, we want sleep
+      this->eyeIndex = 2; // think this is eyes shut?
+      this->animIndex = ENIG_ANIM_0; // SIT LOOP
+      EnIg_ChangeAnim(this, ENIG_ANIM_8); // SIT LOOP
+      this->actionFunc = EnIg_SitIdle;
+
+      // should be random chance hes snoring?
+    }
 }
 
 void EnIg_Destroy(Actor* thisx, PlayState* play) {
@@ -986,10 +1029,19 @@ void EnIg_Update(Actor* thisx, PlayState* play) {
         EnIg_UpdateSkelAnime(this);
         func_80BF13E4(this);
         func_80BF15EC(this);
-        SubS_Offer(&this->actor, play, 60.0f, 30.0f, PLAYER_IA_NONE, this->unk_3D0 & SUBS_OFFER_MODE_MASK);
+        SubS_Offer(&this->actor, play, 60.0f, 30.0f, PLAYER_IA_NONE, this->flags & SUBS_OFFER_MODE_MASK);
         Actor_MoveWithGravity(&this->actor);
         Actor_UpdateBgCheckInfo(play, &this->actor, 30.0f, 12.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
         func_80BF1354(this, play);
+    }
+
+    // if the type is > zero, we still need to update skeleton without schedule  
+    if (this->type != 0){
+        //EnIg_UpdateSkelAnime(this);
+        SkelAnime_Update(&this->skelAnime);
+        Actor_MoveWithGravity(&this->actor);
+        Actor_UpdateBgCheckInfo(play, &this->actor, 30.0f, 12.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
+        func_80BF1354(this, play); // update collider
     }
 }
 
@@ -1039,8 +1091,8 @@ void EnIg_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx, Gfx** 
     s32 stepRot;
     s32 overrideRot;
 
-    if (!(this->unk_3D0 & 0x200)) {
-        if (this->unk_3D0 & 0x80) {
+    if (!(this->flags & 0x200)) {
+        if (this->flags & 0x80) {
             overrideRot = true;
         } else {
             overrideRot = false;
@@ -1065,30 +1117,34 @@ void EnIg_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx, Gfx** 
 }
 
 void EnIg_Draw(Actor* thisx, PlayState* play) {
-    static TexturePtr D_80BF3534[] = {
+    static TexturePtr gIgEyeTextures[] = {
         object_dai_Tex_0107B0, object_dai_Tex_010FB0, object_dai_Tex_0117B0,
         object_dai_Tex_011FB0, object_dai_Tex_0127B0,
     };
     s32 pad;
     EnIg* this = THIS;
+    bool shouldDraw = this->scheduleResult != 0 | this->type != 0; // branch avoidance
 
-    if (this->scheduleResult != 0) {
+    //if (this->scheduleResult != 0) {
+    if (shouldDraw) {
         Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
         OPEN_DISPS(play->state.gfxCtx);
 
-        Scene_SetRenderModeXlu(play, 0, 1);
+        Scene_SetRenderModeXlu(play, 0, 1); // HUH?
 
-        gSPSegment(POLY_OPA_DISP++, 0x08, Lib_SegmentedToVirtual(D_80BF3534[this->unk_3F2]));
+        gSPSegment(POLY_OPA_DISP++, 0x08, Lib_SegmentedToVirtual(gIgEyeTextures[this->eyeIndex]));
 
         POLY_OPA_DISP = SubS_DrawTransformFlex(play, this->skelAnime.skeleton, this->skelAnime.jointTable,
                                                this->skelAnime.dListCount, EnIg_OverrideLimbDraw, EnIg_PostLimbDraw,
                                                EnIg_TransformLimbDraw, &this->actor, POLY_OPA_DISP);
-        // completely unchanged anywhere
+        // completely unchanged anywhere, remove this waste code
         //Matrix_Put(&this->unk_190);
 
         gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
-        //gSPDisplayList(POLY_OPA_DISP++, object_dai_DL_00C538); // beard
+
+        // beard, was added after because it gets removed manually early in override limb draw
+        //gSPDisplayList(POLY_OPA_DISP++, object_dai_DL_00C538);
 
         CLOSE_DISPS(play->state.gfxCtx);
     }

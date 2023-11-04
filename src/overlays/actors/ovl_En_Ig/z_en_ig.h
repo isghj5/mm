@@ -28,9 +28,11 @@ typedef struct EnIg {
     /* 0x290 */ s32 timePathWaypoint;
     /* 0x294 */ s32 timePathElapsedTime;
     /* 0x298 */ u8 scheduleResult;
+    /* 0x299 */ u8 type; // NEW wasted space in the data anyway might as well use it
     /* 0x29C */ s32* unk_29C;
     /* 0x2A0 */ s32 unk_2A0;
     /* 0x2A4 */ s8 unk_2A4;
+    // its free realestate
     /* 0x2A8 */ Actor* unk_2A8;
     /* 0x2AC */ UNK_TYPE1 unk2AC[0x4];
     /* 0x2B0 */ Vec3f unk_2B0;
@@ -41,7 +43,7 @@ typedef struct EnIg {
     /* 0x2E6 */ Vec3s unk_2E6;
     /* 0x2EC */ Vec3s jointTable[OBJECT_DAI_LIMB_MAX];
     /* 0x35E */ Vec3s morphTable[OBJECT_DAI_LIMB_MAX];
-    /* 0x3D0 */ u16 unk_3D0;
+    /* 0x3D0 */ u16 flags;
     /* 0x3D2 */ u16 unk_3D2;
     /* 0x3D4 */ f32 animPlaySpeed;
     /* 0x3D8 */ UNK_TYPE1 unk3D8[0x8];
@@ -54,7 +56,7 @@ typedef struct EnIg {
     /* 0x3EC */ s16 timePathTimeSpeed;
     /* 0x3EE */ s16 unk_3EE;
     /* 0x3F0 */ s16 unk_3F0;
-    /* 0x3F2 */ s16 unk_3F2;
+    /* 0x3F2 */ s16 eyeIndex;
     /* 0x3F4 */ s16 unk_3F4;
     /* 0x3F6 */ s16 unk_3F6;
     /* 0x3F8 */ EnIgUnkFunc unk_3F8;
