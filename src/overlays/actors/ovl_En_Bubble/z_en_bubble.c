@@ -326,6 +326,8 @@ void func_808A005C(EnBubble* this) {
     this->colliderSphere.elements[1].dim = *dim;
 }
 
+/*
+ * this looks very simple but stuck in inf loop, weird
 u16 EnBubble2_FindNearbyEnemies(Actor* thisx, PlayState* play){
   unsigned short count;
   Actor *actor = play->actorCtx.actorLists[ACTORCAT_ENEMY].first;
@@ -336,19 +338,23 @@ u16 EnBubble2_FindNearbyEnemies(Actor* thisx, PlayState* play){
   }   
 
   return count;
-}
+} // */
 
 // we want to increase difficulty by increasing volume a bit
 void EnBubble2_CheckAndSpawnMore(Actor* thisx, PlayState* play){
     // if type is X
     unsigned int spawnCount = thisx->params;
-    if (thisx->params == 0){
-      // search for nearby
-      unsigned int nearbyEnemyCount = EnBubble2_FindNearbyEnemies(thisx, play);
- 
-      spawnCount = (s16)(Rand_ZeroOne() * 5) + 1; // randomly select a count
 
-      spawnCount -= nearbyEnemyCount;
+    if (thisx->params == 0 // random possible selected
+         || (play->sceneId == SCENE_HAKASHITA && thisx->room != 3) // one of the "boss rooms"
+         || (play->sceneId == SCENE_KAKUSIANA && thisx->room == 13 || thisx->room == 7) // grotto peahat or dodongo
+         || (play->sceneId == SCENE_MITURIN && thisx->room == 4 || thisx->room == 6)){ // miniboss rooms of woodfall temple
+ 
+      spawnCount = Rand_S16Offset(0, 5); // randomly select a count from 0 to 5
+
+      // search for nearby
+      //unsigned int nearbyEnemyCount = EnBubble2_FindNearbyEnemies(thisx, play);
+      //spawnCount -= nearbyEnemyCount;
 
     }
 
