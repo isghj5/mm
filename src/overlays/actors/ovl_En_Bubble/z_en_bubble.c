@@ -197,8 +197,8 @@ void EnBubble_Fly(EnBubble* this, PlayState* play) {
     CollisionPoly* poly;
     Actor* bumpActor;
     Vec3f sp84;
-    Vec3f sp78;
-    Vec3f sp6C;
+    Vec3f curPos;
+    Vec3f nextBouncePos;
     Vec3f normal;
     Vec3f bounceDirection;
     f32 bounceSpeed;
@@ -222,15 +222,15 @@ void EnBubble_Fly(EnBubble* this, PlayState* play) {
     bounceDirection.z = this->velocityFromBounce.z + this->velocityFromBump.z;
     EnBubble_Vec3fNormalize(&bounceDirection);
 
-    sp78.x = this->actor.world.pos.x;
-    sp78.y = this->actor.world.pos.y + this->actor.shape.yOffset;
-    sp78.z = this->actor.world.pos.z;
-    sp6C = sp78;
+    curPos.x = this->actor.world.pos.x;
+    curPos.y = this->actor.world.pos.y + this->actor.shape.yOffset;
+    curPos.z = this->actor.world.pos.z;
+    nextBouncePos = curPos;
 
-    sp6C.x += (bounceDirection.x * 24.0f);
-    sp6C.y += (bounceDirection.y * 24.0f);
-    sp6C.z += (bounceDirection.z * 24.0f);
-    if (BgCheck_EntityLineTest1(&play->colCtx, &sp78, &sp6C, &sp84, &poly, true, true, true, false, &bgId)) {
+    nextBouncePos.x += (bounceDirection.x * 24.0f);
+    nextBouncePos.y += (bounceDirection.y * 24.0f);
+    nextBouncePos.z += (bounceDirection.z * 24.0f);
+    if (BgCheck_EntityLineTest1(&play->colCtx, &curPos, &nextBouncePos, &sp84, &poly, true, true, true, false, &bgId)) {
         normal.x = COLPOLY_GET_NORMAL(poly->normal.x);
         normal.y = COLPOLY_GET_NORMAL(poly->normal.y);
         normal.z = COLPOLY_GET_NORMAL(poly->normal.z);
@@ -270,6 +270,7 @@ void EnBubble_Fly(EnBubble* this, PlayState* play) {
         this->modelRotSpeed = 128.0f;
         this->modelEllipticity = 0.48f;
     }
+    // this is different from above when we calculate position as the actor wants to gain momentum not just keep it
     this->actor.velocity.x = this->velocityFromBounce.x + this->velocityFromBump.x;
     this->actor.velocity.y = this->velocityFromBounce.y + this->velocityFromBump.y + this->yVelocity;
     this->actor.velocity.z = this->velocityFromBounce.z + this->velocityFromBump.z;
@@ -325,9 +326,46 @@ void func_808A005C(EnBubble* this) {
     this->colliderSphere.elements[1].dim = *dim;
 }
 
+u16 EnBubble2_FindNearbyEnemies(Actor* thisx, PlayState* play){
+  unsigned short count;
+  Actor *actor = play->actorCtx.actorLists[ACTORCAT_ENEMY].first;
+  
+  while (actor != NULL) {
+      count++;
+      actor = actor->next;
+  }   
+
+  return count;
+}
+
+// we want to increase difficulty by increasing volume a bit
+void EnBubble2_CheckAndSpawnMore(Actor* thisx, PlayState* play){
+    // if type is X
+    unsigned int spawnCount = thisx->params;
+    if (thisx->params == 0){
+      // search for nearby
+      unsigned int nearbyEnemyCount = EnBubble2_FindNearbyEnemies(thisx, play);
+ 
+      spawnCount = (s16)(Rand_ZeroOne() * 5) + 1; // randomly select a count
+
+      spawnCount -= nearbyEnemyCount;
+
+    }
+
+    while(spawnCount > 0){
+      Actor_Spawn(&play->actorCtx, play, ACTOR_EN_BUBBLE,
+         thisx->world.pos.x, thisx->world.pos.y, thisx->world.pos.z,
+         thisx->world.rot.x, thisx->world.rot.y, thisx->world.rot.z,
+         -1);
+      spawnCount--;
+    }
+}
+
 void EnBubble_Init(Actor* thisx, PlayState* play) {
-    s32 pad;
+    //s32 pad;
     EnBubble* this = THIS;
+
+    if (thisx->params >= 0) EnBubble2_CheckAndSpawnMore(thisx, play); 
 
     ActorShape_Init(&this->actor.shape, 16.0f, ActorShadow_DrawCircle, 0.2f);
     Collider_InitJntSph(play, &this->colliderSphere);
@@ -400,20 +438,28 @@ void EnBubble_Update(Actor* thisx, PlayState* play) {
 }
 
 void EnBubble_Draw(Actor* thisx, PlayState* play) {
-    s32 pad;
+    //s32 pad;
     EnBubble* this = (EnBubble*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 
     if (this->actionFunc != EnBubble_Disappear) {
         Gfx_SetupDL25_Xlu(play->state.gfxCtx);
+
         Math_SmoothStepToF(&this->modelRotSpeed, 16.0f, 0.2f, 1000.0f, 0.0f);
+
         Math_SmoothStepToF(&this->modelEllipticity, 0.08f, 0.2f, 1000.0f, 0.0f);
+
         Matrix_ReplaceRotation(&play->billboardMtxF);
+
         Matrix_Scale(this->modelWidth + 1.0f, this->modelHeight + 1.0f, 1.0f, MTXMODE_APPLY);
+
         Matrix_RotateZF(DEG_TO_RAD((f32)play->state.frames) * this->modelRotSpeed, MTXMODE_APPLY);
+
         Matrix_Scale(this->modelEllipticity + 1.0f, 1.0f, 1.0f, MTXMODE_APPLY);
+
         Matrix_RotateZF(DEG_TO_RAD(-(f32)play->state.frames) * this->modelRotSpeed, MTXMODE_APPLY);
+
         MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
 
         gSPDisplayList(POLY_XLU_DISP++, gBubbleDL);
