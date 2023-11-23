@@ -12,8 +12,10 @@
 #define THIS ((EnIg*)thisx)
 
 void EnIg_Init(Actor* thisx, PlayState* play);
+void EnIg_Init2(Actor* thisx, PlayState* play);
 void EnIg_Destroy(Actor* thisx, PlayState* play);
 void EnIg_Update(Actor* thisx, PlayState* play);
+void EnIg_Update2(Actor* thisx, PlayState* play);
 void EnIg_Draw(Actor* thisx, PlayState* play);
 
 void func_80BF2AF8(EnIg* this, PlayState* play);
@@ -94,9 +96,11 @@ ActorInit En_Ig_InitVars = {
     /**/ FLAGS,
     /**/ OBJECT_DAI,
     /**/ sizeof(EnIg),
-    /**/ EnIg_Init,
+    // EnIg_Init,
+    /**/ EnIg_Init2,
     /**/ EnIg_Destroy,
-    /**/ EnIg_Update,
+    // EnIg_Update,
+    /**/ EnIg_Update2,
     /**/ EnIg_Draw,
 };
 
@@ -949,64 +953,23 @@ void func_80BF2BD4(EnIg* this, PlayState* play) {
     }
 }
 
-void EnIg_SitIdle(EnIg* this, PlayState* play){
-  // do nothing? head turning?
-  
-    if (!(this->flags & 0x100) && Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
-        if (this->unk_408 != 0) {
-            Actor_PlaySfx(&this->actor, NA_SE_EN_GOLON_SNORE1);
-        } else {
-            Actor_PlaySfx(&this->actor, NA_SE_EN_GOLON_SNORE2);
-        }
-        this->unk_408 ^= 1;
-    }
-
-}
-
-//void EnIg_SitDown(EnIg* this, PlayState* play){
-  // wait for sitting animation to complete
-  // once complete, switch to sitting idle
-
-//}
-
-//void EnIg_FollowPath(EnIg* this, PlayState* play) {
-  // move along path
-
-//}
 
 void EnIg_Init(Actor* thisx, PlayState* play) {
     EnIg* this = THIS;
-    this->type = (thisx->params & 0xFF00) >> 8;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 28.0f);
     SkelAnime_InitFlex(play, &this->skelAnime, &object_dai_Skel_0130D0, NULL, this->jointTable, this->morphTable,
                        OBJECT_DAI_LIMB_MAX);
-
+    this->animIndex = ENIG_ANIM_NONE;
+    EnIg_ChangeAnim(this, ENIG_ANIM_0);
     Collider_InitAndSetCylinder(play, &this->collider1, &this->actor, &sCylinderInit);
     Collider_InitAndSetSphere(play, &this->collider2, &this->actor, &sSphereInit);
     CollisionCheck_SetInfo2(&this->actor.colChkInfo, DamageTable_Get(0x16), &sColChkInfoInit);
     Actor_SetScale(&this->actor, 0.01f);
+    this->scheduleResult = 0;
     this->actor.gravity = 0.0f;
-
-
-    if (this->type == 0){ // vanilla
-
-      this->animIndex = ENIG_ANIM_NONE;
-      EnIg_ChangeAnim(this, ENIG_ANIM_0);
-      this->scheduleResult = 0;
-      this->actionFunc = func_80BF2AF8;
-      this->actionFunc(this, play);
-    } else{
-      // new version fallows a path and sits down, or just sits down
-      //this->animIndex = ENIG_ANIM_2; // WALKING
-      //this->flags &= ~0x100; // do NOT allow blinking, we want sleep
-      this->eyeIndex = 2; // think this is eyes shut?
-      this->animIndex = ENIG_ANIM_0; // SIT LOOP
-      EnIg_ChangeAnim(this, ENIG_ANIM_8); // SIT LOOP
-      this->actionFunc = EnIg_SitIdle;
-
-      // should be random chance hes snoring?
-    }
+    this->actionFunc = func_80BF2AF8;
+    this->actionFunc(this, play);
 }
 
 void EnIg_Destroy(Actor* thisx, PlayState* play) {
@@ -1034,25 +997,17 @@ void EnIg_Update(Actor* thisx, PlayState* play) {
         Actor_UpdateBgCheckInfo(play, &this->actor, 30.0f, 12.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
         func_80BF1354(this, play);
     }
-
-    // if the type is > zero, we still need to update skeleton without schedule  
-    if (this->type != 0){
-        //EnIg_UpdateSkelAnime(this);
-        SkelAnime_Update(&this->skelAnime);
-        Actor_MoveWithGravity(&this->actor);
-        Actor_UpdateBgCheckInfo(play, &this->actor, 30.0f, 12.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
-        func_80BF1354(this, play); // update collider
-    }
 }
 
 s32 EnIg_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx,
                           Gfx** gfx) {
     EnIg* this = THIS;
 
+
     // This appears to be a bug, it tries to remove the soul patch but does not work right
-    //if (limbIndex == OBJECT_DAI_LIMB_0A) {
-        //*dList = NULL;
-    //}
+    if (limbIndex == OBJECT_DAI_LIMB_0A) {
+        *dList = NULL;
+    }
     return false;
 }
 
@@ -1081,9 +1036,10 @@ void EnIg_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
         Math_Vec3f_ToVec3s(&this->collider2.dim.worldSphere.center, &sp2C);
     }
 
-    //if (limbIndex == OBJECT_DAI_LIMB_0A) {
-        //Matrix_Get(&this->unk_190);
-    //}
+    // this does nothing, can remove
+    if (limbIndex == OBJECT_DAI_LIMB_0A) {
+        Matrix_Get(&this->unk_190);
+    }
 }
 
 void EnIg_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx, Gfx** gfx) {
@@ -1116,21 +1072,49 @@ void EnIg_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx, Gfx** 
     }
 }
 
-void EnIg_Draw(Actor* thisx, PlayState* play) {
     static TexturePtr gIgEyeTextures[] = {
         object_dai_Tex_0107B0, object_dai_Tex_010FB0, object_dai_Tex_0117B0,
         object_dai_Tex_011FB0, object_dai_Tex_0127B0,
     };
+void EnIg_Draw(Actor* thisx, PlayState* play) {
     s32 pad;
     EnIg* this = THIS;
-    bool shouldDraw = this->scheduleResult != 0 | this->type != 0; // branch avoidance
 
-    //if (this->scheduleResult != 0) {
-    if (shouldDraw) {
+    if (this->scheduleResult != 0) {
         Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
         OPEN_DISPS(play->state.gfxCtx);
 
+        Scene_SetRenderModeXlu(play, 0, 1); // HUH?
+
+        gSPSegment(POLY_OPA_DISP++, 0x08, Lib_SegmentedToVirtual(gIgEyeTextures[this->eyeIndex]));
+
+        POLY_OPA_DISP = SubS_DrawTransformFlex(play, this->skelAnime.skeleton, this->skelAnime.jointTable,
+                                               this->skelAnime.dListCount, EnIg_OverrideLimbDraw, EnIg_PostLimbDraw,
+                                               EnIg_TransformLimbDraw, &this->actor, POLY_OPA_DISP);
+        // completely unchanged anywhere, remove this waste code
+        Matrix_Put(&this->unk_190);
+
+        gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+
+        // beard, was added after because it gets removed manually early in override limb draw
+        gSPDisplayList(POLY_OPA_DISP++, object_dai_DL_00C538);
+
+        CLOSE_DISPS(play->state.gfxCtx);
+    }
+}
+
+// THERE IS SO MUCH REPEAT CODE NOW but no longer shifts the old code
+
+void EnIg_Draw2(Actor* thisx, PlayState* play) {
+    s32 pad;
+    EnIg* this = THIS;
+
+        Gfx_SetupDL25_Opa(play->state.gfxCtx);
+
+        OPEN_DISPS(play->state.gfxCtx);
+
+        // TODO removing to test something, as this is kinda stupid looking
         Scene_SetRenderModeXlu(play, 0, 1); // HUH?
 
         gSPSegment(POLY_OPA_DISP++, 0x08, Lib_SegmentedToVirtual(gIgEyeTextures[this->eyeIndex]));
@@ -1144,8 +1128,99 @@ void EnIg_Draw(Actor* thisx, PlayState* play) {
         gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 
         // beard, was added after because it gets removed manually early in override limb draw
-        //gSPDisplayList(POLY_OPA_DISP++, object_dai_DL_00C538);
+        // cannot fix without duplicating code or shifting
+        gSPDisplayList(POLY_OPA_DISP++, object_dai_DL_00C538);
 
         CLOSE_DISPS(play->state.gfxCtx);
+}
+
+
+void EnIg_SitIdle(EnIg* this, PlayState* play){
+  // do nothing? head turning?
+  
+    if (!(this->flags & 0x100) && Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+        if (this->unk_408 != 0) {
+            Actor_PlaySfx(&this->actor, NA_SE_EN_GOLON_SNORE1);
+        } else {
+            Actor_PlaySfx(&this->actor, NA_SE_EN_GOLON_SNORE2);
+        }
+        this->unk_408 ^= 1;
     }
+
+}
+
+//void EnIg_SitDown(EnIg* this, PlayState* play){
+  // wait for sitting animation to complete
+  // once complete, switch to sitting idle
+
+//}
+
+//void EnIg_FollowPath(EnIg* this, PlayState* play) {
+  // move along path
+
+//}
+
+// have to protect shifting with this one, at least early because of sfx rando
+void EnIg_Init2(Actor* thisx, PlayState* play) {
+    EnIg* this = THIS;
+
+    this->type = (thisx->params & 0xFF00) >> 8;
+    if (this->type == 0){ // vanilla
+      EnIg_Init(thisx, play);
+      thisx->update = EnIg_Update;
+      return;
+    }
+    // else we need to do the rest ourselves, this one was complicated enough to re-point the whole thing here instead
+    
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 28.0f);
+     SkelAnime_InitFlex(play, &this->skelAnime, &object_dai_Skel_0130D0, NULL, this->jointTable, this->morphTable,
+                        OBJECT_DAI_LIMB_MAX);
+
+     Collider_InitAndSetCylinder(play, &this->collider1, &this->actor, &sCylinderInit);
+     Collider_InitAndSetSphere(play, &this->collider2, &this->actor, &sSphereInit);
+     CollisionCheck_SetInfo2(&this->actor.colChkInfo, DamageTable_Get(0x16), &sColChkInfoInit);
+     Actor_SetScale(&this->actor, 0.01f);
+     this->scheduleResult = 0;
+     this->actor.gravity = 0.0f;
+
+     this->eyeIndex = 2; // think this is eyes shut?
+     this->animIndex = ENIG_ANIM_0; // SIT LOOP
+     EnIg_ChangeAnim(this, ENIG_ANIM_8); // SIT LOOP
+     this->actionFunc = EnIg_SitIdle;
+     thisx->draw = EnIg_Draw2;
+
+     // new version fallows a path and sits down, or just sits down
+     //this->animIndex = ENIG_ANIM_2; // WALKING
+     //this->flags &= ~0x100; // do NOT allow blinking, we want sleep
+
+}
+
+// TODO clean
+void EnIg_Update2(Actor* thisx, PlayState* play){
+    EnIg* this = THIS;
+
+    func_80BF19A0(this, play);
+
+    this->actionFunc(this, play);
+
+    func_80BF1B40(this, play);
+
+    //if (this->scheduleResult != 0) {
+        //EnIg_UpdateSkelAnime(this);
+        //func_80BF13E4(this);
+        //func_80BF15EC(this);
+        //SubS_Offer(&this->actor, play, 60.0f, 30.0f, PLAYER_IA_NONE, this->flags & SUBS_OFFER_MODE_MASK);
+        //Actor_MoveWithGravity(&this->actor);
+        //Actor_UpdateBgCheckInfo(play, &this->actor, 30.0f, 12.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
+        //func_80BF1354(this, play);
+    //}
+
+    // if the type is > zero, we still need to update skeleton without schedule  
+    //if (this->type != 0){ // right now we dont need this tho since we control which update function we want
+        //EnIg_UpdateSkelAnime(this);
+        SkelAnime_Update(&this->skelAnime);
+        Actor_MoveWithGravity(&this->actor);
+        Actor_UpdateBgCheckInfo(play, &this->actor, 30.0f, 12.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
+        func_80BF1354(this, play); // update collider
+    //}
 }
