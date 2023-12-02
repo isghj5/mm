@@ -10,6 +10,9 @@
 
 #define THIS ((EnTwig*)thisx)
 
+void EnTwig_Init2(Actor* thisx, PlayState* play2);
+void EnTwig_Draw2(Actor* thisx, PlayState* play2);
+
 void EnTwig_Init(Actor* thisx, PlayState* play2);
 void EnTwig_Destroy(Actor* thisx, PlayState* play2);
 void EnTwig_Update(Actor* thisx, PlayState* play2);
@@ -30,10 +33,10 @@ ActorInit En_Twig_InitVars = {
     /**/ FLAGS,
     /**/ OBJECT_TWIG,
     /**/ sizeof(EnTwig),
-    /**/ EnTwig_Init,
+    /**/ EnTwig_Init2,
     /**/ EnTwig_Destroy,
     /**/ EnTwig_Update,
-    /**/ EnTwig_Draw,
+    /**/ EnTwig_Draw2,
 };
 
 s32 sCurrentRing;
@@ -41,7 +44,8 @@ s16 sRingCount;
 s16 sRingNotCollected[25];
 
 static CollisionHeader* sColHeaders[] = {
-    NULL,
+    //NULL,
+    &object_twig_Colheader_0020A0,
     &object_twig_Colheader_0020A0,
     &object_twig_Colheader_0016C0,
 };
@@ -61,18 +65,23 @@ void EnTwig_Init(Actor* thisx, PlayState* play2) {
     s32 i;
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
-    this->unk_160 = RACERING_GET_PARAM_F(&this->dyna.actor);
+    this->type = RACERING_GET_PARAM_F(&this->dyna.actor);
     DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS);
-    if (sColHeaders[this->unk_160] != NULL) {
-        DynaPolyActor_LoadMesh(play, &this->dyna, sColHeaders[this->unk_160]);
+    if (sColHeaders[this->type] != NULL) {
+        DynaPolyActor_LoadMesh(play, &this->dyna, sColHeaders[this->type]);
     }
+
     this->dyna.actor.bgCheckFlags |= BGCHECKFLAG_PLAYER_400;
-    switch (this->unk_160) {
-        case 0:
+    switch (this->type) { // type
+        case 0: // unused and does nothing weird
             Actor_Kill(&this->dyna.actor);
+            //Actor_SetScale(&this->dyna.actor, 4.2f);
+            //this->dyna.actor.uncullZoneScale = this->dyna.actor.uncullZoneDownward = this->dyna.actor.scale.x * 60.0f;
+            //DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
+            //func_80AC0A7C(this, play);
             break;
 
-        case 1:
+        case 1: // wooden bramble
             if (!sRingsHaveSpawned) {
                 sRingCount = CHECK_WEEKEVENTREG(WEEKEVENTREG_24_04) ? 25 : 20;
                 for (i = 0; i < sRingCount; i++) {
@@ -113,6 +122,7 @@ void EnTwig_Destroy(Actor* thisx, PlayState* play2) {
     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
 }
 
+// do nothing? really?
 void func_80AC0A54(EnTwig* this, PlayState* play) {
     this->actionFunc = func_80AC0A6C;
 }
@@ -120,12 +130,13 @@ void func_80AC0A54(EnTwig* this, PlayState* play) {
 void func_80AC0A6C(EnTwig* this, PlayState* play) {
 }
 
+// setup to draw the rings
 void func_80AC0A7C(EnTwig* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
 
     Math_Vec3f_Copy(&this->unk_180, &player->bodyPartsPos[PLAYER_BODYPART_WAIST]);
     this->unk_178 = 0;
-    this->unk_17A = 0;
+    this->ringColorshiftTimer = 0;
     this->actionFunc = func_80AC0AC8;
 }
 
@@ -136,11 +147,11 @@ void func_80AC0AC8(EnTwig* this, PlayState* play) {
     Vec3f sp40;
 
     if (sCurrentRing == RACERING_GET_PARAM_FE0(&this->dyna.actor)) {
-        if (this->unk_17A == 3) {
-            this->unk_17A = 0;
+        if (this->ringColorshiftTimer == 3) {
+            this->ringColorshiftTimer = 0;
             this->dyna.actor.shape.rot.z += 0x2000;
         } else {
-            this->unk_17A++;
+            this->ringColorshiftTimer++;
         }
     }
     SubS_ConstructPlane(&this->dyna.actor.world.pos, &D_80AC10D0, &this->dyna.actor.shape.rot, &sp4C);
@@ -237,7 +248,8 @@ void EnTwig_Update(Actor* thisx, PlayState* play2) {
 void EnTwig_Draw(Actor* thisx, PlayState* play) {
     EnTwig* this = THIS;
 
-    switch (this->unk_160) {
+    switch (this->type) {
+        // type zero ignored
         case 1:
             Gfx_DrawDListOpa(play, object_twig_DL_001C38);
             break;
@@ -245,4 +257,77 @@ void EnTwig_Draw(Actor* thisx, PlayState* play) {
             Gfx_DrawDListOpa(play, object_twig_DL_0014C8);
             break;
     }
+}
+
+void EnTwig_Draw2(Actor* thisx, PlayState* play) {
+     Gfx_DrawDListOpa(play, object_twig_DL_001C38);
+
+}
+
+// this is ONLY for our variant
+void EnTwig_Update2(Actor* thisx, PlayState* play){
+  EnTwig* this = THIS;
+
+  // ripped from the function we want, but we will instead get to use it for our type
+  //if (sCurrentRing == RACERING_GET_PARAM_FE0(&this->dyna.actor)) {
+  if (this->dyna.actor.xzDistToPlayer < 200) {
+      if (this->ringColorshiftTimer == 3) {
+          this->ringColorshiftTimer = 0;
+          this->dyna.actor.shape.rot.z += 0x2000;
+      } else {
+          this->ringColorshiftTimer++;
+      }
+  }
+
+  EnTwig_Update(thisx, play);
+
+}
+
+void EnTwig_Init2(Actor* thisx, PlayState* play) {
+  EnTwig* this = THIS;
+
+  //this->type = RACERING_GET_PARAM_F(&this->dyna.actor);
+  if (thisx->params == 0)
+  {
+    thisx->update = EnTwig_Update2;
+
+    Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
+    //this->type = RACERING_GET_PARAM_F(&this->dyna.actor);
+    DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS);
+    //if (sColHeaders[this->type] != NULL) {
+        DynaPolyActor_LoadMesh(play, &this->dyna, sColHeaders[this->type]);
+    //}
+
+    this->dyna.actor.bgCheckFlags |= BGCHECKFLAG_PLAYER_400;
+
+
+    //if (!sRingsHaveSpawned) {
+        //sRingCount = CHECK_WEEKEVENTREG(WEEKEVENTREG_24_04) ? 25 : 20;
+        //for (i = 0; i < sRingCount; i++) {
+            //sRingNotCollected[i] = false;
+        //}
+        //sRingsHaveSpawned = true;
+    //}
+    //if (RACERING_GET_PARAM_1F0(&this->dyna.actor) != 0) {
+        //if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_24_04)) {
+            //Actor_Kill(&this->dyna.actor);
+            //return;
+        //}
+    //} else if (CHECK_WEEKEVENTREG(WEEKEVENTREG_24_04)) {
+        //Actor_Kill(&this->dyna.actor);
+        //return;
+    //}
+    Actor_SetScale(&this->dyna.actor, 4.2f);
+    this->dyna.actor.uncullZoneScale = this->dyna.actor.uncullZoneDownward = this->dyna.actor.scale.x * 60.0f;
+    //DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
+    //func_80AC0A7C(this, play);
+    func_80AC0A7C(this, play);
+    //break;
+
+  } else {
+
+    EnTwig_Init(thisx, play);
+    thisx->draw = EnTwig_Draw;
+  }
+
 }
