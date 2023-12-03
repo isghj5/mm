@@ -176,6 +176,7 @@ void func_80AC0AC8(EnTwig* this, PlayState* play) {
     Math_Vec3f_Copy(&this->unk_180, &player->bodyPartsPos[PLAYER_BODYPART_WAIST]);
 }
 
+// player has touched the thing
 void func_80AC0CC4(EnTwig* this, PlayState* play) {
     this->unk_170 = 3458.0f;
     this->unk_174 = 0.2f;
@@ -279,6 +280,17 @@ void EnTwig_Update2(Actor* thisx, PlayState* play){
       }
   }
 
+  // if the actionfunc changes from under us, we want to give the player some magic
+  if (this->type == 0
+    && this->oldActionFunc != this->actionFunc && this->actionFunc == func_80AC0D2C ){
+    // do something new 
+    Magic_Add(play, MAGIC_NORMAL_METER / 2);
+
+    thisx->update = EnTwig_Update;
+    return;
+  }
+
+  this->oldActionFunc = this->actionFunc;
   EnTwig_Update(thisx, play);
 
 }

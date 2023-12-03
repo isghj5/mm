@@ -16,7 +16,9 @@ typedef struct EnTwig {
     /* 0x000 */ DynaPolyActor dyna;
     /* 0x15C */ EnTwigActionFunc actionFunc;
     /* 0x160 */ s32 type;
-    /* 0x160 */ UNK_TYPE1 unk164[8];
+    /* 0x160 */ //UNK_TYPE1 unk164[8];
+    /* 0x164 */ UNK_TYPE1 unk164[4];
+    /* 0x168 */ EnTwigActionFunc oldActionFunc;
     /* 0x16C */ s32 unk_16C;
     /* 0x170 */ f32 unk_170;
     /* 0x174 */ f32 unk_174;
