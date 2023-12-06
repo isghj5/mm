@@ -504,16 +504,21 @@ void func_8095B480(EnOwl* this, PlayState* play) {
     }
 }
 
+// sitting at the ice cave
 void func_8095B574(EnOwl* this, PlayState* play) {
     func_8095A920(this, play);
     if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
-        this->actionFunc = func_8095BA84;
+        this->actionFunc = func_8095BA84; // talking to us at the ice cave
         Audio_PlayFanfare(NA_BGM_OWL);
         this->actionFlags |= 0x40;
         this->csIdIndex = 2;
+        // if we needed more space, we could cut into it
     } else if (this->actor.xzDistToPlayer < 200.0f) {
-        this->actor.flags |= ACTOR_FLAG_10000;
-        Actor_OfferTalkExchange(&this->actor, play, 200.0f, 400.0f, PLAYER_IA_NONE);
+        //this->actor.flags |= ACTOR_FLAG_10000; // might be optional not sure what this does, force talk?
+        //this->actionFunc = ; // talking to us at the ice cave
+        EnOwl_ChangeMode(this, func_8095B3DC, func_8095C484, &this->skelAnimeFlying,
+             &gOwlUnfoldWingsAnim, 0.0f);
+        //Actor_OfferTalkExchange(&this->actor, play, 200.0f, 400.0f, PLAYER_IA_NONE);
     } else {
         this->actor.flags &= ~ACTOR_FLAG_10000;
     }
@@ -733,6 +738,7 @@ void func_8095BA84(EnOwl* this, PlayState* play) {
     }
 }
 
+// sitting at the post waiting for us to approach
 void func_8095BE0C(EnOwl* this, PlayState* play) {
     func_8095A920(this, play);
     if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
@@ -1180,6 +1186,58 @@ void EnOwl_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
     }
 }
 
+/*
+void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
+    EnOwl* this = THIS; // replace with THIS actor
+    // with explanation comments
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // the dlist will be written in the opa buffer because that buffer is larger,
+    // but executed from the overlay buffer (overlay draws last, for example the hud is drawn to overlay)
+    gfx = POLY_OPA_DISP + 1;
+    gSPDisplayList(OVERLAY_DISP++, gfx);
+
+    // initialize GfxPrint struct
+    GfxPrint_Init(&printer);
+    GfxPrint_Open(&printer, gfx);
+
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
+    GfxPrint_SetPos(&printer, 1, 10);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+
+    { // address locations
+        void* actionFuncAddr = this->actionFunc;
+        u32 convertedAddr = (u32) Fault_ConvertAddress(actionFuncAddr);
+        GfxPrint_SetPos(&printer, 1, 11);
+        GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
+        GfxPrint_SetPos(&printer, 1, 12);
+        GfxPrint_Printf(&printer, "actionfunc actual ram:  %X", actionFuncAddr);
+
+    }
+
+    GfxPrint_SetPos(&printer, 1, 13);
+    
+    //GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
+    //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
+    GfxPrint_Printf(&printer, "mesgState %X", Message_GetState(&play->msgCtx));
+
+    // end of text printing
+    gfx = GfxPrint_Close(&printer);
+    GfxPrint_Destroy(&printer);
+
+    gSPEndDisplayList(gfx++);
+    // make the opa dlist jump over the part that will be executed as part of overlay
+    gSPBranchList(POLY_OPA_DISP, gfx);
+    POLY_OPA_DISP = gfx;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+    //if (BREG(86)) 
+    //  Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+} // */
+
 void EnOwl_Draw(Actor* thisx, PlayState* play) {
     static TexturePtr sEyeTextures[] = {
         gOwlEyeOpenTex,
@@ -1198,9 +1256,12 @@ void EnOwl_Draw(Actor* thisx, PlayState* play) {
     SkelAnime_DrawFlexOpa(play, this->curSkelAnime->skeleton, this->curSkelAnime->jointTable,
                           this->curSkelAnime->dListCount, EnOwl_OverrideLimbDraw, EnOwl_PostLimbDraw, &this->actor);
 
+    //Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+
     CLOSE_DISPS(play->state.gfxCtx);
 }
 
+// draw feather
 void func_8095D074(Actor* thisx, PlayState* play) {
     EnOwl* this = THIS;
 
