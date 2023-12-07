@@ -155,14 +155,14 @@ void EnOwl_Init(Actor* thisx, PlayState* play) {
             }
             break;
 
-        case ENOWL_GET_TYPE_2:
+        case ENOWL_GET_TYPE_2: // lens
             if (gSaveContext.save.saveInfo.inventory.items[ITEM_LENS_OF_TRUTH] == ITEM_LENS_OF_TRUTH) {
                 Actor_Kill(&this->actor);
                 return;
             }
             break;
 
-        case ENOWL_GET_TYPE_3:
+        case ENOWL_GET_TYPE_3: // soaring explanation
             if (CHECK_QUEST_ITEM(QUEST_SONG_SOARING)) {
                 Actor_Kill(&this->actor);
                 return;
@@ -185,18 +185,18 @@ void EnOwl_Init(Actor* thisx, PlayState* play) {
 
         case ENOWL_GET_TYPE_2:
             this->actionFunc = func_8095BE0C;
-            if (CHECK_WEEKEVENTREG(WEEKEVENTREG_09_20)) {
+            if (CHECK_WEEKEVENTREG(WEEKEVENTREG_09_20)) { // did the player attempt the jump and void out?
                 this->actor.textId = 0xBF0;
             } else {
                 this->actor.textId = 0xBEA;
             }
             break;
 
-        case ENOWL_GET_TYPE_3:
+        case ENOWL_GET_TYPE_3: // soaring
             this->actionFunc = func_8095AFEC;
             break;
 
-        case ENOWL_GET_TYPE_1000:
+        case ENOWL_GET_TYPE_1000: // how?
             this->actionFunc = func_8095BF20;
             break;
 
@@ -216,6 +216,7 @@ void EnOwl_Destroy(Actor* thisx, PlayState* play) {
     }
 }
 
+// update rotation
 void func_8095A920(EnOwl* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
 
@@ -763,6 +764,7 @@ void func_8095BF20(EnOwl* this, PlayState* play) {
     this->actionFunc = func_8095ABF0;
 }
 
+// update rotation 2
 void func_8095BF58(EnOwl* this, PlayState* play) {
     func_8095A920(this, play);
 }
