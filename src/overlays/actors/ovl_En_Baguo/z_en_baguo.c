@@ -348,13 +348,24 @@ void EnBaguo_CheckForDetonation(EnBaguo* this, PlayState* play) {
                                              (Rand_ZeroFloat(1.0f) * 0.01f) + 0.003f, 90);
                 }
 
-                //Actor_Spawn(&play->actorCtx, play, ACTOR_EN_CLEAR_TAG, this->actor.world.pos.x, this->actor.world.pos.y,
-                            //this->actor.world.pos.z, 0, 0, 0, CLEAR_TAG_PARAMS(CLEAR_TAG_POP));
-                Actor_Spawn(&play->actorCtx, play, ACTOR_EN_BOM, this->actor.world.pos.x,
-                                               this->actor.world.pos.y + 40.0f, this->actor.world.pos.z,
-                                               BOMB_EXPLOSIVE_TYPE_BOMB, 0, 0, BOMB_TYPE_BODY);
-                //Actor_PlaySfx(&this->actor, NA_SE_IT_BOMB_EXPLOSION);
-                Actor_PlaySfx(&this->actor, NA_SE_EN_BAKUO_DEAD);
+                {
+
+                  EnBom* explosion = Actor_Spawn(&play->actorCtx, play, ACTOR_EN_BOM, this->actor.world.pos.x,
+                                                 this->actor.world.pos.y + 00.0f, this->actor.world.pos.z,
+                                                 BOMB_EXPLOSIVE_TYPE_BOMB, 0, 0, BOMB_TYPE_BODY);
+                  
+                  // not sure why famos does this instead of spawning an explosion type, but the later can leave a shadow??
+                  if (explosion != NULL) {
+                      explosion->timer = 0; // instant explosion
+                  }
+
+                  // this new explosion wont produce the appearance for some reason
+                  //Actor_Spawn(&play->actorCtx, play, ACTOR_EN_CLEAR_TAG, this->actor.world.pos.x, this->actor.world.pos.y,
+                              //this->actor.world.pos.z, 0, 0, 0, CLEAR_TAG_PARAMS(CLEAR_TAG_POP));
+                  
+                  //Actor_PlaySfx(&this->actor, NA_SE_IT_BOMB_EXPLOSION);
+                  Actor_PlaySfx(&this->actor, NA_SE_EN_BAKUO_DEAD);
+                }
 
                 this->timer = 30;
                 this->actor.flags |= ACTOR_FLAG_CANT_LOCK_ON;
