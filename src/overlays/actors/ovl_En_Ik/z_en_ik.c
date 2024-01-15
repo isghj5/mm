@@ -271,6 +271,7 @@ void EnIk_Init(Actor* thisx, PlayState* play) {
     static s32 sDisplayListDesegmented = false;
     s32 i;
     EnIk* this = THIS;
+    bool newExtraFlags = false;
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
     SkelAnime_InitFlex(play, &this->skelAnime, &gIronKnuckleSkel, &gIronKnuckleWalkAnim, this->jointTable,
@@ -280,6 +281,12 @@ void EnIk_Init(Actor* thisx, PlayState* play) {
     Collider_InitAndSetTris(play, &this->colliderTris, &this->actor, &sTrisInit, this->shieldColliderElements);
     Collider_InitAndSetQuad(play, &this->colliderQuad, &this->actor, &sQuadInit);
     CollisionCheck_SetInfo(&this->actor.colChkInfo, &sDamageTableArmor, &sColChkInfoInit);
+
+    // new
+    //newExtraFlags = (this->actor.params & 0x100) >> 8; // problem being vanilla is 0xFF01
+    newExtraFlags = (this->actor.params & 0xFF00) >> 8;
+    thisx->home.rot.x = newExtraFlags;
+
     this->actor.params = IK_GET_ARMOR_TYPE(&this->actor);
     this->actor.params--;
 
@@ -292,6 +299,7 @@ void EnIk_Init(Actor* thisx, PlayState* play) {
         }
         sDisplayListDesegmented = true;
     }
+
     EnIk_SetupIdle(this);
 }
 
@@ -391,11 +399,18 @@ void EnIk_SetupIdle(EnIk* this) {
 
 void EnIk_Idle(EnIk* this, PlayState* play) {
     if (this->timer > 0) {
+        // HUH? how would we reach this?
         this->timer--;
         SkelAnime_Update(&this->skelAnime);
         if (this->timer == 0) {
             EnIk_CheckActions(this, play);
         }
+    } else if ( ENIK_GET_ROTX_AGROABLE(&this->actor) && this->actor.xzDistToPlayer < 350.0f &&
+            Player_GetMask(play) != PLAYER_MASK_STONE  ) {
+        Audio_PlayBgm_StorePrevBgm(NA_BGM_MINI_BOSS);
+        this->actor.hintId = TATL_HINT_ID_IRON_KNUCKLE;
+        EnIk_SetupWalk(this);
+
     } else if (this->colliderCylinder.base.acFlags & AC_HIT) {
         Actor_PlaySfx(&this->actor, NA_SE_EN_IRONNACK_ARMOR_HIT);
         Audio_PlayBgm_StorePrevBgm(NA_BGM_MINI_BOSS);

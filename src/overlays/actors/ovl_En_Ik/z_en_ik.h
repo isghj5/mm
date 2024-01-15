@@ -24,6 +24,8 @@ typedef struct {
     /* 0x24 */ s32 enabled;
 } IronKnuckleEffect; // size = 0x28
 
+#define ENIK_GET_ROTX_AGROABLE(thisx) ((thisx)->home.rot.x == 0x00)
+
 typedef enum IronKnuckleBodyPart {
     /*  0 */ IRON_KNUCKLE_BODYPART_TASSET_RIGHT,
     /*  1 */ IRON_KNUCKLE_BODYPART_RIGHT_LEG,
