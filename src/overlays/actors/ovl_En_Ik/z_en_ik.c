@@ -49,6 +49,19 @@ void EnIk_PlayCutscene(EnIk* this, PlayState* play);
 void EnIk_UpdateDamage(EnIk* this, PlayState* play);
 void EnIk_UpdateArmor(EnIk* this, PlayState* play);
 
+// moved to top of .data
+ActorInit En_Ik_InitVars = {
+    /**/ ACTOR_EN_IK,
+    /**/ ACTORCAT_ENEMY,
+    /**/ FLAGS,
+    /**/ OBJECT_IK,
+    /**/ sizeof(EnIk),
+    /**/ EnIk_Init,
+    /**/ EnIk_Destroy,
+    /**/ EnIk_Update,
+    /**/ EnIk_Draw,
+};
+
 typedef struct {
     /* 0x0 */ Gfx* unk00;
     /* 0x4 */ s16 unk04;
@@ -75,17 +88,6 @@ static Gfx* sIronKnuckleArmorType[3][3] = {
     { gIronKnuckleWhiteArmorMaterialDL, gIronKnuckleGoldArmorMaterialDL, gIronKnuckleGoldArmorMaterialDL },
 };
 
-ActorInit En_Ik_InitVars = {
-    /**/ ACTOR_EN_IK,
-    /**/ ACTORCAT_ENEMY,
-    /**/ FLAGS,
-    /**/ OBJECT_IK,
-    /**/ sizeof(EnIk),
-    /**/ EnIk_Init,
-    /**/ EnIk_Destroy,
-    /**/ EnIk_Update,
-    /**/ EnIk_Draw,
-};
 
 static ColliderCylinderInit sCylinderInit = {
     {
@@ -170,6 +172,7 @@ typedef enum {
     /* 0x4 */ DMG_EFF_FIRE = 0x2,
     /* 0x0 */ DMG_EFF_ICE,
     /* 0x4 */ DMG_EFF_LIGHT_SPARKS,
+    /* 0x4 */ DMG_EFF_BOOMERANG,
     /* 0xF */ DMG_EFF_IMMUNE = 0xF
 } EnIkDmgEff;
 
@@ -178,7 +181,7 @@ static DamageTable sDamageTableArmor = {
     /* Deku Stick     */ DMG_ENTRY(0, DMG_EFF_IMMUNE),
     /* Horse trample  */ DMG_ENTRY(0, DMG_EFF_NONE),
     /* Explosives     */ DMG_ENTRY(1, DMG_EFF_NONE),
-    /* Zora boomerang */ DMG_ENTRY(0, DMG_EFF_IMMUNE),
+    /* Zora boomerang */ DMG_ENTRY(1, DMG_EFF_BOOMERANG),
     /* Normal arrow   */ DMG_ENTRY(0, DMG_EFF_IMMUNE),
     /* UNK_DMG_0x06   */ DMG_ENTRY(0, DMG_EFF_NONE),
     /* Hookshot       */ DMG_ENTRY(0, DMG_EFF_IMMUNE),
@@ -228,13 +231,13 @@ static DamageTable sDamageTableNoArmor = {
     /* Deku bubble    */ DMG_ENTRY(1, DMG_EFF_NONE),
     /* Deku launch    */ DMG_ENTRY(0, DMG_EFF_NONE),
     /* UNK_DMG_0x12   */ DMG_ENTRY(0, DMG_EFF_NONE),
-    /* Zora barrier   */ DMG_ENTRY(0, DMG_EFF_NONE),
+    /* Zora barrier   */ DMG_ENTRY(1, DMG_EFF_NONE),
     /* Normal shield  */ DMG_ENTRY(0, DMG_EFF_NONE),
     /* Light ray      */ DMG_ENTRY(0, DMG_EFF_NONE),
     /* Thrown object  */ DMG_ENTRY(1, DMG_EFF_NONE),
     /* Zora punch     */ DMG_ENTRY(1, DMG_EFF_NONE),
     /* Spin attack    */ DMG_ENTRY(1, DMG_EFF_NONE),
-    /* Sword beam     */ DMG_ENTRY(0, DMG_EFF_NONE),
+    /* Sword beam     */ DMG_ENTRY(1, DMG_EFF_NONE),
     /* Normal Roll    */ DMG_ENTRY(0, DMG_EFF_NONE),
     /* UNK_DMG_0x1B   */ DMG_ENTRY(0, DMG_EFF_NONE),
     /* UNK_DMG_0x1C   */ DMG_ENTRY(0, DMG_EFF_NONE),
@@ -802,6 +805,13 @@ void EnIk_UpdateDamage(EnIk* this, PlayState* play) {
         if ((this->actor.colChkInfo.damageEffect != DMG_EFF_IMMUNE) &&
             ((this->drawDmgEffType != ACTOR_DRAW_DMGEFF_FROZEN_NO_SFX) ||
              !(this->colliderCylinder.info.acHitInfo->toucher.dmgFlags & 0xDB0B3))) {
+
+            // new for zora underwater only, if not underwater, ignore
+            if ( this->actor.colChkInfo.damageEffect == DMG_EFF_BOOMERANG && this->actor.depthInWater < 0.0f){
+              EnIk_HitArmor(this, play);
+              return;
+            }
+
             Actor_SetColorFilter(&this->actor, COLORFILTER_COLORFLAG_RED, 255, COLORFILTER_BUFFLAG_OPA, 12);
             this->invincibilityFrames = 12;
             EnIk_Thaw(this, play);
