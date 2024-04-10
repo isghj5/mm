@@ -44,7 +44,7 @@ static ColliderJntSphElementInit sJntSphElementsInit[1] = {
     {
         {
             ELEMTYPE_UNK0,
-            { 0xF7CFFFFF, 0x00, 0x08 },
+            { 0xF7CFFFFF, 0x00, 0x08 }, // toucher data: 9 damage normally, is that one heart?
             { 0xF7CFFFFF, 0x00, 0x00 },
             TOUCH_ON | TOUCH_SFX_HARD,
             BUMP_ON,
@@ -104,7 +104,7 @@ static DamageTable sDamageTable = {
     /* Thrown object  */ DMG_ENTRY(1, GUAY_DMGEFF_NONE),
     /* Zora punch     */ DMG_ENTRY(1, GUAY_DMGEFF_NONE),
     /* Spin attack    */ DMG_ENTRY(1, GUAY_DMGEFF_NONE),
-    /* Sword beam     */ DMG_ENTRY(0, GUAY_DMGEFF_NONE),
+    /* Sword beam     */ DMG_ENTRY(1, GUAY_DMGEFF_NONE),
     /* Normal Roll    */ DMG_ENTRY(0, GUAY_DMGEFF_NONE),
     /* UNK_DMG_0x1B   */ DMG_ENTRY(0, GUAY_DMGEFF_NONE),
     /* UNK_DMG_0x1C   */ DMG_ENTRY(0, GUAY_DMGEFF_NONE),
@@ -136,6 +136,15 @@ void EnCrow_Init(Actor* thisx, PlayState* play) {
     ActorShape_Init(&this->actor.shape, 2000.0f, ActorShadow_DrawCircle, 20.0f);
 
     sDeadCount = 0;
+    this->freeRealestate = thisx->params & 0xFF;
+    if (thisx->params == 0x3) // new
+    { 
+        // mega crow
+        this->actor.scale.z = this->actor.scale.y = this->actor.scale.x = 0.03;
+        this->collider.elements->dim.worldSphere.radius = sJntSphInit.elements->dim.modelSphere.radius * 0.03f * 100.0f;
+        // can we increase his hit damage too? original damage was 8, would which is like half a heart
+        this->colliderElements[1].info.toucher.damage = 32;
+    }
 
     if (this->actor.parent != NULL) {
         this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
@@ -350,11 +359,17 @@ void EnCrow_Damaged(EnCrow* this, PlayState* play) {
             func_800B3030(play, &this->actor.world.pos, &gZeroVec3f, &gZeroVec3f, this->actor.scale.x * 10000.0f, 0, 0);
             SoundSource_PlaySfxAtFixedWorldPos(play, &this->actor.world.pos, 11, NA_SE_EN_EXTINCT);
 
+            if (this->freeRealestate == 0x3) // new
+            {
+                Actor_Kill(&this->actor);
+            } else
+
             if (this->actor.parent != NULL) {
                 Actor_Kill(&this->actor);
-                return;
+                //return;
+            } else {
+              EnCrow_SetupDie(this);
             }
-            EnCrow_SetupDie(this);
         }
     }
 }

@@ -26,6 +26,7 @@ typedef struct EnCrow {
     /* 0x144 */ SkelAnime skelAnime;
     /* 0x188 */ EnCrowActionFunc actionFunc;
     /* 0x18C */ u8 drawDmgEffType;
+    /* 0x18D */ u8 freeRealestate;
     /* 0x18E */ s16 timer;
     /* 0x190 */ s16 pitchTarget;
     /* 0x192 */ s16 yawTarget;
