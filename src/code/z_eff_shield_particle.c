@@ -53,15 +53,25 @@ void EffectShieldParticle_Init(void* thisx, void* initParamsx) {
     }
 }
 
+int EffectShieldParticle_Destroy2(void* thisx);
+
 void EffectShieldParticle_Destroy(void* thisx) {
     EffectShieldParticle* this = (EffectShieldParticle*)thisx;
 
-    if ((this != NULL) && (this->lightDecay == true)) {
+    //if ((this != NULL) && (this->lightDecay == true) ) {
+    //if ((this != NULL) && (this->lightDecay == true) && (this->lightNode != NULL)) {
+    if (EffectShieldParticle_Destroy2(thisx)) {
         if (this->lightNode == Effect_GetPlayState()->lightCtx.listHead) {
             Effect_GetPlayState()->lightCtx.listHead = this->lightNode->next;
         }
         LightContext_RemoveLight(Effect_GetPlayState(), &Effect_GetPlayState()->lightCtx, this->lightNode);
     }
+}
+
+int EffectShieldParticle_Destroy2(void* thisx) {
+    EffectShieldParticle* this = (EffectShieldParticle*)thisx;
+
+    return ((this != NULL) && (this->lightDecay == true) && (this->lightNode != NULL));
 }
 
 s32 EffectShieldParticle_Update(void* thisx) {
