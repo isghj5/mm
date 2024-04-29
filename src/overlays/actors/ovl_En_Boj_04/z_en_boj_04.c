@@ -24,24 +24,55 @@ ActorInit En_Boj_04_InitVars = {
     /**/ EnBoj04_Init,
     /**/ EnBoj04_Destroy,
     /**/ EnBoj04_Update,
-    /**/ NULL,
+    /**/ NULL, // draw func n/a
 };
 
-struct ActorCombo{
+typedef struct ActorCombo{
   u16 actorId;
   u16 params;
-};
+} ActorCombo;
+
+typedef struct GrottoCombo {
+  ActorCombo left;
+  ActorCombo center;
+  ActorCombo right;
+} GrottoCombo;
 
 // going to need a way to map this data to the entrance, torch does this too but only for 8 items and we have a least 10 grottos
 // two in TF: pillar and grass
 // mystery woods and outside of ssh
 // behind fishermans hut and cape boulder
-// 
 
+static GrottoCombo grottoActorPlacemenetData[] = {
+ { {10, 0}, {0, 0}, {0,0}   }, // tf grass
+ { {10, 0}, {0, 0}, {0,0}   }, // tf pillar
+ { {10, 0}, {0, 0}, {0,0}   }, // 
+ { {10, 0}, {0, 0}, {0,0}   } ,
+ { {10, 0}, {0, 0}, {0,0}   } ,
+ { {10, 0}, {0, 0}, {0,0}   } ,
+ { {10, 0}, {0, 0}, {0,0}   } ,
+ { {10, 0}, {0, 0}, {0,0}   } ,
+ { {10, 0}, {0, 0}, {0,0}   } ,
+ { {10, 0}, {0, 0}, {0,0}   } ,
+ { {10, 0}, {0, 0}, {0,0}   }
+};
 
 // struct of ActorCombos structs per grotto
 
 // struct of objects per grotto
+static GrottoComboObjects[] = {
+  101, //  01
+  102, //  02
+  103, //  03
+  104, //  04
+  105, //  05
+  106, //  06
+  107, //  07
+  108, //  08
+  109, //  09
+  110, //  10
+  111  //  11
+};
 
 void EnBoj04_Init(Actor* thisx, PlayState* play) {
   EnBoj04* this = THIS;
@@ -49,10 +80,14 @@ void EnBoj04_Init(Actor* thisx, PlayState* play) {
   // first we need to load the object, for now let's assume there is only one type of enemy per grotto so one object for all
 
   // load the object for the grotto
-  this->objectId = 0x17; // dinofos, testing
+  GROTTO_SPAWNER_OBJ_ID(thisx) = 0x17; // dinofos, testing
 
-  Object_SpawnPersistent(&play->objectCtx, &this->objectId);
+  // this does not work, we need to use randos function stead
+  //Object_SpawnPersistent(&play->objectCtx, &this->objectId);
 
+  
+
+  //this->actionFunc // we dont need an actionfunc we can just do our work in update
 }
 
 void EnBoj04_Destroy(Actor* thisx, PlayState* play) {
@@ -62,7 +97,7 @@ void EnBoj04_Update(Actor* thisx, PlayState* play) {
   EnBoj04* this = THIS;
 
   // if object is loaded, spawn actor
-  if (Object_IsLoaded(&play->objectCtx, &this->objectId)){
+  if (Object_IsLoaded(&play->objectCtx, &GROTTO_SPAWNER_OBJ_ID(thisx))){
 
     Actor_Spawn(&play->actorCtx, play, ACTOR_EN_DINOFOS, 
                 this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z,
@@ -74,34 +109,3 @@ void EnBoj04_Update(Actor* thisx, PlayState* play) {
   }
 }
 
-
-
-//#include "z_en_torch.h"
-//#include "overlays/actors/ovl_En_Box/z_en_box.h"
-
-
-//ActorInit En_Torch_InitVars = {
-    ///**/ ACTOR_EN_TORCH,
-    ///**/ ACTORCAT_ITEMACTION,
-    ///**/ FLAGS,
-    ///**/ GAMEPLAY_KEEP,
-    ///**/ sizeof(EnTorch),
-    ///**/ EnTorch_Init,
-    ///**/ NULL,
-    ///**/ NULL,
-    ///**/ NULL,
-//};
-
-//static u8 sChestContents[] = {
-    //GI_RUPEE_BLUE, GI_RUPEE_RED, GI_RUPEE_PURPLE, GI_RUPEE_SILVER, GI_BOMBCHUS_1, GI_BOMBCHUS_5, GI_BOMBS_1, GI_BOMBS_1,
-//};
-
-//void EnTorch_Init(Actor* thisx, PlayState* play) {
-    //EnTorch* this = THIS;
-    //s8 returnData = gSaveContext.respawn[RESPAWN_MODE_UNK_3].data;
-
-    //Actor_Spawn(&play->actorCtx, play, ACTOR_EN_BOX, this->actor.world.pos.x, this->actor.world.pos.y,
-                //this->actor.world.pos.z, 0, this->actor.shape.rot.y, 0,
-                //ENBOX_PARAMS(ENBOX_TYPE_SMALL, sChestContents[(returnData >> 0x5) & 0x7], returnData));
-    //Actor_Kill(&this->actor);
-//}
