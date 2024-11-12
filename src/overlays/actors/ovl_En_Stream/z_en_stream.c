@@ -46,6 +46,17 @@ void EnStream_Init(Actor* thisx, PlayState* play) {
     if (this->size != EN_STREAM_SIZE_NORMAL && this->size == EN_STREAM_SIZE_SMALL) {
         this->actor.scale.y = 0.01f;
     }
+
+    { // new: move to height
+      f32 waterSurface;
+      WaterBox* waterBox;
+      Vec3f pos = this->actor.world.pos; 
+
+      if(WaterBox_GetSurface1(play, &play->colCtx, pos.x, pos.z, &waterSurface, &waterBox)){
+        this->actor.world.pos.y = waterSurface - 155; 
+      }
+    }
+
     EnStream_SetupAction(this, EnStream_WaitForPlayer);
 }
 
@@ -83,11 +94,11 @@ s32 EnStream_PlayerIsInRange(Vec3f* vortexWorldPos, Vec3f* playerWorldPos, Vec3f
 
 void EnStream_SuckPlayer(EnStream* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
-    s32 pad48;
+    //s32 pad48;
     Vec3f posDifference;
     f32 xzDist;
     f32 yDistWithOffset;
-    s32 pad30[2];
+    //s32 pad30[2];
 
     if (EnStream_PlayerIsInRange(&this->actor.world.pos, &player->actor.world.pos, &posDifference,
                                  this->actor.scale.y) != EN_STREAM_PLAYER_OUTSIDE_RANGE) {
@@ -127,7 +138,8 @@ void EnStream_Update(Actor* thisx, PlayState* play) {
     EnStream* this = THIS;
 
     this->actionFunc(this, play);
-    Actor_PlaySfx_FlaggedCentered2(&this->actor, NA_SE_EV_WHIRLPOOL - SFX_FLAG);
+    //Actor_PlaySfx_FlaggedCentered2(&this->actor, NA_SE_EV_WHIRLPOOL - SFX_FLAG);
+    Actor_PlaySfx(&this->actor, NA_SE_EV_WHIRLPOOL - SFX_FLAG);
 }
 
 void EnStream_Draw(Actor* thisx, PlayState* play) {
