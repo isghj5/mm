@@ -40,6 +40,7 @@ ActorInit Object_Kankyo_InitVars = {
 };
 
 static u16 D_808DE340 = 0;
+static u8 sSnowMutex;
 
 void ObjectKankyo_SetupAction(ObjectKankyo* this, ObjectKankyoActionFunc actionFunc) {
     this->actionFunc = actionFunc;
@@ -111,8 +112,22 @@ void ObjectKankyo_Init(Actor* thisx, PlayState* play) {
             func_808DBFB0(this, play);
             break;
 
-        case 1:
-        case 3:
+        case 5: 
+          // Vanilla doesn't think snow should have a default, the assumption is its being controlled by a weather tag, except those are hardcoded
+          play->envCtx.precipitation[PRECIP_SNOW_CUR] = Rand_S16Offset(50, 15); // base, range
+          play->envCtx.precipitation[PRECIP_SNOW_MAX] = Rand_S16Offset(30, 90);
+          // do we need weather mode?
+          gWeatherMode = WEATHER_MODE_SNOW;
+
+          // fallthrough
+        case 1: // snow
+        case 3: // snow
+          // rando still has that bug where I can limit an actor to 1 and it wont stick
+          // if this was good enough for demo_kankyo its good enough for object_kankyo
+            if (sSnowMutex == 1){
+              Actor_Kill(&this->actor);
+            }
+            sSnowMutex = 1;
             func_808DBEB0(this, play);
             break;
 
@@ -488,6 +503,7 @@ void ObjectKankyo_Draw(Actor* thisx, PlayState* play) {
         case 1:
         case 2:
         case 3:
+        case 5:
             func_808DD3C8(thisx, play);
             break;
 
