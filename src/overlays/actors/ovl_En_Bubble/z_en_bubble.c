@@ -31,12 +31,16 @@ ActorProfile En_Bubble_Profile = {
     /**/ EnBubble_Draw,
 };
 
+// z64collision.h contains the flags
+// search #define DMG_DEKU_NUT to find the code for which flag is which
+
 static ColliderJntSphElementInit sJntSphElementsInit[2] = {
     {
-        {
+        {   // damage take collider
             ELEM_MATERIAL_UNK0,
             { 0x00000000, 0x00, 0x04 },
-            { 0xF7CFD757, 0x00, 0x00 },
+            //{ 0xF7CFD757, 0x00, 0x00 }, // vanilla
+            { 0xF7CFD777, 0x00, 0x00 },
             ATELEM_NONE | ATELEM_SFX_NORMAL,
             ACELEM_ON,
             OCELEM_ON,
@@ -44,10 +48,13 @@ static ColliderJntSphElementInit sJntSphElementsInit[2] = {
         { 0, { { 0, 0, 0 }, 16 }, 100 },
     },
     {
-        {
+        {   // collider for detecting non-damage, this one is for wiggling on bad damage attack
             ELEM_MATERIAL_UNK0,
-            { 0x00000000, 0x00, 0x00 },
-            { 0x00002820, 0x00, 0x00 },
+            { 0x00000000, 0x00, 0x00 },   // atDmgInfo
+            //{ 0x00002820, 0x00, 0x00 }, // acDmgInfo (vanilla)
+            // removal: 0x20 is arrow, 0x800 is fire arrow, 0x3000 is ice/light arrow
+            // add: 0x100 is goron punch, 0x10000 is deku spit, 0x100000 is regular shield
+            { 0x00110100, 0x00, 0x00 },   // acDmgInfo
             ATELEM_NONE | ATELEM_SFX_NORMAL,
             ACELEM_ON | ACELEM_NO_AT_INFO | ACELEM_NO_DAMAGE | ACELEM_NO_SWORD_SFX | ACELEM_NO_HITMARK,
             OCELEM_NONE,
@@ -367,6 +374,42 @@ void EnBubble2_CheckAndSpawnMore(Actor* thisx, PlayState* play){
     }
 }
 
+static DamageTable sDamageTable = {
+    /* Deku Nut       */ DMG_ENTRY(1, 0xF),
+    /* Deku Stick     */ DMG_ENTRY(1, 0x0),
+    /* Horse trample  */ DMG_ENTRY(1, 0x0),
+    /* Explosives     */ DMG_ENTRY(1, 0x0),
+    /* Zora boomerang */ DMG_ENTRY(1, 0x0),
+    /* Normal arrow   */ DMG_ENTRY(1, 0x0),
+    /* UNK_DMG_0x06   */ DMG_ENTRY(0, 0x0),
+    /* Hookshot       */ DMG_ENTRY(1, 0xE),
+    /* Goron punch    */ DMG_ENTRY(0, 0x0),
+    /* Sword          */ DMG_ENTRY(1, 0x0),
+    /* Goron pound    */ DMG_ENTRY(0, 0x0),
+    /* Fire arrow     */ DMG_ENTRY(1, 0x0),
+    /* Ice arrow      */ DMG_ENTRY(1, 0x0),
+    /* Light arrow    */ DMG_ENTRY(2, 0x4),
+    /* Goron spikes   */ DMG_ENTRY(1, 0x0),
+    /* Deku spin      */ DMG_ENTRY(1, 0x0),
+    /* Deku bubble    */ DMG_ENTRY(1, 0x0),
+    /* Deku launch    */ DMG_ENTRY(2, 0x0),
+    /* UNK_DMG_0x12   */ DMG_ENTRY(0, 0x1),
+    /* Zora barrier   */ DMG_ENTRY(1, 0x0),
+    /* Normal shield  */ DMG_ENTRY(0, 0x0),
+    /* Light ray      */ DMG_ENTRY(0, 0x0),
+    /* Thrown object  */ DMG_ENTRY(1, 0x0),
+    /* Zora punch     */ DMG_ENTRY(1, 0x0),
+    /* Spin attack    */ DMG_ENTRY(1, 0x0),
+    /* Sword beam     */ DMG_ENTRY(1, 0x0),
+    /* Normal Roll    */ DMG_ENTRY(1, 0x0),
+    /* UNK_DMG_0x1B   */ DMG_ENTRY(0, 0x0),
+    /* UNK_DMG_0x1C   */ DMG_ENTRY(0, 0x0),
+    /* Unblockable    */ DMG_ENTRY(0, 0x0),
+    /* UNK_DMG_0x1E   */ DMG_ENTRY(0, 0x0),
+    /* Powder Keg     */ DMG_ENTRY(1, 0x0),
+};
+
+
 void EnBubble_Init(Actor* thisx, PlayState* play) {
     //s32 pad;
     EnBubble* this = THIS;
@@ -376,7 +419,9 @@ void EnBubble_Init(Actor* thisx, PlayState* play) {
     ActorShape_Init(&this->actor.shape, 16.0f, ActorShadow_DrawCircle, 0.2f);
     Collider_InitJntSph(play, &this->colliderSphere);
     Collider_SetJntSph(play, &this->colliderSphere, &this->actor, &sJntSphInit, this->colliderElements);
-    CollisionCheck_SetInfo2(&this->actor.colChkInfo, DamageTable_Get(9), &sColChkInfoInit);
+
+    //CollisionCheck_SetInfo2(&this->actor.colChkInfo, DamageTable_Get(9), &sColChkInfoInit);
+    CollisionCheck_SetInfo2(&this->actor.colChkInfo, &sDamageTable, &sColChkInfoInit);
     //! @bug: hint Id not correctly migrated from OoT `NAVI_ENEMY_SHABOM`
     this->actor.hintId = TATL_HINT_ID_IGOS_DU_IKANA;
     this->bounceDirection.x = Rand_ZeroOne();
