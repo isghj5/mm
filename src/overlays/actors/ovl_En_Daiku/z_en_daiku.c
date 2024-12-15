@@ -14,6 +14,7 @@ void EnDaiku_Init(Actor* thisx, PlayState* play);
 void EnDaiku_Destroy(Actor* thisx, PlayState* play);
 void EnDaiku_Update(Actor* thisx, PlayState* play);
 void EnDaiku_Draw(Actor* thisx, PlayState* play);
+void Debug_PrintToScreen(Actor* thisx, PlayState* play);
 
 void EnDaiku_InitPart2(EnDaiku* this);
 void func_80943BC0(EnDaiku* this);
@@ -305,11 +306,13 @@ void func_809438F8(EnDaiku* this, PlayState* play) {
     }
 }
 
+// setup talk
 void func_80943BC0(EnDaiku* this) {
     this->unusedBool28A = true;
     this->actionFunc = func_80943BDC;
 }
 
+// talk
 void func_80943BDC(EnDaiku* this, PlayState* play) {
     f32 curFrame = this->skelAnime.curFrame;
 
@@ -329,7 +332,15 @@ void func_80943BDC(EnDaiku* this, PlayState* play) {
 
 void EnDaiku_Update(Actor* thisx, PlayState* play) {
     EnDaiku* this = THIS;
-    s32 pad;
+    //s32 pad;
+
+    if (this->skelAnime.update.normal == NULL){
+        // for reasons I can't figure out, their skeleton can break, if this happens they should print error instead of crash
+        //this->actionFunc = Actor_Noop;
+        thisx->update = Actor_Noop;
+        thisx->draw = Debug_PrintToScreen;
+        return;   
+    }  
 
     // this timer is only set with type==0, but that type has no skeleton
     if (this->mayorOfficeSkeletonUpdateTimer == 0) {
@@ -424,8 +435,11 @@ void EnDaiku_Draw(Actor* thisx, PlayState* play) {
             gDPSetEnvColor(POLY_OPA_DISP++, 200, 0, 150, 255);
             break;
 
-        case 4: // ??
+        case 4: // this type doesn't exist in vanilla
             gDPSetEnvColor(POLY_OPA_DISP++, 200, 0, 0, 255);
+            break;
+        default:
+            gDPSetEnvColor(POLY_OPA_DISP++, 170, 200, 255, 255);
             break;
     }
 
@@ -434,3 +448,41 @@ void EnDaiku_Draw(Actor* thisx, PlayState* play) {
 
     CLOSE_DISPS(play->state.gfxCtx);
 }
+
+void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
+    EnDaiku* this = THIS; // replace with THIS actor
+    // with explanation comments
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // the dlist will be written in the opa buffer because that buffer is larger,
+    // but executed from the overlay buffer (overlay draws last, for example the hud is drawn to overlay)
+    gfx = POLY_OPA_DISP + 1;
+    gSPDisplayList(OVERLAY_DISP++, gfx);
+
+    // initialize GfxPrint struct
+    GfxPrint_Init(&printer);
+    GfxPrint_Open(&printer, gfx);
+
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
+    GfxPrint_SetPos(&printer, 1, 10);
+    GfxPrint_Printf(&printer, "Daiku skeleton broken, report to isghj");
+    GfxPrint_SetPos(&printer, 1, 13);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+
+    // end of text printing
+    gfx = GfxPrint_Close(&printer);
+    GfxPrint_Destroy(&printer);
+
+    gSPEndDisplayList(gfx++);
+    // make the opa dlist jump over the part that will be executed as part of overlay
+    gSPBranchList(POLY_OPA_DISP, gfx);
+    POLY_OPA_DISP = gfx;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+    //if (BREG(86)) 
+    //  Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+} // */
+
