@@ -7504,7 +7504,7 @@
     0x80943710:("EnDaiku_Destroy",),
     0x8094373C:("EnDaiku_ChangeAnim",),
     0x809437C8:("func_809437C8",),
-    0x80943820:("func_80943820",),
+    0x80943820:("EnDaiku_InitPart2",),
     0x809438F8:("func_809438F8",),
     0x80943BC0:("func_80943BC0",),
     0x80943BDC:("func_80943BDC",),
