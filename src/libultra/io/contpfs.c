@@ -1,39 +1,9 @@
 #include "ultra64.h"
-#include "global.h"
+#include "PR/controller.h"
+#include "alignment.h"
 
-__OSInode __osPfsInodeCache;
-OSViMode osViModeNtscHpn1 = {
-    8, // type
-    {
-        // comRegs
-        0x324E,    // ctrl
-        0x500,     // width
-        0x3E52239, // burst
-        0x20C,     // vSync
-        0xC15,     // hSync
-        0xC150C15, // leap
-        0x6C02EC,  // hStart
-        0x400,     // xScale
-        0,         // vCurrent
-    },
-    { // fldRegs
-      {
-          // [0]
-          0x500,    // origin
-          0x400,    // yScale
-          0x2301FD, // vStart
-          0xE0204,  // vBurst
-          2,        // vIntr
-      },
-      {
-          // [1]
-          0xA00,    // origin
-          0x400,    // yScale
-          0x2501FF, // vStart
-          0xE0204,  // vBurst
-          2,        // vIntr
-      } },
-};
+__OSInode __osPfsInodeCache ALIGNED(8);
+
 s32 __osPfsInodeCacheChannel = -1;
 u8 __osPfsInodeCacheBank = 250;
 
@@ -66,7 +36,8 @@ s32 __osRepairPackId(OSPfs* pfs, __OSPackId* badid, __OSPackId* newid) {
     u8 buf[BLOCKSIZE];
     u8 comp[BLOCKSIZE];
     u8 mask = 0;
-    s32 i, j = 0;
+    s32 i = 0;
+    s32 j = 0;
     u16 index[4];
 
     newid->repaired = 0xFFFFFFFF;
@@ -264,8 +235,6 @@ s32 __osGetId(OSPfs* pfs) {
     }
 
     bcopy(id, pfs->id, BLOCKSIZE);
-
-    if (0) {}
 
     pfs->version = id->version;
 

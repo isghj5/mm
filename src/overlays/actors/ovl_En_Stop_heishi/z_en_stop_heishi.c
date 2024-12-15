@@ -7,7 +7,7 @@
 #include "z_en_stop_heishi.h"
 #include "z64quake.h"
 
-#define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_8)
+#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
 
 #define THIS ((EnStopheishi*)thisx)
 
@@ -22,28 +22,16 @@ void func_80AE7E9C(EnStopheishi* this);
 void func_80AE854C(EnStopheishi* this, PlayState* play);
 void func_80AE795C(EnStopheishi* this, PlayState* play);
 
-typedef enum {
-    /* 0 */ SOLDIER_ANIM_LOOK_DOWN,
-    /* 1 */ SOLDIER_ANIM_COME_UP_HERE,
-    /* 2 */ SOLDIER_ANIM_STAND_HAND_ON_HIP,
-    /* 3 */ SOLDIER_ANIM_STAND_LOOK_DOWN,
-    /* 4 */ SOLDIER_ANIM_4,
-    /* 5 */ SOLDIER_ANIM_5,
-    /* 6 */ SOLDIER_ANIM_6,
-    /* 7 */ SOLDIER_ANIM_STAND_HAND_ON_CHEST,
-    /* 8 */ SOLDIER_ANIM_MAX,
-} SoldierAnimation;
-
 ActorInit En_Stop_heishi_InitVars = {
-    ACTOR_EN_STOP_HEISHI,
-    ACTORCAT_NPC,
-    FLAGS,
-    OBJECT_SDN,
-    sizeof(EnStopheishi),
-    (ActorFunc)EnStopheishi_Init,
-    (ActorFunc)EnStopheishi_Destroy,
-    (ActorFunc)EnStopheishi_Update,
-    (ActorFunc)EnStopheishi_Draw,
+    /**/ ACTOR_EN_STOP_HEISHI,
+    /**/ ACTORCAT_NPC,
+    /**/ FLAGS,
+    /**/ OBJECT_SDN,
+    /**/ sizeof(EnStopheishi),
+    /**/ EnStopheishi_Init,
+    /**/ EnStopheishi_Destroy,
+    /**/ EnStopheishi_Update,
+    /**/ EnStopheishi_Draw,
 };
 
 static ColliderCylinderInit sCylinderInit = {
@@ -84,22 +72,34 @@ static u16 sThirdDayLeaveMessages[] = {
     0x053E, 0x0000, 0x053F, 0x0000, 0x053F, 0x0000, 0x053F, 0x0000, 0x053F, 0x0000,
 };
 
+typedef enum {
+    /* 0 */ SOLDIER_ANIM_LOOK_DOWN,
+    /* 1 */ SOLDIER_ANIM_COME_UP_HERE,
+    /* 2 */ SOLDIER_ANIM_STAND_HAND_ON_HIP,
+    /* 3 */ SOLDIER_ANIM_STAND_LOOK_DOWN,
+    /* 4 */ SOLDIER_ANIM_4,
+    /* 5 */ SOLDIER_ANIM_5,
+    /* 6 */ SOLDIER_ANIM_6,
+    /* 7 */ SOLDIER_ANIM_STAND_HAND_ON_CHEST,
+    /* 8 */ SOLDIER_ANIM_MAX
+} SoldierAnimation;
+
 static AnimationHeader* sAnimations[SOLDIER_ANIM_MAX] = {
-    &gSoldierLookDown,             // SOLDIER_ANIM_LOOK_DOWN
-    &gSoldierComeUpHere,           // SOLDIER_ANIM_COME_UP_HERE
-    &gSoldierStandHandOnHip,       // SOLDIER_ANIM_STAND_HAND_ON_HIP
-    &gSoldierStandAndLookDown,     // SOLDIER_ANIM_STAND_LOOK_DOWN
-    &object_sdn_Anim_0057BC,       // SOLDIER_ANIM_4
-    &object_sdn_Anim_005D28,       // SOLDIER_ANIM_5
-    &object_sdn_Anim_0064C0,       // SOLDIER_ANIM_6
-    &gSoldierStandWithHandOnChest, // SOLDIER_ANIM_STAND_HAND_ON_CHEST
+    &gSoldierLookDownAnim,             // SOLDIER_ANIM_LOOK_DOWN
+    &gSoldierComeUpHereAnim,           // SOLDIER_ANIM_COME_UP_HERE
+    &gSoldierStandHandOnHipAnim,       // SOLDIER_ANIM_STAND_HAND_ON_HIP
+    &gSoldierStandAndLookDownAnim,     // SOLDIER_ANIM_STAND_LOOK_DOWN
+    &object_sdn_Anim_0057BC,           // SOLDIER_ANIM_4
+    &object_sdn_Anim_005D28,           // SOLDIER_ANIM_5
+    &object_sdn_Anim_0064C0,           // SOLDIER_ANIM_6
+    &gSoldierStandWithHandOnChestAnim, // SOLDIER_ANIM_STAND_HAND_ON_CHEST
 };
 
 void EnStopheishi_Init(Actor* thisx, PlayState* play) {
     EnStopheishi* this = THIS;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 25.0f);
-    SkelAnime_InitFlex(play, &this->skelAnime, &gSoldierSkel, &gSoldierStandHandOnHip, this->jointTable,
+    SkelAnime_InitFlex(play, &this->skelAnime, &gSoldierSkel, &gSoldierStandHandOnHipAnim, this->jointTable,
                        this->morphTable, SOLDIER_LIMB_MAX);
 
     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
@@ -107,14 +107,14 @@ void EnStopheishi_Init(Actor* thisx, PlayState* play) {
     this->switchFlag = ENSTOPHEISHI_GET_SWITCH_FLAG(&this->actor);
     this->unk_288 = (this->actor.world.rot.z * 40.0f) + 50.0f;
     this->actor.world.rot.z = 0;
-    if (this->switchFlag == 0x7F) {
-        this->switchFlag = -1;
+    if (this->switchFlag == ENSTOPHEISHI_SWITCH_FLAG_NONE) {
+        this->switchFlag = SWITCH_FLAG_NONE;
     }
-    if ((this->switchFlag >= 0) && Flags_GetSwitch(play, this->switchFlag)) {
+    if ((this->switchFlag > SWITCH_FLAG_NONE) && Flags_GetSwitch(play, this->switchFlag)) {
         Actor_Kill(&this->actor);
         return;
     }
-    this->actor.targetMode = 0;
+    this->actor.targetMode = TARGET_MODE_0;
     this->actor.gravity = -3.0f;
     Collider_InitAndSetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
     this->rotYTarget = this->actor.world.rot.y;
@@ -129,21 +129,20 @@ void EnStopheishi_Destroy(Actor* thisx, PlayState* play) {
 }
 
 void EnStopHeishi_ChangeAnim(EnStopheishi* this, s32 animIndex) {
-    s32 mode;
+    s32 animMode;
     f32 morphFrames;
 
-    this->currentAnim = animIndex;
-    this->currentAnimFrameCount = Animation_GetLastFrame(sAnimations[animIndex]);
-    mode = ANIMMODE_ONCE;
+    this->animIndex = animIndex;
+    this->animEndFrame = Animation_GetLastFrame(sAnimations[animIndex]);
+    animMode = ANIMMODE_ONCE;
     morphFrames = -10.0f;
     if ((animIndex >= SOLDIER_ANIM_STAND_HAND_ON_HIP) && (animIndex != SOLDIER_ANIM_4)) {
-        mode = ANIMMODE_LOOP;
+        animMode = ANIMMODE_LOOP;
     }
     if (animIndex == SOLDIER_ANIM_5) {
         morphFrames = 0.0f;
     }
-    Animation_Change(&this->skelAnime, sAnimations[animIndex], 1.0f, 0.0f, this->currentAnimFrameCount, mode,
-                     morphFrames);
+    Animation_Change(&this->skelAnime, sAnimations[animIndex], 1.0f, 0.0f, this->animEndFrame, animMode, morphFrames);
 }
 
 void EnStopheishi_UpdateHeadNormal(EnStopheishi* this, PlayState* play) {
@@ -195,7 +194,7 @@ void EnStopHeishi_UpdateHeadThirdDay(EnStopheishi* this) {
                 this->headTurnTimer1 = 50;
             }
         }
-    } else if ((this->headTurnTimer1 == 0) && (Quake_NumActiveQuakes() != 0) && (this->headTurnTimer2 >= 6)) {
+    } else if ((this->headTurnTimer1 == 0) && (Quake_GetNumActiveQuakes() != 0) && (this->headTurnTimer2 >= 6)) {
         this->headTurnTimer2 = 0;
     }
 }
@@ -218,8 +217,8 @@ void func_80AE77D4(EnStopheishi* this) {
             this->unk_264 = 1;
         }
     }
-    if ((this->currentAnim != SOLDIER_ANIM_STAND_HAND_ON_HIP) && (this->currentAnim != SOLDIER_ANIM_STAND_LOOK_DOWN) &&
-        (this->currentAnim != SOLDIER_ANIM_STAND_HAND_ON_CHEST) && (this->unk_264 != 0)) {
+    if ((this->animIndex != SOLDIER_ANIM_STAND_HAND_ON_HIP) && (this->animIndex != SOLDIER_ANIM_STAND_LOOK_DOWN) &&
+        (this->animIndex != SOLDIER_ANIM_STAND_HAND_ON_CHEST) && (this->unk_264 != 0)) {
         this->skelAnime.playSpeed = 1.0f;
         EnStopHeishi_ChangeAnim(this, SOLDIER_ANIM_STAND_HAND_ON_HIP);
         if ((gSaveContext.save.day != 3) && gSaveContext.save.isNight) {
@@ -305,7 +304,7 @@ void func_80AE795C(EnStopheishi* this, PlayState* play) {
             break;
 
         case 2:
-            if (this->currentAnimFrameCount <= curFrame) {
+            if (this->animEndFrame <= curFrame) {
                 EnStopHeishi_ChangeAnim(this, SOLDIER_ANIM_5);
                 this->unk_274 = 3;
             }
@@ -364,7 +363,7 @@ void func_80AE7F34(EnStopheishi* this, PlayState* play) {
     f32 zDiff;
 
     SkelAnime_Update(&this->skelAnime);
-    if ((this->currentAnim == SOLDIER_ANIM_5) && (((s16)this->skelAnime.curFrame % 2) != 0)) {
+    if ((this->animIndex == SOLDIER_ANIM_5) && ((TRUNCF_BINANG(this->skelAnime.curFrame) % 2) != 0)) {
         Actor_PlaySfx(&this->actor, NA_SE_EV_SOLDIER_WALK);
     }
     if (gSaveContext.save.day != 3) {
@@ -408,8 +407,8 @@ void func_80AE7F34(EnStopheishi* this, PlayState* play) {
     }
 
     if (((phi_a2 == 1) || (phi_a2 == 2) || (phi_a2 == 3)) &&
-        (((this->currentAnim == SOLDIER_ANIM_4)) || (this->currentAnim == SOLDIER_ANIM_5) ||
-         (this->currentAnim == SOLDIER_ANIM_6))) {
+        (((this->animIndex == SOLDIER_ANIM_4)) || (this->animIndex == SOLDIER_ANIM_5) ||
+         (this->animIndex == SOLDIER_ANIM_6))) {
         EnStopHeishi_ChangeAnim(this, SOLDIER_ANIM_STAND_HAND_ON_HIP);
         if ((gSaveContext.save.day != 3) && gSaveContext.save.isNight) {
             EnStopHeishi_ChangeAnim(this, SOLDIER_ANIM_STAND_LOOK_DOWN);
@@ -496,17 +495,17 @@ void func_80AE7F34(EnStopheishi* this, PlayState* play) {
     yawDiff = this->actor.yawTowardsPlayer - this->actor.world.rot.y;
     yawDiffAbs = ABS_ALT(yawDiff);
 
-    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+    if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
         this->skelAnime.playSpeed = 1.0f;
         func_80AE854C(this, play);
     } else if (yawDiffAbs < 0x4BB9) {
-        func_800B8614(&this->actor, play, 70.0f);
+        Actor_OfferTalk(&this->actor, play, 70.0f);
     }
 }
 
 void func_80AE854C(EnStopheishi* this, PlayState* play) {
-    if (((this->unk_265 != 0) || (CHECK_WEEKEVENTREG(WEEKEVENTREG_12_20))) &&
-        (this->currentAnim != SOLDIER_ANIM_STAND_HAND_ON_HIP)) {
+    if (((this->unk_265 != 0) || CHECK_WEEKEVENTREG(WEEKEVENTREG_12_20)) &&
+        (this->animIndex != SOLDIER_ANIM_STAND_HAND_ON_HIP)) {
         EnStopHeishi_ChangeAnim(this, SOLDIER_ANIM_STAND_HAND_ON_HIP);
     }
     this->pitchToPlayer = 0;
@@ -518,16 +517,16 @@ void func_80AE854C(EnStopheishi* this, PlayState* play) {
 void func_80AE85C4(EnStopheishi* this, PlayState* play) {
     SkelAnime_Update(&this->skelAnime);
     EnStopheishi_UpdateHeadNormal(this, play);
-    if ((Message_GetState(&play->msgCtx) == TEXT_STATE_5) && Message_ShouldAdvance(play)) {
+    if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
         if (this->unk_27E != 0) {
             this->actor.textId = this->unk_27E;
-            func_80151938(play, this->actor.textId);
+            Message_ContinueTextbox(play, this->actor.textId);
             EnStopHeishi_ChangeAnim(this, SOLDIER_ANIM_STAND_HAND_ON_HIP);
             SET_WEEKEVENTREG(WEEKEVENTREG_12_20);
             this->unk_265 = 1;
             this->unk_27E = 0;
         } else {
-            func_801477B4(play);
+            Message_CloseTextbox(play);
             func_80AE7E9C(this);
         }
     }
@@ -545,7 +544,9 @@ void EnStopheishi_Update(Actor* thisx, PlayState* play) {
     Math_SmoothStepToS(&this->headRotZ, this->pitchToPlayer, 1, 0x7D0, 0);
     this->actionFunc(this, play);
     Actor_MoveWithGravity(&this->actor);
-    Actor_UpdateBgCheckInfo(play, &this->actor, 20.0f, 20.0f, 50.0f, 0x1D);
+    Actor_UpdateBgCheckInfo(play, &this->actor, 20.0f, 20.0f, 50.0f,
+                            UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4 | UPDBGCHECKINFO_FLAG_8 |
+                                UPDBGCHECKINFO_FLAG_10);
     Actor_SetScale(&this->actor, 0.01f);
     this->actor.uncullZoneForward = 500.0f;
     Math_Vec3f_Copy(&this->actor.focus.pos, &this->headWorldPos);
@@ -577,7 +578,7 @@ void EnStopheishi_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3
 void EnStopheishi_Draw(Actor* thisx, PlayState* play) {
     EnStopheishi* this = THIS;
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                           EnStopheishi_OverrideLimbDraw, EnStopheishi_PostLimbDraw, &this->actor);
 }

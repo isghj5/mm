@@ -28,15 +28,15 @@ void func_80ACEFC4(EnFuMato* this);
 void func_80ACEFD8(EnFuMato* this, PlayState* play);
 
 ActorInit En_Fu_Mato_InitVars = {
-    ACTOR_EN_FU_MATO,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_FU_MATO,
-    sizeof(EnFuMato),
-    (ActorFunc)EnFuMato_Init,
-    (ActorFunc)EnFuMato_Destroy,
-    (ActorFunc)EnFuMato_Update,
-    (ActorFunc)EnFuMato_Draw,
+    /**/ ACTOR_EN_FU_MATO,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_FU_MATO,
+    /**/ sizeof(EnFuMato),
+    /**/ EnFuMato_Init,
+    /**/ EnFuMato_Destroy,
+    /**/ EnFuMato_Update,
+    /**/ EnFuMato_Draw,
 };
 
 static ColliderSphereInit sSphereInit = {
@@ -75,7 +75,7 @@ void EnFuMato_Init(Actor* thisx, PlayState* play) {
     Actor* actor = play->actorCtx.actorLists[ACTORCAT_NPC].first;
     EnFu* fu;
 
-    DynaPolyActor_Init(&this->dyna, 3);
+    DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS | DYNA_TRANSFORM_ROT_Y);
     CollisionHeader_GetVirtual(&object_fu_mato_Colheader_0023D4, &sp2C);
     this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, &this->dyna.actor, sp2C);
     Actor_SetScale(&this->dyna.actor, 0.1f);
@@ -102,7 +102,7 @@ void EnFuMato_Init(Actor* thisx, PlayState* play) {
         this->collider.dim.worldSphere.radius = 30;
     } else {
         this->collider.dim.worldSphere.radius = 17;
-        this->unk_2F8 = fu->unk_538;
+        this->unk_2F8 = fu->pathPoints;
         this->unk_2F4 = fu->unk_520;
         this->unk_2F0 = ENFUMATO_GET(&this->dyna.actor);
     }
@@ -185,7 +185,8 @@ void func_80ACE718(EnFuMato* this, PlayState* play) {
     this->dyna.actor.velocity.y += this->dyna.actor.gravity;
 
     Actor_UpdatePos(&this->dyna.actor);
-    Actor_UpdateBgCheckInfo(play, &this->dyna.actor, 15.0f, 30.0f, 60.0f, 5);
+    Actor_UpdateBgCheckInfo(play, &this->dyna.actor, 15.0f, 30.0f, 60.0f,
+                            UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4);
 
     if ((this->dyna.actor.bgCheckFlags & BGCHECKFLAG_GROUND) || (this->dyna.actor.world.pos.y < -500.0f)) {
         Vec3f sp3C = { 0.0f, 0.0f, 0.0f };
@@ -311,11 +312,7 @@ void func_80ACECFC(EnFuMato* this, PlayState* play) {
         ptr->unk_24.z += ptr->unk_2A.z;
 
         if ((this->unk_302 == 2) && (ptr->unk_30 == 1) && (ptr->unk_00.y < (this->dyna.actor.floorHeight + 10.0f))) {
-            if (ptr->unk_0C.y < 0.0f) {
-                ptr->unk_0C.y = -ptr->unk_0C.y;
-            } else {
-                ptr->unk_0C.y = ptr->unk_0C.y;
-            }
+            ptr->unk_0C.y = ABS_ALT(ptr->unk_0C.y);
             ptr->unk_0C.y *= 0.5f;
             ptr->unk_0C.x *= (Rand_Centered() * 1.5f) + 2.0f;
             ptr->unk_0C.z *= (Rand_Centered() * 1.5f) + 2.0f;
@@ -329,7 +326,8 @@ void func_80ACECFC(EnFuMato* this, PlayState* play) {
     }
 
     if (this->unk_302 == 1) {
-        Actor_UpdateBgCheckInfo(play, &this->dyna.actor, 15.0f, 30.0f, 60.0f, 5);
+        Actor_UpdateBgCheckInfo(play, &this->dyna.actor, 15.0f, 30.0f, 60.0f,
+                                UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4);
         if (this->dyna.actor.bgCheckFlags & BGCHECKFLAG_GROUND) {
             func_80ACEB2C(this);
         }
@@ -371,7 +369,7 @@ s32 func_80ACF04C(EnFuMato* this, PlayState* play) {
         Actor_PlaySfx(&this->dyna.actor, NA_SE_SY_TRE_BOX_APPEAR);
 
         fu->unk_548++;
-        if ((fu->unk_542 == 2) || (gSaveContext.save.playerForm == PLAYER_FORM_DEKU)) {
+        if ((fu->unk_542 == 2) || (GET_PLAYER_FORM == PLAYER_FORM_DEKU)) {
             fu->unk_546 = 1;
             func_80ACE680(this);
         } else {
@@ -404,7 +402,7 @@ void func_80ACF1F4(EnFuMato* this, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
     for (i = 0; i < 2; i++) {
         Matrix_Push();
@@ -447,7 +445,7 @@ void func_80ACF3F4(EnFuMato* this, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
     for (i = 0; i < ARRAY_COUNT(D_80ACF63C); i++, ptr++) {
         Matrix_Push();
@@ -469,7 +467,7 @@ void EnFuMato_Draw(Actor* thisx, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
     gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 

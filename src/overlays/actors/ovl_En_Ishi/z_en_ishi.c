@@ -10,6 +10,7 @@
 #include "objects/gameplay_field_keep/gameplay_field_keep.h"
 #include "objects/gameplay_keep/gameplay_keep.h"
 #include "objects/object_ishi/object_ishi.h"
+#include "overlays/actors/ovl_En_Insect/z_en_insect.h"
 
 #define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_800000)
 
@@ -45,15 +46,15 @@ static s16 D_8095F690 = 0;
 static s16 D_8095F694 = 0;
 
 ActorInit En_Ishi_InitVars = {
-    ACTOR_EN_ISHI,
-    ACTORCAT_PROP,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(EnIshi),
-    (ActorFunc)EnIshi_Init,
-    (ActorFunc)EnIshi_Destroy,
-    (ActorFunc)EnIshi_Update,
-    (ActorFunc)NULL,
+    /**/ ACTOR_EN_ISHI,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(EnIshi),
+    /**/ EnIshi_Init,
+    /**/ EnIshi_Destroy,
+    /**/ EnIshi_Update,
+    /**/ NULL,
 };
 
 static f32 D_8095F6B8[] = { 0.1f, 0.4f };
@@ -70,7 +71,7 @@ static EnIshiUnkFunc2 D_8095F6D8[] = { func_8095D804, func_8095DABC };
 
 static EnIshiUnkFunc D_8095F6E0[] = { func_8095DDA8, func_8095DE9C };
 
-static s16 D_8095F6E8[] = { GAMEPLAY_FIELD_KEEP, OBJECT_ISHI };
+static s16 sObjectIds[] = { GAMEPLAY_FIELD_KEEP, OBJECT_ISHI };
 
 static ColliderCylinderInit sCylinderInit[] = {
     {
@@ -172,7 +173,7 @@ s32 func_8095D758(EnIshi* this, PlayState* play, f32 arg2) {
 void func_8095D804(Actor* thisx, PlayState* play) {
     EnIshi* this = THIS;
     s32 i;
-    s16 temp;
+    s16 objectId;
     Gfx* phi_s4;
     Vec3f spC4;
     Vec3f spB8;
@@ -180,10 +181,10 @@ void func_8095D804(Actor* thisx, PlayState* play) {
     if (!ENISHI_GET_8(&this->actor)) {
         phi_s4 = gameplay_field_keep_DL_0066B0;
     } else {
-        phi_s4 = object_ishi_DL_0009B0;
+        phi_s4 = gSmallRockDL;
     }
 
-    temp = D_8095F6E8[ENISHI_GET_8(&this->actor)];
+    objectId = sObjectIds[ENISHI_GET_8(&this->actor)];
 
     for (i = 0; i < ARRAY_COUNT(D_8095F74C); i++) {
         spB8.x = ((Rand_ZeroOne() - 0.5f) * 8.0f) + this->actor.world.pos.x;
@@ -206,7 +207,7 @@ void func_8095D804(Actor* thisx, PlayState* play) {
         spC4.z += (Rand_ZeroOne() - 0.5f) * 11.0f;
 
         EffectSsKakera_Spawn(play, &spB8, &spC4, &spB8, -420, ((s32)Rand_Next() > 0) ? 65 : 33, 30, 5, 0, D_8095F74C[i],
-                             3, 10, 40, -1, temp, phi_s4);
+                             3, 10, 40, -1, objectId, phi_s4);
     }
 }
 
@@ -309,7 +310,7 @@ void func_8095DFF0(EnIshi* this, PlayState* play) {
     s16 temp_v1_2;
 
     if (temp >= 0) {
-        sp3C = Item_DropCollectible(play, &this->actor.world.pos, temp | (ENISHI_GET_FE00(&this->actor) << 8));
+        sp3C = Item_DropCollectible(play, &this->actor.world.pos, temp | (ENISHI_GET_FLAG(&this->actor) << 8));
         if (sp3C != NULL) {
             Matrix_Push();
             Matrix_RotateYS(this->actor.shape.rot.y, MTXMODE_NEW);
@@ -353,8 +354,9 @@ void func_8095E204(EnIshi* this, PlayState* play) {
 
     for (i = 0; i < 3; i++) {
         if (Actor_SpawnAsChildAndCutscene(&play->actorCtx, play, ACTOR_EN_INSECT, this->actor.world.pos.x,
-                                          this->actor.world.pos.y, this->actor.world.pos.z, 0, 0, 0, 1,
-                                          this->actor.cutscene, this->actor.halfDaysBits, NULL) == NULL) {
+                                          this->actor.world.pos.y, this->actor.world.pos.z, 0, 0, 0,
+                                          ENINSECT_PARAMS(true), this->actor.csId, this->actor.halfDaysBits,
+                                          NULL) == NULL) {
             break;
         }
     }
@@ -362,11 +364,11 @@ void func_8095E204(EnIshi* this, PlayState* play) {
 
 s32 func_8095E2B0(EnIshi* this, PlayState* play) {
     s32 pad;
-    WaterBox* sp30;
+    WaterBox* waterBox;
     f32 sp2C;
     s32 sp28;
 
-    if (WaterBox_GetSurfaceImpl(play, &play->colCtx, this->actor.world.pos.x, this->actor.world.pos.z, &sp2C, &sp30,
+    if (WaterBox_GetSurfaceImpl(play, &play->colCtx, this->actor.world.pos.x, this->actor.world.pos.z, &sp2C, &waterBox,
                                 &sp28) &&
         (this->actor.world.pos.y < sp2C)) {
         return true;
@@ -386,7 +388,7 @@ void EnIshi_Init(Actor* thisx, PlayState* play) {
 
     Actor_ProcessInitChain(&this->actor, sInitChain[sp34]);
 
-    if (play->csCtx.state != 0) {
+    if (play->csCtx.state != CS_STATE_IDLE) {
         this->actor.uncullZoneForward += 1000.0f;
     }
 
@@ -397,7 +399,7 @@ void EnIshi_Init(Actor* thisx, PlayState* play) {
     Actor_SetScale(&this->actor, D_8095F6B8[sp34]);
     func_8095D6E0(&this->actor, play);
 
-    if ((sp34 == 1) && Flags_GetSwitch(play, ENISHI_GET_FE00(&this->actor))) {
+    if ((sp34 == 1) && Flags_GetSwitch(play, ENISHI_GET_FLAG(&this->actor))) {
         Actor_Kill(&this->actor);
         return;
     }
@@ -423,8 +425,8 @@ void EnIshi_Init(Actor* thisx, PlayState* play) {
         this->unk_197 |= 1;
     }
 
-    this->unk_196 = Object_GetIndex(&play->objectCtx, D_8095F6E8[ENISHI_GET_8(&this->actor)]);
-    if (this->unk_196 < 0) {
+    this->objectSlot = Object_GetSlot(&play->objectCtx, sObjectIds[ENISHI_GET_8(&this->actor)]);
+    if (this->objectSlot <= OBJECT_SLOT_NONE) {
         Actor_Kill(&this->actor);
         return;
     }
@@ -444,8 +446,8 @@ void func_8095E5AC(EnIshi* this) {
 }
 
 void func_8095E5C0(EnIshi* this, PlayState* play) {
-    if (Object_IsLoaded(&play->objectCtx, this->unk_196)) {
-        this->actor.objBankIndex = this->unk_196;
+    if (Object_IsLoaded(&play->objectCtx, this->objectSlot)) {
+        this->actor.objectSlot = this->objectSlot;
         this->actor.flags &= ~ACTOR_FLAG_10;
         if (!ENISHI_GET_8(&this->actor)) {
             this->actor.draw = func_8095F61C;
@@ -535,13 +537,15 @@ void func_8095E95C(EnIshi* this, PlayState* play) {
     if (Actor_HasNoParent(&this->actor, play)) {
         this->actor.room = play->roomCtx.curRoom.num;
         if (ENISHI_GET_1(&this->actor) == 1) {
-            Flags_SetSwitch(play, ENISHI_GET_FE00(&this->actor));
+            Flags_SetSwitch(play, ENISHI_GET_FLAG(&this->actor));
         }
         func_8095EA70(this);
         func_8095E14C(this);
         func_8095E180(&this->actor.velocity, D_8095F6C8[ENISHI_GET_1(&this->actor)]);
         Actor_UpdatePos(&this->actor);
-        Actor_UpdateBgCheckInfo(play, &this->actor, 7.5f, 35.0f, 0.0f, 0xC5);
+        Actor_UpdateBgCheckInfo(play, &this->actor, 7.5f, 35.0f, 0.0f,
+                                UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4 | UPDBGCHECKINFO_FLAG_40 |
+                                    UPDBGCHECKINFO_FLAG_80);
     } else {
         sp30.x = this->actor.world.pos.x;
         sp30.y = this->actor.world.pos.y + 20.0f;
@@ -595,11 +599,11 @@ void func_8095EBDC(EnIshi* this, PlayState* play) {
         }
 
         if (sp70 == 1) {
-            s16 quakeIndex = Quake_Add(GET_ACTIVE_CAM(play), QUAKE_TYPE_3);
+            s16 quakeIndex = Quake_Request(GET_ACTIVE_CAM(play), QUAKE_TYPE_3);
 
             Quake_SetSpeed(quakeIndex, 17232);
-            Quake_SetQuakeValues(quakeIndex, 3, 0, 0, 0);
-            Quake_SetCountdown(quakeIndex, 7);
+            Quake_SetPerturbations(quakeIndex, 3, 0, 0, 0);
+            Quake_SetDuration(quakeIndex, 7);
 
             Rumble_Request(this->actor.xyzDistToPlayerSq, 255, 20, 150);
         }
@@ -619,8 +623,8 @@ void func_8095EBDC(EnIshi* this, PlayState* play) {
             sp58.y = this->actor.world.pos.y + this->actor.depthInWater;
 
             for (phi_s0 = 0, i = 0; i < 11; i++, phi_s0 += 0x1746) {
-                sp58.x = (Math_SinS((s32)(Rand_ZeroOne() * 2000.0f) + phi_s0) * 50.0f) + this->actor.world.pos.x;
-                sp58.z = (Math_CosS((s32)(Rand_ZeroOne() * 2000.0f) + phi_s0) * 50.0f) + this->actor.world.pos.z;
+                sp58.x = this->actor.world.pos.x + (Math_SinS((s32)(Rand_ZeroOne() * 2000.0f) + phi_s0) * 50.0f);
+                sp58.z = this->actor.world.pos.z + (Math_CosS((s32)(Rand_ZeroOne() * 2000.0f) + phi_s0) * 50.0f);
                 EffectSsGSplash_Spawn(play, &sp58, NULL, NULL, 0, 350);
             }
 
@@ -648,7 +652,9 @@ void func_8095EBDC(EnIshi* this, PlayState* play) {
     Actor_UpdatePos(&this->actor);
     this->actor.shape.rot.x += D_8095F690;
     this->actor.shape.rot.y += D_8095F694;
-    Actor_UpdateBgCheckInfo(play, &this->actor, 7.5f, 35.0f, 0.0f, 0xC5);
+    Actor_UpdateBgCheckInfo(play, &this->actor, 7.5f, 35.0f, 0.0f,
+                            UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4 | UPDBGCHECKINFO_FLAG_40 |
+                                UPDBGCHECKINFO_FLAG_80);
     Collider_UpdateCylinder(&this->actor, &this->collider);
     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
     CollisionCheck_SetAT(play, &play->colChkCtx, &this->collider.base);
@@ -656,7 +662,7 @@ void func_8095EBDC(EnIshi* this, PlayState* play) {
 
 void func_8095F060(EnIshi* this) {
     this->actor.flags |= ACTOR_FLAG_10;
-    ActorCutscene_SetIntentToPlay(this->actor.cutscene);
+    CutsceneManager_Queue(this->actor.csId);
     this->actionFunc = func_8095F0A4;
 }
 
@@ -664,15 +670,15 @@ void func_8095F0A4(EnIshi* this, PlayState* play) {
     s32 pad;
     s32 sp28 = ENISHI_GET_1(&this->actor);
 
-    if (ActorCutscene_GetCanPlayNext(this->actor.cutscene)) {
-        ActorCutscene_StartAndSetUnkLinkFields(this->actor.cutscene, &this->actor);
+    if (CutsceneManager_IsNext(this->actor.csId)) {
+        CutsceneManager_StartWithPlayerCs(this->actor.csId, &this->actor);
         SoundSource_PlaySfxAtFixedWorldPos(play, &this->actor.world.pos, D_8095F6D4[sp28], D_8095F6D0[sp28]);
         D_8095F6D8[sp28](&this->actor, play);
         D_8095F6E0[sp28](this, play);
         this->actor.draw = NULL;
         func_8095F180(this);
     } else {
-        ActorCutscene_SetIntentToPlay(this->actor.cutscene);
+        CutsceneManager_Queue(this->actor.csId);
     }
 }
 
@@ -681,9 +687,9 @@ void func_8095F180(EnIshi* this) {
 }
 
 void func_8095F194(EnIshi* this, PlayState* play) {
-    if (this->actor.cutscene < 0) {
+    if (this->actor.csId <= CS_ID_NONE) {
         Actor_Kill(&this->actor);
-    } else if (ActorCutscene_GetCurrentIndex() != this->actor.cutscene) {
+    } else if (CutsceneManager_GetCurrentCsId() != this->actor.csId) {
         Actor_Kill(&this->actor);
     }
 }
@@ -706,7 +712,7 @@ void func_8095F210(EnIshi* this, PlayState* play) {
     if (this->actor.projectedPos.z < 1300.0f) {
         OPEN_DISPS(play->state.gfxCtx);
 
-        func_8012C2DC(play->state.gfxCtx);
+        Gfx_SetupDL25_Xlu(play->state.gfxCtx);
 
         sp28 = (1300.0f - this->actor.projectedPos.z) * 2.55f;
 
@@ -726,7 +732,7 @@ void func_8095F36C(EnIshi* this, PlayState* play) {
     if ((this->actor.projectedPos.z <= 2150.0f) || ((this->unk_197 & 1) && (this->actor.projectedPos.z < 2250.0f))) {
         this->actor.shape.shadowAlpha = 160;
 
-        func_8012C28C(play->state.gfxCtx);
+        Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
         gSPSegment(POLY_OPA_DISP++, 0x08, D_801AEFA0);
         gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
@@ -737,7 +743,7 @@ void func_8095F36C(EnIshi* this, PlayState* play) {
 
         this->actor.shape.shadowAlpha = sp20 * 0.627451f;
 
-        func_8012C2DC(play->state.gfxCtx);
+        Gfx_SetupDL25_Xlu(play->state.gfxCtx);
 
         gSPSegment(POLY_XLU_DISP++, 0x08, D_801AEF88);
         gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
@@ -757,5 +763,5 @@ void func_8095F61C(Actor* thisx, PlayState* play) {
 }
 
 void func_8095F654(Actor* thisx, PlayState* play) {
-    Gfx_DrawDListOpa(play, object_ishi_DL_0009B0);
+    Gfx_DrawDListOpa(play, gSmallRockDL);
 }

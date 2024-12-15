@@ -4,6 +4,7 @@
  * Top-level file that coordinates all audio code on the audio thread.
  */
 #include "global.h"
+#include "audio/effects.h"
 
 AudioTask* AudioThread_UpdateImpl(void);
 void AudioThread_SetFadeOutTimer(s32 seqPlayerIndex, s32 fadeTimer);
@@ -46,7 +47,7 @@ AudioTask* AudioThread_UpdateImpl(void) {
         return NULL;
     }
 
-    osSendMesg(gAudioCtx.taskStartQueueP, gAudioCtx.totalTaskCount, OS_MESG_NOBLOCK);
+    osSendMesg(gAudioCtx.taskStartQueueP, (OSMesg)gAudioCtx.totalTaskCount, OS_MESG_NOBLOCK);
     gAudioCtx.rspTaskIndex ^= 1;
     gAudioCtx.curAiBufferIndex++;
     gAudioCtx.curAiBufferIndex %= 3;
@@ -95,7 +96,7 @@ AudioTask* AudioThread_UpdateImpl(void) {
     if (gAudioCtx.resetStatus != 0) {
         if (AudioHeap_ResetStep() == 0) {
             if (gAudioCtx.resetStatus == 0) {
-                osSendMesg(gAudioCtx.audioResetQueueP, gAudioCtx.specId, OS_MESG_NOBLOCK);
+                osSendMesg(gAudioCtx.audioResetQueueP, (OSMesg)(uintptr_t)gAudioCtx.specId, OS_MESG_NOBLOCK);
             }
 
             sWaitingAudioTask = NULL;
@@ -145,7 +146,7 @@ AudioTask* AudioThread_UpdateImpl(void) {
     }
 
     if (gAudioSPDataPtr == (u64*)gAudioCtx.curAbiCmdBuf) {
-        return -1;
+        return (void*)-1;
     }
 
     gAudioCtx.curAbiCmdBuf =
@@ -167,21 +168,21 @@ AudioTask* AudioThread_UpdateImpl(void) {
     task = &gAudioCtx.curTask->task.t;
     task->type = M_AUDTASK;
     task->flags = 0;
-    task->ucodeBoot = aspMainTextStart;
-    task->ucodeBootSize = SP_UCODE_SIZE;
-    task->ucodeDataSize = ((aspMainDataEnd - aspMainDataStart) * sizeof(u64)) - 1;
+    task->ucode_boot = aspMainTextStart;
+    task->ucode_boot_size = SP_UCODE_SIZE;
+    task->ucode_data_size = ((aspMainDataEnd - aspMainDataStart) * sizeof(u64)) - 1;
     task->ucode = aspMainTextStart;
-    task->ucodeData = aspMainDataStart;
-    task->ucodeSize = SP_UCODE_SIZE;
-    task->dramStack = (u64*)D_801D6200;
-    task->dramStackSize = 0;
-    task->outputBuff = NULL;
-    task->outputBuffSize = NULL;
+    task->ucode_data = aspMainDataStart;
+    task->ucode_size = SP_UCODE_SIZE;
+    task->dram_stack = (u64*)D_801D6200;
+    task->dram_stack_size = 0;
+    task->output_buff = NULL;
+    task->output_buff_size = NULL;
     if (1) {}
-    task->dataPtr = (u64*)gAudioCtx.abiCmdBufs[index];
-    task->dataSize = numAbiCmds * sizeof(Acmd);
-    task->yieldDataPtr = NULL;
-    task->yieldDataSize = 0;
+    task->data_ptr = (u64*)gAudioCtx.abiCmdBufs[index];
+    task->data_size = numAbiCmds * sizeof(Acmd);
+    task->yield_data_ptr = NULL;
+    task->yield_data_size = 0;
 
     if (gAudioCtx.numAbiCmdsMax < numAbiCmds) {
         gAudioCtx.numAbiCmdsMax = numAbiCmds;
@@ -212,13 +213,13 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
         case AUDIOCMD_OP_GLOBAL_INIT_SEQPLAYER_SKIP_TICKS:
             AudioLoad_SyncInitSeqPlayerSkipTicks(cmd->arg0, cmd->arg1, cmd->asInt);
             AudioThread_SetFadeInTimer(cmd->arg0, 500);
-            AudioSeq_SkipForwardSequence(&gAudioCtx.seqPlayers[cmd->arg0]);
+            AudioScript_SkipForwardSequence(&gAudioCtx.seqPlayers[cmd->arg0]);
             break;
 
         case AUDIOCMD_OP_GLOBAL_DISABLE_SEQPLAYER:
             if (gAudioCtx.seqPlayers[cmd->arg0].enabled) {
                 if (cmd->asInt == 0) {
-                    AudioSeq_SequencePlayerDisableAsFinished(&gAudioCtx.seqPlayers[cmd->arg0]);
+                    AudioScript_SequencePlayerDisableAsFinished(&gAudioCtx.seqPlayers[cmd->arg0]);
                 } else {
                     AudioThread_SetFadeOutTimer(cmd->arg0, cmd->asInt);
                 }
@@ -296,16 +297,16 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
             break;
 
         case AUDIOCMD_OP_GLOBAL_SET_CUSTOM_UPDATE_FUNCTION:
-            gAudioCustomUpdateFunction = cmd->asUInt;
+            gAudioCustomUpdateFunction = cmd->asPtr;
             break;
 
         case AUDIOCMD_OP_GLOBAL_SET_CUSTOM_FUNCTION:
             if (cmd->arg2 == AUDIO_CUSTOM_FUNCTION_REVERB) {
-                gAudioCustomReverbFunction = cmd->asUInt;
+                gAudioCustomReverbFunction = cmd->asPtr;
             } else if (cmd->arg2 == AUDIO_CUSTOM_FUNCTION_SYNTH) {
-                gAudioCustomSynthFunction = cmd->asUInt;
+                gAudioCustomSynthFunction = cmd->asPtr;
             } else {
-                gAudioCtx.customSeqFunctions[cmd->arg2] = cmd->asUInt;
+                gAudioCtx.customSeqFunctions[cmd->arg2] = cmd->asPtr;
             }
             break;
 
@@ -313,7 +314,7 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
         case AUDIOCMD_OP_GLOBAL_SET_SFX_FONT:
         case AUDIOCMD_OP_GLOBAL_SET_INSTRUMENT_FONT:
             if (AudioPlayback_SetFontInstrument(cmd->op - AUDIOCMD_OP_GLOBAL_SET_DRUM_FONT, cmd->arg1, cmd->arg2,
-                                                cmd->asInt)) {}
+                                                cmd->asPtr)) {}
             break;
 
         case AUDIOCMD_OP_GLOBAL_DISABLE_ALL_SEQPLAYERS: {
@@ -322,7 +323,7 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
             if (flags == AUDIO_NOTE_RELEASE) {
                 for (i = 0; i < gAudioCtx.audioBufferParameters.numSequencePlayers; i++) {
                     if (gAudioCtx.seqPlayers[i].enabled) {
-                        AudioSeq_SequencePlayerDisableAsFinished(&gAudioCtx.seqPlayers[i]);
+                        AudioScript_SequencePlayerDisableAsFinished(&gAudioCtx.seqPlayers[i]);
                     }
                 }
             }
@@ -790,13 +791,13 @@ void AudioThread_ProcessChannelCmd(SequenceChannel* channel, AudioCmd* cmd) {
             break;
 
         case AUDIOCMD_OP_CHANNEL_SET_SFX_STATE:
-            channel->sfxState = cmd->asUInt;
+            channel->sfxState = cmd->asPtr;
             break;
 
         case AUDIOCMD_OP_CHANNEL_SET_FILTER:
             filterCutoff = cmd->arg2;
-            if (cmd->asUInt != 0) {
-                channel->filter = cmd->asUInt;
+            if (cmd->asPtr != NULL) {
+                channel->filter = cmd->asPtr;
             }
             if (channel->filter != NULL) {
                 AudioHeap_LoadFilter(channel->filter, filterCutoff >> 4, filterCutoff & 0xF);
@@ -938,7 +939,7 @@ s32 AudioThread_CountAndReleaseNotes(s32 flags) {
         playbackState = &note->playbackState;
         if (note->sampleState.bitField0.enabled) {
             noteSampleState = &note->sampleState;
-            if (playbackState->adsr.action.s.state != ADSR_STATE_DISABLED) {
+            if (playbackState->adsr.action.s.status != ADSR_STATUS_DISABLED) {
                 if (flags >= AUDIO_NOTE_SAMPLE_NOTES) {
                     tunedSample = noteSampleState->tunedSample;
                     if ((tunedSample == NULL) || noteSampleState->bitField1.isSyntheticWave) {

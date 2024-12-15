@@ -19,15 +19,15 @@ void ObjBoat_Draw(Actor* thisx, PlayState* play);
 void ObjBoat_UpdateCutscene(Actor* thisx, PlayState* play2);
 
 ActorInit Obj_Boat_InitVars = {
-    ACTOR_OBJ_BOAT,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_KAIZOKU_OBJ,
-    sizeof(ObjBoat),
-    (ActorFunc)ObjBoat_Init,
-    (ActorFunc)ObjBoat_Destroy,
-    (ActorFunc)ObjBoat_Update,
-    (ActorFunc)ObjBoat_Draw,
+    /**/ ACTOR_OBJ_BOAT,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_KAIZOKU_OBJ,
+    /**/ sizeof(ObjBoat),
+    /**/ ObjBoat_Init,
+    /**/ ObjBoat_Destroy,
+    /**/ ObjBoat_Update,
+    /**/ ObjBoat_Draw,
 };
 
 static InitChainEntry sInitChain[] = {
@@ -46,7 +46,7 @@ static InitChainEntry sInitChain[] = {
  */
 s16 ObjBoat_GetNextPoint(ObjBoat* this, Vec3f* nextPoint) {
     s16 yaw;
-    Vec3s* curPoint = &this->points[(s32)this->curPointIndex];
+    Vec3s* curPoint = &this->pathPoints[(s32)this->curPointIndex];
 
     Math_Vec3s_ToVec3f(nextPoint, &curPoint[this->direction]);
     yaw = Math_Vec3f_Yaw(&this->dyna.actor.world.pos, nextPoint);
@@ -61,17 +61,17 @@ void ObjBoat_Init(Actor* thisx, PlayState* play) {
     Vec3f sp24;
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
-    DynaPolyActor_Init(&this->dyna, 3);
+    DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS | DYNA_TRANSFORM_ROT_Y);
     DynaPolyActor_LoadMesh(play, &this->dyna, &object_kaizoku_obj_Colheader_009A88);
     if (thisx->params < 0) {
         this->dyna.actor.update = ObjBoat_UpdateCutscene;
     } else {
-        path = &play->setupPathList[OBJBOAT_GET_PATH(thisx)];
+        path = &play->setupPathList[OBJBOAT_GET_PATH_INDEX(thisx)];
         this->maxPointIndex = path->count - 1;
-        this->points = Lib_SegmentedToVirtual(path->points);
+        this->pathPoints = Lib_SegmentedToVirtual(path->points);
         this->direction = 1;
-        this->dyna.actor.world.pos.x = this->points[this->curPointIndex].x;
-        this->dyna.actor.world.pos.z = this->points[this->curPointIndex].z;
+        this->dyna.actor.world.pos.x = this->pathPoints[this->curPointIndex].x;
+        this->dyna.actor.world.pos.z = this->pathPoints[this->curPointIndex].z;
         this->dyna.actor.shape.rot.y = ObjBoat_GetNextPoint(this, &sp24);
         this->dyna.actor.world.rot.y = this->dyna.actor.shape.rot.y;
         this->direction = -this->direction;
@@ -95,14 +95,14 @@ void ObjBoat_Update(Actor* thisx, PlayState* play) {
     s32 pad;
     ObjBoat* this = THIS;
     Player* player = GET_PLAYER(play);
-    s32 temp = DynaPolyActor_IsInRidingMovingState(&this->dyna);
+    s32 isPlayerOnTop = DynaPolyActor_IsPlayerOnTop(&this->dyna);
     f32 speedTarget = 0.0f;
     s16 yawTarget = this->dyna.actor.shape.rot.y;
     Vec3f nextPoint;
 
-    if (temp || ((DynaPolyActor_IsInRidingFallingState(&this->dyna)))) {
+    if (isPlayerOnTop || DynaPolyActor_IsActorOnTop(&this->dyna)) {
         if ((this->timer == 0) &&
-            (OBJBOAT_GET_4000(thisx) || (temp && (this->curPointIndex == this->lastPointIndex)))) {
+            (OBJBOAT_GET_4000(thisx) || (isPlayerOnTop && (this->curPointIndex == this->lastPointIndex)))) {
             this->direction = -this->direction;
             if (this->direction > 0) {
                 this->lastPointIndex = this->maxPointIndex;
@@ -134,13 +134,13 @@ void ObjBoat_Update(Actor* thisx, PlayState* play) {
         }
     }
 
-    if (player->csMode != PLAYER_CSMODE_26) {
+    if (player->csAction != PLAYER_CSACTION_26) {
         Math_ScaledStepToS(&this->dyna.actor.shape.rot.y, yawTarget, (s32)(fabsf(this->dyna.actor.speed) * 40.0f));
         this->dyna.actor.world.rot.y = this->dyna.actor.shape.rot.y;
         Math_StepToF(&this->dyna.actor.speed, speedTarget, 0.05f);
         Actor_MoveWithGravity(&this->dyna.actor);
         if (this->dyna.actor.speed != 0.0f) {
-            func_800B9010(&this->dyna.actor, NA_SE_EV_PIRATE_SHIP - SFX_FLAG);
+            Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_PIRATE_SHIP - SFX_FLAG);
         }
     }
     ObjBoat_SetRotations(this);
@@ -151,44 +151,44 @@ void ObjBoat_UpdateCutscene(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
     ObjBoat* this = THIS;
 
-    if (Cutscene_CheckActorAction(play, 511)) {
-        CsCmdActorAction* actionIndex = play->csCtx.actorActions[Cutscene_GetActorActionIndex(play, 511)];
-        if (this->csAction != actionIndex->action) {
-            this->dyna.actor.shape.rot.x = actionIndex->urot.x;
+    if (Cutscene_IsCueInChannel(play, CS_CMD_ACTOR_CUE_511)) {
+        CsCmdActorCue* cue = play->csCtx.actorCues[Cutscene_GetCueChannel(play, CS_CMD_ACTOR_CUE_511)];
 
-            if (actionIndex->action != 1) {
-                Path* path = &play->setupPathList[OBJBOAT_GET_PATH(&this->dyna.actor)];
+        if (this->cueId != cue->id) {
+            this->dyna.actor.shape.rot.x = cue->rot.x;
+            if (cue->id != 1) {
+                Path* path = &play->setupPathList[OBJBOAT_GET_PATH_INDEX(&this->dyna.actor)];
 
-                if (actionIndex->action == 3) {
-                    path = &play->setupPathList[path->unk1];
+                if (cue->id == 3) {
+                    path = &play->setupPathList[path->additionalPathIndex];
                 }
 
                 this->maxPointIndex = path->count;
-                this->points = Lib_SegmentedToVirtual(path->points);
-                Math_Vec3s_ToVec3f(&this->dyna.actor.world.pos, this->points);
-                this->dyna.actor.speed = actionIndex->urot.z * (45.0f / 0x2000);
-                this->points++;
+                this->pathPoints = Lib_SegmentedToVirtual(path->points);
+                Math_Vec3s_ToVec3f(&this->dyna.actor.world.pos, this->pathPoints);
+                this->dyna.actor.speed = cue->rot.z * (45.0f / 0x2000);
+                this->pathPoints++;
                 this->curPointIndex = 1;
             }
 
-            this->csAction = actionIndex->action;
+            this->cueId = cue->id;
         } else {
-            if (actionIndex->action != 1) {
+            if (cue->id != 1) {
                 Vec3f posTarget;
                 f32 distRemaining;
 
-                Math_Vec3s_ToVec3f(&posTarget, this->points);
+                Math_Vec3s_ToVec3f(&posTarget, this->pathPoints);
                 distRemaining = Math_Vec3f_StepTo(&this->dyna.actor.world.pos, &posTarget, this->dyna.actor.speed);
                 if ((this->curPointIndex < this->maxPointIndex) && (distRemaining < this->dyna.actor.speed)) {
-                    this->points++;
+                    this->pathPoints++;
                     this->curPointIndex++;
                 }
             }
 
-            if (actionIndex->action != 3) {
+            if (cue->id != 3) {
                 ObjBoat_SetRotations(this);
-                if (actionIndex->action == 2) {
-                    func_800B9010(&this->dyna.actor, NA_SE_EV_PIRATE_SHIP - SFX_FLAG);
+                if (cue->id == 2) {
+                    Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_PIRATE_SHIP - SFX_FLAG);
                 }
             } else {
                 // Tumble in the air

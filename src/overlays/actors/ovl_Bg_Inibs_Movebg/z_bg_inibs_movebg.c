@@ -16,15 +16,15 @@ void BgInibsMovebg_Destroy(Actor* thisx, PlayState* play);
 void BgInibsMovebg_Draw(Actor* thisx, PlayState* play);
 
 ActorInit Bg_Inibs_Movebg_InitVars = {
-    ACTOR_BG_INIBS_MOVEBG,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_INIBS_OBJECT,
-    sizeof(BgInibsMovebg),
-    (ActorFunc)BgInibsMovebg_Init,
-    (ActorFunc)BgInibsMovebg_Destroy,
-    (ActorFunc)Actor_Noop,
-    (ActorFunc)BgInibsMovebg_Draw,
+    /**/ ACTOR_BG_INIBS_MOVEBG,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_INIBS_OBJECT,
+    /**/ sizeof(BgInibsMovebg),
+    /**/ BgInibsMovebg_Init,
+    /**/ BgInibsMovebg_Destroy,
+    /**/ Actor_Noop,
+    /**/ BgInibsMovebg_Draw,
 };
 
 Gfx* sOpaDLists[] = { gTwinmoldArenaNormalModeSandDL, gTwinmoldArenaGiantModeSandDL };
@@ -39,7 +39,7 @@ void BgInibsMovebg_Init(Actor* thisx, PlayState* play) {
     BgInibsMovebg* this = THIS;
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
-    DynaPolyActor_Init(&this->dyna, 1);
+    DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS);
 
     this->opaDList = sOpaDLists[BG_INIBS_MOVEBG_GET_MODE(thisx)];
     this->xluDList = sXluDLists[BG_INIBS_MOVEBG_GET_MODE(thisx)];

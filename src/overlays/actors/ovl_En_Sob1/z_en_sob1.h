@@ -3,7 +3,7 @@
 
 #include "global.h"
 #include "overlays/actors/ovl_En_GirlA/z_en_girla.h"
-#include "objects/object_rs/object_rs.h"
+#include "objects/object_rsn/object_rsn.h"
 #include "objects/object_zo/object_zo.h"
 #include "objects/object_oF1d_map/object_oF1d_map.h"
 
@@ -15,7 +15,9 @@ typedef void (*EnSob1ActionFunc)(struct EnSob1*, PlayState*);
 typedef void (*EnSob1BlinkFunc)(struct EnSob1*);
 
 #define ENSOB1_GET_SHOPTYPE(thisx) ((thisx)->params & 0x1F)
-#define ENSOB1_GET_PATH(thisx) (((thisx)->params & 0x3E0) >> 5)
+#define ENSOB1_GET_PATH_INDEX(thisx) (((thisx)->params & 0x3E0) >> 5)
+
+#define ENSOB1_PATH_INDEX_NONE 0x1F
 
 typedef struct EnSob1XZRange {
     /* 0x0 */ f32 xMin;
@@ -34,9 +36,9 @@ typedef struct EnSob1 {
     /* 0x1E0 */ Path* path;
     /* 0x1E4 */ s32 waypoint;
     /* 0x1E8 */ s16 delayTimer;
-    /* 0x1EA */ s8 mainObjIndex;
-    /* 0x1EB */ s8 unusedObjIndex;
-    /* 0x1EC */ s8 shopkeeperAnimObjIndex;
+    /* 0x1EA */ s8 mainObjectSlot;
+    /* 0x1EB */ s8 unusedObjectSlot;
+    /* 0x1EC */ s8 shopkeeperAnimObjectSlot;
     /* 0x1EE */ s16 headRot;
     /* 0x1F0 */ s16 headRotTarget;
     /* 0x1F2 */ Vec3s jointTable[ENSOB1_LIMB_MAX];
@@ -60,10 +62,10 @@ typedef struct EnSob1 {
     /* 0x39C */ u8 arrowAnimState;
     /* 0x39D */ u8 stickAnimState;
     /* 0x39E */ s16 cutsceneState;
-    /* 0x3A0 */ s16 cutscene;
-    /* 0x3A2 */ s16 lookFowardCutscene;
-    /* 0x3A4 */ s16 lookToShelfCutscene;
-    /* 0x3A6 */ s16 lookToShopkeeperCutscene;
+    /* 0x3A0 */ s16 csId;
+    /* 0x3A2 */ s16 lookFowardCsId;
+    /* 0x3A4 */ s16 lookToShelfCsId;
+    /* 0x3A6 */ s16 lookToShopkeeperCsId;
     /* 0x3A8 */ UNK_TYPE1 pad3A8[0x4];
     /* 0x3AC */ f32 shopItemSelectedTween;
     /* 0x3B0 */ UNK_TYPE1 pad3B0[0x4];

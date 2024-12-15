@@ -28,15 +28,15 @@ void EnPaper_InitConfettiPiece(EnPaper* this, EnPaperConfetto* piece);
 void EnPaper_FlyConfettiPiece(EnPaper* this, EnPaperConfetto* piece);
 
 ActorInit En_Paper_InitVars = {
-    ACTOR_EN_PAPER,
-    ACTORCAT_ITEMACTION,
-    FLAGS,
-    OBJECT_BAL,
-    sizeof(EnPaper),
-    (ActorFunc)EnPaper_Init,
-    (ActorFunc)EnPaper_Destroy,
-    (ActorFunc)EnPaper_Update,
-    (ActorFunc)EnPaper_Draw,
+    /**/ ACTOR_EN_PAPER,
+    /**/ ACTORCAT_ITEMACTION,
+    /**/ FLAGS,
+    /**/ OBJECT_BAL,
+    /**/ sizeof(EnPaper),
+    /**/ EnPaper_Init,
+    /**/ EnPaper_Destroy,
+    /**/ EnPaper_Update,
+    /**/ EnPaper_Draw,
 };
 
 static Vec3f sUnitVecZ = { 0.0f, 0.0f, 1.0f };
@@ -47,7 +47,7 @@ void EnPaper_Init(Actor* thisx, PlayState* play) {
     Actor_SetScale(&this->actor, 0.01f);
     this->timer = 70;
     this->windForce = sUnitVecZ;
-    Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
+    Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
     EnPaper_SetupSpreadConfettiGroup(this);
 }
 
@@ -99,10 +99,10 @@ void EnPaper_InitConfettiPiece(EnPaper* this, EnPaperConfetto* piece) {
 
     // copy actor velocity and distrbute uniformly in a cuboid with sides 9, 6, 9 with actor.velocity in the middle
     // of the base.
-    piece->vel = this->actor.velocity;
-    piece->vel.x += Rand_Centered() * 9.0f;
-    piece->vel.y += Rand_ZeroOne() * 6.0f;
-    piece->vel.z += Rand_Centered() * 9.0f;
+    piece->velocity = this->actor.velocity;
+    piece->velocity.x += Rand_Centered() * 9.0f;
+    piece->velocity.y += Rand_ZeroOne() * 6.0f;
+    piece->velocity.z += Rand_Centered() * 9.0f;
 
     // Choose random starting angle and angular velocity
     piece->angle = Rand_Next();
@@ -140,20 +140,20 @@ void EnPaper_FlyConfettiPiece(EnPaper* this, EnPaperConfetto* piece) {
     }
 
     // acceleration due to gravity
-    piece->vel.y += this->actor.gravity;
+    piece->velocity.y += this->actor.gravity;
 
     // drag and wind force: normal is used to simulate cross-section size of piece, although
-    piece->vel.x -= 0.2f * fabsf(piece->normal.x) * (piece->vel.x + this->windForce.x);
-    piece->vel.y -= 0.2f * fabsf(piece->normal.y) * (piece->vel.y + this->windForce.y);
-    piece->vel.z -= 0.2f * fabsf(piece->normal.z) * (piece->vel.z + this->windForce.z);
+    piece->velocity.x -= 0.2f * fabsf(piece->normal.x) * (piece->velocity.x + this->windForce.x);
+    piece->velocity.y -= 0.2f * fabsf(piece->normal.y) * (piece->velocity.y + this->windForce.y);
+    piece->velocity.z -= 0.2f * fabsf(piece->normal.z) * (piece->velocity.z + this->windForce.z);
 
     // rotate around axis
     piece->angle += piece->angVel;
 
     // move
-    piece->pos.x += piece->vel.x;
-    piece->pos.y += piece->vel.y;
-    piece->pos.z += piece->vel.z;
+    piece->pos.x += piece->velocity.x;
+    piece->pos.y += piece->velocity.y;
+    piece->pos.z += piece->velocity.z;
 
     // Rotate unit Z vector about `axis` by `angle` to get forward direction. This is the same calculation as at the
     // bottom of EnPaper_InitConfettiPiece(), but done manually instead of using any matrix functions.
@@ -213,7 +213,7 @@ void EnPaper_Draw(Actor* thisx, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C5B0(play->state.gfxCtx);
+    Gfx_SetupDL37_Opa(play->state.gfxCtx);
 
     gDPSetRenderMode(POLY_OPA_DISP++, G_RM_FOG_SHADE_A, G_RM_AA_ZB_OPA_SURF2);
     gDPSetCombineLERP(POLY_OPA_DISP++, 0, 0, 0, SHADE, 0, 0, 0, SHADE, PRIMITIVE, 0, COMBINED, 0, 0, 0, 0, COMBINED);

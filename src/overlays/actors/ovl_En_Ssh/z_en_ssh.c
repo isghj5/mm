@@ -5,9 +5,9 @@
  */
 
 #include "z_en_ssh.h"
-#include "objects/object_ssh/object_ssh.h"
+#include "objects/object_st/object_st.h"
 
-#define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_4 | ACTOR_FLAG_10 | ACTOR_FLAG_20)
+#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_UNFRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_20)
 
 #define THIS ((EnSsh*)thisx)
 
@@ -26,15 +26,15 @@ void EnSsh_Start(EnSsh* this, PlayState* play);
 extern AnimationHeader D_06000304;
 
 ActorInit En_Ssh_InitVars = {
-    ACTOR_EN_SSH,
-    ACTORCAT_NPC,
-    FLAGS,
-    OBJECT_SSH,
-    sizeof(EnSsh),
-    (ActorFunc)EnSsh_Init,
-    (ActorFunc)EnSsh_Destroy,
-    (ActorFunc)EnSsh_Update,
-    (ActorFunc)EnSsh_Draw,
+    /**/ ACTOR_EN_SSH,
+    /**/ ACTORCAT_NPC,
+    /**/ FLAGS,
+    /**/ OBJECT_SSH,
+    /**/ sizeof(EnSsh),
+    /**/ EnSsh_Init,
+    /**/ EnSsh_Destroy,
+    /**/ EnSsh_Update,
+    /**/ EnSsh_Draw,
 };
 
 static ColliderCylinderInit sCylinderInit1 = {
@@ -129,7 +129,7 @@ s32 EnSsh_CreateBlureEffect(PlayState* play) {
     s32 i;
     s32 blureIdx;
 
-    for (i = 0; i < ARRAY_COUNT(blureInit.p1StartColor); i++) {
+    for (i = 0; i < EFFECT_BLURE_COLOR_COUNT; i++) {
         blureInit.p1StartColor[i] = sP1StartColor[i];
         blureInit.p2StartColor[i] = sP2StartColor[i];
         blureInit.p1EndColor[i] = sP1EndColor[i];
@@ -139,7 +139,7 @@ s32 EnSsh_CreateBlureEffect(PlayState* play) {
     blureInit.unkFlag = false;
     blureInit.calcMode = 3;
 
-    Effect_Add(play, &blureIdx, 1, 0, 0, &blureInit);
+    Effect_Add(play, &blureIdx, EFFECT_BLURE1, 0, 0, &blureInit);
     return blureIdx;
 }
 
@@ -206,21 +206,51 @@ void EnSsh_InitColliders(EnSsh* this, PlayState* play) {
     Collider_SetJntSph(play, &this->collider2, &this->actor, &sJntSphInit, this->collider2Elements);
 }
 
+typedef enum EnSshAnimation {
+    /* 0x0 */ SSH_ANIM_0, // Unused animation. Possibly being knocked back?
+    /* 0x1 */ SSH_ANIM_UP,
+    /* 0x2 */ SSH_ANIM_WAIT,
+    /* 0x3 */ SSH_ANIM_LAND,
+    /* 0x4 */ SSH_ANIM_DROP,
+    /* 0x5 */ SSH_ANIM_5, // Slower version of ANIM_DROP
+    /* 0x6 */ SSH_ANIM_6, // Faster repeating version of
+    /* 0x7 */ SSH_ANIM_MAX
+} EnSshAnimation;
+
 f32 EnSsh_ChangeAnim(EnSsh* this, s32 animIndex) {
-    AnimationHeader* sAnimations[] = { &object_ssh_Anim_006D78, &object_ssh_Anim_001494, &object_ssh_Anim_001494,
-                                       &object_ssh_Anim_006788, &object_ssh_Anim_001494, &object_ssh_Anim_001494,
-                                       &object_ssh_Anim_006D78 };
-    f32 sPlaySpeeds[] = { 1.0f, 4.0f, 1.0f, 1.0f, 8.0f, 6.0f, 2.0f };
-    u8 sAnimationModes[] = {
-        ANIMMODE_ONCE_INTERP, ANIMMODE_ONCE_INTERP, ANIMMODE_LOOP_INTERP, ANIMMODE_ONCE_INTERP,
-        ANIMMODE_LOOP_INTERP, ANIMMODE_LOOP_INTERP, ANIMMODE_LOOP_INTERP,
+    AnimationHeader* sAnimations[SSH_ANIM_MAX] = {
+        &object_ssh_Anim_006D78, // SSH_ANIM_0
+        &object_ssh_Anim_001494, // SSH_ANIM_UP
+        &object_ssh_Anim_001494, // SSH_ANIM_WAIT
+        &object_ssh_Anim_006788, // SSH_ANIM_LAND
+        &object_ssh_Anim_001494, // SSH_ANIM_DROP
+        &object_ssh_Anim_001494, // SSH_ANIM_5
+        &object_ssh_Anim_006D78, // SSH_ANIM_6
     };
-    f32 frameCount = Animation_GetLastFrame(sAnimations[animIndex]);
+    f32 sPlaySpeeds[SSH_ANIM_MAX] = {
+        1.0f, // SSH_ANIM_0
+        4.0f, // SSH_ANIM_UP
+        1.0f, // SSH_ANIM_WAIT
+        1.0f, // SSH_ANIM_LAND
+        8.0f, // SSH_ANIM_DROP
+        6.0f, // SSH_ANIM_5
+        2.0f, // SSH_ANIM_6
+    };
+    u8 sAnimationModes[SSH_ANIM_MAX] = {
+        ANIMMODE_ONCE_INTERP, // SSH_ANIM_0
+        ANIMMODE_ONCE_INTERP, // SSH_ANIM_UP
+        ANIMMODE_LOOP_INTERP, // SSH_ANIM_WAIT
+        ANIMMODE_ONCE_INTERP, // SSH_ANIM_LAND
+        ANIMMODE_LOOP_INTERP, // SSH_ANIM_DROP
+        ANIMMODE_LOOP_INTERP, // SSH_ANIM_5
+        ANIMMODE_LOOP_INTERP, // SSH_ANIM_6
+    };
+    f32 endFrame = Animation_GetLastFrame(sAnimations[animIndex]);
     s32 pad;
 
-    Animation_Change(&this->skelAnime, sAnimations[animIndex], sPlaySpeeds[animIndex], 0.0f, frameCount,
+    Animation_Change(&this->skelAnime, sAnimations[animIndex], sPlaySpeeds[animIndex], 0.0f, endFrame,
                      sAnimationModes[animIndex], -6.0f);
-    return frameCount;
+    return endFrame;
 }
 
 void EnSsh_SetWaitAnimation(EnSsh* this) {
@@ -286,7 +316,7 @@ s32 EnSsh_Damaged(EnSsh* this) {
     }
 
     if (DECR(this->stunTimer) != 0) {
-        Math_SmoothStepToS(&this->maxTurnRate, 10000, 10, 1000, 1);
+        Math_SmoothStepToS(&this->maxTurnRate, 0x2710, 10, 0x3E8, 1);
         return false;
     }
 
@@ -309,9 +339,9 @@ void EnSsh_Turn(EnSsh* this, PlayState* play) {
     }
 
     if (DECR(this->spinTimer) != 0) {
-        this->actor.world.rot.y += (s16)(10000.0f * (this->spinTimer / 30.0f));
+        this->actor.world.rot.y += TRUNCF_BINANG(0x2710 * (this->spinTimer / 30.0f));
     } else if ((this->swayTimer == 0) && (this->stunTimer == 0)) {
-        Math_SmoothStepToS(&this->actor.world.rot.y, this->actor.yawTowardsPlayer, 4, 10000, 1);
+        Math_SmoothStepToS(&this->actor.world.rot.y, this->actor.yawTowardsPlayer, 4, 0x2710, 1);
     }
     this->actor.shape.rot.y = this->actor.world.rot.y;
 }
@@ -325,9 +355,9 @@ void EnSsh_Stunned(EnSsh* this, PlayState* play) {
 
     if (this->stunTimer < 30) {
         if (this->stunTimer & 1) {
-            this->actor.shape.rot.y += 2000;
+            this->actor.shape.rot.y += 0x7D0;
         } else {
-            this->actor.shape.rot.y -= 2000;
+            this->actor.shape.rot.y -= 0x7D0;
         }
     }
 }
@@ -386,8 +416,8 @@ s32 EnSsh_IsCloseToLink(EnSsh* this, PlayState* play) {
 }
 
 s32 EnSsh_IsCloseToHome(EnSsh* this) {
-    f32 vel = this->actor.velocity.y;
-    f32 nextY = this->actor.world.pos.y + vel * 2.0f;
+    f32 velocityY = this->actor.velocity.y;
+    f32 nextY = this->actor.world.pos.y + velocityY * 2.0f;
 
     if (this->actor.home.pos.y <= nextY) {
         return true;
@@ -396,8 +426,8 @@ s32 EnSsh_IsCloseToHome(EnSsh* this) {
 }
 
 s32 EnSsh_IsCloseToGround(EnSsh* this) {
-    f32 vel = this->actor.velocity.y;
-    f32 nextY = this->actor.world.pos.y + vel * 2.0f;
+    f32 velocityY = this->actor.velocity.y;
+    f32 nextY = this->actor.world.pos.y + velocityY * 2.0f;
 
     if ((nextY - this->actor.floorHeight) <= this->floorHeightOffset) {
         return true;
@@ -419,7 +449,7 @@ void EnSsh_Sway(EnSsh* this) {
         }
 
         temp_f20 = (this->swayTimer * (1.0f / 6));
-        swayAngle = Math_SinS(this->swayAngle) * (temp_f20 * (0x10000 / 360.0f));
+        swayAngle = (f32)DEG_TO_BINANG_ALT3(temp_f20) * Math_SinS(this->swayAngle);
         temp_f20 = this->actor.world.pos.y - this->ceilingPos.y;
 
         swayVecBase.x = Math_SinS(swayAngle) * temp_f20;
@@ -428,7 +458,7 @@ void EnSsh_Sway(EnSsh* this) {
 
         Matrix_Push();
         Matrix_Translate(this->ceilingPos.x, this->ceilingPos.y, this->ceilingPos.z, MTXMODE_NEW);
-        Matrix_RotateYF(this->actor.world.rot.y * (M_PI / 0x8000), MTXMODE_APPLY);
+        Matrix_RotateYF(BINANG_TO_RAD(this->actor.world.rot.y), MTXMODE_APPLY);
         Matrix_MultVec3f(&swayVecBase, &swayVec);
         Matrix_Pop();
 
@@ -627,14 +657,17 @@ void EnSsh_SetColliders(EnSsh* this, PlayState* play) {
 }
 
 void EnSsh_Init(Actor* thisx, PlayState* play) {
-    // @bug - this symbol no longer exists, reads from a random place in object_ssh_Tex_000190 instead
-    f32 frameCount = Animation_GetLastFrame(&D_06000304);
+    //! @bug: object_st_Anim_000304 is similar if not idential to object_ssh_Anim_001494.
+    //! They also shared the same offset into their respective object files in OoT.
+    //! However since object_ssh is the one loaded, this ends up reading garbage data from within object_ssh_Tex_000190.
+    f32 endFrame = Animation_GetLastFrame(&object_st_Anim_000304);
     s32 pad;
     EnSsh* this = THIS;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
-    SkelAnime_Init(play, &this->skelAnime, &object_ssh_Skel_006470, NULL, this->jointTable, this->morphtable, 30);
-    Animation_Change(&this->skelAnime, &object_ssh_Anim_001494, 1.0f, 0.0f, frameCount, ANIMMODE_LOOP_INTERP, 0.0f);
+    SkelAnime_Init(play, &this->skelAnime, &object_ssh_Skel_006470, NULL, this->jointTable, this->morphTable,
+                   OBJECT_SSH_LIMB_MAX);
+    Animation_Change(&this->skelAnime, &object_ssh_Anim_001494, 1.0f, 0.0f, endFrame, ANIMMODE_LOOP_INTERP, 0.0f);
     this->blureIdx = EnSsh_CreateBlureEffect(play);
     EnSsh_InitColliders(this, play);
     this->stateFlags = 0;
@@ -684,7 +717,7 @@ void EnSsh_Wait(EnSsh* this, PlayState* play) {
 void EnSsh_Talk(EnSsh* this, PlayState* play) {
     EnSsh_Bob(this, play);
 
-    if ((Message_GetState(&play->msgCtx) == TEXT_STATE_5) && Message_ShouldAdvance(play)) {
+    if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
         switch (play->msgCtx.currentTextId) {
             case 0x904: // (does not exist)
             case 0x905: // (does not exist)
@@ -694,11 +727,11 @@ void EnSsh_Talk(EnSsh* this, PlayState* play) {
             case 0x911: // Find all in here and defeat them
             case 0x912: // Don't forget to collect their token
             case 0x914: // In here, cursed spiders, defeat them to make me normal
-                func_80151938(play, play->msgCtx.currentTextId + 1);
+                Message_ContinueTextbox(play, play->msgCtx.currentTextId + 1);
                 break;
 
             default: // intended case 0x915 from above (914+1)
-                func_801477B4(play);
+                Message_CloseTextbox(play);
                 this->actionFunc = EnSsh_Idle;
                 break;
         }
@@ -708,17 +741,17 @@ void EnSsh_Talk(EnSsh* this, PlayState* play) {
 void func_809756D0(EnSsh* this, PlayState* play) {
     u16 nextTextId;
 
-    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_SWAMP_SPIDER_HOUSE_TALKED)) {
+    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_TALKED_SWAMP_SPIDER_HOUSE_MAN)) {
         nextTextId = 0x914; // In here, cursed spiders, defeat them to make me normal
     } else {
         nextTextId = 0x910; // Help me! I am not a monster, I was cursed this way
-        SET_WEEKEVENTREG(WEEKEVENTREG_SWAMP_SPIDER_HOUSE_TALKED);
+        SET_WEEKEVENTREG(WEEKEVENTREG_TALKED_SWAMP_SPIDER_HOUSE_MAN);
     }
     Message_StartTextbox(play, nextTextId, &this->actor);
 }
 
 void EnSsh_Idle(EnSsh* this, PlayState* play) {
-    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+    if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
         this->actionFunc = EnSsh_Talk;
         func_809756D0(this, play);
         return;
@@ -747,7 +780,7 @@ void EnSsh_Idle(EnSsh* this, PlayState* play) {
 
     if ((this->unkTimer == 0) && (this->animTimer == 0) && (this->actor.xzDistToPlayer < 100.0f) &&
         Player_IsFacingActor(&this->actor, 0x3000, play)) {
-        func_800B8614(&this->actor, play, 100.0f);
+        Actor_OfferTalk(&this->actor, play, 100.0f);
     }
 }
 
@@ -849,7 +882,7 @@ void EnSsh_Update(Actor* thisx, PlayState* play) {
     } else {
         SkelAnime_Update(&this->skelAnime);
         Actor_UpdatePos(&this->actor);
-        Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
+        Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
         this->actionFunc(this, play);
     }
 
@@ -872,7 +905,7 @@ s32 EnSsh_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
     EnSsh* this = THIS;
 
     switch (limbIndex) {
-        case 1:
+        case OBJECT_SSH_LIMB_01:
             if ((this->spinTimer != 0) && (this->swayTimer == 0)) {
                 if (this->spinTimer >= 2) {
                     EnSsh_AddBlureVertex(this);
@@ -882,22 +915,25 @@ s32 EnSsh_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
             }
             break;
 
-        case 4:
+        case OBJECT_SSH_LIMB_04:
             if (this->stateFlags & SSH_STATE_FATHER) {
                 *dList = object_ssh_DL_005850;
             }
             break;
 
-        case 5:
+        case OBJECT_SSH_LIMB_05:
             if (this->stateFlags & SSH_STATE_FATHER) {
                 *dList = object_ssh_DL_005210;
             }
             break;
 
-        case 8:
+        case OBJECT_SSH_LIMB_08:
             if (this->stateFlags & SSH_STATE_FATHER) {
                 *dList = object_ssh_DL_005F78;
             }
+            break;
+
+        default:
             break;
     }
     return false;
@@ -906,7 +942,7 @@ s32 EnSsh_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
 void EnSsh_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
     EnSsh* this = THIS;
 
-    if ((limbIndex == 5) && (this->stateFlags & SSH_STATE_FATHER)) {
+    if ((limbIndex == OBJECT_SSH_LIMB_05) && (this->stateFlags & SSH_STATE_FATHER)) {
         OPEN_DISPS(play->state.gfxCtx);
 
         gSPDisplayList(POLY_OPA_DISP++, object_ssh_DL_0000D8);
@@ -926,9 +962,9 @@ void EnSsh_Draw(Actor* thisx, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
-    gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(D_80976178[this->blinkState]));
+    gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_K0(D_80976178[this->blinkState]));
 
     SkelAnime_DrawOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, EnSsh_OverrideLimbDraw,
                       EnSsh_PostLimbDraw, &this->actor);

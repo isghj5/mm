@@ -20,15 +20,15 @@ void ObjKibako2_Idle(ObjKibako2* this, PlayState* play);
 void ObjKibako2_Kill(ObjKibako2* this, PlayState* play);
 
 ActorInit Obj_Kibako2_InitVars = {
-    ACTOR_OBJ_KIBAKO2,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_KIBAKO2,
-    sizeof(ObjKibako2),
-    (ActorFunc)ObjKibako2_Init,
-    (ActorFunc)ObjKibako2_Destroy,
-    (ActorFunc)ObjKibako2_Update,
-    (ActorFunc)ObjKibako2_Draw,
+    /**/ ACTOR_OBJ_KIBAKO2,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_KIBAKO2,
+    /**/ sizeof(ObjKibako2),
+    /**/ ObjKibako2_Init,
+    /**/ ObjKibako2_Destroy,
+    /**/ ObjKibako2_Update,
+    /**/ ObjKibako2_Draw,
 };
 
 static ColliderCylinderInit sCylinderInit = {
@@ -58,14 +58,14 @@ static InitChainEntry sInitChain[] = {
     ICHAIN_F32(uncullZoneDownward, 200, ICHAIN_STOP),
 };
 
-s32 ObjKibako2_ContainsSkulltula(ObjKibako2* this, PlayState* play) {
+bool ObjKibako2_ContainsSkulltula(ObjKibako2* this, PlayState* play) {
     s32 actorSpawnParam = KIBAKO2_SKULLTULA_SPAWN_PARAM(&this->dyna.actor);
     s32 flag = -1;
 
     if ((u16)actorSpawnParam & 3) {
         flag = ((actorSpawnParam & 0x3FC) >> 2) & 0xFF;
     }
-    return !(flag >= 0 && Flags_GetTreasure(play, flag));
+    return !((flag >= 0) && Flags_GetTreasure(play, flag));
 }
 
 void ObjKibako2_Break(ObjKibako2* this, PlayState* play) {
@@ -211,7 +211,7 @@ void ObjKibako2_Idle(ObjKibako2* this, PlayState* play) {
         ObjKibako2_Break(this, play);
         SoundSource_PlaySfxAtFixedWorldPos(play, &this->dyna.actor.world.pos, 20, NA_SE_EV_WOODBOX_BREAK);
         this->dyna.actor.flags |= ACTOR_FLAG_10;
-        func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
+        DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
         this->dyna.actor.draw = NULL;
         this->actionFunc = ObjKibako2_Kill;
     } else if (this->dyna.actor.xzDistToPlayer < 600.0f) {

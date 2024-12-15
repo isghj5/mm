@@ -5,6 +5,8 @@
 #define REGS_H
 
 #include "ultra64.h"
+#include "unk.h"
+
 
 #define REG_GROUPS 29 // number of REG groups, i.e. REG, SREG, OREG, etc.
 #define REG_PAGES 6
@@ -59,11 +61,20 @@ extern RegEditor* gRegEditor;
 
 /* TODO: There are still a few OoT defines here that need confirmation */
 
+#define R_ENV_DISABLE_DBG                 REG(9)
 #define R_TIME_SPEED                      REG(15)
 #define R_RUN_SPEED_LIMIT                 REG(45)
 
 #define R_ENABLE_ARENA_DBG                SREG(0) // Same as OoT
+#define R_ROOM_IMAGE_NODRAW_FLAGS         SREG(25)
 #define R_UPDATE_RATE                     SREG(30)
+#define R_VI_MODE_EDIT_STATE              SREG(48)
+#define R_VI_MODE_EDIT_WIDTH              SREG(49)
+#define R_VI_MODE_EDIT_HEIGHT             SREG(50)
+#define R_VI_MODE_EDIT_ULY_ADJ            SREG(51)
+#define R_VI_MODE_EDIT_LRY_ADJ            SREG(52)
+#define R_VI_MODE_EDIT_ULX_ADJ            SREG(53)
+#define R_VI_MODE_EDIT_LRX_ADJ            SREG(54)
 #define R_FB_FILTER_TYPE                  SREG(80)
 #define R_FB_FILTER_PRIM_COLOR(c)         SREG(81 + c)
 #define R_FB_FILTER_A                     SREG(84)
@@ -133,12 +144,19 @@ extern RegEditor* gRegEditor;
 #define R_PAUSE_DBG_MAP_CLOUD_Y             XREG(53)
 #define R_MOON_CRASH_TIMER_Y                XREG(80)
 #define R_MOON_CRASH_TIMER_X                XREG(81)
-#define R_PAUSE_OWLWARP_ALPHA               XREG(87)
+#define R_PAUSE_OWL_WARP_ALPHA              XREG(87)
 #define R_STORY_FILL_SCREEN_ALPHA           XREG(91)
 #define R_REVERSE_FLOOR_INDEX               XREG(94)
 #define R_MINIMAP_DISABLED                  XREG(95)
 
+#define R_ENV_LIGHT1_DIR(i)               cREG(3 + (i))
+#define R_ENV_LIGHT2_DIR(i)               cREG(6 + (i))
+
 #define R_TRANS_FADE_FLASH_ALPHA_STEP     iREG(50) // Set to a negative number to start the flash
+#define R_ROOM_CULL_DEBUG_MODE            iREG(86)
+#define R_ROOM_CULL_NUM_ENTRIES           iREG(87)
+#define R_ROOM_CULL_USED_ENTRIES          iREG(88)
+#define R_ROOM_CULL_DEBUG_TARGET          iREG(89)
 
 #define R_B_LABEL_DD                      WREG(0)
 #define R_OW_MINIMAP_X                    WREG(29)
@@ -160,5 +178,8 @@ extern RegEditor* gRegEditor;
 #define R_ITEM_AMMO_Y(i)                  VREG(68 + i)
 #define R_ITEM_ICON_WIDTH(i)              VREG(76 + i)
 #define R_ITEM_BTN_WIDTH(i)               VREG(80 + i)
+
+// Name inferred from OoT. Set to true to manually set play->csCtx.script
+#define R_USE_DEBUG_CUTSCENE              dREG(95)
 
 #endif

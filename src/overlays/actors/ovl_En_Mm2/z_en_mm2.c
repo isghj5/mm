@@ -19,15 +19,15 @@ void EnMm2_Reading(EnMm2* this, PlayState* play);
 void EnMm2_WaitForRead(EnMm2* this, PlayState* play);
 
 ActorInit En_Mm2_InitVars = {
-    ACTOR_EN_MM2,
-    ACTORCAT_ITEMACTION,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(EnMm2),
-    (ActorFunc)EnMm2_Init,
-    (ActorFunc)EnMm2_Destroy,
-    (ActorFunc)EnMm2_Update,
-    (ActorFunc)EnMm2_Draw,
+    /**/ ACTOR_EN_MM2,
+    /**/ ACTORCAT_ITEMACTION,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(EnMm2),
+    /**/ EnMm2_Init,
+    /**/ EnMm2_Destroy,
+    /**/ EnMm2_Update,
+    /**/ EnMm2_Draw,
 };
 
 #include "overlays/ovl_En_Mm2/ovl_En_Mm2.c"
@@ -47,15 +47,18 @@ void EnMm2_Destroy(Actor* thisx, PlayState* play) {
  */
 void EnMm2_Reading(EnMm2* this, PlayState* play) {
     switch (Message_GetState(&play->msgCtx)) {
-        case TEXT_STATE_5:
+        case TEXT_STATE_EVENT:
             if (Message_ShouldAdvance(play)) {
-                func_801477B4(play);
+                Message_CloseTextbox(play);
                 this->actionFunc = EnMm2_WaitForRead;
             }
             break;
 
         case TEXT_STATE_CLOSING:
             this->actionFunc = EnMm2_WaitForRead;
+            break;
+
+        default:
             break;
     }
 }
@@ -65,11 +68,11 @@ void EnMm2_Reading(EnMm2* this, PlayState* play) {
  * so (and facing the letter).
  */
 void EnMm2_WaitForRead(EnMm2* this, PlayState* play) {
-    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+    if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
         Message_StartTextbox(play, 0x277B, &this->actor);
         this->actionFunc = EnMm2_Reading;
-    } else if ((this->actor.xzDistToPlayer < 60.0f) && (Player_IsFacingActor(&this->actor, 0x3000, play))) {
-        func_800B8614(&this->actor, play, 110.0f);
+    } else if ((this->actor.xzDistToPlayer < 60.0f) && Player_IsFacingActor(&this->actor, 0x3000, play)) {
+        Actor_OfferTalk(&this->actor, play, 110.0f);
     }
 }
 
@@ -82,7 +85,7 @@ void EnMm2_Update(Actor* thisx, PlayState* play) {
 void EnMm2_Draw(Actor* thisx, PlayState* play) {
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
     gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
     gSPDisplayList(POLY_OPA_DISP++, sEnMm2DL);
 

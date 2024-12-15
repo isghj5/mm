@@ -25,15 +25,15 @@ void func_80ACBDFC(ObjAqua* this, PlayState* play);
 void func_80ACBD34(ObjAqua* this);
 
 ActorInit Obj_Aqua_InitVars = {
-    ACTOR_OBJ_AQUA,
-    ACTORCAT_ITEMACTION,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(ObjAqua),
-    (ActorFunc)ObjAqua_Init,
-    (ActorFunc)ObjAqua_Destroy,
-    (ActorFunc)ObjAqua_Update,
-    (ActorFunc)ObjAqua_Draw,
+    /**/ ACTOR_OBJ_AQUA,
+    /**/ ACTORCAT_ITEMACTION,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(ObjAqua),
+    /**/ ObjAqua_Init,
+    /**/ ObjAqua_Destroy,
+    /**/ ObjAqua_Update,
+    /**/ ObjAqua_Draw,
 };
 
 static ColliderCylinderInit sCylinderInit = {
@@ -93,8 +93,8 @@ void func_80ACB7F4(ObjAqua* this, PlayState* play) {
 
     effectPos.y = this->actor.floorHeight;
     for (i = 0; i < 4; i++) {
-        effectPos.x = (this->actor.world.pos.x + Math_SinS((s32)(Rand_ZeroOne() * 7200.0f) + angleOffset) * 8.0f);
-        effectPos.z = (this->actor.world.pos.z + Math_CosS((s32)(Rand_ZeroOne() * 7200.0f) + angleOffset) * 8.0f);
+        effectPos.x = this->actor.world.pos.x + Math_SinS((s32)(Rand_ZeroOne() * 7200.0f) + angleOffset) * 8.0f;
+        effectPos.z = this->actor.world.pos.z + Math_CosS((s32)(Rand_ZeroOne() * 7200.0f) + angleOffset) * 8.0f;
         EffectSsGSplash_Spawn(play, &effectPos, NULL, NULL, 0, 120);
         angleOffset += 0x4000;
     }
@@ -106,15 +106,15 @@ void func_80ACB7F4(ObjAqua* this, PlayState* play) {
 void func_80ACB940(ObjAqua* this, PlayState* play) {
     s32 pad;
     Vec3f effectPos;
-    Vec3f effectVel;
+    Vec3f effectVelocity;
 
-    effectVel.x = Rand_ZeroOne() - 0.5f;
-    effectVel.y = 2.0f;
-    effectVel.z = Rand_ZeroOne() - 0.5f;
-    effectPos.x = this->actor.world.pos.x + (effectVel.x * 40.0f);
+    effectVelocity.x = Rand_ZeroOne() - 0.5f;
+    effectVelocity.y = 2.0f;
+    effectVelocity.z = Rand_ZeroOne() - 0.5f;
+    effectPos.x = this->actor.world.pos.x + (effectVelocity.x * 40.0f);
     effectPos.y = this->actor.world.pos.y;
-    effectPos.z = this->actor.world.pos.z + (effectVel.z * 40.0f);
-    EffectSsIceSmoke_Spawn(play, &effectPos, &effectVel, &gZeroVec3f, (s32)(Rand_ZeroOne() * 24.0f) + 70);
+    effectPos.z = this->actor.world.pos.z + (effectVelocity.z * 40.0f);
+    EffectSsIceSmoke_Spawn(play, &effectPos, &effectVelocity, &gZeroVec3f, (s32)(Rand_ZeroOne() * 24.0f) + 70);
 }
 
 void func_80ACBA10(ObjAqua* this) {
@@ -151,7 +151,10 @@ void ObjAqua_Init(Actor* thisx, PlayState* play) {
     Collider_InitCylinder(play, &this->collider);
     Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 60.0f);
-    if (1) {};
+
+    //! FAKE:
+    if (1) {}
+
     this->actor.shape.shadowAlpha = 140;
     this->alpha = 255;
     if (func_80ACBA60(this, play)) {
@@ -196,7 +199,7 @@ void func_80ACBD34(ObjAqua* this) {
 }
 
 void func_80ACBD48(ObjAqua* this, PlayState* play) {
-    if ((AQUA_HOT(&this->actor) == 1) && (this->alpha > 90)) {
+    if ((AQUA_GET_TYPE(&this->actor) == AQUA_TYPE_HOT) && (this->alpha > 90)) {
         func_80ACB940(this, play);
     }
     if (this->alpha > 5) {
@@ -225,7 +228,7 @@ void func_80ACBDFC(ObjAqua* this, PlayState* play) {
     this->alpha = (s32)(temp * 3.25f) + 10;
     this->actor.shape.shadowAlpha = this->alpha;
     this->unk_198 += 1000;
-    if (AQUA_HOT(&this->actor) == 1) {
+    if (AQUA_GET_TYPE(&this->actor) == AQUA_TYPE_HOT) {
         f32 temp_f2 = this->actor.scale.x * 10000.0f;
 
         EffectSsBubble_Spawn(play, &this->actor.world.pos, temp_f2 * -0.5f, temp_f2, temp_f2,
@@ -244,7 +247,7 @@ void ObjAqua_Update(Actor* thisx, PlayState* play) {
         this->counter--;
     }
     this->actionFunc(this, play);
-    if (this->actor.update) {
+    if (this->actor.update != NULL) {
         if (this->actionFunc == func_80ACBC8C) {
             Math_Vec3f_StepTo(&this->actor.scale, &D_80ACC308, 0.00006f);
         } else if (this->actionFunc == func_80ACBD48) {
@@ -254,7 +257,7 @@ void ObjAqua_Update(Actor* thisx, PlayState* play) {
         }
         this->actor.velocity.y *= 0.9f;
         Actor_MoveWithGravity(&this->actor);
-        Actor_UpdateBgCheckInfo(play, &this->actor, 12.0f, 4.0f, 0.0f, 5);
+        Actor_UpdateBgCheckInfo(play, &this->actor, 12.0f, 4.0f, 0.0f, UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4);
         if (this->actionFunc != func_80ACBDFC) {
             Collider_UpdateCylinder(&this->actor, &this->collider);
             this->collider.dim.radius = this->actor.scale.x * 3000.0f;
@@ -271,7 +274,8 @@ void ObjAqua_Draw(Actor* thisx, PlayState* play) {
     s32 actionFuncTemp = this->actionFunc == func_80ACBDFC;
 
     OPEN_DISPS(play->state.gfxCtx);
-    func_8012C2DC(play->state.gfxCtx);
+
+    Gfx_SetupDL25_Xlu(play->state.gfxCtx);
     framesTemp = ((play->gameplayFrames & 0x7FFFFFFF) * -0xA) & 0x1FF;
     if (actionFuncTemp) {
         framesTemp >>= 1;

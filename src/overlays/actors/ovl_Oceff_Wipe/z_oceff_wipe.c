@@ -16,18 +16,18 @@ void OceffWipe_Update(Actor* thisx, PlayState* play);
 void OceffWipe_Draw(Actor* thisx, PlayState* play);
 
 ActorInit Oceff_Wipe_InitVars = {
-    ACTOR_OCEFF_WIPE,
-    ACTORCAT_ITEMACTION,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(OceffWipe),
-    (ActorFunc)OceffWipe_Init,
-    (ActorFunc)OceffWipe_Destroy,
-    (ActorFunc)OceffWipe_Update,
-    (ActorFunc)OceffWipe_Draw,
+    /**/ ACTOR_OCEFF_WIPE,
+    /**/ ACTORCAT_ITEMACTION,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(OceffWipe),
+    /**/ OceffWipe_Init,
+    /**/ OceffWipe_Destroy,
+    /**/ OceffWipe_Update,
+    /**/ OceffWipe_Draw,
 };
 
-UNK_TYPE4 D_80977200;
+static s32 sBssPad;
 
 void OceffWipe_Init(Actor* thisx, PlayState* play) {
     OceffWipe* this = THIS;
@@ -41,7 +41,7 @@ void OceffWipe_Destroy(Actor* thisx, PlayState* play) {
     OceffWipe* this = THIS;
 
     Magic_Reset(play);
-    play->msgCtx.unk120B0 = 0;
+    play->msgCtx.ocarinaSongEffectActive = false;
 }
 
 void OceffWipe_Update(Actor* thisx, PlayState* play) {
@@ -71,9 +71,7 @@ void OceffWipe_Draw(Actor* thisx, PlayState* play) {
     s32 i;
     Vec3f eye = GET_ACTIVE_CAM(play)->eye;
     Vtx* vtxPtr;
-    Vec3f quakeOffset;
-
-    Camera_GetQuakeOffset(&quakeOffset, GET_ACTIVE_CAM(play));
+    Vec3f quakeOffset = Camera_GetQuakeOffset(GET_ACTIVE_CAM(play));
 
     OPEN_DISPS(play->state.gfxCtx);
 
@@ -99,7 +97,7 @@ void OceffWipe_Draw(Actor* thisx, PlayState* play) {
         vtxPtr[i * 2 + 1].v.cn[3] = alphaTable[sAlphaIndices[i] & 0xF];
     }
 
-    func_8012C2DC(play->state.gfxCtx);
+    Gfx_SetupDL25_Xlu(play->state.gfxCtx);
 
     Matrix_Translate(eye.x + quakeOffset.x, eye.y + quakeOffset.y, eye.z + quakeOffset.z, MTXMODE_NEW);
     Matrix_Scale(0.1f, 0.1f, 0.1f, MTXMODE_APPLY);

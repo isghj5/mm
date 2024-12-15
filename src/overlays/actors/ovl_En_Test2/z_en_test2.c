@@ -28,15 +28,15 @@ typedef struct EnTest2ModelInfo {
 } EnTest2ModelInfo; // size = 0xC
 
 ActorInit En_Test2_InitVars = {
-    ACTOR_EN_TEST2,
-    ACTORCAT_BG,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(EnTest2),
-    (ActorFunc)EnTest2_Init,
-    (ActorFunc)Actor_Noop,
-    (ActorFunc)EnTest2_Update,
-    (ActorFunc)NULL,
+    /**/ ACTOR_EN_TEST2,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(EnTest2),
+    /**/ EnTest2_Init,
+    /**/ Actor_Noop,
+    /**/ EnTest2_Update,
+    /**/ NULL,
 };
 
 static EnTest2ModelInfo sModelInfo[] = {
@@ -72,25 +72,25 @@ void EnTest2_Init(Actor* thisx, PlayState* play) {
     EnTest2* this = THIS;
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
-    if ((this->actor.params == EN_TEST2_PARAMS_B) || (this->actor.params == EN_TEST2_PARAMS_C)) {
+    if ((this->actor.params == EN_TEST2_PARAM_B) || (this->actor.params == EN_TEST2_PARAM_C)) {
         this->actor.flags |= ACTOR_FLAG_20;
     }
 }
 
 void EnTest2_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    s32 objectIndex;
+    s32 objectSlot;
     EnTest2ModelInfo* modelInfo;
     EnTest2* this = THIS;
 
-    objectIndex = Object_GetIndex(&play->objectCtx, sObjectIds[this->actor.params]);
-    if (objectIndex < 0) {
+    objectSlot = Object_GetSlot(&play->objectCtx, sObjectIds[this->actor.params]);
+    if (objectSlot <= OBJECT_SLOT_NONE) {
         Actor_Kill(&this->actor);
         return;
     }
-    if (Object_IsLoaded(&play->objectCtx, objectIndex)) {
+    if (Object_IsLoaded(&play->objectCtx, objectSlot)) {
         modelInfo = &sModelInfo[this->actor.params];
-        this->actor.objBankIndex = objectIndex;
+        this->actor.objectSlot = objectSlot;
         this->actor.draw = EnTest2_Draw;
         if (modelInfo->animMat != NULL) {
             Actor_SetObjectDependency(play, &this->actor);
@@ -125,7 +125,7 @@ void EnTest2_Draw(Actor* thisx, PlayState* play) {
     if (CHECK_FLAG_ALL(this->actor.flags, ACTOR_FLAG_REACT_TO_LENS)) {
         OPEN_DISPS(play->state.gfxCtx);
 
-        func_8012C2DC(play->state.gfxCtx);
+        Gfx_SetupDL25_Xlu(play->state.gfxCtx);
         gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 
         if (dList != NULL) {

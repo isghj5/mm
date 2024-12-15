@@ -8,7 +8,7 @@
 #include "z_en_ani.h"
 #include "z64quake.h"
 
-#define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_8)
+#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
 
 #define THIS ((EnAni*)thisx)
 
@@ -41,15 +41,15 @@ void EnAni_Talk(EnAni* this, PlayState* play);
 void EnAni_IdleStanding(EnAni* this, PlayState* play);
 
 ActorInit En_Ani_InitVars = {
-    ACTOR_EN_ANI,
-    ACTORCAT_NPC,
-    FLAGS,
-    OBJECT_ANI,
-    sizeof(EnAni),
-    (ActorFunc)EnAni_Init,
-    (ActorFunc)EnAni_Destroy,
-    (ActorFunc)EnAni_Update,
-    (ActorFunc)EnAni_Draw,
+    /**/ ACTOR_EN_ANI,
+    /**/ ACTORCAT_NPC,
+    /**/ FLAGS,
+    /**/ OBJECT_ANI,
+    /**/ sizeof(EnAni),
+    /**/ EnAni_Init,
+    /**/ EnAni_Destroy,
+    /**/ EnAni_Update,
+    /**/ EnAni_Draw,
 };
 
 // two different colliders, but only one init for both
@@ -117,8 +117,8 @@ void EnAni_Init(Actor* thisx, PlayState* play) {
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 24.0f);
-    SkelAnime_InitFlex(play, &this->skelAnime, &gAniSkeleton, &gAniStandingNormalAnim, this->jointTable,
-                       this->morphTable, ANI_LIMB_MAX);
+    SkelAnime_InitFlex(play, &this->skelAnime, &gAniSkel, &gAniStandingNormalAnim, this->jointTable, this->morphTable,
+                       ANI_LIMB_MAX);
     Animation_PlayOnce(&this->skelAnime, &gAniStandingNormalAnim);
     Collider_InitAndSetCylinder(play, &this->collider1, &this->actor, &sCylinderInit);
     Collider_InitAndSetCylinder(play, &this->collider2, &this->actor, &sCylinderInit);
@@ -164,7 +164,7 @@ void EnAni_SetText(EnAni* this, PlayState* play, u16 textId) {
     this->actor.textId = textId;
     if ((this->stateFlags & ANI_STATE_WRITHING) || ABS_ALT(diffAngle) <= 0x4300) {
         if (this->actor.xzDistToPlayer < 100.0f) {
-            func_800B8614(&this->actor, play, 120.0f);
+            Actor_OfferTalk(&this->actor, play, 120.0f);
         }
     }
 }
@@ -182,7 +182,7 @@ void EnAni_Talk(EnAni* this, PlayState* play) {
 
 void EnAni_IdleInPain(EnAni* this, PlayState* play) {
     SkelAnime_Update(&this->skelAnime);
-    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+    if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
         this->actionFunc = EnAni_Talk;
     } else {
         // telling you not to take his rupees you knocked from the tree
@@ -220,10 +220,10 @@ void EnAni_FallToGround(EnAni* this, PlayState* play) {
         Animation_Change(&this->skelAnime, &gAniLandingThenStandingUpAnim, 1.0f, 0.0f, 16.0f, ANIMMODE_ONCE, 0.0f);
         this->stateFlags |= ANI_STATE_WRITHING;
 
-        quakeIndex = Quake_Add(play->cameraPtrs[CAM_ID_MAIN], QUAKE_TYPE_3);
+        quakeIndex = Quake_Request(play->cameraPtrs[CAM_ID_MAIN], QUAKE_TYPE_3);
         Quake_SetSpeed(quakeIndex, 27000);
-        Quake_SetQuakeValues(quakeIndex, 7, 0, 0, 0);
-        Quake_SetCountdown(quakeIndex, 20);
+        Quake_SetPerturbations(quakeIndex, 7, 0, 0, 0);
+        Quake_SetDuration(quakeIndex, 20);
 
         Actor_PlaySfx(&this->actor, NA_SE_IT_HAMMER_HIT);
     }
@@ -291,29 +291,29 @@ void EnAni_Update(Actor* thisx, PlayState* play) {
     }
 
     Actor_UpdatePos(&this->actor);
-    Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
+    Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
     this->actionFunc(this, play);
     if (this->actor.xzDistToPlayer < 100.0f && !(this->stateFlags & ANI_STATE_CLIMBING)) {
-        Actor_TrackPlayer(play, &this->actor, &this->headRot, &this->chestRot, this->actor.focus.pos);
-        this->chestRot.x = this->chestRot.y = this->chestRot.z = 0;
+        Actor_TrackPlayer(play, &this->actor, &this->headRot, &this->torsoRot, this->actor.focus.pos);
+        this->torsoRot.x = this->torsoRot.y = this->torsoRot.z = 0;
     } else {
         Math_SmoothStepToS(&this->headRot.x, 0, 0x6, 0x1838, 0x64);
         Math_SmoothStepToS(&this->headRot.y, 0, 0x6, 0x1838, 0x64);
-        Math_SmoothStepToS(&this->chestRot.x, 0, 0x6, 0x1838, 0x64);
-        Math_SmoothStepToS(&this->chestRot.y, 0, 0x6, 0x1838, 0x64);
+        Math_SmoothStepToS(&this->torsoRot.x, 0, 0x6, 0x1838, 0x64);
+        Math_SmoothStepToS(&this->torsoRot.y, 0, 0x6, 0x1838, 0x64);
     }
 
     this->blinkFunc(this);
     if (this->stateFlags & ANI_STATE_FALLING) {
-        if (this->actor.cutscene == -1) {
+        if (this->actor.csId == CS_ID_NONE) {
             this->stateFlags &= ~ANI_STATE_FALLING;
-        } else if (ActorCutscene_GetCanPlayNext(this->actor.cutscene)) {
-            ActorCutscene_StartAndSetUnkLinkFields(this->actor.cutscene, &this->actor);
-            this->actor.cutscene = ActorCutscene_GetAdditionalCutscene(this->actor.cutscene);
-            Camera_SetToTrackActor(Play_GetCamera(play, ActorCutscene_GetCurrentSubCamId(this->actor.cutscene)),
-                                   &this->actor);
+        } else if (CutsceneManager_IsNext(this->actor.csId)) {
+            CutsceneManager_StartWithPlayerCs(this->actor.csId, &this->actor);
+            this->actor.csId = CutsceneManager_GetAdditionalCsId(this->actor.csId);
+            Camera_SetFocalActor(Play_GetCamera(play, CutsceneManager_GetCurrentSubCamId(this->actor.csId)),
+                                 &this->actor);
         } else {
-            ActorCutscene_SetIntentToPlay(this->actor.cutscene);
+            CutsceneManager_Queue(this->actor.csId);
         }
     }
 }
@@ -345,7 +345,7 @@ void EnAni_Draw(Actor* thisx, PlayState* play) {
     OPEN_DISPS(play->state.gfxCtx);
 
     Matrix_Translate(0.0f, 0.0f, -1000.0f, MTXMODE_APPLY);
-    func_8012C5B0(play->state.gfxCtx);
+    Gfx_SetupDL37_Opa(play->state.gfxCtx);
 
     gSPSegment(POLY_OPA_DISP++, 0x08, Lib_SegmentedToVirtual(sEyeTextures[this->eyeState]));
 

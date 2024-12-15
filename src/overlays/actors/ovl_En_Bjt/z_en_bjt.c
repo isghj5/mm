@@ -6,7 +6,7 @@
 
 #include "z_en_bjt.h"
 
-#define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_8)
+#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
 
 #define THIS ((EnBjt*)thisx)
 
@@ -29,13 +29,7 @@ typedef enum {
     /* 1 */ TOILET_HAND_SCH_AVAILABLE
 } ToiletHandScheduleResult;
 
-static u8 sScheduleScript[] = {
-    /* 0x00 */ SCHEDULE_CMD_CHECK_NOT_IN_SCENE_S(SCENE_YADOYA, 0x11 - 0x04),
-    /* 0x04 */ SCHEDULE_CMD_CHECK_TIME_RANGE_S(0, 0, 6, 0, 0x0B - 0x0A),
-    /* 0x0A */ SCHEDULE_CMD_RET_NONE(),
-    /* 0x0B */ SCHEDULE_CMD_RET_TIME(0, 0, 6, 0, TOILET_HAND_SCH_AVAILABLE),
-    /* 0x11 */ SCHEDULE_CMD_RET_NONE(),
-};
+#include "build/src/overlays/actors/ovl_En_Bjt/scheduleScripts.schl.inc"
 
 static u8 sMsgEventScript[] = {
     0x0E, 0x29, 0x48, 0x0C, 0x0E, 0x00, 0xFF, 0x2B, 0x00, 0x00, 0x00, 0x52, 0x00, 0x5F, 0x2C, 0x29, 0x4A, 0x0C, 0x2F,
@@ -47,15 +41,15 @@ static u8 sMsgEventScript[] = {
 };
 
 ActorInit En_Bjt_InitVars = {
-    ACTOR_EN_BJT,
-    ACTORCAT_NPC,
-    FLAGS,
-    OBJECT_BJT,
-    sizeof(EnBjt),
-    (ActorFunc)EnBjt_Init,
-    (ActorFunc)EnBjt_Destroy,
-    (ActorFunc)EnBjt_Update,
-    (ActorFunc)EnBjt_Draw,
+    /**/ ACTOR_EN_BJT,
+    /**/ ACTORCAT_NPC,
+    /**/ FLAGS,
+    /**/ OBJECT_BJT,
+    /**/ sizeof(EnBjt),
+    /**/ EnBjt_Init,
+    /**/ EnBjt_Destroy,
+    /**/ EnBjt_Update,
+    /**/ EnBjt_Draw,
 };
 
 static ColliderCylinderInit sCylinderInit = {
@@ -87,16 +81,17 @@ typedef enum {
     /*  2 */ TOILET_HAND_ANIM_WAGGING_FINGER, // Wrong
     /*  3 */ TOILET_HAND_ANIM_THUMBS_UP,      // Right
     /*  4 */ TOILET_HAND_ANIM_OPEN_HAND,
-    /*  5 */ TOILET_HAND_ANIM_FIST // i.e. holding the reward
+    /*  5 */ TOILET_HAND_ANIM_FIST, // i.e. holding the reward
+    /*  6 */ TOILET_HAND_ANIM_MAX
 } ToiletHandAnimation;
 
-static AnimationInfoS sAnimationInfo[] = {
-    /* 0 */ { &gToiletHandWaitingAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },
-    /* 1 */ { &gToiletHandWaitingAnim, 1.0f, 0, -1, ANIMMODE_LOOP, -4 },
-    /* 2 */ { &gToiletHandWaggingFingerAnim, 1.0f, 0, -1, ANIMMODE_LOOP, -4 },
-    /* 3 */ { &gToiletHandThumbsUpAnim, 1.0f, 0, -1, ANIMMODE_LOOP, -4 },
-    /* 4 */ { &gToiletHandOpenHandAnim, 1.0f, 0, -1, ANIMMODE_LOOP, -4 },
-    /* 5 */ { &gToiletHandFistAnim, 1.0f, 0, -1, ANIMMODE_LOOP, -4 },
+static AnimationInfoS sAnimationInfo[TOILET_HAND_ANIM_MAX] = {
+    { &gToiletHandWaitingAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },        // TOILET_HAND_ANIM_WAITING
+    { &gToiletHandWaitingAnim, 1.0f, 0, -1, ANIMMODE_LOOP, -4 },       // TOILET_HAND_ANIM_WAITING_MORPH
+    { &gToiletHandWaggingFingerAnim, 1.0f, 0, -1, ANIMMODE_LOOP, -4 }, // TOILET_HAND_ANIM_WAGGING_FINGER
+    { &gToiletHandThumbsUpAnim, 1.0f, 0, -1, ANIMMODE_LOOP, -4 },      // TOILET_HAND_ANIM_THUMBS_UP
+    { &gToiletHandOpenHandAnim, 1.0f, 0, -1, ANIMMODE_LOOP, -4 },      // TOILET_HAND_ANIM_OPEN_HAND
+    { &gToiletHandFistAnim, 1.0f, 0, -1, ANIMMODE_LOOP, -4 },          // TOILET_HAND_ANIM_FIST
 };
 
 void EnBjt_UpdateSkelAnime(EnBjt* this) {
@@ -106,10 +101,10 @@ void EnBjt_UpdateSkelAnime(EnBjt* this) {
 
 s32 EnBjt_ChangeAnim(EnBjt* this, s32 animIndex) {
     s32 changeAnim = false;
-    s32 changed = false;
+    s32 didAnimChange = false;
 
     if ((animIndex == TOILET_HAND_ANIM_WAITING) || (animIndex == TOILET_HAND_ANIM_WAITING_MORPH)) {
-        if (!((this->animIndex == TOILET_HAND_ANIM_WAITING) || (this->animIndex == TOILET_HAND_ANIM_WAITING_MORPH))) {
+        if ((this->animIndex != TOILET_HAND_ANIM_WAITING) && (this->animIndex != TOILET_HAND_ANIM_WAITING_MORPH)) {
             changeAnim = true;
         }
     } else if (this->animIndex != animIndex) {
@@ -118,11 +113,11 @@ s32 EnBjt_ChangeAnim(EnBjt* this, s32 animIndex) {
 
     if (changeAnim) {
         this->animIndex = animIndex;
-        changed = SubS_ChangeAnimationByInfoS(&this->skelAnime, sAnimationInfo, animIndex);
+        didAnimChange = SubS_ChangeAnimationByInfoS(&this->skelAnime, sAnimationInfo, animIndex);
         this->animPlaySpeed = this->skelAnime.playSpeed;
     }
 
-    return changed;
+    return didAnimChange;
 }
 
 void EnBjt_UpdateCollision(EnBjt* this, PlayState* play) {
@@ -229,7 +224,7 @@ typedef enum {
     /* 1 */ TOILET_HAND_BEHAVIOUR_TAKE_ITEM,     // take paper and disappear to use it
     /* 2 */ TOILET_HAND_BEHAVIOUR_USE_ITEM,      // using paper, flushing
     /* 3 */ TOILET_HAND_BEHAVIOUR_REAPPEAR,      // reappear with reward
-    /* 4 */ TOILET_HAND_BEHAVIOUR_REWARD_GIVEN,
+    /* 4 */ TOILET_HAND_BEHAVIOUR_REWARD_GIVEN
 } ToiletHandBehaviour;
 
 // msgevent callback/communication. Follow and choose parts of script to run
@@ -243,12 +238,12 @@ s32 EnBjt_ChooseBehaviour(Actor* thisx, PlayState* play) {
         case TOILET_HAND_BEHAVIOUR_WAIT_FOR_ITEM:
             switch (Message_GetState(&play->msgCtx)) {
                 case TEXT_STATE_CHOICE:
-                case TEXT_STATE_5:
+                case TEXT_STATE_EVENT:
                     if (!Message_ShouldAdvance(play)) {
                         break;
                     }
                     // Fallthrough
-                case TEXT_STATE_16:
+                case TEXT_STATE_PAUSE_MENU:
                     itemAction = func_80123810(play);
 
                     if ((itemAction == PLAYER_IA_DEED_LAND) || (itemAction == PLAYER_IA_LETTER_TO_KAFEI) ||
@@ -275,9 +270,9 @@ s32 EnBjt_ChooseBehaviour(Actor* thisx, PlayState* play) {
             break;
 
         case TOILET_HAND_BEHAVIOUR_TAKE_ITEM:
-            if (player->exchangeItemId != PLAYER_IA_NONE) {
-                EnBjt_TakeItem(player->exchangeItemId);
-                player->exchangeItemId = PLAYER_IA_NONE;
+            if (player->exchangeItemAction != PLAYER_IA_NONE) {
+                EnBjt_TakeItem(player->exchangeItemAction);
+                player->exchangeItemAction = PLAYER_IA_NONE;
             }
             if (EnBjt_Vanish(this)) {
                 this->timer = 60;
@@ -319,9 +314,10 @@ s32 EnBjt_ChooseBehaviour(Actor* thisx, PlayState* play) {
 s32 EnBjt_CheckTalk(EnBjt* this, PlayState* play) {
     s32 ret = false;
 
-    if ((this->stateFlags & 7) && Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+    if (((this->stateFlags & SUBS_OFFER_MODE_MASK) != SUBS_OFFER_MODE_NONE) &&
+        Actor_TalkOfferAccepted(&this->actor, &play->state)) {
         this->stateFlags |= TOILET_HAND_STATE_TALKING;
-        SubS_UpdateFlags(&this->stateFlags, 0, 7);
+        SubS_SetOfferMode(&this->stateFlags, SUBS_OFFER_MODE_NONE, SUBS_OFFER_MODE_MASK);
         this->msgEventCallback = EnBjt_ChooseBehaviour;
         this->behaviour = 0;
         this->actionFunc = EnBjt_Talk;
@@ -363,8 +359,8 @@ void EnBjt_Talk(EnBjt* this, PlayState* play) {
     s16 yaw = this->actor.yawTowardsPlayer;
 
     if (func_8010BF58(&this->actor, play, sMsgEventScript, this->msgEventCallback, &this->msgEventArg4)) {
-        this->actor.flags &= ~ACTOR_FLAG_TALK_REQUESTED;
-        SubS_UpdateFlags(&this->stateFlags, 3, 7);
+        this->actor.flags &= ~ACTOR_FLAG_TALK;
+        SubS_SetOfferMode(&this->stateFlags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
         this->stateFlags &= ~TOILET_HAND_STATE_TALKING;
         this->msgEventArg4 = 0;
         this->actionFunc = EnBjt_FollowSchedule;
@@ -383,7 +379,7 @@ void EnBjt_FollowSchedule(EnBjt* this, PlayState* play) {
     if (scheduleOutput.result == TOILET_HAND_SCH_AVAILABLE) {
         if (this->stateFlags & TOILET_HAND_STATE_APPEARING) {
             if (EnBjt_Appear(this)) {
-                SubS_UpdateFlags(&this->stateFlags, 3, 7);
+                SubS_SetOfferMode(&this->stateFlags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
             }
         } else if (this->stateFlags & TOILET_HAND_STATE_VANISHING) {
             EnBjt_Vanish(this);
@@ -391,7 +387,7 @@ void EnBjt_FollowSchedule(EnBjt* this, PlayState* play) {
             // Vanish if player goes too far away or heart piece given
             if ((fabsf(this->actor.playerHeightRel) > 70.0f) || (this->actor.xzDistToPlayer > 140.0f) ||
                 CHECK_WEEKEVENTREG(WEEKEVENTREG_90_80)) {
-                SubS_UpdateFlags(&this->stateFlags, 0, 7);
+                SubS_SetOfferMode(&this->stateFlags, SUBS_OFFER_MODE_NONE, SUBS_OFFER_MODE_MASK);
                 this->playedSfx = false;
                 this->stateFlags &= ~TOILET_HAND_STATE_VISIBLE;
                 this->stateFlags |= TOILET_HAND_STATE_VANISHING;
@@ -446,7 +442,7 @@ void EnBjt_Update(Actor* thisx, PlayState* play) {
 
     if (this->scheduleResult != TOILET_HAND_SCH_NONE) {
         EnBjt_UpdateSkelAnime(this);
-        func_8013C964(&this->actor, play, 60.0f, 10.0f, PLAYER_IA_NONE, this->stateFlags & 7);
+        SubS_Offer(&this->actor, play, 60.0f, 10.0f, PLAYER_IA_NONE, this->stateFlags & SUBS_OFFER_MODE_MASK);
         Actor_SetFocus(&this->actor, 26.0f);
         EnBjt_UpdateCollision(this, play);
     }
@@ -456,7 +452,7 @@ void EnBjt_Draw(Actor* thisx, PlayState* play) {
     EnBjt* this = THIS;
 
     if (this->scheduleResult != TOILET_HAND_SCH_NONE) {
-        func_8012C28C(play->state.gfxCtx);
+        Gfx_SetupDL25_Opa(play->state.gfxCtx);
         SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                               NULL, NULL, &this->actor);
     }

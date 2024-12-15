@@ -36,15 +36,15 @@ typedef enum {
 } ObjDoraDamageEffect;
 
 ActorInit Obj_Dora_InitVars = {
-    ACTOR_OBJ_DORA,
-    ACTORCAT_NPC,
-    FLAGS,
-    OBJECT_DORA,
-    sizeof(ObjDora),
-    (ActorFunc)ObjDora_Init,
-    (ActorFunc)ObjDora_Destroy,
-    (ActorFunc)ObjDora_Update,
-    (ActorFunc)ObjDora_Draw,
+    /**/ ACTOR_OBJ_DORA,
+    /**/ ACTORCAT_NPC,
+    /**/ FLAGS,
+    /**/ OBJECT_DORA,
+    /**/ sizeof(ObjDora),
+    /**/ ObjDora_Init,
+    /**/ ObjDora_Destroy,
+    /**/ ObjDora_Update,
+    /**/ ObjDora_Draw,
 };
 
 static ColliderTrisElementInit sTrisElementsInit[6] = {
@@ -266,7 +266,7 @@ void ObjDora_UpdateCollision(ObjDora* this, PlayState* play) {
     u16 time;
 
     if (this->colliderTris.base.acFlags & AC_HIT) {
-        time = gSaveContext.save.time;
+        time = CURRENT_TIME;
         this->colliderTris.base.acFlags &= ~AC_HIT;
         this->collisionCooldownTimer = 5;
 
@@ -281,14 +281,14 @@ void ObjDora_UpdateCollision(ObjDora* this, PlayState* play) {
                     this->lastGongHitType = DORA_HIT_STRONG;
                 }
 
-                func_800BC848(&this->actor, play, 5, 10);
+                Actor_RequestQuakeAndRumble(&this->actor, play, 5, 10);
                 ObjDora_SetupMoveGong(this);
 
                 if ((ObjDora_IsHalfHour(time) == true) && (this->rupeeDropTimer == 0)) {
                     Actor_PlaySfx(&this->actor, NA_SE_SY_TRE_BOX_APPEAR);
                     itemDrop = Item_DropCollectible(play, &this->actor.world.pos, ITEM00_RUPEE_BLUE);
                     itemDrop->world.rot.y = this->actor.world.rot.y;
-                    itemDrop->world.rot.y += (s32)(Rand_Centered() * 90.0f * (0x10000 / 360.0f));
+                    itemDrop->world.rot.y += (s32)DEG_TO_BINANG_ALT3(Rand_Centered() * 90.0f);
                     itemDrop->velocity.y = 5.0f;
                     itemDrop->gravity = -1.0f;
                     this->rupeeDropTimer = 40;
@@ -316,12 +316,13 @@ void ObjDora_Update(Actor* thisx, PlayState* play) {
 }
 
 void ObjDora_Draw(Actor* thisx, PlayState* play) {
-    static Vec3f position = { 0.0f, -61.5f, 0.0f };
+    static Vec3f sPos = { 0.0f, -61.5f, 0.0f };
     ObjDora* this = THIS;
     f32 gongForceX;
 
     OPEN_DISPS(play->state.gfxCtx);
-    func_8012C28C(play->state.gfxCtx);
+
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
     if (this->actionFunc == ObjDora_MoveGong) {
         gongForceX = this->gongForce.x;
@@ -334,9 +335,9 @@ void ObjDora_Draw(Actor* thisx, PlayState* play) {
         gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
         gSPDisplayList(POLY_OPA_DISP++, &gDoraChainDL);
 
-        Matrix_Translate(position.x, position.y + gongForceX, position.z + gongForceX, MTXMODE_APPLY);
+        Matrix_Translate(sPos.x, sPos.y + gongForceX, sPos.z + gongForceX, MTXMODE_APPLY);
         Matrix_RotateXS(this->gongRotation.z - this->gongRotation.x, MTXMODE_APPLY);
-        Matrix_Translate(-position.x, -position.y, -position.z, MTXMODE_APPLY);
+        Matrix_Translate(-sPos.x, -sPos.y, -sPos.z, MTXMODE_APPLY);
 
         gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
         gSPDisplayList(POLY_OPA_DISP++, &gDoraGongDL);

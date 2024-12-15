@@ -21,15 +21,15 @@ void func_80947668(u8* shadowTexture, Player* player, PlayState* play);
 Vec3f D_80947EA0[16];
 
 ActorInit En_Sda_InitVars = {
-    ACTOR_EN_SDA,
-    ACTORCAT_BOSS,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(EnSda),
-    (ActorFunc)EnSda_Init,
-    (ActorFunc)EnSda_Destroy,
-    (ActorFunc)EnSda_Update,
-    (ActorFunc)EnSda_Draw,
+    /**/ ACTOR_EN_SDA,
+    /**/ ACTORCAT_BOSS,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(EnSda),
+    /**/ EnSda_Init,
+    /**/ EnSda_Destroy,
+    /**/ EnSda_Update,
+    /**/ EnSda_Draw,
 };
 
 Vec3f D_80947A60 = { 0.0f, 0.0f, 0.0f };
@@ -68,7 +68,7 @@ Vec3f D_80947B10[] = {
     { -1.0f, -2.0f, -0.2f }, { 0.0f, -2.0f, -0.2f },  { 1.0f, -2.0f, -0.2f },  { 0.0f, -3.0f, -0.5f },
 };
 
-static s32 sPad[2] = { 0, 0 };
+static s32 sPad = 0;
 
 #include "overlays/ovl_En_Sda/ovl_En_Sda.c"
 
@@ -123,6 +123,7 @@ void func_809469C0(Player* player, u8* shadowTexture, f32 arg2) {
     Vec3f sp7C;
 
     for (i = 0; i < 16; i++) {
+        // TODO: match with a continue
         if ((arg2 == 0.0f) || ((j = D_80947ACC[i]) >= 0)) {
             if (arg2 > 0.0f) {
                 lerp.x = D_80947EA0[i].x + (D_80947EA0[j].x - D_80947EA0[i].x) * arg2;
@@ -228,7 +229,8 @@ void func_8094702C(EnSda* this, u8* shadowTexture, Player* player, PlayState* pl
 
     if (BREG(57) != 0) {
         for (shadowTextureTemp = shadowTexture, i = 0; i < 0x1000; i++, shadowTextureTemp++) {
-            if ((i >= 0 && i < 0x40) || (i >= 0xFC0 && i < 0x1000) || ((i & 0x3F) == 0) || ((i & 0x3F) == 0x3F)) {
+            if (((i >= 0) && (i < 0x40)) || ((i >= 0xFC0) && (i < 0x1000)) || ((i & 0x3F) == 0) ||
+                ((i & 0x3F) == 0x3F)) {
                 *shadowTextureTemp = 255;
             } else {
                 *shadowTextureTemp = 0;
@@ -323,7 +325,7 @@ void func_80947668(u8* shadowTexture, Player* player, PlayState* play) {
 
     OPEN_DISPS(gfxCtx);
 
-    func_8012C448(play->state.gfxCtx);
+    Gfx_SetupDL44_Xlu(play->state.gfxCtx);
 
     gDPSetPrimColor(POLY_XLU_DISP++, 0x00, 0x00, 0, 0, 0, (BREG(52) + 50));
     gDPSetEnvColor(POLY_XLU_DISP++, 0, 0, 0, 0);
@@ -352,6 +354,4 @@ void func_80947668(u8* shadowTexture, Player* player, PlayState* play) {
     }
 
     CLOSE_DISPS(gfxCtx);
-
-    if (1) {}
 }

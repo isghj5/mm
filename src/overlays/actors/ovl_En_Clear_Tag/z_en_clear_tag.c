@@ -7,7 +7,7 @@
 #include "z_en_clear_tag.h"
 #include "objects/gameplay_keep/gameplay_keep.h"
 
-#define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_4 | ACTOR_FLAG_10 | ACTOR_FLAG_20)
+#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_UNFRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_20)
 
 #define THIS ((EnClearTag*)thisx)
 
@@ -20,7 +20,7 @@ typedef enum {
     /* 0x05 */ CLEAR_TAG_EFFECT_LIGHT_RAYS,
     /* 0x06 */ CLEAR_TAG_EFFECT_SHOCKWAVE,
     /* 0x07 */ CLEAR_TAG_EFFECT_SPLASH,
-    /* 0x08 */ CLEAR_TAG_EFFECT_ISOLATED_SMOKE,
+    /* 0x08 */ CLEAR_TAG_EFFECT_ISOLATED_SMOKE
 } ClearTagEffectType;
 
 void EnClearTag_Init(Actor* thisx, PlayState* play);
@@ -32,15 +32,15 @@ void EnClearTag_UpdateEffects(EnClearTag* this, PlayState* play);
 void EnClearTag_DrawEffects(Actor* thisx, PlayState* play);
 
 ActorInit En_Clear_Tag_InitVars = {
-    ACTOR_EN_CLEAR_TAG,
-    ACTORCAT_ITEMACTION,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(EnClearTag),
-    (ActorFunc)EnClearTag_Init,
-    (ActorFunc)EnClearTag_Destroy,
-    (ActorFunc)EnClearTag_Update,
-    (ActorFunc)EnClearTag_Draw,
+    /**/ ACTOR_EN_CLEAR_TAG,
+    /**/ ACTORCAT_ITEMACTION,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(EnClearTag),
+    /**/ EnClearTag_Init,
+    /**/ EnClearTag_Destroy,
+    /**/ EnClearTag_Update,
+    /**/ EnClearTag_Draw,
 };
 
 static Vec3f sZeroVector = { 0.0f, 0.0f, 0.0f };
@@ -419,10 +419,10 @@ void EnClearTag_Init(Actor* thisx, PlayState* play) {
     f32 lightRayMaxScale;
     u8 i;
     Vec3f pos;
-    Vec3f vel;
+    Vec3f velocity;
     Vec3f accel;
 
-    this->actor.flags &= ~ACTOR_FLAG_1;
+    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
     if (thisx->params >= 0) {
         this->activeTimer = 70;
         Math_Vec3f_Copy(&pos, &this->actor.world.pos);
@@ -435,18 +435,18 @@ void EnClearTag_Init(Actor* thisx, PlayState* play) {
 
         if (thisx->params != CLEAR_TAG_SPLASH) {
             // Initialize isolated light ray effect
-            if (thisx->params == CLEAR_TAG_SMALL_LIGHT_RAYS || thisx->params == CLEAR_TAG_LARGE_LIGHT_RAYS) {
+            if ((thisx->params == CLEAR_TAG_SMALL_LIGHT_RAYS) || (thisx->params == CLEAR_TAG_LARGE_LIGHT_RAYS)) {
                 for (i = 0; i < 54; i++) {
                     lightRayMaxScale =
                         sLightRayMaxScale[thisx->params] + Rand_ZeroFloat(sLightRayMaxScale[thisx->params]);
                     Matrix_RotateYF(Rand_ZeroFloat(M_PI * 2), MTXMODE_NEW);
                     Matrix_RotateXFApply(Rand_ZeroFloat(M_PI * 2));
-                    Matrix_MultVecZ(lightRayMaxScale, &vel);
-                    accel.x = vel.x * -0.03f;
-                    accel.y = vel.y * -0.03f;
-                    accel.z = vel.z * -0.03f;
+                    Matrix_MultVecZ(lightRayMaxScale, &velocity);
+                    accel.x = velocity.x * -0.03f;
+                    accel.y = velocity.y * -0.03f;
+                    accel.z = velocity.z * -0.03f;
                     EnClearTag_CreateIsolatedLightRayEffect(
-                        this, &pos, &vel, &accel,
+                        this, &pos, &velocity, &accel,
                         sLightRayScale[thisx->params] + Rand_ZeroFloat(sLightRayScale[thisx->params] * 0.5f),
                         sLightRayMaxScaleTarget[thisx->params], this->actor.world.rot.z, Rand_ZeroFloat(10.0f) + 20.0f);
                 }
@@ -463,7 +463,7 @@ void EnClearTag_Init(Actor* thisx, PlayState* play) {
             }
 
             // Initialize flash effect
-            Actor_UpdateBgCheckInfo(play, &this->actor, 50.0f, 30.0f, 100.0f, 4);
+            Actor_UpdateBgCheckInfo(play, &this->actor, 50.0f, 30.0f, 100.0f, UPDBGCHECKINFO_FLAG_4);
             pos = this->actor.world.pos;
             EnClearTag_CreateFlashEffect(this, &pos, sFlashMaxScale[thisx->params], this->actor.floorHeight);
 
@@ -490,17 +490,17 @@ void EnClearTag_Init(Actor* thisx, PlayState* play) {
                 if (thisx->params != CLEAR_TAG_POP) {
                     pos.y = this->actor.world.pos.y;
                     for (i = 0; i < 18; i++) {
-                        vel.x = sinf(i * (33.0f / 40.0f)) * i * .5f;
-                        vel.z = cosf(i * (33.0f / 40.0f)) * i * .5f;
-                        vel.y = Rand_ZeroFloat(8.0f) + 7.0f;
+                        velocity.x = sinf(i * (33.0f / 40.0f)) * i * .5f;
+                        velocity.z = cosf(i * (33.0f / 40.0f)) * i * .5f;
+                        velocity.y = Rand_ZeroFloat(8.0f) + 7.0f;
 
-                        vel.x += randPlusMinusPoint5Scaled(0.5f);
-                        vel.z += randPlusMinusPoint5Scaled(0.5f);
+                        velocity.x += Rand_CenteredFloat(0.5f);
+                        velocity.z += Rand_CenteredFloat(0.5f);
 
                         accel.x = 0.0f;
                         accel.y = -1.0f;
                         accel.z = 0.0f;
-                        EnClearTag_CreateDebrisEffect(this, &pos, &vel, &accel,
+                        EnClearTag_CreateDebrisEffect(this, &pos, &velocity, &accel,
                                                       sDebrisScale[thisx->params] +
                                                           Rand_ZeroFloat(sDebrisScale[thisx->params]),
                                                       this->actor.floorHeight);
@@ -514,11 +514,11 @@ void EnClearTag_Init(Actor* thisx, PlayState* play) {
                 lightRayMaxScale = sLightRayMaxScale[thisx->params] + Rand_ZeroFloat(sLightRayMaxScale[thisx->params]);
                 Matrix_RotateYF(Rand_ZeroFloat(2 * M_PI), MTXMODE_NEW);
                 Matrix_RotateXFApply(Rand_ZeroFloat(2 * M_PI));
-                Matrix_MultVecZ(lightRayMaxScale, &vel);
-                accel.x = vel.x * -0.03f;
-                accel.y = vel.y * -0.03f;
-                accel.z = vel.z * -0.03f;
-                EnClearTag_CreateLightRayEffect(this, &pos, &vel, &accel,
+                Matrix_MultVecZ(lightRayMaxScale, &velocity);
+                accel.x = velocity.x * -0.03f;
+                accel.y = velocity.y * -0.03f;
+                accel.z = velocity.z * -0.03f;
+                EnClearTag_CreateLightRayEffect(this, &pos, &velocity, &accel,
                                                 sLightRayScale[thisx->params] +
                                                     Rand_ZeroFloat(sLightRayScale[thisx->params] * 0.5f),
                                                 sLightRayMaxScaleTarget[thisx->params], Rand_ZeroFloat(10.0f) + 20.0f);
@@ -556,11 +556,11 @@ void EnClearTag_UpdateCamera(EnClearTag* this, PlayState* play) {
             }
             break;
         case 1:
-            Cutscene_Start(play, &play->csCtx);
+            Cutscene_StartManual(play, &play->csCtx);
             this->subCamId = Play_CreateSubCamera(play);
             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STATUS_WAIT);
             Play_ChangeCameraStatus(play, this->subCamId, CAM_STATUS_ACTIVE);
-            func_800B7298(play, &this->actor, PLAYER_CSMODE_4);
+            Player_SetCsActionWithHaltedActors(play, &this->actor, PLAYER_CSACTION_4);
             mainCam = Play_GetCamera(play, CAM_ID_MAIN);
             this->subCamEye.x = mainCam->eye.x;
             this->subCamEye.y = mainCam->eye.y;
@@ -570,7 +570,7 @@ void EnClearTag_UpdateCamera(EnClearTag* this, PlayState* play) {
             this->subCamAt.z = mainCam->at.z;
             Message_StartTextbox(play, 0xF, NULL);
             this->cameraState = 2;
-            func_8019FDC8(&gSfxDefaultPos, NA_SE_VO_NA_LISTEN, 0x20);
+            Audio_PlaySfx_AtPosWithReverb(&gSfxDefaultPos, NA_SE_VO_NA_LISTEN, 0x20);
         case 2:
             if (player->actor.world.pos.z > 0.0f) {
                 player->actor.world.pos.z = 290.0f;
@@ -585,8 +585,8 @@ void EnClearTag_UpdateCamera(EnClearTag* this, PlayState* play) {
                 mainCam->eyeNext = this->subCamEye;
                 mainCam->at = this->subCamAt;
                 func_80169AFC(play, this->subCamId, 0);
-                Cutscene_End(play, &play->csCtx);
-                func_800B7298(play, &this->actor, PLAYER_CSMODE_6);
+                Cutscene_StopManual(play, &play->csCtx);
+                Player_SetCsActionWithHaltedActors(play, &this->actor, PLAYER_CSACTION_END);
                 this->cameraState = 0;
                 this->subCamId = SUB_CAM_ID_DONE;
                 this->activeTimer = 20;
@@ -807,8 +807,9 @@ void EnClearTag_DrawEffects(Actor* thisx, PlayState* play) {
     EnClearTagEffect* firstEffect = this->effect;
 
     OPEN_DISPS(gfxCtx);
-    func_8012C28C(play->state.gfxCtx);
-    func_8012C2DC(play->state.gfxCtx);
+
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
+    Gfx_SetupDL25_Xlu(play->state.gfxCtx);
 
     // Draw all Debris effects.
     for (i = 0; i < ARRAY_COUNT(this->effect); i++, effect++) {
@@ -981,7 +982,7 @@ void EnClearTag_DrawEffects(Actor* thisx, PlayState* play) {
             gDPSetEnvColor(POLY_XLU_DISP++, 255, 255, 255, 200);
             gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 255, 255, 200);
             gSPSegment(POLY_XLU_DISP++, 0x08, Lib_SegmentedToVirtual(sWaterSplashTextures[effect->actionTimer]));
-            func_8012C9BC(gfxCtx);
+            Gfx_SetupDL61_Xlu(gfxCtx);
             gSPClearGeometryMode(POLY_XLU_DISP++, G_CULL_BACK);
             isMaterialApplied++;
 

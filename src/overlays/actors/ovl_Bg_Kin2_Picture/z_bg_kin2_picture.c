@@ -28,15 +28,15 @@ void BgKin2Picture_SetupDoNothing(BgKin2Picture* this);
 void BgKin2Picture_DoNothing(BgKin2Picture* this, PlayState* play);
 
 ActorInit Bg_Kin2_Picture_InitVars = {
-    ACTOR_BG_KIN2_PICTURE,
-    ACTORCAT_PROP,
-    FLAGS,
-    OBJECT_KIN2_OBJ,
-    sizeof(BgKin2Picture),
-    (ActorFunc)BgKin2Picture_Init,
-    (ActorFunc)BgKin2Picture_Destroy,
-    (ActorFunc)BgKin2Picture_Update,
-    (ActorFunc)BgKin2Picture_Draw,
+    /**/ ACTOR_BG_KIN2_PICTURE,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ OBJECT_KIN2_OBJ,
+    /**/ sizeof(BgKin2Picture),
+    /**/ BgKin2Picture_Init,
+    /**/ BgKin2Picture_Destroy,
+    /**/ BgKin2Picture_Update,
+    /**/ BgKin2Picture_Draw,
 };
 
 static ColliderTrisElementInit sTrisElementsInit[] = {
@@ -85,7 +85,7 @@ static InitChainEntry sInitChain[] = {
     ICHAIN_F32(uncullZoneDownward, 100, ICHAIN_CONTINUE), ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_STOP),
 };
 
-s32 BgKin2Picture_IsSkulltulaCollected(PlayState* play, s32 skulltulaParams) {
+bool BgKin2Picture_IsSkulltulaCollected(PlayState* play, s32 skulltulaParams) {
     s32 flag = -1;
 
     if ((u8)skulltulaParams & 3) {
@@ -105,7 +105,7 @@ void BgKin2Picture_SpawnSkulltula(BgKin2Picture* this, PlayState* play2) {
             Actor_Spawn(&play->actorCtx, play, ACTOR_EN_SW, this->dyna.actor.home.pos.x,
                         this->dyna.actor.home.pos.y + 23.0f, this->dyna.actor.home.pos.z, 0,
                         this->dyna.actor.home.rot.y, 0, skulltulaSpawnParams)) {
-            play_sound(NA_SE_SY_TRE_BOX_APPEAR);
+            Audio_PlaySfx(NA_SE_SY_TRE_BOX_APPEAR);
         }
     }
 }
@@ -162,7 +162,7 @@ void BgKin2Picture_Init(Actor* thisx, PlayState* play) {
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
     DynaPolyActor_Init(&this->dyna, 0);
     DynaPolyActor_LoadMesh(play, &this->dyna, &gOceanSpiderHouseSkullkidPaintingCol);
-    func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
+    DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
     Collider_InitTris(play, &this->colliderTris);
     Collider_SetTris(play, &this->colliderTris, &this->dyna.actor, &sTrisInit, this->colliderElement);
     Matrix_SetTranslateRotateYXZ(this->dyna.actor.world.pos.x, this->dyna.actor.world.pos.y,
@@ -202,7 +202,7 @@ void BgKin2Picture_Wait(BgKin2Picture* this, PlayState* play) {
     // hit by projectile
     if (this->colliderTris.base.acFlags & AC_HIT) {
         this->colliderTris.base.acFlags &= ~AC_HIT;
-        ActorCutscene_SetIntentToPlay(this->dyna.actor.cutscene);
+        CutsceneManager_Queue(this->dyna.actor.csId);
         BgKin2Picture_SetupPlayCutscene(this);
     } else { // Gold Skulltula can be heard behind Skullkid's painting.
         if (this->skulltulaNoiseTimer >= 0) {
@@ -227,12 +227,12 @@ void BgKin2Picture_SetupPlayCutscene(BgKin2Picture* this) {
 }
 
 void BgKin2Picture_PlayCutscene(BgKin2Picture* this, PlayState* play) {
-    if (ActorCutscene_GetCanPlayNext(this->dyna.actor.cutscene)) {
-        ActorCutscene_StartAndSetUnkLinkFields(this->dyna.actor.cutscene, &this->dyna.actor);
+    if (CutsceneManager_IsNext(this->dyna.actor.csId)) {
+        CutsceneManager_StartWithPlayerCs(this->dyna.actor.csId, &this->dyna.actor);
         this->cutsceneStarted = true;
         BgKin2Picture_SetupShiver(this);
     } else {
-        ActorCutscene_SetIntentToPlay(this->dyna.actor.cutscene);
+        CutsceneManager_Queue(this->dyna.actor.csId);
     }
 }
 
@@ -281,7 +281,7 @@ void BgKin2Picture_Fall(BgKin2Picture* this, PlayState* play) {
     }
 
     Actor_MoveWithGravity(&this->dyna.actor);
-    Actor_UpdateBgCheckInfo(play, &this->dyna.actor, 0.0f, 0.0f, 0.0f, 4);
+    Actor_UpdateBgCheckInfo(play, &this->dyna.actor, 0.0f, 0.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
 
     if (this->dyna.actor.bgCheckFlags & BGCHECKFLAG_GROUND) {
         Math_StepToS(&this->step, 0x7D0, 0x78);
@@ -314,10 +314,10 @@ void BgKin2Picture_Fall(BgKin2Picture* this, PlayState* play) {
         this->dyna.actor.shape.yOffset = 40.0f;
 
         if (this->cutsceneStarted) {
-            ActorCutscene_Stop(this->dyna.actor.cutscene);
+            CutsceneManager_Stop(this->dyna.actor.csId);
         }
 
-        func_800C6314(play, &play->colCtx.dyna, this->dyna.bgId);
+        DynaPoly_EnableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
         Actor_PlaySfx(&this->dyna.actor, NA_SE_EV_WOODPLATE_BROKEN);
         BgKin2Picture_SetupDoNothing(this);
     } else {

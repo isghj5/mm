@@ -6,7 +6,7 @@
 
 #include "z_en_heishi.h"
 
-#define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_8)
+#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
 
 #define THIS ((EnHeishi*)thisx)
 
@@ -20,24 +20,16 @@ void EnHeishi_SetHeadRotation(EnHeishi* this);
 void EnHeishi_SetupIdle(EnHeishi* this);
 void EnHeishi_Idle(EnHeishi* this, PlayState* play);
 
-typedef enum {
-    /* 0 */ HEISHI_ANIM_STAND_HAND_ON_HIP,
-    /* 1 */ HEISHI_ANIM_CHEER_WITH_SPEAR,
-    /* 2 */ HEISHI_ANIM_WAVE,
-    /* 3 */ HEISHI_ANIM_SIT_AND_REACH,
-    /* 4 */ HEISHI_ANIM_STAND_UP
-} EnHeishiAnimation;
-
 ActorInit En_Heishi_InitVars = {
-    ACTOR_EN_HEISHI,
-    ACTORCAT_NPC,
-    FLAGS,
-    OBJECT_SDN,
-    sizeof(EnHeishi),
-    (ActorFunc)EnHeishi_Init,
-    (ActorFunc)EnHeishi_Destroy,
-    (ActorFunc)EnHeishi_Update,
-    (ActorFunc)EnHeishi_Draw,
+    /**/ ACTOR_EN_HEISHI,
+    /**/ ACTORCAT_NPC,
+    /**/ FLAGS,
+    /**/ OBJECT_SDN,
+    /**/ sizeof(EnHeishi),
+    /**/ EnHeishi_Init,
+    /**/ EnHeishi_Destroy,
+    /**/ EnHeishi_Update,
+    /**/ EnHeishi_Draw,
 };
 
 static ColliderCylinderInit sCylinderInit = {
@@ -64,7 +56,7 @@ void EnHeishi_Init(Actor* thisx, PlayState* play) {
     EnHeishi* this = THIS;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 25.0f);
-    SkelAnime_InitFlex(play, &this->skelAnime, &gSoldierSkel, &gSoldierWave, this->jointTable, this->morphTable,
+    SkelAnime_InitFlex(play, &this->skelAnime, &gSoldierSkel, &gSoldierWaveAnim, this->jointTable, this->morphTable,
                        SOLDIER_LIMB_MAX);
     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
     this->paramsCopy = this->actor.params;
@@ -84,7 +76,7 @@ void EnHeishi_Init(Actor* thisx, PlayState* play) {
         }
     }
 
-    this->actor.targetMode = 6;
+    this->actor.targetMode = TARGET_MODE_6;
     this->actor.gravity = -3.0f;
     Collider_InitAndSetCylinder(play, &this->colliderCylinder, &this->actor, &sCylinderInit);
     this->actor.flags |= ACTOR_FLAG_CANT_LOCK_ON;
@@ -97,19 +89,36 @@ void EnHeishi_Destroy(Actor* thisx, PlayState* play) {
     Collider_DestroyCylinder(play, &this->colliderCylinder);
 }
 
+typedef enum EnHeishiAnimation {
+    /* 0 */ HEISHI_ANIM_STAND_HAND_ON_HIP,
+    /* 1 */ HEISHI_ANIM_CHEER_WITH_SPEAR,
+    /* 2 */ HEISHI_ANIM_WAVE,
+    /* 3 */ HEISHI_ANIM_SIT_AND_REACH,
+    /* 4 */ HEISHI_ANIM_STAND_UP,
+    /* 5 */ HEISHI_ANIM_MAX
+} EnHeishiAnimation;
+
+static AnimationHeader* sAnimations[HEISHI_ANIM_MAX] = {
+    &gSoldierStandHandOnHipAnim, // HEISHI_ANIM_STAND_HAND_ON_HIP
+    &gSoldierCheerWithSpearAnim, // HEISHI_ANIM_CHEER_WITH_SPEAR
+    &gSoldierWaveAnim,           // HEISHI_ANIM_WAVE
+    &gSoldierSitAndReachAnim,    // HEISHI_ANIM_SIT_AND_REACH
+    &gSoldierStandUpAnim,        // HEISHI_ANIM_STAND_UP
+};
+
+static u8 sAnimationModes[HEISHI_ANIM_MAX] = {
+    ANIMMODE_LOOP, // HEISHI_ANIM_STAND_HAND_ON_HIP
+    ANIMMODE_LOOP, // HEISHI_ANIM_CHEER_WITH_SPEAR
+    ANIMMODE_LOOP, // HEISHI_ANIM_WAVE
+    ANIMMODE_LOOP, // HEISHI_ANIM_SIT_AND_REACH
+    ANIMMODE_ONCE, // HEISHI_ANIM_STAND_UP
+};
+
 void EnHeishi_ChangeAnim(EnHeishi* this, s32 animIndex) {
-    static AnimationHeader* sAnimations[] = {
-        &gSoldierStandHandOnHip, &gSoldierCheerWithSpear, &gSoldierWave, &gSoldierSitAndReach, &gSoldierStandUp,
-    };
-    static u8 sAnimationModes[] = {
-        ANIMMODE_LOOP, ANIMMODE_LOOP, ANIMMODE_LOOP, ANIMMODE_LOOP, ANIMMODE_ONCE, ANIMMODE_LOOP,
-        ANIMMODE_LOOP, ANIMMODE_LOOP, ANIMMODE_LOOP, ANIMMODE_LOOP, ANIMMODE_LOOP, ANIMMODE_LOOP,
-        ANIMMODE_LOOP, ANIMMODE_LOOP, ANIMMODE_LOOP, ANIMMODE_LOOP,
-    };
 
     this->animIndex = animIndex;
-    this->frameCount = Animation_GetLastFrame(sAnimations[this->animIndex]);
-    Animation_Change(&this->skelAnime, sAnimations[this->animIndex], 1.0f, 0.0f, this->frameCount,
+    this->animEndFrame = Animation_GetLastFrame(sAnimations[this->animIndex]);
+    Animation_Change(&this->skelAnime, sAnimations[this->animIndex], 1.0f, 0.0f, this->animEndFrame,
                      sAnimationModes[this->animIndex], -10.0f);
 }
 
@@ -156,15 +165,17 @@ void EnHeishi_Update(Actor* thisx, PlayState* play) {
 
     this->actionFunc(this, play);
     Actor_MoveWithGravity(&this->actor);
-    Actor_UpdateBgCheckInfo(play, &this->actor, 20.0f, 20.0f, 50.0f, 29);
+    Actor_UpdateBgCheckInfo(play, &this->actor, 20.0f, 20.0f, 50.0f,
+                            UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4 | UPDBGCHECKINFO_FLAG_8 |
+                                UPDBGCHECKINFO_FLAG_10);
     Actor_SetScale(&this->actor, 0.01f);
     if (this->shouldSetHeadRotation) {
         EnHeishi_SetHeadRotation(this);
     }
 
     Actor_SetFocus(&this->actor, 60.0f);
-    Math_SmoothStepToS(&this->headRotX, this->headRotXTarget, 1, 3000, 0);
-    Math_SmoothStepToS(&this->headRotY, this->headRotYTarget, 1, 1000, 0);
+    Math_SmoothStepToS(&this->headRotX, this->headRotXTarget, 1, 0xBB8, 0);
+    Math_SmoothStepToS(&this->headRotY, this->headRotYTarget, 1, 0x3E8, 0);
     Collider_UpdateCylinder(&this->actor, &this->colliderCylinder);
     CollisionCheck_SetOC(play, &play->colChkCtx, &this->colliderCylinder.base);
 }
@@ -184,7 +195,7 @@ s32 EnHeishi_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f
 void EnHeishi_Draw(Actor* thisx, PlayState* play) {
     EnHeishi* this = THIS;
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                           EnHeishi_OverrideLimbDraw, NULL, &this->actor);
 }

@@ -8,17 +8,16 @@ struct EnDaiku;
 
 typedef void (*EnDaikuActionFunc)(struct EnDaiku*, PlayState*);
 
-// todo remove en
 #define ENDAIKU_GET_TYPE(thisx) ((thisx)->params & 0xFF);
-#define ENDAIKU_GET_PATH(thisx) (((thisx)->params >> 8) & 0xFF);
+#define ENDAIKU_GET_PATH_INDEX(thisx) (((thisx)->params >> 8) & 0xFF)
+#define ENDAIKU_PATH_INDEX_NONE 0x3F
 
-enum {
-    /* 0x0 */ ENDAIKU_PARAMS_FF_0,
-    /* 0x1 */ ENDAIKU_PARAMS_FF_1,
-    /* 0x2 */ ENDAIKU_PARAMS_FF_2,
-    /* 0x3 */ ENDAIKU_PARAMS_FF_3,
-    /* 0x4 */ new4, // happy
-};
+typedef enum {
+    /* 0 */ ENDAIKU_PARAM_FF_0,
+    /* 1 */ ENDAIKU_PARAM_FF_1,
+    /* 2 */ ENDAIKU_PARAM_FF_2,
+    /* 3 */ ENDAIKU_PARAM_FF_3
+} EnDaikuParam;
 
 typedef struct EnDaiku {
     /* 0x000 */ Actor actor;
@@ -42,7 +41,7 @@ typedef struct EnDaiku {
     /* 0x27E */ s16 unk_27E;
     /* 0x280 */ s16 unk_280;
     /* 0x282 */ s16 unk_282;
-    /* 0x284 */ f32 lastAnimFrame;
+    /* 0x284 */ f32 animEndFrame;
     /* 0x288 */ s16 pathIndex;
     /* 0x28A */ s16 unk_28A;
     /* 0x28C */ s16 unk_28C;

@@ -43,15 +43,15 @@ static ColliderCylinderInit sCylinderInit = {
 };
 
 ActorInit Bg_Icicle_InitVars = {
-    ACTOR_BG_ICICLE,
-    ACTORCAT_PROP,
-    FLAGS,
-    OBJECT_ICICLE,
-    sizeof(BgIcicle),
-    (ActorFunc)BgIcicle_Init,
-    (ActorFunc)BgIcicle_Destroy,
-    (ActorFunc)BgIcicle_Update,
-    (ActorFunc)BgIcicle_Draw,
+    /**/ ACTOR_BG_ICICLE,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ OBJECT_ICICLE,
+    /**/ sizeof(BgIcicle),
+    /**/ BgIcicle_Init,
+    /**/ BgIcicle_Destroy,
+    /**/ BgIcicle_Update,
+    /**/ BgIcicle_Draw,
 };
 
 static InitChainEntry sInitChain[] = {
@@ -69,7 +69,7 @@ void BgIcicle_Init(Actor* thisx, PlayState* play) {
 
     Actor_ProcessInitChain(thisx, sInitChain);
     DynaPolyActor_Init(&this->dyna, 0);
-    DynaPolyActor_LoadMesh(play, &this->dyna, &object_icicle_Colheader_000294);
+    DynaPolyActor_LoadMesh(play, &this->dyna, &gIcicleCol);
 
     Collider_InitAndSetCylinder(play, &this->collider, thisx, &sCylinderInit);
     Collider_UpdateCylinder(thisx, &this->collider);
@@ -77,7 +77,7 @@ void BgIcicle_Init(Actor* thisx, PlayState* play) {
     paramsHigh = (thisx->params >> 8) & 0xFF;
     paramsMid = (thisx->params >> 2) & 0x3F;
     this->unk_161 = (thisx->params >> 8) & 0xFF;
-    thisx->params = thisx->params & 3;
+    thisx->params &= 3;
 
     if (thisx->params == ICICLE_STALAGMITE_RANDOM_DROP || thisx->params == ICICLE_STALAGMITE_FIXED_DROP) {
         this->unk_160 = ((thisx->params == ICICLE_STALAGMITE_RANDOM_DROP) ? paramsHigh : paramsMid);
@@ -97,9 +97,9 @@ void BgIcicle_Destroy(Actor* thisx, PlayState* play) {
 }
 
 void BgIcicle_Break(BgIcicle* this, PlayState* play, f32 arg2) {
-    static Vec3f accel = { 0.0f, -1.0f, 0.0f };
-    static Color_RGBA8 primColor = { 170, 255, 255, 255 };
-    static Color_RGBA8 envColor = { 0, 50, 100, 255 };
+    static Vec3f sAccel = { 0.0f, -1.0f, 0.0f };
+    static Color_RGBA8 sPrimColor = { 170, 255, 255, 255 };
+    static Color_RGBA8 sEnvColor = { 0, 50, 100, 255 };
     Vec3f velocity;
     Vec3f pos;
     s32 j;
@@ -109,15 +109,15 @@ void BgIcicle_Break(BgIcicle* this, PlayState* play, f32 arg2) {
 
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 10; j++) {
-            pos.x = this->dyna.actor.world.pos.x + randPlusMinusPoint5Scaled(8.0f);
+            pos.x = this->dyna.actor.world.pos.x + Rand_CenteredFloat(8.0f);
             pos.y = this->dyna.actor.world.pos.y + (Rand_ZeroOne() * arg2) + (i * arg2);
-            pos.z = this->dyna.actor.world.pos.z + randPlusMinusPoint5Scaled(8.0f);
+            pos.z = this->dyna.actor.world.pos.z + Rand_CenteredFloat(8.0f);
 
-            velocity.x = randPlusMinusPoint5Scaled(7.0f);
-            velocity.z = randPlusMinusPoint5Scaled(7.0f);
+            velocity.x = Rand_CenteredFloat(7.0f);
+            velocity.z = Rand_CenteredFloat(7.0f);
             velocity.y = (Rand_ZeroOne() * 4.0f) + 8.0f;
 
-            EffectSsEnIce_Spawn(play, &pos, (Rand_ZeroOne() * 0.2f) + 0.1f, &velocity, &accel, &primColor, &envColor,
+            EffectSsEnIce_Spawn(play, &pos, (Rand_ZeroOne() * 0.2f) + 0.1f, &velocity, &sAccel, &sPrimColor, &sEnvColor,
                                 30);
         }
     }
@@ -150,7 +150,7 @@ void BgIcicle_Shiver(BgIcicle* this, PlayState* play) {
         this->dyna.actor.world.pos.z = this->dyna.actor.home.pos.z;
 
         CollisionCheck_SetAT(play, &play->colChkCtx, &this->collider.base);
-        func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
+        DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
         this->actionFunc = BgIcicle_Fall;
     } else {
         rand = Rand_ZeroOne();
@@ -175,7 +175,7 @@ void BgIcicle_Fall(BgIcicle* this, PlayState* play) {
 
         if (this->dyna.actor.params == ICICLE_STALACTITE_REGROW) {
             this->dyna.actor.world.pos.y = this->dyna.actor.home.pos.y + 120.0f;
-            func_800C6314(play, &play->colCtx.dyna, this->dyna.bgId);
+            DynaPoly_EnableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
             this->actionFunc = BgIcicle_Regrow;
         } else {
             Actor_Kill(&this->dyna.actor);
@@ -183,7 +183,7 @@ void BgIcicle_Fall(BgIcicle* this, PlayState* play) {
     } else {
         Actor_MoveWithGravity(&this->dyna.actor);
         this->dyna.actor.world.pos.y += 40.0f;
-        Actor_UpdateBgCheckInfo(play, &this->dyna.actor, 0.0f, 0.0f, 0.0f, 4);
+        Actor_UpdateBgCheckInfo(play, &this->dyna.actor, 0.0f, 0.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
         this->dyna.actor.world.pos.y -= 40.0f;
         CollisionCheck_SetAT(play, &play->colChkCtx, &this->collider.base);
     }
@@ -216,7 +216,7 @@ void BgIcicle_UpdateAttacked(BgIcicle* this, PlayState* play) {
             if (this->dyna.actor.params == ICICLE_STALACTITE_REGROW) {
                 BgIcicle_Break(this, play, 40.0f);
                 this->dyna.actor.world.pos.y = this->dyna.actor.home.pos.y + 120.0f;
-                func_800C6314(play, &play->colCtx.dyna, this->dyna.bgId);
+                DynaPoly_EnableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
                 this->actionFunc = BgIcicle_Regrow;
                 return;
             }
@@ -242,5 +242,5 @@ void BgIcicle_Update(Actor* thisx, PlayState* play) {
 }
 
 void BgIcicle_Draw(Actor* thisx, PlayState* play) {
-    Gfx_DrawDListOpa(play, object_icicle_DL_0000D0);
+    Gfx_DrawDListOpa(play, gIcicleDL);
 }

@@ -17,22 +17,22 @@ void ObjEntotu_Update(Actor* thisx, PlayState* play);
 void ObjEntotu_Draw(Actor* thisx, PlayState* play);
 
 ActorInit Obj_Entotu_InitVars = {
-    ACTOR_OBJ_ENTOTU,
-    ACTORCAT_PROP,
-    FLAGS,
-    OBJECT_F53_OBJ,
-    sizeof(ObjEntotu),
-    (ActorFunc)ObjEntotu_Init,
-    (ActorFunc)ObjEntotu_Destroy,
-    (ActorFunc)ObjEntotu_Update,
-    (ActorFunc)ObjEntotu_Draw,
+    /**/ ACTOR_OBJ_ENTOTU,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ OBJECT_F53_OBJ,
+    /**/ sizeof(ObjEntotu),
+    /**/ ObjEntotu_Init,
+    /**/ ObjEntotu_Destroy,
+    /**/ ObjEntotu_Update,
+    /**/ ObjEntotu_Draw,
 };
 
 #include "overlays/ovl_Obj_Entotu/ovl_Obj_Entotu.c"
 
 s32 func_80A34700(s16 minutes) {
     s32 ret = 0;
-    s16 time = TIME_TO_MINUTES_F(gSaveContext.save.time);
+    s16 time = TIME_TO_MINUTES_F(CURRENT_TIME);
     s32 hours = time / 60;
     s32 currMinutes = time % 60;
 
@@ -104,7 +104,7 @@ void func_80A34A44(ObjEntotu* this, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
     gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
     gSPDisplayList(POLY_OPA_DISP++, object_f53_obj_DL_000158);
@@ -136,7 +136,7 @@ void func_80A34B28(ObjEntotu* this, PlayState* play) {
 
         OPEN_DISPS(play->state.gfxCtx);
 
-        func_8012C28C(play->state.gfxCtx);
+        Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
         gSPSegment(POLY_XLU_DISP++, 0x08,
                    Gfx_TwoTexScroll(play->state.gfxCtx, 0, 0, sp57, 0x20, 0x20, 1, 0, sp56, 0x20, 0x20));

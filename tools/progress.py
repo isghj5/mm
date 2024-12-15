@@ -103,12 +103,16 @@ def GetFunctionSizes(mapFileList):
 
 def CalculateNonNamedAssets(mapFileList, assetsTracker):
     for mapFile in mapFileList:
-        if mapFile["section"] != ".data":
+        if mapFile["section"] != ".data" and mapFile["section"] != ".rodata":
             continue
         if not mapFile["name"].startswith("build/assets/"):
             continue
 
-        assetCat = mapFile["name"].split("/")[2]
+        if mapFile["name"].startswith("build/assets/c"):
+            assetCat = mapFile["name"].split("/")[3]
+        else:
+            assetCat = mapFile["name"].split("/")[2]
+
 
         for symbol in mapFile["symbols"]:
             symbolName = symbol["name"]
@@ -136,7 +140,6 @@ if not args.matching:
 # The order of this list should not change to prevent breaking the graph of the website
 # New stuff shall be appended at the end of the list
 assetsCategories = [
-    "archives",
     "audio",
     "interface",
     "misc",
@@ -147,6 +150,11 @@ assetsCategories = [
     # "segments",
 ]
 assetsTracker = dict()
+
+# Assets that we don't have a proper way of tracking right now
+ignoredAssets = {
+    "archives",
+}
 
 # Manual fixer for files that would be counted in wrong categories
 # "filename": "correctSection"
@@ -203,12 +211,12 @@ for line in map_file:
         file_size = int(line_split[2], 16)
         obj_file = line_split[3].strip()
         objFileSplit = obj_file.split("/")
+        objFileName = objFileSplit[-1].split(".o")[0]
 
         fileData = {"name": obj_file, "vram": obj_vram, "size": file_size, "section": section, "symbols": []}
         mapFileList.append(fileData)
 
         if (section == ".text"):
-            objFileName = objFileSplit[-1].split(".o")[0]
             srcCat = obj_file.split("/")[2]
             if srcCat in srcCategoriesFixer:
                 srcCat = srcCategoriesFixer[srcCat]
@@ -224,16 +232,21 @@ for line in map_file:
                 if srcCat in asmTracker:
                     asmTracker[srcCat]["totalSize"] += file_size
 
-        if section == ".data":
+        if section == ".data" or section == ".rodata":
             if obj_file.startswith("build/assets/"):
-                assetCat = obj_file.split("/")[2]
+                if obj_file.startswith("build/assets/c"):
+                    assetCat = obj_file.split("/")[3]
+                else:
+                    assetCat = obj_file.split("/")[2]
                 if assetCat in assetsTracker:
                     assetsTracker[assetCat]["currentSize"] += file_size
+                elif assetCat in ignoredAssets:
+                    pass
                 else:
                     eprint(f"Found file '{obj_file}' in unknown asset category '{assetCat}'")
                     eprint("I'll ignore this for now, but please fix it!")
 
-    elif len(line_split) == 2 and line_split[0].startswith("0x00000000"):
+    elif len(line_split) == 2 and line_split[0].startswith("0x"):
         varVramStr, varName = line_split
         varVram = int(varVramStr, 16)
         varName = varName.strip()

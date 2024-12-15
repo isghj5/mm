@@ -38,8 +38,12 @@
  * Throughout this file, `mode` indicates whether to multiply the matrix on top of the stack by the new construction
  * (APPLY), or to just overwrite it (NEW).
  */
+#include "sys_matrix.h"
 
-#include "global.h"
+#include "gfx.h"
+#include "macros.h"
+#include "z64game.h"
+#include "z64skin_matrix.h"
 
 /* data */
 
@@ -74,7 +78,7 @@ MtxF* sCurrentMatrix; //!< original name: "Matrix_now"
  * @remark original name: "new_Matrix"
  */
 void Matrix_Init(GameState* gameState) {
-    sMatrixStack = THA_AllocEndAlign16(&gameState->heap, MATRIX_STACK_SIZE * sizeof(MtxF));
+    sMatrixStack = THA_AllocTailAlign16(&gameState->tha, MATRIX_STACK_SIZE * sizeof(MtxF));
     sCurrentMatrix = sMatrixStack;
 }
 
@@ -444,8 +448,8 @@ void Matrix_RotateXFApply(f32 x) {
     if (x != 0.0f) {
         cmf = sCurrentMatrix;
 
-        sin = sins(RADF_TO_BINANG(x)) * SHT_MINV;
-        cos = coss(RADF_TO_BINANG(x)) * SHT_MINV;
+        sin = sins(RAD_TO_BINANG(x)) * SHT_MINV;
+        cos = coss(RAD_TO_BINANG(x)) * SHT_MINV;
 
         tempY = cmf->xy;
         tempZ = cmf->xz;

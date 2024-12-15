@@ -29,15 +29,15 @@ void func_80AD0274(EnFuKago* this);
 void func_80AD0288(EnFuKago* this, PlayState* play);
 
 ActorInit En_Fu_Kago_InitVars = {
-    ACTOR_EN_FU_KAGO,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_FU_MATO,
-    sizeof(EnFuKago),
-    (ActorFunc)EnFuKago_Init,
-    (ActorFunc)EnFuKago_Destroy,
-    (ActorFunc)EnFuKago_Update,
-    (ActorFunc)EnFuKago_Draw,
+    /**/ ACTOR_EN_FU_KAGO,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_FU_MATO,
+    /**/ sizeof(EnFuKago),
+    /**/ EnFuKago_Init,
+    /**/ EnFuKago_Destroy,
+    /**/ EnFuKago_Update,
+    /**/ EnFuKago_Draw,
 };
 
 static ColliderSphereInit sSphereInit = {
@@ -86,7 +86,7 @@ void EnFuKago_Init(Actor* thisx, PlayState* play) {
     CollisionHeader* sp34 = NULL;
     Actor* npc = play->actorCtx.actorLists[ACTORCAT_NPC].first;
 
-    DynaPolyActor_Init(&this->dyna, 1);
+    DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS);
     CollisionHeader_GetVirtual(&object_fu_mato_Colheader_0015C0, &sp34);
     this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, &this->dyna.actor, sp34);
     Actor_SetScale(&this->dyna.actor, 0.1f);
@@ -138,9 +138,9 @@ s32 func_80ACF8B8(EnFuKago* this, PlayState* play) {
 
         Actor_PlaySfx(&this->dyna.actor, NA_SE_SY_TRE_BOX_APPEAR);
         return true;
-    } else {
-        CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
     }
+
+    CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
     return false;
 }
 
@@ -228,7 +228,7 @@ void func_80ACFA78(EnFuKago* this, PlayState* play) {
     this->unk_33A = 1;
 
     Actor_PlaySfx(&this->dyna.actor, NA_SE_EV_WOODBOX_BREAK);
-    func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
+    DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
     this->actionFunc = func_80AD0028;
 }
 
@@ -364,7 +364,7 @@ void func_80AD0340(EnFuKago* this, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
     for (i = 0; i < ARRAY_COUNT(D_80AD061C); i++, ptr++) {
         Matrix_Push();
@@ -390,7 +390,7 @@ void EnFuKago_Draw(Actor* thisx, PlayState* play) {
     if (this->unk_33A == 0) {
         OPEN_DISPS(play->state.gfxCtx);
 
-        func_8012C28C(play->state.gfxCtx);
+        Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
         gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
         gSPDisplayList(POLY_OPA_DISP++, object_fu_mato_DL_0006A0);

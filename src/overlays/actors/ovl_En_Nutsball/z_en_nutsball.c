@@ -20,15 +20,15 @@ void EnNutsball_Draw(Actor* thisx, PlayState* play);
 void EnNutsball_InitColliderParams(EnNutsball* this);
 
 ActorInit En_Nutsball_InitVars = {
-    ACTOR_EN_NUTSBALL,
-    ACTORCAT_PROP,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(EnNutsball),
-    (ActorFunc)EnNutsball_Init,
-    (ActorFunc)EnNutsball_Destroy,
-    (ActorFunc)EnNutsball_Update,
-    (ActorFunc)EnNutsball_Draw,
+    /**/ ACTOR_EN_NUTSBALL,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(EnNutsball),
+    /**/ EnNutsball_Init,
+    /**/ EnNutsball_Destroy,
+    /**/ EnNutsball_Update,
+    /**/ EnNutsball_Draw,
 };
 
 static ColliderCylinderInit sCylinderInit = {
@@ -80,7 +80,7 @@ void EnNutsball_Destroy(Actor* thisx, PlayState* play) {
 }
 
 void EnNutsball_InitColliderParams(EnNutsball* this) {
-    this->collider.base.atFlags &= ~AT_TYPE_ENEMY & ~AT_BOUNCED & ~AT_HIT;
+    this->collider.base.atFlags &= ~(AT_HIT | AT_TYPE_ENEMY | AT_BOUNCED);
     this->collider.base.atFlags |= AT_TYPE_PLAYER;
     this->collider.info.toucher.dmgFlags = 0x400000;
     this->collider.info.toucher.damage = 2;
@@ -93,7 +93,7 @@ void EnNutsball_Update(Actor* thisx, PlayState* play2) {
     Vec3f worldPos;
     Vec3s worldRot;
     Vec3f spawnBurstPos;
-    f32 spdXZ;
+    f32 speedXZ;
     s32 bgId;
     CollisionPoly* poly;
 
@@ -102,9 +102,9 @@ void EnNutsball_Update(Actor* thisx, PlayState* play2) {
         this->timer--;
         if (this->timer < 0) {
             this->actor.velocity.y += this->actor.gravity;
-            spdXZ = sqrtf((this->actor.velocity.x * this->actor.velocity.x) +
-                          (this->actor.velocity.z * this->actor.velocity.z));
-            this->actor.world.rot.x = Math_Atan2S_XY(spdXZ, this->actor.velocity.y);
+            speedXZ = sqrtf((this->actor.velocity.x * this->actor.velocity.x) +
+                            (this->actor.velocity.z * this->actor.velocity.z));
+            this->actor.world.rot.x = Math_Atan2S_XY(speedXZ, this->actor.velocity.y);
         }
         this->actor.home.rot.z += 0x2AA8;
         if ((this->actor.bgCheckFlags & BGCHECKFLAG_WALL) || (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) ||
@@ -136,14 +136,16 @@ void EnNutsball_Update(Actor* thisx, PlayState* play2) {
 
         Actor_MoveWithoutGravity(&this->actor);
         Math_Vec3f_Copy(&worldPos, &this->actor.world.pos);
-        Actor_UpdateBgCheckInfo(play, &this->actor, 10.0f, 5.0f, 10.0f, 0x7);
+        Actor_UpdateBgCheckInfo(play, &this->actor, 10.0f, 5.0f, 10.0f,
+                                UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_2 | UPDBGCHECKINFO_FLAG_4);
 
         if (this->actor.bgCheckFlags & BGCHECKFLAG_WALL) {
-            if (func_800C9A4C(&play->colCtx, this->actor.wallPoly, this->actor.wallBgId) & 0x30) {
+            if (SurfaceType_GetWallFlags(&play->colCtx, this->actor.wallPoly, this->actor.wallBgId) &
+                (WALL_FLAG_4 | WALL_FLAG_5)) {
                 this->actor.bgCheckFlags &= ~BGCHECKFLAG_WALL;
                 if (BgCheck_EntityLineTest1(&play->colCtx, &this->actor.prevPos, &worldPos, &this->actor.world.pos,
                                             &poly, true, false, false, true, &bgId)) {
-                    if (func_800C9A4C(&play->colCtx, poly, bgId) & 0x30) {
+                    if (SurfaceType_GetWallFlags(&play->colCtx, poly, bgId) & (WALL_FLAG_4 | WALL_FLAG_5)) {
                         this->actor.world.pos.x += this->actor.velocity.x * 0.01f;
                         this->actor.world.pos.z += this->actor.velocity.z * 0.01f;
                     } else {
@@ -171,10 +173,12 @@ void EnNutsball_Draw(Actor* thisx, PlayState* play) {
     EnNutsball* this = THIS;
 
     OPEN_DISPS(play->state.gfxCtx);
-    func_8012C28C(play->state.gfxCtx);
+
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
     Matrix_Mult(&play->billboardMtxF, MTXMODE_APPLY);
     Matrix_RotateZS(this->actor.home.rot.z, MTXMODE_APPLY);
     gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
     gSPDisplayList(POLY_OPA_DISP++, gameplay_keep_DL_058BA0);
+
     CLOSE_DISPS(play->state.gfxCtx);
 }

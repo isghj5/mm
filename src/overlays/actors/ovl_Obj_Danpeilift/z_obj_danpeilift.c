@@ -22,15 +22,15 @@ void ObjDanpeilift_Teleport(ObjDanpeilift* this, PlayState* play);
 void ObjDanpeilift_Wait(ObjDanpeilift* this, PlayState* play);
 
 ActorInit Obj_Danpeilift_InitVars = {
-    ACTOR_OBJ_DANPEILIFT,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_OBJ_DANPEILIFT,
-    sizeof(ObjDanpeilift),
-    (ActorFunc)ObjDanpeilift_Init,
-    (ActorFunc)ObjDanpeilift_Destroy,
-    (ActorFunc)ObjDanpeilift_Update,
-    (ActorFunc)ObjDanpeilift_Draw,
+    /**/ ACTOR_OBJ_DANPEILIFT,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_OBJ_DANPEILIFT,
+    /**/ sizeof(ObjDanpeilift),
+    /**/ ObjDanpeilift_Init,
+    /**/ ObjDanpeilift_Destroy,
+    /**/ ObjDanpeilift_Update,
+    /**/ ObjDanpeilift_Draw,
 };
 
 static InitChainEntry sInitChain[] = {
@@ -41,7 +41,7 @@ static InitChainEntry sInitChain[] = {
 };
 
 void ObjDanpeilift_UpdatePosition(ObjDanpeilift* this, s32 index) {
-    Math_Vec3s_ToVec3f(&this->dyna.actor.world.pos, &this->points[index]);
+    Math_Vec3s_ToVec3f(&this->dyna.actor.world.pos, &this->pathPoints[index]);
 }
 
 void ObjDanpeilift_Init(Actor* thisx, PlayState* play) {
@@ -54,7 +54,7 @@ void ObjDanpeilift_Init(Actor* thisx, PlayState* play) {
     this->dyna.actor.world.rot.x = 0;
     this->dyna.actor.shape.rot.z = 0;
     this->dyna.actor.world.rot.z = 0;
-    DynaPolyActor_Init(&this->dyna, 1);
+    DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS);
     DynaPolyActor_LoadMesh(play, &this->dyna, &object_obj_danpeilift_Colheader_000BA0);
     if (this->dyna.bgId == BG_ACTOR_MAX) {
         Actor_Kill(&this->dyna.actor);
@@ -68,11 +68,11 @@ void ObjDanpeilift_Init(Actor* thisx, PlayState* play) {
     if (this->speed < 0.01f) {
         this->actionFunc = ObjDanpeilift_DoNothing;
     } else {
-        path = &play->setupPathList[OBJDANPEILIFT_GET_PATH(thisx)];
+        path = &play->setupPathList[OBJDANPEILIFT_GET_PATH_INDEX(thisx)];
         this->curPoint = OBJDANPEILIFT_GET_STARTING_POINT(thisx);
         this->endPoint = path->count - 1;
         this->direction = 1;
-        this->points = Lib_SegmentedToVirtual(path->points);
+        this->pathPoints = Lib_SegmentedToVirtual(path->points);
         ObjDanpeilift_UpdatePosition(this, this->curPoint);
         this->actionFunc = ObjDanpeilift_Move;
     }
@@ -96,7 +96,7 @@ void ObjDanpeilift_Move(ObjDanpeilift* this, PlayState* play) {
     s32 isPosUpdated;
     Vec3s* endPoint;
 
-    Math_Vec3s_ToVec3f(&nextPoint, this->points + this->curPoint + this->direction);
+    Math_Vec3s_ToVec3f(&nextPoint, this->pathPoints + this->curPoint + this->direction);
     Math_Vec3f_Diff(&nextPoint, &thisx->world.pos, &thisx->velocity);
     speed = Math3D_Vec3fMagnitude(&thisx->velocity);
     if ((speed < (this->speed * 8.0f)) && (this->speed > 2.0f)) {
@@ -125,12 +125,12 @@ void ObjDanpeilift_Move(ObjDanpeilift* this, PlayState* play) {
                 this->waitTimer = 10;
                 this->actionFunc = ObjDanpeilift_Wait;
             } else {
-                endPoint = &this->points[this->endPoint];
+                endPoint = &this->pathPoints[this->endPoint];
                 this->curPoint = this->direction > 0 ? 0 : this->endPoint;
-                if ((this->points[0].x != endPoint->x) || (this->points[0].y != endPoint->y) ||
-                    (this->points[0].z != endPoint->z)) {
+                if ((this->pathPoints[0].x != endPoint->x) || (this->pathPoints[0].y != endPoint->y) ||
+                    (this->pathPoints[0].z != endPoint->z)) {
                     this->actionFunc = ObjDanpeilift_Teleport;
-                    func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
+                    DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
                     isPosUpdated = false;
                 }
             }
@@ -143,9 +143,9 @@ void ObjDanpeilift_Move(ObjDanpeilift* this, PlayState* play) {
 }
 
 void ObjDanpeilift_Teleport(ObjDanpeilift* this, PlayState* play) {
-    if (!DynaPolyActor_IsInRidingMovingState(&this->dyna)) {
+    if (!DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
         ObjDanpeilift_UpdatePosition(this, this->curPoint);
-        func_800C6314(play, &play->colCtx.dyna, this->dyna.bgId);
+        DynaPoly_EnableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
         this->actionFunc = ObjDanpeilift_Move;
     }
 }
@@ -167,23 +167,23 @@ void ObjDanpeilift_Update(Actor* thisx, PlayState* play) {
     if (this->cutsceneTimer > 0) {
         this->cutsceneTimer--;
         if (this->cutsceneTimer == 0) {
-            ActorCutscene_Stop(this->dyna.actor.cutscene);
+            CutsceneManager_Stop(this->dyna.actor.csId);
         }
     }
-    if (OBJDANPEILIFT_SHOULD_REACT_TO_WEIGHT(thisx)) {
+    if (OBJDANPEILIFT_REACT_TO_PLAYER_ON_TOP(thisx)) {
         f32 target;
 
-        this->isWeightOnPrev = this->isWeightOn;
-        this->isWeightOn = DynaPolyActor_IsInRidingMovingState(&this->dyna) ? 1 : 0;
-        if ((this->isWeightOn != this->isWeightOnPrev) && (this->maxHeight < 1.0f)) {
+        this->isPlayerOnTopPrev = this->isPlayerOnTop;
+        this->isPlayerOnTop = DynaPolyActor_IsPlayerOnTop(&this->dyna) ? true : false;
+        if ((this->isPlayerOnTop != this->isPlayerOnTopPrev) && (this->maxHeight < 1.0f)) {
             this->cycle = -0x8000;
             this->maxHeight = 6.0f;
         }
         this->cycle += 0xCE4;
         Math_StepToF(&this->maxHeight, 0.0f, 0.12f);
-        step = this->isWeightOn ? Math_CosS(fabsf(this->cycleSpeed) * 2048.0f) + 0.02f
-                                : Math_SinS(fabsf(this->cycleSpeed) * 2048.0f) + 0.02f;
-        target = this->isWeightOn ? -8.0f : 0.0f;
+        step = this->isPlayerOnTop ? Math_CosS(fabsf(this->cycleSpeed) * 2048.0f) + 0.02f
+                                   : Math_SinS(fabsf(this->cycleSpeed) * 2048.0f) + 0.02f;
+        target = this->isPlayerOnTop ? -8.0f : 0.0f;
         Math_StepToF(&this->cycleSpeed, target, step);
         this->dyna.actor.shape.yOffset = ((Math_SinS(this->cycle) * this->maxHeight) + this->cycleSpeed) * 10.0f;
     }

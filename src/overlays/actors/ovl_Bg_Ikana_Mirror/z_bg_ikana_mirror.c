@@ -27,15 +27,15 @@ void BgIkanaMirror_SetupEmitLight(BgIkanaMirror* this);
 void BgIkanaMirror_EmitLight(BgIkanaMirror* this, PlayState* play);
 
 ActorInit Bg_Ikana_Mirror_InitVars = {
-    ACTOR_BG_IKANA_MIRROR,
-    ACTORCAT_PROP,
-    FLAGS,
-    OBJECT_IKANA_OBJ,
-    sizeof(BgIkanaMirror),
-    (ActorFunc)BgIkanaMirror_Init,
-    (ActorFunc)BgIkanaMirror_Destroy,
-    (ActorFunc)BgIkanaMirror_Update,
-    (ActorFunc)BgIkanaMirror_Draw,
+    /**/ ACTOR_BG_IKANA_MIRROR,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ OBJECT_IKANA_OBJ,
+    /**/ sizeof(BgIkanaMirror),
+    /**/ BgIkanaMirror_Init,
+    /**/ BgIkanaMirror_Destroy,
+    /**/ BgIkanaMirror_Update,
+    /**/ BgIkanaMirror_Draw,
 };
 
 static ColliderTrisElementInit sMirrorColliderElementsInit[] = {
@@ -380,8 +380,9 @@ void BgIkanaMirror_Draw(Actor* thisx, PlayState* play) {
     BgIkanaMirror* this = THIS;
 
     OPEN_DISPS(play->state.gfxCtx);
-    func_8012C28C(play->state.gfxCtx);
-    func_8012C2DC(play->state.gfxCtx);
+
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
+    Gfx_SetupDL25_Xlu(play->state.gfxCtx);
     gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
     gSPDisplayList(POLY_OPA_DISP++, gStoneTowerTempleMirrorDL);
 

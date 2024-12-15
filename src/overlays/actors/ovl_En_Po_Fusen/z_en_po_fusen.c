@@ -5,6 +5,7 @@
  */
 
 #include "z_en_po_fusen.h"
+#include "overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.h"
 #include "overlays/actors/ovl_En_Ma4/z_en_ma4.h"
 
 #define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20 | ACTOR_FLAG_100000 | ACTOR_FLAG_80000000)
@@ -16,24 +17,23 @@ void EnPoFusen_Destroy(Actor* thisx, PlayState* play);
 void EnPoFusen_Update(Actor* thisx, PlayState* play);
 void EnPoFusen_Draw(Actor* thisx, PlayState* play);
 
-u16 EnPoFusen_CheckParent(EnPoFusen* this, PlayState* play);
+s32 EnPoFusen_CheckParent(EnPoFusen* this, PlayState* play);
 void EnPoFusen_InitNoFuse(EnPoFusen* this);
 void EnPoFusen_InitFuse(EnPoFusen* this);
 void EnPoFusen_Pop(EnPoFusen* this, PlayState* play);
 void EnPoFusen_Idle(EnPoFusen* this, PlayState* play);
 void EnPoFusen_IdleFuse(EnPoFusen* this, PlayState* play);
-s32 EnPoFusen_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx);
 
 ActorInit En_Po_Fusen_InitVars = {
-    ACTOR_EN_PO_FUSEN,
-    ACTORCAT_PROP,
-    FLAGS,
-    OBJECT_PO_FUSEN,
-    sizeof(EnPoFusen),
-    (ActorFunc)EnPoFusen_Init,
-    (ActorFunc)EnPoFusen_Destroy,
-    (ActorFunc)EnPoFusen_Update,
-    (ActorFunc)EnPoFusen_Draw,
+    /**/ ACTOR_EN_PO_FUSEN,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ OBJECT_PO_FUSEN,
+    /**/ sizeof(EnPoFusen),
+    /**/ EnPoFusen_Init,
+    /**/ EnPoFusen_Destroy,
+    /**/ EnPoFusen_Update,
+    /**/ EnPoFusen_Draw,
 };
 
 static ColliderSphereInit sSphereInit = {
@@ -58,7 +58,7 @@ static ColliderSphereInit sSphereInit = {
 
 typedef enum {
     /* 0x0 */ POE_BALLOON_DMGEFF_NONE,
-    /* 0xF */ POE_BALLOON_DMGEFF_POP = 0xF,
+    /* 0xF */ POE_BALLOON_DMGEFF_POP = 0xF
 } PoeBalloonDamageEffect;
 
 static DamageTable sDamageTable = {
@@ -101,7 +101,7 @@ void EnPoFusen_Init(Actor* thisx, PlayState* play) {
     f32 flyingHeightMin;
 
     this->actor.scale.x = this->actor.scale.y = this->actor.scale.z = 0.007f;
-    this->actor.targetMode = 6;
+    this->actor.targetMode = TARGET_MODE_6;
     this->actor.colChkInfo.damageTable = &sDamageTable;
 
     Collider_InitSphere(play, &this->collider);
@@ -111,7 +111,7 @@ void EnPoFusen_Init(Actor* thisx, PlayState* play) {
     SkelAnime_InitFlex(play, &this->anime, &gPoeBalloonSkel, &gPoeBalloonEmptyAnim, this->jointTable, this->morphTable,
                        POE_BALLOON_LIMB_MAX);
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 25.0f);
-    Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 0x4);
+    Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
 
     if (!EnPoFusen_CheckParent(this, play)) {
         Actor_Kill(&this->actor);
@@ -146,9 +146,9 @@ void EnPoFusen_Destroy(Actor* thisx, PlayState* play) {
 }
 
 /**
- * Search for Romani's actor, beacuse it's PoFusen's job to update her actor on pop.
+ * Search for Romani's actor, beacuse it's PoFusen's job to update her actor when the balloon is popped.
  */
-u16 EnPoFusen_CheckParent(EnPoFusen* this, PlayState* play) {
+s32 EnPoFusen_CheckParent(EnPoFusen* this, PlayState* play) {
     Actor* actorIter = play->actorCtx.actorLists[ACTORCAT_NPC].first;
 
     if (POE_BALLOON_IS_FUSE_TYPE(&this->actor)) {
@@ -166,7 +166,7 @@ u16 EnPoFusen_CheckParent(EnPoFusen* this, PlayState* play) {
     return false;
 }
 
-u16 EnPoFusen_CheckCollision(EnPoFusen* this, PlayState* play) {
+s32 EnPoFusen_CheckCollision(EnPoFusen* this, PlayState* play) {
     if (this->actionFunc == EnPoFusen_IdleFuse) {
         return false;
     }
@@ -195,7 +195,6 @@ void EnPoFusen_Idle(EnPoFusen* this, PlayState* play) {
     f32 shadowScaleTmp;
     f32 shadowAlphaTmp;
     f32 heightOffset;
-    f32 f255 = 255.0f;
 
     this->actor.world.pos = this->actor.home.pos;
     this->randScaleChange += 0x190;
@@ -207,7 +206,7 @@ void EnPoFusen_Idle(EnPoFusen* this, PlayState* play) {
     this->actor.world.pos.y += heightOffset;
     this->actor.shape.rot.z = (Math_SinS(this->randBaseRotChange) * 910.0f);
 
-    if ((this->randScaleChange < 0x4000) && (this->randScaleChange >= -0x3FFF)) {
+    if ((this->randScaleChange < 0x4000) && (this->randScaleChange > -0x4000)) {
         Math_SmoothStepToS(&this->limbRotChainAndLantern, 0x38E, 0x14, 0xBB8, 0x64);
     } else {
         Math_SmoothStepToS(&this->limbRotChainAndLantern, 0x71C, 0x8, 0xBB8, 0x64);
@@ -222,7 +221,7 @@ void EnPoFusen_Idle(EnPoFusen* this, PlayState* play) {
     shadowScaleTmp = ((1.0f - Math_SinS(this->randScaleChange)) * 10.0f) + 50.0f;
     shadowAlphaTmp = ((1.0f - Math_SinS(this->randScaleChange)) * 75.0f) + 100.0f;
     this->actor.shape.shadowScale = shadowScaleTmp;
-    this->actor.shape.shadowAlpha = (shadowAlphaTmp > f255) ? (u8)f255 : (u8)shadowAlphaTmp;
+    this->actor.shape.shadowAlpha = CLAMP_MAX(shadowAlphaTmp, 255.0f);
 }
 
 void EnPoFusen_IncrementRomaniPop(EnPoFusen* this) {
@@ -230,6 +229,7 @@ void EnPoFusen_IncrementRomaniPop(EnPoFusen* this) {
 
     if ((parent != NULL) && (parent->id == ACTOR_EN_MA4)) {
         EnMa4* romani = (EnMa4*)parent;
+
         romani->poppedBalloonCounter++;
     }
 
@@ -239,7 +239,7 @@ void EnPoFusen_IncrementRomaniPop(EnPoFusen* this) {
 
 void EnPoFusen_Pop(EnPoFusen* this, PlayState* play) {
     Actor_Spawn(&play->actorCtx, play, ACTOR_EN_CLEAR_TAG, this->actor.world.pos.x, this->actor.world.pos.y + 20.0f,
-                this->actor.world.pos.z, 255, 255, 200, CLEAR_TAG_POP);
+                this->actor.world.pos.z, 255, 255, 200, CLEAR_TAG_PARAMS(CLEAR_TAG_POP));
     Actor_PlaySfx(&this->actor, NA_SE_IT_BOMB_EXPLOSION);
     Actor_Kill(&this->actor);
 }
@@ -301,8 +301,8 @@ s32 EnPoFusen_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3
     } else if (limbIndex == POE_BALLOON_LEFT_HAND) {
         rot->z += this->limbRotLeftHand;
     } else if (limbIndex == POE_BALLOON_LIMB_CHAIN_AND_LANTERN) {
-        rot->y += (s16)(this->limbRotChainAndLantern * Math_SinS(this->randBaseRotChange));
-        rot->z += (s16)(this->limbRotChainAndLantern * Math_CosS(this->randBaseRotChange));
+        rot->y += TRUNCF_BINANG(this->limbRotChainAndLantern * Math_SinS(this->randBaseRotChange));
+        rot->z += TRUNCF_BINANG(this->limbRotChainAndLantern * Math_CosS(this->randBaseRotChange));
     }
     return false;
 }
@@ -316,7 +316,7 @@ void EnPoFusen_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
 void EnPoFusen_Draw(Actor* thisx, PlayState* play) {
     EnPoFusen* this = THIS;
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawTransformFlexOpa(play, this->anime.skeleton, this->anime.jointTable, this->anime.dListCount,
                                    EnPoFusen_OverrideLimbDraw, EnPoFusen_PostLimbDraw, EnPoFusen_TransformLimbDraw,
                                    &this->actor);

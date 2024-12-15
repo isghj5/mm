@@ -26,15 +26,15 @@ void EnBomChu_Explode(EnBomChu* this, PlayState* play);
 void EnBomChu_WaitForDeath(EnBomChu* this, PlayState* play);
 
 ActorInit En_Bom_Chu_InitVars = {
-    ACTOR_EN_BOM_CHU,
-    ACTORCAT_EXPLOSIVES,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(EnBomChu),
-    (ActorFunc)EnBomChu_Init,
-    (ActorFunc)EnBomChu_Destroy,
-    (ActorFunc)EnBomChu_Update,
-    (ActorFunc)EnBomChu_Draw,
+    /**/ ACTOR_EN_BOM_CHU,
+    /**/ ACTORCAT_EXPLOSIVES,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(EnBomChu),
+    /**/ EnBomChu_Init,
+    /**/ EnBomChu_Destroy,
+    /**/ EnBomChu_Update,
+    /**/ EnBomChu_Draw,
 };
 
 static ColliderSphereInit sSphereInit = {
@@ -58,13 +58,24 @@ static ColliderSphereInit sSphereInit = {
 };
 
 static InitChainEntry sInitChain[] = {
-    ICHAIN_U8(targetMode, 2, ICHAIN_CONTINUE),
+    ICHAIN_U8(targetMode, TARGET_MODE_2, ICHAIN_CONTINUE),
     ICHAIN_VEC3F_DIV1000(scale, 1000 * BOMBCHU_SCALE, ICHAIN_STOP),
 };
 
 static EffectBlureInit2 sBlureInit = {
-    0, 0, 0, { 250, 0, 0, 250 }, { 200, 0, 0, 130 }, { 150, 0, 0, 100 }, { 100, 0, 0, 50 }, 16,
-    0, 0, 0, { 0, 0, 0, 0 },     { 0, 0, 0, 0 },
+    0,
+    0,
+    0,
+    { 250, 0, 0, 250 },
+    { 200, 0, 0, 130 },
+    { 150, 0, 0, 100 },
+    { 100, 0, 0, 50 },
+    16,
+    0,
+    EFF_BLURE_DRAW_MODE_SIMPLE,
+    0,
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
 };
 
 void EnBomChu_Init(Actor* thisx, PlayState* play) {
@@ -120,7 +131,7 @@ s32 EnBomChu_UpdateFloorPoly(EnBomChu* this, CollisionPoly* floorPoly, PlayState
         return false;
     }
 
-    angle = func_80086C48(normDotUp);
+    angle = Math_FAcosF(normDotUp);
     if (angle < 0.001f) {
         return false;
     }
@@ -177,11 +188,11 @@ void EnBomChu_WaitForRelease(EnBomChu* this, PlayState* play) {
     } else if (Actor_HasNoParent(&this->actor, play)) {
         player = GET_PLAYER(play);
         Math_Vec3f_Copy(&this->actor.world.pos, &player->actor.world.pos);
-        Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
+        Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
 
         this->actor.shape.rot.y = player->actor.shape.rot.y;
-        this->actor.flags |= ACTOR_FLAG_1;
-        func_800B8EF4(play, &this->actor);
+        this->actor.flags |= ACTOR_FLAG_TARGETABLE;
+        Actor_PlaySfx_SurfaceBomb(play, &this->actor);
 
         this->isMoving = true;
         this->actor.speed = 8.0f;
@@ -193,7 +204,7 @@ void EnBomChu_WaitForRelease(EnBomChu* this, PlayState* play) {
 s32 EnBomChu_IsOnCollisionPoly(PlayState* play, Vec3f* posA, Vec3f* posB, Vec3f* posResult, CollisionPoly** poly,
                                s32* bgId) {
     if ((BgCheck_EntityLineTest1(&play->colCtx, posA, posB, posResult, poly, true, true, true, true, bgId)) &&
-        (!(func_800C9A4C(&play->colCtx, *poly, *bgId) & 0x30))) {
+        !(SurfaceType_GetWallFlags(&play->colCtx, *poly, *bgId) & (WALL_FLAG_4 | WALL_FLAG_5))) {
         return true;
     }
 
@@ -313,7 +324,7 @@ void EnBomChu_Move(EnBomChu* this, PlayState* play) {
     }
 
     if (this->isMoving) {
-        func_800B8F98(&this->actor, NA_SE_IT_BOMBCHU_MOVE - SFX_FLAG);
+        Actor_PlaySfx_FlaggedCentered1(&this->actor, NA_SE_IT_BOMBCHU_MOVE - SFX_FLAG);
     }
 
     if (this->actor.speed != 0.0f) {
@@ -326,7 +337,7 @@ void EnBomChu_Explode(EnBomChu* this, PlayState* play) {
     s32 i;
 
     bomb = (EnBom*)Actor_Spawn(&play->actorCtx, play, ACTOR_EN_BOM, this->actor.world.pos.x, this->actor.world.pos.y,
-                               this->actor.world.pos.z, 0, 0, 0, 0);
+                               this->actor.world.pos.z, BOMB_EXPLOSIVE_TYPE_BOMB, 0, 0, BOMB_TYPE_BODY);
 
     this->shouldTimerCountDown = true;
     this->isMoving = false;
@@ -408,7 +419,7 @@ void EnBomChu_HandleNonSceneCollision(EnBomChu* this, PlayState* play) {
     Math_Vec3f_Copy(&originalWorldPos, &this->actor.world.pos);
     Math_Vec3f_Copy(&originalAxisUp, &this->axisUp);
     yaw = this->actor.shape.rot.y;
-    BgCheck2_UpdateActorAttachedToMesh(&play->colCtx, this->actor.floorBgId, &this->actor);
+    DynaPolyActor_TransformCarriedActor(&play->colCtx, this->actor.floorBgId, &this->actor);
 
     if (yaw != this->actor.shape.rot.y) {
         yaw = this->actor.shape.rot.y - yaw;
@@ -474,7 +485,7 @@ void EnBomChu_Update(Actor* thisx, PlayState* play) {
     this->actionFunc(this, play);
 
     if ((this->actionFunc != EnBomChu_WaitForDeath) &&
-        (SurfaceType_IsWallDamage(&play->colCtx, this->actor.floorPoly, this->actor.floorBgId))) {
+        SurfaceType_IsWallDamage(&play->colCtx, this->actor.floorPoly, this->actor.floorBgId)) {
         EnBomChu_Explode(this, play);
         return;
     }
@@ -496,7 +507,7 @@ void EnBomChu_Update(Actor* thisx, PlayState* play) {
 
     if (this->isMoving) {
         this->visualJitter =
-            (5.0f + (Rand_ZeroOne() * 3.0f)) * Math_SinS((((s32)(Rand_ZeroOne() * 0x200) + 0x3000) * this->timer));
+            (5.0f + (Rand_ZeroOne() * 3.0f)) * Math_SinS(((s32)(Rand_ZeroOne() * 0x200) + 0x3000) * this->timer);
         EnBomChu_ActorCoordsToWorld(this, &sBlureP1Offset, &blureP1);
 
         EnBomChu_ActorCoordsToWorld(this, &sBlureP2LeftOffset, &blureP2);
@@ -542,7 +553,7 @@ void EnBomChu_Draw(Actor* thisx, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
     func_800B8050(&this->actor, play, 0);
 
     if (this->timer >= 40) {

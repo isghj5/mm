@@ -44,19 +44,19 @@ void func_800F4A10(PlayState* play) {
 
     if (pauseCtx->state == PAUSE_STATE_OPENING_0) {
         for (i = 0; i < REGION_MAX; i++) {
-            if ((gSaveContext.save.regionsVisited >> i) & 1) {
+            if ((gSaveContext.save.saveInfo.regionsVisited >> i) & 1) {
                 pauseCtx->worldMapPoints[i] = true;
             }
         }
     } else {
         for (i = OWL_WARP_STONE_TOWER; i >= OWL_WARP_GREAT_BAY_COAST; i--) {
-            if ((gSaveContext.save.playerData.owlActivationFlags >> i) & 1) {
+            if ((gSaveContext.save.saveInfo.playerData.owlActivationFlags >> i) & 1) {
                 pauseCtx->worldMapPoints[i] = true;
                 pauseCtx->cursorPoint[PAUSE_WORLD_MAP] = i;
             }
         }
 
-        if ((gSaveContext.save.playerData.owlActivationFlags >> 4) & 1) {
+        if ((gSaveContext.save.saveInfo.playerData.owlActivationFlags >> 4) & 1) {
             pauseCtx->cursorPoint[PAUSE_WORLD_MAP] = 4;
         }
     }
@@ -92,29 +92,30 @@ void KaleidoSetup_Update(PlayState* play) {
     if ((pauseCtx->state == PAUSE_STATE_OFF) && (pauseCtx->debugEditor == DEBUG_EDITOR_NONE) &&
         (play->gameOverCtx.state == GAMEOVER_INACTIVE)) {
         if ((play->transitionTrigger == TRANS_TRIGGER_OFF) && (play->transitionMode == TRANS_MODE_OFF)) {
-            if ((gSaveContext.save.cutscene < 0xFFF0) && (gSaveContext.nextCutsceneIndex < 0xFFF0)) {
-                if (!Play_InCsMode(play) || ((msgCtx->msgMode != 0) && (msgCtx->currentTextId == 0xFF))) {
+            if ((gSaveContext.save.cutsceneIndex < 0xFFF0) && (gSaveContext.nextCutsceneIndex < 0xFFF0)) {
+                if (!Play_InCsMode(play) || ((msgCtx->msgMode != MSGMODE_NONE) && (msgCtx->currentTextId == 0xFF))) {
                     if ((play->unk_1887C < 2) && (gSaveContext.magicState != MAGIC_STATE_STEP_CAPACITY) &&
                         (gSaveContext.magicState != MAGIC_STATE_FILL)) {
                         if (!CHECK_EVENTINF(EVENTINF_17) && !(player->stateFlags1 & PLAYER_STATE1_20)) {
-                            if (!(play->actorCtx.flags & ACTORCTX_FLAG_1) &&
+                            if (!(play->actorCtx.flags & ACTORCTX_FLAG_TELESCOPE_ON) &&
                                 !(play->actorCtx.flags & ACTORCTX_FLAG_PICTO_BOX_ON)) {
-                                if ((play->actorCtx.unk268 == 0) && CHECK_BTN_ALL(input->press.button, BTN_START)) {
+                                if (!play->actorCtx.isOverrideInputOn &&
+                                    CHECK_BTN_ALL(input->press.button, BTN_START)) {
                                     gSaveContext.prevHudVisibility = gSaveContext.hudVisibility;
                                     pauseCtx->itemDescriptionOn = false;
                                     pauseCtx->state = PAUSE_STATE_OPENING_0;
                                     func_800F4A10(play);
                                     // Set next page mode to scroll left
                                     pauseCtx->nextPageMode = pauseCtx->pageIndex * 2 + 1;
-                                    func_801A3A7C(1);
+                                    Audio_SetPauseState(true);
                                 }
 
                                 if (pauseCtx->state == PAUSE_STATE_OPENING_0) {
-                                    Game_SetFramerateDivisor(&play->state, 2);
+                                    GameState_SetFramerateDivisor(&play->state, 2);
                                     if (ShrinkWindow_Letterbox_GetSizeTarget() != 0) {
                                         ShrinkWindow_Letterbox_SetSizeTarget(0);
                                     }
-                                    func_801A3AEC(1);
+                                    Audio_PlaySfx_PauseMenuOpenOrClose(SFX_PAUSE_MENU_OPEN);
                                 }
                             }
                         }
@@ -145,7 +146,7 @@ void KaleidoSetup_Init(PlayState* play) {
     pauseCtx->cursorPoint[PAUSE_MAP] = R_REVERSE_FLOOR_INDEX + (DUNGEON_FLOOR_INDEX_4 - 1);
 
     pauseCtx->cursorSpecialPos = PAUSE_CURSOR_PAGE_RIGHT;
-    pauseCtx->pageSwitchTimer = 0;
+    pauseCtx->pageSwitchInputTimer = 0;
 
     pauseCtx->cursorItem[PAUSE_ITEM] = PAUSE_ITEM_NONE;
     pauseCtx->cursorItem[PAUSE_MAP] = R_REVERSE_FLOOR_INDEX + (DUNGEON_FLOOR_INDEX_4 - 1);

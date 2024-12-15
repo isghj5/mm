@@ -17,15 +17,15 @@ void ObjTokeiTurret_Update(Actor* thisx, PlayState* play);
 void ObjTokeiTurret_Draw(Actor* thisx, PlayState* play);
 
 ActorInit Obj_Tokei_Turret_InitVars = {
-    ACTOR_OBJ_TOKEI_TURRET,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_TOKEI_TURRET,
-    sizeof(ObjTokeiTurret),
-    (ActorFunc)ObjTokeiTurret_Init,
-    (ActorFunc)ObjTokeiTurret_Destroy,
-    (ActorFunc)ObjTokeiTurret_Update,
-    (ActorFunc)ObjTokeiTurret_Draw,
+    /**/ ACTOR_OBJ_TOKEI_TURRET,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_TOKEI_TURRET,
+    /**/ sizeof(ObjTokeiTurret),
+    /**/ ObjTokeiTurret_Init,
+    /**/ ObjTokeiTurret_Destroy,
+    /**/ ObjTokeiTurret_Update,
+    /**/ ObjTokeiTurret_Draw,
 };
 
 static InitChainEntry sInitChain[] = {
@@ -72,7 +72,7 @@ void ObjTokeiTurret_Draw(Actor* thisx, PlayState* play) {
         OPEN_DISPS(play->state.gfxCtx);
 
         gfx = POLY_OPA_DISP;
-        gSPDisplayList(gfx++, &sSetupDL[6 * 25]);
+        gSPDisplayList(gfx++, gSetupDLs[SETUPDL_25]);
         gSPMatrix(gfx++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_MODELVIEW | G_MTX_LOAD);
         gSPDisplayList(gfx++, gClockTownTurretPlatformTopDL);
         POLY_OPA_DISP = gfx;

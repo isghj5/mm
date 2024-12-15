@@ -17,15 +17,15 @@ void ObjUsiyane_Update(Actor* thisx, PlayState* play);
 void ObjUsiyane_Draw(Actor* thisx, PlayState* play);
 
 ActorInit Obj_Usiyane_InitVars = {
-    ACTOR_OBJ_USIYANE,
-    ACTORCAT_PROP,
-    FLAGS,
-    OBJECT_OBJ_USIYANE,
-    sizeof(ObjUsiyane),
-    (ActorFunc)ObjUsiyane_Init,
-    (ActorFunc)ObjUsiyane_Destroy,
-    (ActorFunc)ObjUsiyane_Update,
-    (ActorFunc)ObjUsiyane_Draw,
+    /**/ ACTOR_OBJ_USIYANE,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ OBJECT_OBJ_USIYANE,
+    /**/ sizeof(ObjUsiyane),
+    /**/ ObjUsiyane_Init,
+    /**/ ObjUsiyane_Destroy,
+    /**/ ObjUsiyane_Update,
+    /**/ ObjUsiyane_Draw,
 };
 
 PosRot D_80C08660[] = {
@@ -45,9 +45,9 @@ s32 func_80C07C80(s32 arg0) {
     s32 var_v1;
 
     if (!(arg0 & 1)) {
-        var_v1 = gSaveContext.save.unk_E88[arg0 >> 1] & 0xFFFF;
+        var_v1 = gSaveContext.save.saveInfo.unk_E64[arg0 >> 1] & 0xFFFF;
     } else {
-        var_v1 = (gSaveContext.save.unk_E88[arg0 >> 1] & 0xFFFF0000) >> 0x10;
+        var_v1 = (gSaveContext.save.saveInfo.unk_E64[arg0 >> 1] & 0xFFFF0000) >> 0x10;
     }
     return var_v1 + CLOCK_TIME(2, 30);
 }
@@ -58,7 +58,7 @@ s32 func_80C07CD0(void) {
     }
 
     if (CURRENT_DAY == 1) {
-        s32 time = gSaveContext.save.time;
+        s32 time = CURRENT_TIME;
         s32 i;
 
         if ((time < CLOCK_TIME(2, 30)) || (time >= CLOCK_TIME(6, 0))) {
@@ -80,7 +80,7 @@ s32 func_80C07CD0(void) {
         }
     }
 
-    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_22_01)) {
+    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_DEFENDED_AGAINST_THEM)) {
         return false;
     }
     return true;
@@ -111,7 +111,7 @@ void func_80C07F30(ObjUsiyane* this, PlayState* play) {
 
     for (i = 0; i < ARRAY_COUNT(this->unk_168[0]); i++) {
         for (j = 0; j < ARRAY_COUNT(this->unk_168); j++) {
-            if (i != ARRAY_COUNT(this->unk_168[0]) - 1) {
+            if (i != (ARRAY_COUNT(this->unk_168[0]) - 1)) {
                 func_80C07DFC(&this->unk_710[i], &D_80C08660[i].rot, &this->unk_710[i + 1], &D_80C08660[i + 1].rot, j,
                               10, &this->unk_168[j][i].unk_00, &this->unk_168[j][i].unk_18);
             } else {
@@ -172,18 +172,18 @@ void func_80C081C8(ObjUsiyane* this, PlayState* play) {
 }
 
 void func_80C082CC(ObjUsiyane* this, PlayState* play) {
-    this->unk_164 = -1;
+    this->cueId = -1;
 }
 
 void func_80C082E0(ObjUsiyane* this, PlayState* play) {
-    CsCmdActorAction* csAction;
+    CsCmdActorCue* cue;
 
-    if (Cutscene_CheckActorAction(play, 0x228)) {
-        this->unk_160 = Cutscene_GetActorActionIndex(play, 0x228);
-        csAction = play->csCtx.actorActions[this->unk_160];
-        if (this->unk_164 != csAction->action) {
-            this->unk_164 = csAction->action;
-            if (this->unk_164 == 2) {
+    if (Cutscene_IsCueInChannel(play, CS_CMD_ACTOR_CUE_552)) {
+        this->cueChannel = Cutscene_GetCueChannel(play, CS_CMD_ACTOR_CUE_552);
+        cue = play->csCtx.actorCues[this->cueChannel];
+        if (this->cueId != cue->id) {
+            this->cueId = cue->id;
+            if (this->cueId == 2) {
                 func_80C07F30(this, play);
                 this->actionFunc = func_80C081C8;
             }

@@ -6,7 +6,7 @@
 
 #include "z_dm_ah.h"
 
-#define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_8)
+#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
 
 #define THIS ((DmAh*)thisx)
 
@@ -16,30 +16,37 @@ void DmAh_Update(Actor* thisx, PlayState* play);
 void DmAh_Draw(Actor* thisx, PlayState* play);
 
 ActorInit Dm_Ah_InitVars = {
-    ACTOR_DM_AH,
-    ACTORCAT_NPC,
-    FLAGS,
-    OBJECT_AH,
-    sizeof(DmAh),
-    (ActorFunc)DmAh_Init,
-    (ActorFunc)DmAh_Destroy,
-    (ActorFunc)DmAh_Update,
-    (ActorFunc)DmAh_Draw,
+    /**/ ACTOR_DM_AH,
+    /**/ ACTORCAT_NPC,
+    /**/ FLAGS,
+    /**/ OBJECT_AH,
+    /**/ sizeof(DmAh),
+    /**/ DmAh_Init,
+    /**/ DmAh_Destroy,
+    /**/ DmAh_Update,
+    /**/ DmAh_Draw,
 };
 
-static AnimationInfoS sAnimations[] = {
-    { &object_ah_Anim_001860, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },
-    { &object_ah_Anim_000DDC, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },
+typedef enum {
+    /* -1 */ DMAH_ANIM_NONE = -1,
+    /*  0 */ DMAH_ANIM_0,
+    /*  1 */ DMAH_ANIM_1,
+    /*  2 */ DMAH_ANIM_MAX
+} DmAhAnimation;
+
+static AnimationInfoS sAnimationInfo[DMAH_ANIM_MAX] = {
+    { &object_ah_Anim_001860, 1.0f, 0, -1, ANIMMODE_LOOP, 0 }, // DMAH_ANIM_0
+    { &object_ah_Anim_000DDC, 1.0f, 0, -1, ANIMMODE_LOOP, 0 }, // DMAH_ANIM_1
 };
 
-s32 func_80C1D410(DmAh* this, s32 animationIndex) {
-    s32 ret = false;
+s32 DmAh_ChangeAnim(DmAh* this, s32 animIndex) {
+    s32 didAnimChange = false;
 
-    if (animationIndex != this->animationIndex) {
-        this->animationIndex = animationIndex;
-        ret = SubS_ChangeAnimationByInfoS(&this->skelAnime, sAnimations, animationIndex);
+    if (this->animIndex != animIndex) {
+        this->animIndex = animIndex;
+        didAnimChange = SubS_ChangeAnimationByInfoS(&this->skelAnime, sAnimationInfo, animIndex);
     }
-    return ret;
+    return didAnimChange;
 }
 
 void func_80C1D458(DmAh* this) {
@@ -69,7 +76,7 @@ s32 func_80C1D4D0(DmAh* this, PlayState* play) {
     this->unk_290 = CLAMP(this->unk_290, -0x1C70, 0x1C70);
 
     if (this->unk_280->id == ACTOR_PLAYER) {
-        sp40.y = ((Player*)this->unk_280)->bodyPartsPos[7].y + 3.0f;
+        sp40.y = ((Player*)this->unk_280)->bodyPartsPos[PLAYER_BODYPART_HEAD].y + 3.0f;
     } else {
         Math_Vec3f_Copy(&sp40, &this->unk_280->focus.pos);
     }
@@ -101,73 +108,77 @@ s32 func_80C1D6E0(DmAh* this, PlayState* play) {
     return true;
 }
 
-Actor* func_80C1D78C(PlayState* play) {
-    Actor* tempActor;
-    Actor* foundActor = NULL;
+Actor* DmAh_FindAnjuActor(PlayState* play) {
+    Actor* actorIter = NULL;
 
     while (true) {
-        foundActor = SubS_FindActor(play, foundActor, ACTORCAT_NPC, ACTOR_DM_AN);
+        actorIter = SubS_FindActor(play, actorIter, ACTORCAT_NPC, ACTOR_DM_AN);
 
-        if ((foundActor == NULL) || (foundActor->update != NULL)) {
+        if (actorIter == NULL) {
             break;
         }
 
-        tempActor = foundActor->next;
-        if (tempActor == NULL || false) {
-            foundActor = NULL;
+        if (actorIter->update != NULL) {
             break;
         }
-        foundActor = tempActor;
+
+        if ((actorIter->next == NULL) || false) {
+            actorIter = NULL;
+            break;
+        }
+        actorIter = actorIter->next;
     }
-    return foundActor;
+    return actorIter;
 }
 
-void func_80C1D7FC(DmAh* this, PlayState* play) {
-    s32 D_80C1DE00[] = { 0, 0, 0, 0, 0 };
-    u16 csAction;
-    s32 actionIndex;
+void DmAh_HandleCutscene(DmAh* this, PlayState* play) {
+    s32 csAnimIndex[] = {
+        DMAH_ANIM_0, DMAH_ANIM_0, DMAH_ANIM_0, DMAH_ANIM_0, DMAH_ANIM_0,
+    };
+    u16 cueId;
+    s32 cueChannel;
 
-    if (play->csCtx.state != 0) {
-        if (!this->unk_29C) {
-            this->action = 0xFF;
-            this->unk_29C = true;
-            this->animationIndex2 = this->animationIndex;
+    if (play->csCtx.state != CS_STATE_IDLE) {
+        if (!this->isCutscenePlaying) {
+            this->cueId = 255;
+            this->isCutscenePlaying = true;
+            this->prevAnimIndex = this->animIndex;
         }
-        if (Cutscene_CheckActorAction(play, 0x232)) {
-            actionIndex = Cutscene_GetActorActionIndex(play, 0x232);
-            csAction = play->csCtx.actorActions[actionIndex]->action;
-            if (this->action != (u8)csAction) {
-                this->action = csAction;
-                func_80C1D410(this, D_80C1DE00[csAction]);
+        if (Cutscene_IsCueInChannel(play, CS_CMD_ACTOR_CUE_562)) {
+            cueChannel = Cutscene_GetCueChannel(play, CS_CMD_ACTOR_CUE_562);
+            cueId = play->csCtx.actorCues[cueChannel]->id;
+            if (this->cueId != (u8)cueId) {
+                this->cueId = cueId;
+                DmAh_ChangeAnim(this, csAnimIndex[cueId]);
             }
-            Cutscene_ActorTranslateAndYaw(&this->actor, play, actionIndex);
+            Cutscene_ActorTranslateAndYaw(&this->actor, play, cueChannel);
         }
-    } else if (this->unk_29C) {
-        this->unk_29C = false;
-        func_80C1D410(this, this->animationIndex2);
+    } else if (this->isCutscenePlaying) {
+        this->isCutscenePlaying = false;
+        DmAh_ChangeAnim(this, this->prevAnimIndex);
     }
 }
 
-void func_80C1D92C(DmAh* this, PlayState* play) {
+void DmAh_DoNothing(DmAh* this, PlayState* play) {
 }
 
 void DmAh_Init(Actor* thisx, PlayState* play) {
     DmAh* this = THIS;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 20.0f);
-    SkelAnime_InitFlex(play, &this->skelAnime, &object_ah_Skel_009E70, NULL, this->morphTable, this->jointTable,
+    SkelAnime_InitFlex(play, &this->skelAnime, &object_ah_Skel_009E70, NULL, this->jointTable, this->morphTable,
                        OBJECT_AH_LIMB_MAX);
-    this->animationIndex = -1;
-    func_80C1D410(this, 0);
-    this->actor.flags &= ~ACTOR_FLAG_1;
+    this->animIndex = DMAH_ANIM_NONE;
+    DmAh_ChangeAnim(this, DMAH_ANIM_0);
+    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
     Actor_SetScale(&this->actor, 0.01f);
     this->unk_27C |= 1;
     if ((play->sceneId == SCENE_YADOYA) && (play->curSpawn == 4)) {
-        this->unk_280 = func_80C1D78C(play);
-        func_80C1D410(this, 1);
-        this->actionFunc = func_80C1D92C;
+        this->unk_280 = DmAh_FindAnjuActor(play);
+        DmAh_ChangeAnim(this, DMAH_ANIM_1);
+        this->actionFunc = DmAh_DoNothing;
     } else {
-        this->actionFunc = func_80C1D7FC;
+        this->actionFunc = DmAh_HandleCutscene;
     }
 }
 
@@ -181,7 +192,7 @@ void DmAh_Update(Actor* thisx, PlayState* play) {
     func_80C1D6E0(this, play);
     SkelAnime_Update(&this->skelAnime);
     func_80C1D458(this);
-    Actor_UpdateBgCheckInfo(play, &this->actor, 30.0f, 12.0f, 0.0f, 4);
+    Actor_UpdateBgCheckInfo(play, &this->actor, 30.0f, 12.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
 }
 
 static Vec3f D_80C1DE14 = { 1000.0f, 0.0f, 0.0f };
@@ -245,7 +256,7 @@ void DmAh_Draw(Actor* thisx, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
     gSPSegment(POLY_OPA_DISP++, 0x08, Lib_SegmentedToVirtual(D_80C1DE28[this->unk_284]));
     gSPSegment(POLY_OPA_DISP++, 0x09, Lib_SegmentedToVirtual(D_80C1DE20[0]));

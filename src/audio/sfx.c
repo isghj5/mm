@@ -102,8 +102,8 @@ void AudioSfx_MuteBanks(u16 muteMask) {
 void AudioSfx_LowerBgmVolume(u8 channelIndex) {
     sSfxChannelLowVolumeFlag |= (1 << channelIndex);
 
-    Audio_SetVolumeScale(SEQ_PLAYER_BGM_MAIN, 2, 0x40, 0xF);
-    Audio_SetVolumeScale(SEQ_PLAYER_BGM_SUB, 2, 0x40, 0xF);
+    AudioSeq_SetVolumeScale(SEQ_PLAYER_BGM_MAIN, VOL_SCALE_INDEX_SFX, 0x40, 0xF);
+    AudioSeq_SetVolumeScale(SEQ_PLAYER_BGM_SUB, VOL_SCALE_INDEX_SFX, 0x40, 0xF);
 }
 
 /**
@@ -114,8 +114,8 @@ void AudioSfx_RestoreBgmVolume(u8 channelIndex) {
     sSfxChannelLowVolumeFlag &= ((1 << channelIndex) ^ 0xFFFF);
 
     if (sSfxChannelLowVolumeFlag == 0) {
-        Audio_SetVolumeScale(SEQ_PLAYER_BGM_MAIN, 2, 0x7F, 0xF);
-        Audio_SetVolumeScale(SEQ_PLAYER_BGM_SUB, 2, 0x7F, 0xF);
+        AudioSeq_SetVolumeScale(SEQ_PLAYER_BGM_MAIN, VOL_SCALE_INDEX_SFX, 0x7F, 0xF);
+        AudioSeq_SetVolumeScale(SEQ_PLAYER_BGM_SUB, VOL_SCALE_INDEX_SFX, 0x7F, 0xF);
     }
 }
 
@@ -198,7 +198,7 @@ void AudioSfx_RemoveMatchingRequests(u8 aspect, SfxBankEntry* entry) {
         }
 
         if (remove) {
-            req->sfxId = 0;
+            req->sfxId = NA_SE_NONE;
         }
     }
 }
@@ -214,7 +214,7 @@ void AudioSfx_ProcessRequest(void) {
     u8 evictImportance;
     u8 evictIndex = 0x80;
 
-    if (req->sfxId == 0) {
+    if (req->sfxId == NA_SE_NONE) {
         return;
     }
 

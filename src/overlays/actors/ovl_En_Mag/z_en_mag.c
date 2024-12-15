@@ -86,15 +86,15 @@ static s16 sTextAlphaTargetIndex = 0;
 static s16 sTextAlphaTimer = 20;
 
 ActorInit En_Mag_InitVars = {
-    ACTOR_EN_MAG,
-    ACTORCAT_PROP,
-    FLAGS,
-    OBJECT_MAG,
-    sizeof(EnMag),
-    (ActorFunc)EnMag_Init,
-    (ActorFunc)EnMag_Destroy,
-    (ActorFunc)EnMag_Update,
-    (ActorFunc)EnMag_Draw,
+    /**/ ACTOR_EN_MAG,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ OBJECT_MAG,
+    /**/ sizeof(EnMag),
+    /**/ EnMag_Init,
+    /**/ EnMag_Destroy,
+    /**/ EnMag_Update,
+    /**/ EnMag_Draw,
 };
 
 void EnMag_Init(Actor* thisx, PlayState* play) {
@@ -239,8 +239,8 @@ void EnMag_Update(Actor* thisx, PlayState* play) {
                 CHECK_BTN_ALL(CONTROLLER1(&play->state)->press.button, BTN_A) ||
                 CHECK_BTN_ALL(CONTROLLER1(&play->state)->press.button, BTN_B)) {
 
-                if (!EnvFlags_Get(play, 4)) {
-                    play_sound(NA_SE_SY_PIECE_OF_HEART);
+                if (!CutsceneFlags_Get(play, 4)) {
+                    Audio_PlaySfx(NA_SE_SY_PIECE_OF_HEART);
                     this->state = MAG_STATE_CALLED;
                     this->unk11F00 = 0;
                     this->unk11F02 = 30;
@@ -383,16 +383,16 @@ void EnMag_Update(Actor* thisx, PlayState* play) {
                             CHECK_BTN_ALL(CONTROLLER1(&play->state)->press.button, BTN_B)) {
                             if (play->transitionTrigger != TRANS_TRIGGER_START) {
                                 Audio_SetCutsceneFlag(false);
-                                D_801BB12C++;
-                                if (D_801BB12C >= 2) {
-                                    D_801BB12C = 0;
+                                gOpeningEntranceIndex++;
+                                if (gOpeningEntranceIndex >= 2) {
+                                    gOpeningEntranceIndex = 0;
                                 }
-                                play_sound(NA_SE_SY_PIECE_OF_HEART);
-                                gSaveContext.gameMode = 2; // Go to FileChoose
+                                Audio_PlaySfx(NA_SE_SY_PIECE_OF_HEART);
+                                gSaveContext.gameMode = GAMEMODE_FILE_SELECT;
                                 play->transitionTrigger = TRANS_TRIGGER_START;
                                 play->transitionType = TRANS_TYPE_FADE_BLACK;
                                 play->nextEntrance = ENTRANCE(CUTSCENE, 0);
-                                gSaveContext.save.cutscene = 0;
+                                gSaveContext.save.cutsceneIndex = 0;
                                 gSaveContext.sceneLayer = 0;
                             }
                             this->unk11F54 = 15;
@@ -423,6 +423,9 @@ void EnMag_Update(Actor* thisx, PlayState* play) {
                         this->state = MAG_STATE_POST_DISPLAY;
                     }
                     break;
+
+                default:
+                    break;
             }
 
             // Appear fully immediately if called during fade-in states.
@@ -430,7 +433,7 @@ void EnMag_Update(Actor* thisx, PlayState* play) {
                 if (CHECK_BTN_ALL(CONTROLLER1(&play->state)->press.button, BTN_START) ||
                     CHECK_BTN_ALL(CONTROLLER1(&play->state)->press.button, BTN_A) ||
                     CHECK_BTN_ALL(CONTROLLER1(&play->state)->press.button, BTN_B)) {
-                    play_sound(NA_SE_SY_PIECE_OF_HEART);
+                    Audio_PlaySfx(NA_SE_SY_PIECE_OF_HEART);
                     this->state = MAG_STATE_CALLED;
                 }
             }
@@ -438,12 +441,12 @@ void EnMag_Update(Actor* thisx, PlayState* play) {
     }
 
     if (this->state == MAG_STATE_INITIAL) {
-        if (EnvFlags_Get(play, 3)) {
+        if (CutsceneFlags_Get(play, 3)) {
             this->unk11F02 = 40;
             this->state = MAG_STATE_FADE_IN_MASK_EFFECTS;
         }
     } else if (this->state < MAG_STATE_FADE_OUT) {
-        if (EnvFlags_Get(play, 4)) {
+        if (CutsceneFlags_Get(play, 4)) {
             this->state = MAG_STATE_FADE_OUT;
         }
     }
@@ -554,9 +557,9 @@ void EnMag_DrawImageRGBA32(Gfx** gfxp, s16 centerX, s16 centerY, TexturePtr sour
     s32 pad;
     s32 i;
 
-    func_8012CA0C(&gfx);
+    Gfx_SetupDL56_Ptr(&gfx);
 
-    curTexture = source;
+    curTexture = (uintptr_t)source;
     rectLeft = centerX - (width / 2);
     rectTop = centerY - (height / 2);
     textureHeight = TMEM_SIZE / (width << 2);
@@ -676,7 +679,7 @@ void EnMag_DrawCharTexture(Gfx** gfxp, TexturePtr texture, s32 rectLeft, s32 rec
  * POLY_OPA_DISP, but is used by OVERLAY_DISP.
  */
 void EnMag_DrawInner(Actor* thisx, PlayState* play, Gfx** gfxp) {
-    static u8 pressStartFontIndices[] = {
+    static u8 sPressStartFontIndices[] = {
         0x19, 0x1B, 0x0E, 0x1C, 0x1C, 0x1C, 0x1D, 0x0A, 0x1B, 0x1D,
     }; // Indices into this->font.fontBuf
     static TexturePtr sAppearEffectMaskTextures[] = {
@@ -707,9 +710,9 @@ void EnMag_DrawInner(Actor* thisx, PlayState* play, Gfx** gfxp) {
     s16 step;
 
     // Set segment 6 to the object, since this will be read by OVERLAY_DISP where it is not set by default.
-    gSPSegment(gfx++, 0x06, play->objectCtx.status[this->actor.objBankIndex].segment);
+    gSPSegment(gfx++, 0x06, play->objectCtx.slots[this->actor.objectSlot].segment);
 
-    func_8012C680(&gfx);
+    Gfx_SetupDL39_Ptr(&gfx);
 
     // Mask appearing effects
     gDPPipeSync(gfx++);
@@ -736,7 +739,7 @@ void EnMag_DrawInner(Actor* thisx, PlayState* play, Gfx** gfxp) {
         }
     }
 
-    func_8012C680(&gfx);
+    Gfx_SetupDL39_Ptr(&gfx);
 
     if (this->majorasMaskAlpha != 0) {
         gDPSetCombineLERP(gfx++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE,
@@ -774,7 +777,7 @@ void EnMag_DrawInner(Actor* thisx, PlayState* play, Gfx** gfxp) {
     }
 
     if (this->subtitleAlpha != 0) {
-        func_8012C680(&gfx);
+        Gfx_SetupDL39_Ptr(&gfx);
 
         gDPSetAlphaCompare(gfx++, G_AC_NONE);
         gDPSetCombineMode(gfx++, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
@@ -792,7 +795,7 @@ void EnMag_DrawInner(Actor* thisx, PlayState* play, Gfx** gfxp) {
                             SUBTITLE_TEX_LEFT, SUBTITLE_TEX_TOP);
     }
 
-    func_8012C680(&gfx);
+    Gfx_SetupDL39_Ptr(&gfx);
 
     gDPSetAlphaCompare(gfx++, G_AC_NONE);
     gDPSetCombineMode(gfx++, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
@@ -808,7 +811,7 @@ void EnMag_DrawInner(Actor* thisx, PlayState* play, Gfx** gfxp) {
     EnMag_DrawTextureI8(&gfx, gTitleScreenMajorasMaskSubtitleTex, SUBTITLE_TEX_WIDTH, SUBTITLE_TEX_HEIGHT,
                         SUBTITLE_TEX_LEFT, SUBTITLE_TEX_TOP);
 
-    func_8012C680(&gfx);
+    Gfx_SetupDL39_Ptr(&gfx);
 
     gDPSetAlphaCompare(gfx++, G_AC_NONE);
     gDPSetCombineMode(gfx++, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
@@ -833,7 +836,7 @@ void EnMag_DrawInner(Actor* thisx, PlayState* play, Gfx** gfxp) {
                             THE_LEGEND_OF_TEX_LEFT, THE_LEGEND_OF_TEX_TOP);
     }
 
-    func_8012C680(&gfx);
+    Gfx_SetupDL39_Ptr(&gfx);
 
     if (this->copyrightAlpha != 0) {
         gDPSetAlphaCompare(gfx++, G_AC_NONE);
@@ -910,8 +913,8 @@ void EnMag_DrawInner(Actor* thisx, PlayState* play, Gfx** gfxp) {
         gDPSetPrimColor(gfx++, 0, 0, 0, 0, 0, sTextAlpha);
 
         rectLeft = PRESS_START_LEFT + 1;
-        for (i = 0; i < ARRAY_COUNT(pressStartFontIndices); i++) {
-            EnMag_DrawCharTexture(&gfx, font->fontBuf + pressStartFontIndices[i] * FONT_CHAR_TEX_SIZE, rectLeft,
+        for (i = 0; i < ARRAY_COUNT(sPressStartFontIndices); i++) {
+            EnMag_DrawCharTexture(&gfx, font->fontBuf + sPressStartFontIndices[i] * FONT_CHAR_TEX_SIZE, rectLeft,
                                   PRESS_START_TOP + 1);
 
             rectLeft += PRESS_START_CHAR_SPACING;
@@ -925,8 +928,8 @@ void EnMag_DrawInner(Actor* thisx, PlayState* play, Gfx** gfxp) {
         gDPSetPrimColor(gfx++, 0, 0, 255, 30, 30, sTextAlpha);
 
         rectLeft = PRESS_START_LEFT;
-        for (i = 0; i < ARRAY_COUNT(pressStartFontIndices); i++) {
-            EnMag_DrawCharTexture(&gfx, font->fontBuf + pressStartFontIndices[i] * FONT_CHAR_TEX_SIZE, rectLeft,
+        for (i = 0; i < ARRAY_COUNT(sPressStartFontIndices); i++) {
+            EnMag_DrawCharTexture(&gfx, font->fontBuf + sPressStartFontIndices[i] * FONT_CHAR_TEX_SIZE, rectLeft,
                                   PRESS_START_TOP);
             rectLeft += PRESS_START_CHAR_SPACING;
             if (i == 4) {

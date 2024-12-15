@@ -22,15 +22,15 @@ void func_809AC68C(BgFireWall* this, PlayState* play);
 void func_809AC6C0(BgFireWall* this, PlayState* play);
 
 ActorInit Bg_Fire_Wall_InitVars = {
-    ACTOR_BG_FIRE_WALL,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_FWALL,
-    sizeof(BgFireWall),
-    (ActorFunc)BgFireWall_Init,
-    (ActorFunc)BgFireWall_Destroy,
-    (ActorFunc)BgFireWall_Update,
-    (ActorFunc)NULL,
+    /**/ ACTOR_BG_FIRE_WALL,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_FWALL,
+    /**/ sizeof(BgFireWall),
+    /**/ BgFireWall_Init,
+    /**/ BgFireWall_Destroy,
+    /**/ BgFireWall_Update,
+    /**/ NULL,
 };
 
 static ColliderCylinderInit sCylinderInit = {
@@ -182,7 +182,7 @@ void BgFireWall_Update(Actor* thisx, PlayState* play2) {
         }
     }
     if (this->actionFunc == func_809AC6C0) {
-        func_800B9010(&this->actor, NA_SE_EV_FIRE_PLATE - SFX_FLAG);
+        Actor_PlaySfx_Flagged(&this->actor, NA_SE_EV_FIRE_PLATE - SFX_FLAG);
         if ((this->unk_14C == 0) || ((this->unk_14C != 0) && (this->actor.xzDistToPlayer < 240.0f))) {
             func_809AC7F8(this, play);
             CollisionCheck_SetAT(play, &play->colChkCtx, &this->collider.base);
@@ -205,7 +205,7 @@ void BgFireWall_Draw(Actor* thisx, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    POLY_XLU_DISP = Gfx_CallSetupDL(POLY_XLU_DISP, 20);
+    POLY_XLU_DISP = Gfx_SetupDL(POLY_XLU_DISP, SETUPDL_20);
     gSPSegment(POLY_XLU_DISP++, 0x08, Lib_SegmentedToVirtual(sFlameTextures[this->texIndex]));
     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0x01, 255, 255, 0, 150);
     gDPSetEnvColor(POLY_XLU_DISP++, 255, 0, 0, 255);

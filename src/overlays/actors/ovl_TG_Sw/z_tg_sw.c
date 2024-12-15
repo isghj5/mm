@@ -20,70 +20,70 @@ void TGSw_Draw(Actor* thisx, PlayState* play);
 void TGSw_ActionExecuteOneShot(struct TGSw* this, PlayState* play);
 
 ActorInit TG_Sw_InitVars = {
-    ACTOR_TG_SW,
-    ACTORCAT_PROP,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(TGSw),
-    (ActorFunc)TGSw_Init,
-    (ActorFunc)TGSw_Destroy,
-    (ActorFunc)TGSw_Update,
-    (ActorFunc)TGSw_Draw,
+    /**/ ACTOR_TG_SW,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(TGSw),
+    /**/ TGSw_Init,
+    /**/ TGSw_Destroy,
+    /**/ TGSw_Update,
+    /**/ TGSw_Draw,
 };
 
 void TGSw_ActionDecider(TGSw* this, PlayState* play) {
     f32 scaledAbsoluteRotZ;
     f32 scaledAbsoluteRotY;
-    u8 unk1F4;
+    PlayerImpactType playerImpactType;
 
-    // Maybe actorCtx Debug Flag?
-    if (play->actorCtx.unk_1F4.timer != 0) {
+    if (play->actorCtx.playerImpact.timer != 0) {
         scaledAbsoluteRotY = ABS_ALT(this->actor.world.rot.y) * 4.0f;
         scaledAbsoluteRotZ = ABS_ALT(this->actor.world.rot.z) * 4.0f;
 
         if ((scaledAbsoluteRotZ < this->actor.xzDistToPlayer) || (scaledAbsoluteRotY < this->actor.playerHeightRel)) {
             return;
         }
-        unk1F4 = play->actorCtx.unk_1F4.unk_00;
-        if (unk1F4 == 2 || unk1F4 == 0) {
+        playerImpactType = play->actorCtx.playerImpact.type;
+        if ((playerImpactType == PLAYER_IMPACT_BONK) || (playerImpactType == PLAYER_IMPACT_GORON_GROUND_POUND)) {
             this->actionFunc = TGSw_ActionExecuteOneShot;
         }
     }
 }
 
 void TGSw_ActionExecuteOneShot(TGSw* this, PlayState* play) {
-    Actor* actor = NULL;
+    Actor* actorIter = NULL;
 
+    // FAKE:
     if (1) {}
 
     do {
-        actor = SubS_FindActor(play, actor, ACTORCAT_ENEMY, ACTOR_EN_SW);
-        if (actor == NULL) {
+        actorIter = SubS_FindActor(play, actorIter, ACTORCAT_ENEMY, ACTOR_EN_SW);
+        if (actorIter == NULL) {
             break;
         }
-        if ((((this->actor.params & 0xFC) >> 2) & 0xFF) == (((actor->params & 0xFC) >> 2) & 0xFF)) {
-            actor->parent = &this->actor;
-            actor->speed = ABS_ALT(this->actor.world.rot.x);
+        if ((((this->actor.params & 0xFC) >> 2) & 0xFF) == (((actorIter->params & 0xFC) >> 2) & 0xFF)) {
+            actorIter->parent = &this->actor;
+            actorIter->speed = ABS_ALT(this->actor.world.rot.x);
             break;
         }
-        actor = actor->next;
-    } while (actor != NULL);
+        actorIter = actorIter->next;
+    } while (actorIter != NULL);
 
-    actor = NULL;
+    actorIter = NULL;
 
     do {
-        actor = SubS_FindActor(play, actor, ACTORCAT_NPC, ACTOR_EN_SW);
+        actorIter = SubS_FindActor(play, actorIter, ACTORCAT_NPC, ACTOR_EN_SW);
 
-        if (actor == NULL) {
+        if (actorIter == NULL) {
             break;
         }
-        if ((((this->actor.params & 0xFC) >> 2) & 0xFF) == (((actor->params & 0xFC) >> 2) & 0xFF)) {
-            actor->parent = &this->actor;
-            actor->speed = ABS_ALT(this->actor.world.rot.x);
+        if ((((this->actor.params & 0xFC) >> 2) & 0xFF) == (((actorIter->params & 0xFC) >> 2) & 0xFF)) {
+            actorIter->parent = &this->actor;
+            actorIter->speed = ABS_ALT(this->actor.world.rot.x);
             break;
         }
-        actor = actor->next;
-    } while (actor != NULL);
+        actorIter = actorIter->next;
+    } while (actorIter != NULL);
 
     Actor_Kill(&this->actor);
 }
@@ -91,7 +91,7 @@ void TGSw_ActionExecuteOneShot(TGSw* this, PlayState* play) {
 void TGSw_Init(Actor* thisx, PlayState* play) {
     TGSw* this = THIS;
 
-    this->actor.cutscene = this->actor.world.rot.z;
+    this->actor.csId = this->actor.world.rot.z;
     this->actionFunc = TGSw_ActionDecider;
 }
 

@@ -28,15 +28,15 @@ void func_80A3D0FC(ObjVspinyroll* this, PlayState* play);
 void func_80A3D2C0(Actor* thisx, PlayState* play);
 
 ActorInit Obj_Vspinyroll_InitVars = {
-    ACTOR_OBJ_VSPINYROLL,
-    ACTORCAT_PROP,
-    FLAGS,
-    OBJECT_SPINYROLL,
-    sizeof(ObjVspinyroll),
-    (ActorFunc)ObjVspinyroll_Init,
-    (ActorFunc)ObjVspinyroll_Destroy,
-    (ActorFunc)ObjVspinyroll_Update,
-    (ActorFunc)ObjVspinyroll_Draw,
+    /**/ ACTOR_OBJ_VSPINYROLL,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ OBJECT_SPINYROLL,
+    /**/ sizeof(ObjVspinyroll),
+    /**/ ObjVspinyroll_Init,
+    /**/ ObjVspinyroll_Destroy,
+    /**/ ObjVspinyroll_Update,
+    /**/ ObjVspinyroll_Draw,
 };
 
 f32 D_80A3D450[] = { 1.0f, 2.0f };
@@ -290,7 +290,7 @@ void ObjVspinyroll_Init(Actor* thisx, PlayState* play) {
         this->collider.dim.height = 240;
     }
 
-    if (OBJVSPINYROLL_GET_7F(&this->dyna.actor) == OBJVSPINYROLL_7F_7F) {
+    if (OBJVSPINYROLL_GET_PATH_INDEX(&this->dyna.actor) == OBJVSPINYROLL_PATH_INDEX_NONE) {
         func_80A3CEC4(this);
         return;
     }
@@ -299,7 +299,7 @@ void ObjVspinyroll_Init(Actor* thisx, PlayState* play) {
     func_80A3C7E8(this);
     this->unk_394 = D_80A3D458[OBJVSPINYROLL_GET_380(thisx)];
 
-    path = &play->setupPathList[OBJVSPINYROLL_GET_7F(&this->dyna.actor)];
+    path = &play->setupPathList[OBJVSPINYROLL_GET_PATH_INDEX(&this->dyna.actor)];
     points = Lib_SegmentedToVirtual(path->points);
     point1 = &points[0];
     point2 = &points[1];
@@ -435,7 +435,7 @@ void func_80A3D2C0(Actor* thisx, PlayState* play) {
     sp3C.y = this->dyna.actor.shape.rot.y;
     sp3C.z = this->dyna.actor.shape.rot.z + 0x4000;
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
     Matrix_Translate(this->dyna.actor.world.pos.x, this->dyna.actor.world.pos.y + 60.0f, this->dyna.actor.world.pos.z,
                      MTXMODE_NEW);
     Matrix_RotateYS(sp3C.y, MTXMODE_APPLY);

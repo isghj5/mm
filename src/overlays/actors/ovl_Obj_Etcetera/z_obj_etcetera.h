@@ -12,7 +12,7 @@ typedef enum {
     /* 1 */ DEKU_FLOWER_TYPE_PINK_WITH_INITIAL_BOUNCE,
     /* 2 */ DEKU_FLOWER_TYPE_GOLD,
     /* 3 */ DEKU_FLOWER_TYPE_GOLD_WITH_INITIAL_BOUNCE,
-    /* 4 */ DEKU_FLOWER_TYPE_MAX,
+    /* 4 */ DEKU_FLOWER_TYPE_MAX
 } DekuFlowerType;
 
 struct ObjEtcetera;
@@ -28,7 +28,7 @@ typedef struct ObjEtcetera {
     /* 0x270 */ f32 bounceOscillationScale;
     /* 0x274 */ s16 oscillationTimer;
     /* 0x276 */ u16 burrowFlag;
-    /* 0x278 */ s8 objIndex;
+    /* 0x278 */ s8 objectSlot;
     /* 0x27C */ Gfx* dList;
     /* 0x280 */ ObjEtceteraActionFunc actionFunc;
 } ObjEtcetera; // size = 0x284

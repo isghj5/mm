@@ -21,15 +21,15 @@ void func_809C4598(EnEncount4* this, PlayState* play);
 void func_809C464C(EnEncount4* this, PlayState* play);
 
 ActorInit En_Encount4_InitVars = {
-    ACTOR_EN_ENCOUNT4,
-    ACTORCAT_PROP,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(EnEncount4),
-    (ActorFunc)EnEncount4_Init,
-    (ActorFunc)EnEncount4_Destroy,
-    (ActorFunc)EnEncount4_Update,
-    (ActorFunc)NULL,
+    /**/ ACTOR_EN_ENCOUNT4,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(EnEncount4),
+    /**/ EnEncount4_Init,
+    /**/ EnEncount4_Destroy,
+    /**/ EnEncount4_Update,
+    /**/ NULL,
 };
 
 s16 D_809C46D0[] = {
@@ -43,17 +43,17 @@ void EnEncount4_Init(Actor* thisx, PlayState* play) {
     s32 pad;
     EnEncount4* this = THIS;
 
-    this->unk_148 = ENENCOUNT4_GET_F000(thisx);
-    this->switchFlag = ENENCOUNT4_GET_FLAG(thisx);
-    if (this->switchFlag == 0x7F) {
-        this->switchFlag = -1;
+    this->unk_148 = ENCOUNT4_GET_F000(thisx);
+    this->switchFlag = ENCOUNT4_GET_SWITCH_FLAG(thisx);
+    if (this->switchFlag == ENCOUNT4_SWITCH_FLAG_NONE) {
+        this->switchFlag = SWITCH_FLAG_NONE;
     }
-    if ((this->switchFlag >= 0) && Flags_GetSwitch(play, this->switchFlag)) {
+    if ((this->switchFlag > SWITCH_FLAG_NONE) && Flags_GetSwitch(play, this->switchFlag)) {
         Actor_Kill(&this->actor);
         return;
     }
 
-    this->actor.flags &= ~ACTOR_FLAG_1;
+    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
     this->actionFunc = func_809C3FD8;
 }
 
@@ -64,7 +64,7 @@ void func_809C3FD8(EnEncount4* this, PlayState* play) {
     Actor* actor;
 
     this->unk_14E = 0;
-    if ((this->switchFlag >= 0) && Flags_GetSwitch(play, this->switchFlag)) {
+    if ((this->switchFlag > SWITCH_FLAG_NONE) && Flags_GetSwitch(play, this->switchFlag)) {
         this->timer = 100;
         this->actionFunc = func_809C464C;
     } else {
@@ -72,11 +72,12 @@ void func_809C3FD8(EnEncount4* this, PlayState* play) {
         while (actor != NULL) {
             if (actor->id != ACTOR_EN_BSB) {
                 actor = actor->next;
-            } else {
-                this->captainKeeta = (EnBsb*)actor;
-                this->actionFunc = func_809C4078;
-                break;
+                continue;
             }
+
+            this->captainKeeta = (EnBsb*)actor;
+            this->actionFunc = func_809C4078;
+            break;
         }
     }
 }
@@ -88,7 +89,7 @@ void func_809C4078(EnEncount4* this, PlayState* play) {
     s32 i;
     EnBsb* captainKeeta = this->captainKeeta;
 
-    if ((this->switchFlag >= 0) && Flags_GetSwitch(play, this->switchFlag)) {
+    if ((this->switchFlag > SWITCH_FLAG_NONE) && Flags_GetSwitch(play, this->switchFlag)) {
         this->timer = 100;
         this->actionFunc = func_809C464C;
     } else if (BREG(1) == 0) {
@@ -103,11 +104,11 @@ void func_809C4078(EnEncount4* this, PlayState* play) {
                 return;
             }
 
-            fireWallParams = BGFIREWALL_PARAMS_0;
+            fireWallParams = BGFIREWALL_PARAM_0;
             if ((this->unk_148 == 0) || (captainKeeta->unk2DC != 0)) {
                 i = 0;
                 if (this->unk_148 != 0) {
-                    fireWallParams = BGFIREWALL_PARAMS_1;
+                    fireWallParams = BGFIREWALL_PARAM_1;
                     i = 2;
                 }
                 while (i < ARRAY_COUNT(D_809C46DC)) {
@@ -134,7 +135,7 @@ void func_809C42A8(EnEncount4* this, PlayState* play) {
     CollisionPoly* colPoly;
     s32 bgId;
 
-    if ((this->switchFlag >= 0) && (Flags_GetSwitch(play, this->switchFlag))) {
+    if ((this->switchFlag > SWITCH_FLAG_NONE) && Flags_GetSwitch(play, this->switchFlag)) {
         this->timer = 100;
         this->actionFunc = func_809C464C;
 
@@ -145,15 +146,16 @@ void func_809C42A8(EnEncount4* this, PlayState* play) {
         if ((this->captainKeeta->actor.id != ACTOR_EN_BSB) || (captainKeeta->actor.update == NULL)) {
             Actor_Kill(&this->actor);
         }
-
         return;
-    } else if (this->unk_14E >= 2) {
+    }
+
+    if (this->unk_14E >= 2) {
         this->timer = 100;
         this->actionFunc = func_809C464C;
-
         return;
-    } else if (CHECK_WEEKEVENTREG(WEEKEVENTREG_85_40) || (this->unk_14C >= 2) ||
-               (this->actor.xzDistToPlayer > 240.0f)) {
+    }
+
+    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_85_40) || (this->unk_14C >= 2) || (this->actor.xzDistToPlayer > 240.0f)) {
         return;
     }
 
@@ -167,14 +169,14 @@ void func_809C42A8(EnEncount4* this, PlayState* play) {
     }
 
     pos.y = yIntersect;
-    yRot = (s32)Rand_ZeroFloat(512.0f) + this->actor.world.rot.y + 0x3800;
+    yRot = (s32)Rand_ZeroFloat(0x200) + this->actor.world.rot.y + 0x3800;
     if (this->unk_14C != 0) {
         yRot += 0x8000;
     }
-    pos.x += Math_SinS(yRot) * (40.0f + randPlusMinusPoint5Scaled(40.0f));
-    pos.z += Math_CosS(yRot) * (40.0f + randPlusMinusPoint5Scaled(40.0f));
+    pos.x += Math_SinS(yRot) * (40.0f + Rand_CenteredFloat(40.0f));
+    pos.z += Math_CosS(yRot) * (40.0f + Rand_CenteredFloat(40.0f));
     if (Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_EN_SKB, pos.x, pos.y, pos.z, 0, 0, 0,
-                           ENSKB_PARAMS_0) != NULL) {
+                           ENSKB_PARAM_0) != NULL) {
         this->unk_14C++;
         if (this->unk_14C >= 2) {
             this->actionFunc = func_809C4598;
@@ -183,12 +185,12 @@ void func_809C42A8(EnEncount4* this, PlayState* play) {
 }
 
 void func_809C4598(EnEncount4* this, PlayState* play) {
-    if ((this->switchFlag >= 0) && Flags_GetSwitch(play, this->switchFlag)) {
+    if ((this->switchFlag > SWITCH_FLAG_NONE) && Flags_GetSwitch(play, this->switchFlag)) {
         this->timer = 100;
         this->actionFunc = func_809C464C;
     } else if (this->unk_14E >= 2) {
         this->timer = 100;
-        if (this->switchFlag >= 0) {
+        if (this->switchFlag > SWITCH_FLAG_NONE) {
             Flags_SetSwitch(play, this->switchFlag);
         }
         this->actionFunc = func_809C464C;

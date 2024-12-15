@@ -61,15 +61,15 @@ void func_80938E00(Actor* thisx, PlayState* play);
 void func_80938F50(Actor* thisx, PlayState* play);
 
 ActorInit Obj_Bean_InitVars = {
-    ACTOR_OBJ_BEAN,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_MAMENOKI,
-    sizeof(ObjBean),
-    (ActorFunc)ObjBean_Init,
-    (ActorFunc)ObjBean_Destroy,
-    (ActorFunc)ObjBean_Update,
-    (ActorFunc)NULL,
+    /**/ ACTOR_OBJ_BEAN,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_MAMENOKI,
+    /**/ sizeof(ObjBean),
+    /**/ ObjBean_Init,
+    /**/ ObjBean_Destroy,
+    /**/ ObjBean_Update,
+    /**/ NULL,
 };
 
 static ColliderCylinderInit sCylinderInit1 = {
@@ -203,7 +203,7 @@ void func_80937160(ObjBean* this) {
     this->dyna.actor.scale.x = this->dyna.actor.scale.z = Math_SinS(this->unk_1AE) * 0.10700001f;
     Math_StepToF(&this->unk_1CC, 0.0f, 0.1f);
     Math_StepToF(&this->unk_1D0, 0.0f, 0.1f);
-    Math_ScaledStepToS(&this->dyna.actor.shape.rot.y, this->dyna.actor.home.rot.y, 100);
+    Math_ScaledStepToS(&this->dyna.actor.shape.rot.y, this->dyna.actor.home.rot.y, 0x64);
 }
 
 void func_80937238(ObjBean* this) {
@@ -213,13 +213,13 @@ void func_80937238(ObjBean* this) {
 }
 
 void func_80937268(ObjBean* this, PlayState* play) {
-    this->unk_1D8 = play->setupPathList[OBJBEAN_GET_3F00(&this->dyna.actor)].count - 1;
+    this->unk_1D8 = play->setupPathList[OBJBEAN_GET_PATH_INDEX(&this->dyna.actor)].count - 1;
     this->unk_1DA = 0;
     this->unk_1DC = 1;
 }
 
 void func_809372A8(ObjBean* this) {
-    Math_Vec3s_ToVec3f(&this->unk_1BC, this->unk_1D4);
+    Math_Vec3s_ToVec3f(&this->unk_1BC, this->pathPoints);
 }
 
 void func_809372D0(ObjBean* this) {
@@ -229,7 +229,7 @@ void func_809372D0(ObjBean* this) {
     f32 temp_f2;
     f32 temp_f12;
 
-    Math_Vec3s_ToVec3f(&sp38, &this->unk_1D4[this->unk_1DC]);
+    Math_Vec3s_ToVec3f(&sp38, &this->pathPoints[this->unk_1DC]);
     Math_Vec3f_Diff(&sp38, &this->unk_1BC, &actor->velocity);
 
     sp34 = Math3D_Vec3fMagnitude(&actor->velocity);
@@ -275,14 +275,14 @@ s32 func_80937468(ObjBean* this, PlayState* play) {
 
 ObjBean* func_809374F8(ObjBean* this, PlayState* play) {
     Actor* bgActor = play->actorCtx.actorLists[ACTORCAT_BG].first;
-    s32 params = OBJBEAN_GET_3F80(&this->dyna.actor, 0);
+    s32 switchFlag = OBJBEAN_GET_SWITCH_FLAG_2(&this->dyna.actor, 0);
 
     while (bgActor != NULL) {
         if (bgActor->id == ACTOR_OBJ_BEAN) {
             s32 params2 = OBJBEAN_GET_C000(bgActor);
 
             if (!params2 && (bgActor->room == this->dyna.actor.room) && !OBJBEAN_GET_80(bgActor) &&
-                (params == OBJBEAN_GET_7F(bgActor, 0)) &&
+                (switchFlag == OBJBEAN_GET_SWITCH_FLAG_1(bgActor, 0)) &&
                 (Math3D_Vec3fDistSq(&bgActor->world.pos, &this->dyna.actor.world.pos) < SQ(10.0f))) {
                 break;
             }
@@ -303,8 +303,8 @@ void func_809375C8(ObjBean* this, PlayState* play) {
 
 void func_809375F4(ObjBean* this, PlayState* play) {
     static Gfx* D_80939024[] = {
-        gKakeraLeafMiddle,
-        gKakeraLeafTip,
+        gKakeraLeafMiddleDL,
+        gKakeraLeafTipDL,
     };
     Vec3f spC4;
     Vec3f spB8;
@@ -365,7 +365,7 @@ void ObjBean_Init(Actor* thisx, PlayState* play) {
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
     this->unk_1FE = 0;
     this->unk_1B8 = 0.1f;
-    DynaPolyActor_Init(&this->dyna, 3);
+    DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS | DYNA_TRANSFORM_ROT_Y);
     Collider_InitCylinder(play, &this->collider);
 
     if ((sp2C == ENOBJBEAN_GET_C000_1) || (sp2C == ENOBJBEAN_GET_C000_2)) {
@@ -382,11 +382,11 @@ void ObjBean_Init(Actor* thisx, PlayState* play) {
             return;
         }
 
-        func_800BC154(play, &play->actorCtx, &this->dyna.actor, 7);
+        Actor_ChangeCategory(play, &play->actorCtx, &this->dyna.actor, ACTORCAT_ITEMACTION);
         func_80937DD8(this);
     } else {
-        s32 params2 = OBJBEAN_GET_3F00(&this->dyna.actor);
-        Path* path = &play->setupPathList[params2];
+        s32 pathIndex = OBJBEAN_GET_PATH_INDEX(&this->dyna.actor);
+        Path* path = &play->setupPathList[pathIndex];
 
         this->unk_1DE = OBJBEAN_GET_3(&this->dyna.actor);
         this->dyna.actor.world.rot.z = 0;
@@ -398,7 +398,7 @@ void ObjBean_Init(Actor* thisx, PlayState* play) {
         Collider_SetCylinder(play, &this->collider, &this->dyna.actor, &sCylinderInit1);
         Collider_UpdateCylinder(&this->dyna.actor, &this->collider);
 
-        this->unk_1D4 = Lib_SegmentedToVirtual(path->points);
+        this->pathPoints = Lib_SegmentedToVirtual(path->points);
 
         func_80937268(this, play);
         func_809372A8(this);
@@ -406,15 +406,17 @@ void ObjBean_Init(Actor* thisx, PlayState* play) {
         ActorShape_Init(&this->dyna.actor.shape, 0.0f, ActorShadow_DrawCircle, 8.8f);
         func_80936CF0(this, play);
 
-        if (!OBJBEAN_GET_80(&this->dyna.actor) && Flags_GetSwitch(play, OBJBEAN_GET_7F(&this->dyna.actor, 0)) &&
-            !Flags_GetSwitch(play, OBJBEAN_GET_7F(&this->dyna.actor, 1)) && func_800FE9B4(play)) {
-            Flags_SetSwitch(play, OBJBEAN_GET_7F(&this->dyna.actor, 1));
+        if (!OBJBEAN_GET_80(&this->dyna.actor) &&
+            Flags_GetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_1(&this->dyna.actor, 0)) &&
+            !Flags_GetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_1(&this->dyna.actor, 1)) && func_800FE9B4(play)) {
+            Flags_SetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_1(&this->dyna.actor, 1));
         }
 
-        if (OBJBEAN_GET_80(&this->dyna.actor) || Flags_GetSwitch(play, OBJBEAN_GET_7F(&this->dyna.actor, 1))) {
+        if (OBJBEAN_GET_80(&this->dyna.actor) ||
+            Flags_GetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_1(&this->dyna.actor, 1))) {
             func_80938804(this);
         } else {
-            func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
+            DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
             func_80938704(this);
         }
     }
@@ -504,12 +506,12 @@ void func_80937DEC(ObjBean* this, PlayState* play) {
         this->unk_1FF = false;
     }
 
-    if (this->unk_1FF && !Flags_GetSwitch(play, OBJBEAN_GET_3F80(&this->dyna.actor, 1)) &&
-        Flags_GetSwitch(play, OBJBEAN_GET_3F80(&this->dyna.actor, 0)) && func_800FE9B4(play)) {
-        Flags_SetSwitch(play, OBJBEAN_GET_3F80(&this->dyna.actor, 1));
+    if (this->unk_1FF && !Flags_GetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_2(&this->dyna.actor, 1)) &&
+        Flags_GetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_2(&this->dyna.actor, 0)) && func_800FE9B4(play)) {
+        Flags_SetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_2(&this->dyna.actor, 1));
     }
 
-    if (this->unk_1FF && Flags_GetSwitch(play, OBJBEAN_GET_3F80(&this->dyna.actor, 1))) {
+    if (this->unk_1FF && Flags_GetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_2(&this->dyna.actor, 1))) {
         Actor_Kill(&this->dyna.actor);
         return;
     }
@@ -520,7 +522,7 @@ void func_80937DEC(ObjBean* this, PlayState* play) {
         this->dyna.actor.draw = func_80938E00;
     }
 
-    if (this->unk_1FF && Flags_GetSwitch(play, OBJBEAN_GET_3F80(&this->dyna.actor, 0))) {
+    if (this->unk_1FF && Flags_GetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_2(&this->dyna.actor, 0))) {
         this->unk_1FE |= 5;
         func_80937C30(this);
     } else {
@@ -528,7 +530,7 @@ void func_80937DEC(ObjBean* this, PlayState* play) {
         func_80937C10(this);
     }
 
-    if (Flags_GetSwitch(play, OBJBEAN_GET_7F(&this->dyna.actor, 0))) {
+    if (Flags_GetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_1(&this->dyna.actor, 0))) {
         this->unk_1E4 = 5;
     } else {
         this->unk_1E4 = 0;
@@ -545,13 +547,13 @@ void func_80937FB0(ObjBean* this) {
 void func_80937FC8(ObjBean* this, PlayState* play) {
     this->unk_1E8(this);
 
-    if (Actor_ProcessTalkRequest(&this->dyna.actor, &play->state)) {
-        if (Player_GetExchangeItemId(play) == PLAYER_IA_MAGIC_BEANS) {
+    if (Actor_TalkOfferAccepted(&this->dyna.actor, &play->state)) {
+        if (Player_GetExchangeItemAction(play) == PLAYER_IA_MAGIC_BEANS) {
             func_809383B4(this);
-            Flags_SetSwitch(play, OBJBEAN_GET_3F80(&this->dyna.actor, 0));
+            Flags_SetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_2(&this->dyna.actor, 0));
         }
 
-        if (Flags_GetSwitch(play, OBJBEAN_GET_7F(&this->dyna.actor, 0))) {
+        if (Flags_GetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_1(&this->dyna.actor, 0))) {
             this->unk_1E4 = 5;
         } else {
             s32 pad;
@@ -566,7 +568,7 @@ void func_80937FC8(ObjBean* this, PlayState* play) {
                ((this->unk_1FF != 0) && (this->unk_1FE & 4) && (this->dyna.actor.xzDistToPlayer < 300.0f) &&
                 func_800FE9B4(play))) {
         func_809375C8(this, play);
-        Flags_SetSwitch(play, OBJBEAN_GET_3F80(&this->dyna.actor, 1));
+        Flags_SetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_2(&this->dyna.actor, 1));
         this->unk_1E4 = 6;
         func_80938670(this);
     } else if (this->unk_1FF != 0) {
@@ -576,7 +578,7 @@ void func_80937FC8(ObjBean* this, PlayState* play) {
                 CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
             }
         } else {
-            func_800B85E0(&this->dyna.actor, play, 28.0f, PLAYER_IA_MAGIC_BEANS);
+            Actor_OfferTalkExchangeEquiCylinder(&this->dyna.actor, play, 28.0f, PLAYER_IA_MAGIC_BEANS);
         }
     }
 }
@@ -588,20 +590,20 @@ void func_809381B0(ObjBean* this) {
 void func_809381C4(ObjBean* this, PlayState* play) {
     this->unk_1E8(this);
 
-    if (ActorCutscene_GetCanPlayNext(this->dyna.actor.cutscene)) {
-        ActorCutscene_StartAndSetUnkLinkFields(this->dyna.actor.cutscene, &this->dyna.actor);
-        if (this->dyna.actor.cutscene >= 0) {
-            func_800B7298(play, &this->dyna.actor, PLAYER_CSMODE_1);
+    if (CutsceneManager_IsNext(this->dyna.actor.csId)) {
+        CutsceneManager_StartWithPlayerCs(this->dyna.actor.csId, &this->dyna.actor);
+        if (this->dyna.actor.csId >= 0) {
+            Player_SetCsActionWithHaltedActors(play, &this->dyna.actor, PLAYER_CSACTION_1);
         }
         this->unk_1E4 = 2;
         func_80938284(this);
     } else if (this->unk_1E4 == 4) {
-        ActorCutscene_Stop(this->dyna.actor.cutscene);
-        play_sound(NA_SE_SY_ERROR);
+        CutsceneManager_Stop(this->dyna.actor.csId);
+        Audio_PlaySfx(NA_SE_SY_ERROR);
         this->unk_1E4 = 0;
         func_80937FB0(this);
     } else {
-        ActorCutscene_SetIntentToPlay(this->dyna.actor.cutscene);
+        CutsceneManager_Queue(this->dyna.actor.csId);
     }
 }
 
@@ -614,12 +616,12 @@ void func_80938298(ObjBean* this, PlayState* play) {
 
     if (this->unk_1E0 >= 3) {
         this->unk_1E4 = 3;
-        Flags_SetSwitch(play, OBJBEAN_GET_7F(&this->dyna.actor, 0));
+        Flags_SetSwitch(play, OBJBEAN_GET_SWITCH_FLAG_1(&this->dyna.actor, 0));
         this->unk_1E4 = 5;
         func_8093833C(this);
     } else if (this->unk_1E4 == 4) {
-        ActorCutscene_Stop(this->dyna.actor.cutscene);
-        play_sound(NA_SE_SY_ERROR);
+        CutsceneManager_Stop(this->dyna.actor.csId);
+        Audio_PlaySfx(NA_SE_SY_ERROR);
         this->unk_1E4 = 0;
         func_80937FB0(this);
     }
@@ -634,7 +636,7 @@ void func_80938358(ObjBean* this, PlayState* play) {
     this->unk_1E8(this);
 
     if (this->unk_1B2 <= 0) {
-        ActorCutscene_Stop(this->dyna.actor.cutscene);
+        CutsceneManager_Stop(this->dyna.actor.csId);
         func_80937FB0(this);
     }
 }
@@ -670,7 +672,7 @@ void func_80938444(ObjBean* this, PlayState* play) {
     } else {
         this->unk_1B2 = 1;
     }
-    func_800B9010(&this->dyna.actor, NA_SE_PL_PLANT_GROW_UP - SFX_FLAG);
+    Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_PL_PLANT_GROW_UP - SFX_FLAG);
 }
 
 void func_809384E8(ObjBean* this) {
@@ -735,7 +737,7 @@ void func_80938704(ObjBean* this) {
 
 void func_80938728(ObjBean* this, PlayState* play) {
     if (this->unk_200 != 0) {
-        ActorCutscene_SetIntentToPlay(this->dyna.actor.cutscene);
+        CutsceneManager_Queue(this->dyna.actor.csId);
         func_8093876C(this);
     }
 }
@@ -745,16 +747,16 @@ void func_8093876C(ObjBean* this) {
 }
 
 void func_80938780(ObjBean* this, PlayState* play) {
-    if (ActorCutscene_GetCanPlayNext(this->dyna.actor.cutscene)) {
-        ActorCutscene_StartAndSetUnkLinkFields(this->dyna.actor.cutscene, &this->dyna.actor);
-        if (this->dyna.actor.cutscene >= 0) {
-            func_800B7298(play, &this->dyna.actor, PLAYER_CSMODE_1);
+    if (CutsceneManager_IsNext(this->dyna.actor.csId)) {
+        CutsceneManager_StartWithPlayerCs(this->dyna.actor.csId, &this->dyna.actor);
+        if (this->dyna.actor.csId >= 0) {
+            Player_SetCsActionWithHaltedActors(play, &this->dyna.actor, PLAYER_CSACTION_1);
         }
         this->unk_1B4 = 36;
         func_80937130(this);
         func_80938AA4(this);
     } else {
-        ActorCutscene_SetIntentToPlay(this->dyna.actor.cutscene);
+        CutsceneManager_Queue(this->dyna.actor.csId);
     }
 }
 
@@ -765,7 +767,7 @@ void func_80938804(ObjBean* this) {
 }
 
 void func_80938834(ObjBean* this, PlayState* play) {
-    if (DynaPolyActor_IsInRidingMovingState(&this->dyna)) {
+    if (DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
         func_80938874(this);
     }
     func_80936F24(this);
@@ -784,8 +786,8 @@ void func_809388A8(ObjBean* this, PlayState* play) {
         func_80937268(this, play);
         func_809372A8(this);
         func_8093892C(this);
-    } else if (DynaPolyActor_IsInRidingMovingState(&this->dyna)) {
-        func_800B9010(&this->dyna.actor, NA_SE_PL_PLANT_MOVE - SFX_FLAG);
+    } else if (DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
+        Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_PL_PLANT_MOVE - SFX_FLAG);
     }
     func_80936F24(this);
 }
@@ -797,7 +799,7 @@ void func_8093892C(ObjBean* this) {
 }
 
 void func_80938958(ObjBean* this, PlayState* play) {
-    if (!DynaPolyActor_IsInRidingRotatingState(&this->dyna)) {
+    if (!DynaPolyActor_IsPlayerAbove(&this->dyna)) {
         func_80938804(this);
     }
     func_80936F24(this);
@@ -810,7 +812,7 @@ void func_80938998(ObjBean* this) {
 }
 
 void func_809389BC(ObjBean* this, PlayState* play) {
-    if (!DynaPolyActor_IsInRidingMovingState(&this->dyna)) {
+    if (!DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
         func_80937268(this, play);
         func_809372A8(this);
         func_80937238(this);
@@ -851,9 +853,9 @@ void func_80938AD8(ObjBean* this, PlayState* play) {
     }
 
     if (sp30 != 0) {
-        func_800C6314(play, &play->colCtx.dyna, this->dyna.bgId);
+        DynaPoly_EnableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
     } else {
-        func_800C6314(play, &play->colCtx.dyna, this->dyna.bgId);
+        DynaPoly_EnableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
     }
 
     if (this->dyna.actor.xzDistToPlayer < 74.0f) {
@@ -889,7 +891,7 @@ void func_80938C1C(Actor* thisx, PlayState* play) {
     if (this->unk_1DF > 0) {
         this->unk_1DF--;
         if (this->unk_1DF == 0) {
-            play_sound(NA_SE_SY_TRE_BOX_APPEAR);
+            Audio_PlaySfx(NA_SE_SY_TRE_BOX_APPEAR);
         }
     }
 
@@ -909,7 +911,7 @@ void ObjBean_Update(Actor* thisx, PlayState* play) {
     if (this->unk_1B4 > 0) {
         this->unk_1B4--;
         if (this->unk_1B4 == 0) {
-            ActorCutscene_Stop(this->dyna.actor.cutscene);
+            CutsceneManager_Stop(this->dyna.actor.csId);
         }
     }
 
@@ -925,7 +927,7 @@ void ObjBean_Update(Actor* thisx, PlayState* play) {
         this->dyna.actor.shape.shadowScale = this->dyna.actor.scale.x * 88.0f;
         if (func_80937468(this, play)) {
             func_809375F4(this, play);
-            func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
+            DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
             func_80938998(this);
         }
     } else {
@@ -939,7 +941,7 @@ void func_80938E00(Actor* thisx, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
     gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 

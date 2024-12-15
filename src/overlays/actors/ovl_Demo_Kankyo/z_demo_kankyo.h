@@ -31,21 +31,21 @@ typedef struct DemoKankyo {
     /* 0x0000 */ Actor actor;
     /* 0x0144 */ DemoKankyoEffect effects[DEMOKANKYO_EFFECT_COUNT];
     /* 0x1644 */ DemoKankyoActionFunc actionFunc;
-    /* 0x1648 */ s32 objectId;
+    /* 0x1648 */ s32 objectSlot;
     /* 0x164C */ u8 isSafeToDrawGiants;
 } DemoKankyo; // size = 0x1650
 
 typedef enum {
     /* 0 */ DEMO_KANKYO_TYPE_LOSTWOODS,
     /* 1 */ DEMO_KANKYO_TYPE_GIANTS,
-    /* 2 */ DEMO_KANKYO_TYPE_MOON,
+    /* 2 */ DEMO_KANKYO_TYPE_MOON
 } DemoKankyoType;
 
 typedef enum {
     /* 0 */ DEMO_KANKYO_STATE_INIT,
     /* 1 */ DEMO_KANKYO_STATE_SINGLE,
     /* 2 */ DEMO_KANKYO_STATE_SKYFISH,
-    /* 3 */ DEMO_KANKYO_STATE_DISABLED,
+    /* 3 */ DEMO_KANKYO_STATE_DISABLED
 } DemoKankyoStateType;
 
 #endif // Z_DEMO_KANKYO_H

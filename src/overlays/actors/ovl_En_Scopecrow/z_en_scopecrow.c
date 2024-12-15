@@ -19,15 +19,15 @@ void func_80BCD590(EnScopecrow* this, PlayState* play);
 void func_80BCD640(EnScopecrow* this, PlayState* play);
 
 ActorInit En_Scopecrow_InitVars = {
-    ACTOR_EN_SCOPECROW,
-    ACTORCAT_NPC,
-    FLAGS,
-    OBJECT_CROW,
-    sizeof(EnScopecrow),
-    (ActorFunc)EnScopecrow_Init,
-    (ActorFunc)EnScopecrow_Destroy,
-    (ActorFunc)EnScopecrow_Update,
-    (ActorFunc)EnScopecrow_Draw,
+    /**/ ACTOR_EN_SCOPECROW,
+    /**/ ACTORCAT_NPC,
+    /**/ FLAGS,
+    /**/ OBJECT_CROW,
+    /**/ sizeof(EnScopecrow),
+    /**/ EnScopecrow_Init,
+    /**/ EnScopecrow_Destroy,
+    /**/ EnScopecrow_Update,
+    /**/ EnScopecrow_Draw,
 };
 
 static ColliderJntSphElementInit sJntSphElementsInit[] = {
@@ -166,38 +166,41 @@ void func_80BCD2BC(EnScopecrow* this, PlayState* play) {
     Actor_SpawnAsChildAndCutscene(&play->actorCtx, play, ACTOR_EN_SC_RUPPE, this->actor.world.pos.x,
                                   this->actor.world.pos.y, this->actor.world.pos.z, this->actor.shape.rot.x,
                                   this->actor.shape.rot.y, this->actor.shape.rot.z, this->actor.params,
-                                  this->actor.cutscene, this->actor.halfDaysBits, NULL);
+                                  this->actor.csId, this->actor.halfDaysBits, NULL);
 }
 
-s32 func_80BCD334(EnScopecrow* this, Path* path, s32 pointIndex) {
+s32 EnScopecrow_HasReachedPoint(EnScopecrow* this, Path* path, s32 pointIndex) {
     Vec3s* points = Lib_SegmentedToVirtual(path->points);
-    s32 sp58 = path->count;
+    s32 count = path->count;
     s32 index = pointIndex;
-    s32 ret = false;
-    f32 phi_fa0;
-    f32 phi_fa1;
-    Vec3f sp3C;
-    Vec3f sp30;
+    s32 reached = false;
+    f32 diffX;
+    f32 diffZ;
+    f32 px;
+    f32 pz;
+    f32 d;
+    Vec3f point;
 
-    Math_Vec3s_ToVec3f(&sp30, &points[index]);
+    Math_Vec3s_ToVec3f(&point, &points[index]);
 
     if (index == 0) {
-        phi_fa0 = points[1].x - points[0].x;
-        phi_fa1 = points[1].z - points[0].z;
-    } else if ((sp58 - 1) == index) {
-        phi_fa0 = points[sp58 - 1].x - points[sp58 - 2].x;
-        phi_fa1 = points[sp58 - 1].z - points[sp58 - 2].z;
+        diffX = points[1].x - points[0].x;
+        diffZ = points[1].z - points[0].z;
+    } else if (index == (count - 1)) {
+        diffX = points[count - 1].x - points[count - 2].x;
+        diffZ = points[count - 1].z - points[count - 2].z;
     } else {
-        phi_fa0 = points[index + 1].x - points[index - 1].x;
-        phi_fa1 = points[index + 1].z - points[index - 1].z;
+        diffX = points[index + 1].x - points[index - 1].x;
+        diffZ = points[index + 1].z - points[index - 1].z;
     }
 
-    func_8017B7F8(&sp30, RADF_TO_BINANG(func_80086B30(phi_fa0, phi_fa1)), &sp3C.z, &sp3C.y, &sp3C.x);
+    func_8017B7F8(&point, RAD_TO_BINANG(Math_FAtan2F(diffX, diffZ)), &px, &pz, &d);
 
-    if (((this->actor.world.pos.x * sp3C.z) + (sp3C.y * this->actor.world.pos.z) + sp3C.x) > 0.0f) {
-        ret = true;
+    if (((px * this->actor.world.pos.x) + (pz * this->actor.world.pos.z) + d) > 0.0f) {
+        reached = true;
     }
-    return ret;
+
+    return reached;
 }
 
 f32 func_80BCD4D0(Path* path, s32 count, Vec3f* arg2, Vec3s* arg3) {
@@ -244,7 +247,7 @@ void func_80BCD640(EnScopecrow* this, PlayState* play) {
         this->actor.shape.rot.y = this->actor.world.rot.y;
         Math_SmoothStepToS(&this->actor.world.rot.x, -sp30.x, 4, 0x3E8, 1);
 
-        if (func_80BCD334(this, this->path, this->unk_1FC)) {
+        if (EnScopecrow_HasReachedPoint(this, this->path, this->unk_1FC)) {
             if ((this->unk_1FC == this->unk_262) && func_80BCD1AC(this->unk_260)) {
                 func_80BCD2BC(this, play);
             }
@@ -276,7 +279,7 @@ void EnScopecrow_Init(Actor* thisx, PlayState* play) {
     }
 
     if (func_80BCD09C(this->unk_260)) {
-        this->path = SubS_GetPathByIndex(play, ENSCOPECROW_GET_PATH(&this->actor), 0x3F);
+        this->path = SubS_GetPathByIndex(play, ENSCOPECROW_GET_PATH_INDEX(&this->actor), ENSCOPECROW_PATH_INDEX_NONE);
         this->unk_262 = ENSCOPECROW_GET_3E0(&this->actor);
 
         if (this->path != NULL) {
@@ -306,7 +309,7 @@ void EnScopecrow_Init(Actor* thisx, PlayState* play) {
         return;
     }
 
-    if (play->actorCtx.flags & ACTORCTX_FLAG_1) {
+    if (play->actorCtx.flags & ACTORCTX_FLAG_TELESCOPE_ON) {
         SkelAnime_InitFlex(play, &this->skelAnime, &gGuaySkel, &gGuayFlyAnim, this->jointTable, this->morphTable,
                            OBJECT_CROW_LIMB_MAX);
         ActorShape_Init(&this->actor.shape, 2000.0f, ActorShadow_DrawCircle, 20.0f);
@@ -316,7 +319,7 @@ void EnScopecrow_Init(Actor* thisx, PlayState* play) {
         this->collider.elements->dim.worldSphere.radius = sJntSphInit.elements[0].dim.modelSphere.radius;
 
         Actor_SetScale(&this->actor, 0.03f);
-        this->path = SubS_GetPathByIndex(play, ENSCOPECROW_GET_PATH(&this->actor), 0x3F);
+        this->path = SubS_GetPathByIndex(play, ENSCOPECROW_GET_PATH_INDEX(&this->actor), ENSCOPECROW_PATH_INDEX_NONE);
         this->unk_262 = ENSCOPECROW_GET_3E0(&this->actor);
 
         if (this->path != NULL) {
@@ -354,7 +357,7 @@ void EnScopecrow_Update(Actor* thisx, PlayState* play) {
 void EnScopecrow_Draw(Actor* thisx, PlayState* play) {
     EnScopecrow* this = THIS;
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount, NULL,
                           NULL, &this->actor);
 }

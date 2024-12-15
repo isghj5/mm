@@ -17,15 +17,15 @@ void ObjMilkBin_Update(Actor* thisx, PlayState* play2);
 void ObjMilkBin_Draw(Actor* thisx, PlayState* play);
 
 ActorInit Obj_Milk_Bin_InitVars = {
-    ACTOR_OBJ_MILK_BIN,
-    ACTORCAT_PROP,
-    FLAGS,
-    OBJECT_OBJ_MILK_BIN,
-    sizeof(ObjMilkBin),
-    (ActorFunc)ObjMilkBin_Init,
-    (ActorFunc)ObjMilkBin_Destroy,
-    (ActorFunc)ObjMilkBin_Update,
-    (ActorFunc)ObjMilkBin_Draw,
+    /**/ ACTOR_OBJ_MILK_BIN,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ OBJECT_OBJ_MILK_BIN,
+    /**/ sizeof(ObjMilkBin),
+    /**/ ObjMilkBin_Init,
+    /**/ ObjMilkBin_Destroy,
+    /**/ ObjMilkBin_Update,
+    /**/ ObjMilkBin_Draw,
 };
 
 static ColliderCylinderInit sCylinderInit = {
@@ -58,7 +58,7 @@ void ObjMilkBin_Init(Actor* thisx, PlayState* play) {
     this->disableDraw = 0;
     this->type = thisx->params;
 
-    if ((this->type == OBJ_MILK_BIN_TYPE_2) && !CHECK_WEEKEVENTREG(WEEKEVENTREG_52_01)) {
+    if ((this->type == OBJ_MILK_BIN_TYPE_2) && !CHECK_WEEKEVENTREG(WEEKEVENTREG_ESCORTED_CREMIA)) {
         this->disableDraw |= 1;
     }
 }
@@ -74,14 +74,14 @@ void ObjMilkBin_Update(Actor* thisx, PlayState* play2) {
     ObjMilkBin* this = THIS;
 
     if (this->type == OBJ_MILK_BIN_TYPE_1) {
-        if (CHECK_WEEKEVENTREG(WEEKEVENTREG_22_01)) {
+        if (CHECK_WEEKEVENTREG(WEEKEVENTREG_DEFENDED_AGAINST_THEM)) {
             if (((gSaveContext.save.day == 2) && (gSaveContext.save.isNight == 1)) || (gSaveContext.save.day >= 3)) {
                 Actor_Kill(&this->actor);
                 return;
             }
         }
     } else if (this->type == OBJ_MILK_BIN_TYPE_2) {
-        if (CHECK_WEEKEVENTREG(WEEKEVENTREG_52_01)) {
+        if (CHECK_WEEKEVENTREG(WEEKEVENTREG_ESCORTED_CREMIA)) {
             this->disableDraw &= ~1;
         } else {
             this->disableDraw |= 1;

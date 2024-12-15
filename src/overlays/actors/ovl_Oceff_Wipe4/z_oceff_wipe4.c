@@ -16,20 +16,20 @@ void OceffWipe4_Update(Actor* thisx, PlayState* play);
 void OceffWipe4_Draw(Actor* thisx, PlayState* play);
 
 ActorInit Oceff_Wipe4_InitVars = {
-    ACTOR_OCEFF_WIPE4,
-    ACTORCAT_ITEMACTION,
-    FLAGS,
-    GAMEPLAY_KEEP,
-    sizeof(OceffWipe4),
-    (ActorFunc)OceffWipe4_Init,
-    (ActorFunc)OceffWipe4_Destroy,
-    (ActorFunc)OceffWipe4_Update,
-    (ActorFunc)OceffWipe4_Draw,
+    /**/ ACTOR_OCEFF_WIPE4,
+    /**/ ACTORCAT_ITEMACTION,
+    /**/ FLAGS,
+    /**/ GAMEPLAY_KEEP,
+    /**/ sizeof(OceffWipe4),
+    /**/ OceffWipe4_Init,
+    /**/ OceffWipe4_Destroy,
+    /**/ OceffWipe4_Update,
+    /**/ OceffWipe4_Draw,
 };
 
 #include "assets/overlays/ovl_Oceff_Wipe4/ovl_Oceff_Wipe4.c"
 
-s32 D_8099E780;
+static s32 sBssPad;
 
 void OceffWipe4_Init(Actor* thisx, PlayState* play) {
     OceffWipe4* this = THIS;
@@ -43,7 +43,7 @@ void OceffWipe4_Destroy(Actor* thisx, PlayState* play) {
     OceffWipe4* this = THIS;
 
     Magic_Reset(play);
-    play->msgCtx.unk120B0 = 0;
+    play->msgCtx.ocarinaSongEffectActive = false;
 }
 
 void OceffWipe4_Update(Actor* thisx, PlayState* play) {
@@ -65,9 +65,7 @@ void OceffWipe4_Draw(Actor* thisx, PlayState* play) {
     s32 pad[2];
     Vec3f eye = GET_ACTIVE_CAM(play)->eye;
     Vtx* vtxPtr;
-    Vec3f quakeOffset;
-
-    Camera_GetQuakeOffset(&quakeOffset, GET_ACTIVE_CAM(play));
+    Vec3f quakeOffset = Camera_GetQuakeOffset(GET_ACTIVE_CAM(play));
 
     if (this->counter < 16) {
         z = Math_SinS(this->counter * 0x400) * 1220.0f;
@@ -88,7 +86,7 @@ void OceffWipe4_Draw(Actor* thisx, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C2DC(play->state.gfxCtx);
+    Gfx_SetupDL25_Xlu(play->state.gfxCtx);
 
     Matrix_Translate(eye.x + quakeOffset.x, eye.y + quakeOffset.y, eye.z + quakeOffset.z, MTXMODE_NEW);
     Matrix_Scale(0.1f, 0.1f, 0.1f, MTXMODE_APPLY);

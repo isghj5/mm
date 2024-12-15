@@ -16,15 +16,15 @@ void BgLbfshot_Destroy(Actor* thisx, PlayState* play);
 void BgLbfshot_Draw(Actor* thisx, PlayState* play);
 
 ActorInit Bg_Lbfshot_InitVars = {
-    ACTOR_BG_LBFSHOT,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_LBFSHOT,
-    sizeof(BgLbfshot),
-    (ActorFunc)BgLbfshot_Init,
-    (ActorFunc)BgLbfshot_Destroy,
-    (ActorFunc)Actor_Noop,
-    (ActorFunc)BgLbfshot_Draw,
+    /**/ ACTOR_BG_LBFSHOT,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_LBFSHOT,
+    /**/ sizeof(BgLbfshot),
+    /**/ BgLbfshot_Init,
+    /**/ BgLbfshot_Destroy,
+    /**/ Actor_Noop,
+    /**/ BgLbfshot_Draw,
 };
 
 static InitChainEntry sInitChain[] = {
@@ -36,7 +36,7 @@ void BgLbfshot_Init(Actor* thisx, PlayState* play) {
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
     this->dyna.actor.uncullZoneForward = 4000.0f;
-    DynaPolyActor_Init(&this->dyna, 1);
+    DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS);
     DynaPolyActor_LoadMesh(play, &this->dyna, &object_lbfshot_Colheader_0014D8);
 }
 void BgLbfshot_Destroy(Actor* thisx, PlayState* play) {

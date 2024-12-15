@@ -5,9 +5,8 @@
  */
 
 #include "z_en_al.h"
-#include "objects/object_al/object_al.h"
 
-#define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_8 | ACTOR_FLAG_10 | ACTOR_FLAG_20)
+#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_20)
 
 #define THIS ((EnAl*)thisx)
 
@@ -16,26 +15,9 @@ void EnAl_Destroy(Actor* thisx, PlayState* play);
 void EnAl_Update(Actor* thisx, PlayState* play);
 void EnAl_Draw(Actor* thisx, PlayState* play);
 
-void func_80BDF5E8(EnAl* this, PlayState* play);
 void func_80BDF6C4(EnAl* this, PlayState* play);
 
-static u8 D_80BDFC70[] = {
-    /* 0x00 */ SCHEDULE_CMD_CHECK_NOT_IN_DAY_S(3, 0x11 - 0x04),
-    /* 0x04 */ SCHEDULE_CMD_CHECK_TIME_RANGE_S(18, 0, 6, 0, 0x0B - 0x0A),
-    /* 0x0A */ SCHEDULE_CMD_RET_NONE(),
-    /* 0x0B */ SCHEDULE_CMD_RET_TIME(18, 0, 6, 0, 2),
-    /* 0x11 */ SCHEDULE_CMD_CHECK_TIME_RANGE_S(8, 0, 10, 0, 0x46 - 0x17),
-    /* 0x17 */ SCHEDULE_CMD_CHECK_TIME_RANGE_S(10, 0, 10, 55, 0x40 - 0x1D),
-    /* 0x1D */ SCHEDULE_CMD_CHECK_TIME_RANGE_S(10, 55, 11, 45, 0x30 - 0x23),
-    /* 0x23 */ SCHEDULE_CMD_CHECK_TIME_RANGE_S(11, 45, 20, 0, 0x2A - 0x29),
-    /* 0x29 */ SCHEDULE_CMD_RET_NONE(),
-    /* 0x2A */ SCHEDULE_CMD_RET_TIME(11, 45, 20, 0, 1),
-    /* 0x30 */ SCHEDULE_CMD_CHECK_NOT_IN_DAY_S(2, 0x3A - 0x34),
-    /* 0x34 */ SCHEDULE_CMD_RET_TIME(10, 55, 11, 45, 1),
-    /* 0x3A */ SCHEDULE_CMD_RET_TIME(10, 55, 11, 45, 3),
-    /* 0x40 */ SCHEDULE_CMD_RET_TIME(10, 0, 10, 55, 1),
-    /* 0x46 */ SCHEDULE_CMD_RET_VAL_L(1),
-};
+#include "build/src/overlays/actors/ovl_En_Al/scheduleScripts.schl.inc"
 
 s32 D_80BDFCBC[] = {
     0x09000017, 0x0E27A50C, 0x09000018, 0x0E27A60C, 0x09000017, 0x0E27A70C, 0x09000018, 0x0E27A80C,
@@ -86,15 +68,15 @@ s32 D_80BDFF24[] = {
 };
 
 ActorInit En_Al_InitVars = {
-    ACTOR_EN_AL,
-    ACTORCAT_NPC,
-    FLAGS,
-    OBJECT_AL,
-    sizeof(EnAl),
-    (ActorFunc)EnAl_Init,
-    (ActorFunc)EnAl_Destroy,
-    (ActorFunc)EnAl_Update,
-    (ActorFunc)EnAl_Draw,
+    /**/ ACTOR_EN_AL,
+    /**/ ACTORCAT_NPC,
+    /**/ FLAGS,
+    /**/ OBJECT_AL,
+    /**/ sizeof(EnAl),
+    /**/ EnAl_Init,
+    /**/ EnAl_Destroy,
+    /**/ EnAl_Update,
+    /**/ EnAl_Draw,
 };
 
 static ColliderCylinderInit sCylinderInit = {
@@ -119,11 +101,28 @@ static ColliderCylinderInit sCylinderInit = {
 
 static CollisionCheckInfoInit2 sColChkInfoInit = { 0, 0, 0, 0, MASS_IMMOVABLE };
 
-static AnimationInfoS sAnimationInfo[] = {
-    { &object_al_Anim_000C54, 1.0f, 0, -1, 0, -4 }, { &object_al_Anim_00DBE0, 1.0f, 0, -1, 0, 0 },
-    { &object_al_Anim_00DBE0, 1.0f, 0, -1, 0, -4 }, { &object_al_Anim_00ACA0, 1.0f, 0, -1, 2, 0 },
-    { &object_al_Anim_00ACA0, -1.0f, 0, -1, 2, 0 }, { &object_al_Anim_00CA28, 1.0f, 0, -1, 0, -4 },
-    { &object_al_Anim_00BCA4, 1.0f, 0, -1, 2, 0 },  { &object_al_Anim_00A764, 1.0f, 0, -1, 0, -4 },
+typedef enum {
+    /* -1 */ ENAL_ANIM_NONE = -1,
+    /*  0 */ ENAL_ANIM_0,
+    /*  1 */ ENAL_ANIM_1,
+    /*  2 */ ENAL_ANIM_2,
+    /*  3 */ ENAL_ANIM_3,
+    /*  4 */ ENAL_ANIM_4,
+    /*  5 */ ENAL_ANIM_5,
+    /*  6 */ ENAL_ANIM_6,
+    /*  7 */ ENAL_ANIM_7,
+    /*  8 */ ENAL_ANIM_MAX
+} EnAlAnimation;
+
+static AnimationInfoS sAnimationInfo[ENAL_ANIM_MAX] = {
+    { &object_al_Anim_000C54, 1.0f, 0, -1, ANIMMODE_LOOP, -4 }, // ENAL_ANIM_0
+    { &object_al_Anim_00DBE0, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },  // ENAL_ANIM_1
+    { &object_al_Anim_00DBE0, 1.0f, 0, -1, ANIMMODE_LOOP, -4 }, // ENAL_ANIM_2
+    { &object_al_Anim_00ACA0, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },  // ENAL_ANIM_3
+    { &object_al_Anim_00ACA0, -1.0f, 0, -1, ANIMMODE_ONCE, 0 }, // ENAL_ANIM_4
+    { &object_al_Anim_00CA28, 1.0f, 0, -1, ANIMMODE_LOOP, -4 }, // ENAL_ANIM_5
+    { &object_al_Anim_00BCA4, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },  // ENAL_ANIM_6
+    { &object_al_Anim_00A764, 1.0f, 0, -1, ANIMMODE_LOOP, -4 }, // ENAL_ANIM_7
 };
 
 Vec3f D_80BE0070 = { 1000.0f, 0.0f, 0.0f };
@@ -134,55 +133,53 @@ Gfx* D_80BE007C[] = {
     gMadameAromaShawlRightLowerMiddleDL, gMadameAromaShawlRightLowerDL,
 };
 
-Actor* func_80BDE1A0(EnAl* this, PlayState* play, u8 arg0, s16 arg1) {
-    Actor* foundActor = NULL;
-    Actor* temp;
+Actor* EnAl_FindActor(EnAl* this, PlayState* play, u8 actorCategory, s16 actorId) {
+    Actor* actorIter = NULL;
 
     while (true) {
-        foundActor = SubS_FindActor(play, foundActor, arg0, arg1);
+        actorIter = SubS_FindActor(play, actorIter, actorCategory, actorId);
 
-        if (foundActor == NULL) {
+        if (actorIter == NULL) {
             break;
         }
 
-        if ((this != (EnAl*)foundActor) && (foundActor->update != NULL)) {
+        if ((this != (EnAl*)actorIter) && (actorIter->update != NULL)) {
             break;
         }
 
-        temp = foundActor->next;
-        if (temp == NULL) {
-            foundActor = NULL;
+        if (actorIter->next == NULL) {
+            actorIter = NULL;
             break;
         }
-        foundActor = temp;
+        actorIter = actorIter->next;
     }
-    return foundActor;
+    return actorIter;
 }
 
-void func_80BDE250(EnAl* this) {
-    this->skelAnime.playSpeed = this->unk_4C8;
+void EnAl_UpdateSkelAnime(EnAl* this) {
+    this->skelAnime.playSpeed = this->animPlaySpeed;
     SkelAnime_Update(&this->skelAnime);
 }
 
-s32 func_80BDE27C(EnAl* this, s32 arg1) {
-    s32 phi_v1 = false;
-    s32 ret = false;
+s32 EnAl_ChangeAnim(EnAl* this, s32 animIndex) {
+    s32 changeAnim = false;
+    s32 didAnimChange = false;
 
-    if ((arg1 == 1) || (arg1 == 2)) {
-        if ((this->unk_4F8 != 1) && (this->unk_4F8 != 2)) {
-            phi_v1 = true;
+    if ((animIndex == ENAL_ANIM_1) || (animIndex == ENAL_ANIM_2)) {
+        if ((this->animIndex != ENAL_ANIM_1) && (this->animIndex != ENAL_ANIM_2)) {
+            changeAnim = true;
         }
-    } else if (arg1 != this->unk_4F8) {
-        phi_v1 = true;
+    } else if (this->animIndex != animIndex) {
+        changeAnim = true;
     }
 
-    if (phi_v1) {
-        this->unk_4F8 = arg1;
-        ret = SubS_ChangeAnimationByInfoS(&this->skelAnime, sAnimationInfo, arg1);
-        this->unk_4C8 = this->skelAnime.playSpeed;
+    if (changeAnim) {
+        this->animIndex = animIndex;
+        didAnimChange = SubS_ChangeAnimationByInfoS(&this->skelAnime, sAnimationInfo, animIndex);
+        this->animPlaySpeed = this->skelAnime.playSpeed;
     }
 
-    return ret;
+    return didAnimChange;
 }
 
 void func_80BDE318(EnAl* this, PlayState* play) {
@@ -201,7 +198,7 @@ Actor* func_80BDE384(EnAl* this, PlayState* play) {
     switch (this->unk_35C) {
         case 2:
             if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_89_08) && CHECK_WEEKEVENTREG(WEEKEVENTREG_85_80)) {
-                actor = func_80BDE1A0(this, play, ACTORCAT_NPC, ACTOR_EN_PM);
+                actor = EnAl_FindActor(this, play, ACTORCAT_NPC, ACTOR_EN_PM);
             } else {
                 actor = &GET_PLAYER(play)->actor;
             }
@@ -219,30 +216,30 @@ Actor* func_80BDE384(EnAl* this, PlayState* play) {
     return actor;
 }
 
-s32 func_80BDE408(EnAl* this, s16 arg1) {
+s32 func_80BDE408(EnAl* this, s16 csId) {
     s32 ret = false;
 
-    if (ActorCutscene_GetCurrentIndex() == 0x7C) {
-        ActorCutscene_Stop(0x7C);
-        ActorCutscene_SetIntentToPlay(arg1);
-    } else if (ActorCutscene_GetCanPlayNext(arg1)) {
-        ActorCutscene_StartAndSetUnkLinkFields(arg1, &this->actor);
+    if (CutsceneManager_GetCurrentCsId() == CS_ID_GLOBAL_TALK) {
+        CutsceneManager_Stop(CS_ID_GLOBAL_TALK);
+        CutsceneManager_Queue(csId);
+    } else if (CutsceneManager_IsNext(csId)) {
+        CutsceneManager_StartWithPlayerCs(csId, &this->actor);
         ret = true;
     } else {
-        ActorCutscene_SetIntentToPlay(arg1);
+        CutsceneManager_Queue(csId);
     }
     return ret;
 }
 
-s16 func_80BDE484(EnAl* this, s32 arg1) {
-    s16 cs = this->actor.cutscene;
+s16 func_80BDE484(EnAl* this, s32 numCutscenes) {
+    s16 csId = this->actor.csId;
     s32 i;
 
-    for (i = 0; i < arg1; i++) {
-        cs = ActorCutscene_GetAdditionalCutscene(cs);
+    for (i = 0; i < numCutscenes; i++) {
+        csId = CutsceneManager_GetAdditionalCsId(csId);
     }
 
-    return cs;
+    return csId;
 }
 
 s32 func_80BDE4E0(EnAl* this, s16* arg1, s16 arg2) {
@@ -258,7 +255,7 @@ s32 func_80BDE4E0(EnAl* this, s16* arg1, s16 arg2) {
 
     if (arg2 == *arg1) {
         Actor_PlaySfx(&this->actor, NA_SE_EV_CHAIR_ROLL);
-        func_80BDE27C(this, 3);
+        EnAl_ChangeAnim(this, ENAL_ANIM_3);
         this->unk_4E8 = 0;
         (*arg1)++;
     }
@@ -272,7 +269,7 @@ s32 func_80BDE4E0(EnAl* this, s16* arg1, s16 arg2) {
         if ((temp != (this->actor.world.rot.y / 364)) && (this->unk_4E8 < 20)) {
             Math_ApproachS(&this->actor.world.rot.y, sp42, 3, 0x2AA8);
         } else {
-            func_80BDE27C(this, 5);
+            EnAl_ChangeAnim(this, ENAL_ANIM_5);
             this->actor.world.rot.y = sp42;
             this->unk_4E8 = 0;
             (*arg1)++;
@@ -293,7 +290,7 @@ s32 func_80BDE678(EnAl* this, s16* arg1, s16 arg2) {
 
     if (arg2 == *arg1) {
         Actor_PlaySfx(&this->actor, NA_SE_EV_CHAIR_ROLL);
-        func_80BDE27C(this, 4);
+        EnAl_ChangeAnim(this, ENAL_ANIM_4);
         this->unk_4E8 = 0;
         (*arg1)++;
     }
@@ -305,7 +302,7 @@ s32 func_80BDE678(EnAl* this, s16* arg1, s16 arg2) {
         if ((temp != (this->actor.world.rot.y / 364)) && (this->unk_4E8 < 20)) {
             Math_ApproachS(&this->actor.world.rot.y, sp22, 3, 0x2AA8);
         } else {
-            func_80BDE27C(this, 2);
+            EnAl_ChangeAnim(this, ENAL_ANIM_2);
             this->actor.world.rot.y = sp22;
             this->unk_4E8 = 0;
             (*arg1)++;
@@ -317,13 +314,13 @@ s32 func_80BDE678(EnAl* this, s16* arg1, s16 arg2) {
 
 s32 func_80BDE7FC(EnAl* this, PlayState* play) {
     s32 pad;
-    s16 sp2A = func_80BDE484(this, 0);
+    s16 csId = func_80BDE484(this, 0);
     s32 pad2;
     s32 sp20 = false;
 
     switch (this->unk_4E6) {
         case 0:
-            if (!func_80BDE408(this, sp2A)) {
+            if (!func_80BDE408(this, csId)) {
                 break;
             }
 
@@ -332,7 +329,8 @@ s32 func_80BDE7FC(EnAl* this, PlayState* play) {
         case 6:
         case 8:
             if ((this->actor.child != NULL) && (this->actor.child->update != NULL)) {
-                Camera_SetTargetActor(Play_GetCamera(play, ActorCutscene_GetCurrentSubCamId(sp2A)), this->actor.child);
+                Camera_SetTargetActor(Play_GetCamera(play, CutsceneManager_GetCurrentSubCamId(csId)),
+                                      this->actor.child);
             }
             this->unk_4E6++;
             sp20 = true;
@@ -342,15 +340,18 @@ s32 func_80BDE7FC(EnAl* this, PlayState* play) {
         case 3:
         case 5:
         case 7:
-            Camera_SetTargetActor(Play_GetCamera(play, ActorCutscene_GetCurrentSubCamId(sp2A)), &this->actor);
+            Camera_SetTargetActor(Play_GetCamera(play, CutsceneManager_GetCurrentSubCamId(csId)), &this->actor);
             this->unk_4E6++;
             sp20 = true;
             break;
 
         case 9:
-            ActorCutscene_Stop(sp2A);
+            CutsceneManager_Stop(csId);
             this->unk_4E6++;
             sp20 = true;
+            break;
+
+        default:
             break;
     }
     return sp20;
@@ -358,8 +359,8 @@ s32 func_80BDE7FC(EnAl* this, PlayState* play) {
 
 s32 func_80BDE92C(EnAl* this, PlayState* play) {
     s32 pad[2];
-    Actor* sp1C = func_80BDE1A0(this, play, ACTORCAT_NPC, ACTOR_EN_GM);
-    Actor* temp_v0 = func_80BDE1A0(this, play, ACTORCAT_NPC, ACTOR_EN_TOTO);
+    Actor* sp1C = EnAl_FindActor(this, play, ACTORCAT_NPC, ACTOR_EN_GM);
+    Actor* temp_v0 = EnAl_FindActor(this, play, ACTORCAT_NPC, ACTOR_EN_TOTO);
 
     if ((sp1C == NULL) || (sp1C->update == NULL) || (temp_v0 == NULL) || (temp_v0->update == NULL)) {
         this->unk_4E6++;
@@ -423,6 +424,9 @@ s32 func_80BDEA14(EnAl* this, PlayState* play) {
                 sp18 = true;
             }
             break;
+
+        default:
+            break;
     }
     return sp18;
 }
@@ -469,24 +473,27 @@ s32* func_80BDEABC(EnAl* this, PlayState* play) {
                 return D_80BDFF24;
             }
             return D_80BDFDF8;
+
+        default:
+            return NULL;
     }
-    return NULL;
 }
 
 s32 func_80BDEC2C(EnAl* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
     s32 ret = false;
 
-    if ((this->unk_4C2 & 7) && Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+    if (((this->unk_4C2 & SUBS_OFFER_MODE_MASK) != SUBS_OFFER_MODE_NONE) &&
+        Actor_TalkOfferAccepted(&this->actor, &play->state)) {
         this->unk_4C2 &= ~0x1800;
-        if (player->exchangeItemId == 0x33) {
+        if (player->exchangeItemAction == PLAYER_IA_LETTER_MAMA) {
             this->unk_4C2 |= 0x800;
-            this->unk_4F4 = player->exchangeItemId;
-        } else if (player->exchangeItemId != 0) {
+            this->unk_4F4 = player->exchangeItemAction;
+        } else if (player->exchangeItemAction != PLAYER_IA_NONE) {
             this->unk_4C2 |= 0x1000;
-            this->unk_4F4 = player->exchangeItemId;
+            this->unk_4F4 = player->exchangeItemAction;
         }
-        SubS_UpdateFlags(&this->unk_4C2, 0, 7);
+        SubS_SetOfferMode(&this->unk_4C2, SUBS_OFFER_MODE_NONE, SUBS_OFFER_MODE_MASK);
         this->unk_4E6 = 0;
         this->unk_4EC = 0;
         this->actor.child = this->unk_368;
@@ -514,7 +521,7 @@ void func_80BDED20(EnAl* this) {
     Math_Vec3f_Copy(&sp34, &this->actor.focus.pos);
 
     if (this->unk_368->id == ACTOR_PLAYER) {
-        sp40.y = ((Player*)this->unk_368)->bodyPartsPos[7].y + 3.0f;
+        sp40.y = ((Player*)this->unk_368)->bodyPartsPos[PLAYER_BODYPART_HEAD].y + 3.0f;
     } else {
         Math_Vec3f_Copy(&sp40, &this->unk_368->focus.pos);
     }
@@ -547,12 +554,12 @@ void func_80BDEE5C(EnAl* this) {
 
 void func_80BDEF3C(EnAl* this, PlayState* play) {
     if (this->unk_4E4 == 0) {
-        func_80BDE27C(this, 7);
+        EnAl_ChangeAnim(this, ENAL_ANIM_7);
         this->unk_4C2 &= ~0x20;
         this->unk_4C2 |= 0x200;
         this->unk_4E4++;
     } else if ((this->unk_4E4 == 1) && Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
-        func_80BDE27C(this, 0);
+        EnAl_ChangeAnim(this, ENAL_ANIM_0);
         this->unk_4C2 &= ~0x200;
         this->unk_4C2 |= 0x20;
         this->unk_4E4++;
@@ -561,10 +568,10 @@ void func_80BDEF3C(EnAl* this, PlayState* play) {
 
 void func_80BDEFE4(EnAl* this, PlayState* play) {
     if (this->unk_4E4 == 0) {
-        func_80BDE27C(this, 6);
+        EnAl_ChangeAnim(this, ENAL_ANIM_6);
         this->unk_4E4 += 1;
     } else if ((this->unk_4E4 == 1) && Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
-        func_80BDE27C(this, 5);
+        EnAl_ChangeAnim(this, ENAL_ANIM_5);
         this->unk_4E4 += 1;
     }
 }
@@ -572,8 +579,8 @@ void func_80BDEFE4(EnAl* this, PlayState* play) {
 s32 func_80BDF064(EnAl* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
     u16 sp22 = play->msgCtx.currentTextId;
-    Actor* sp1C = func_80BDE1A0(this, play, 4, 0xA4);
-    Actor* temp_v0 = func_80BDE1A0(this, play, 4, 0x234);
+    Actor* sp1C = EnAl_FindActor(this, play, ACTORCAT_NPC, ACTOR_EN_GM);
+    Actor* temp_v0 = EnAl_FindActor(this, play, ACTORCAT_NPC, ACTOR_EN_TOTO);
 
     if (player->stateFlags1 & PLAYER_STATE1_40) {
         this->unk_4C2 |= 0x400;
@@ -618,7 +625,10 @@ s32 func_80BDF064(EnAl* this, PlayState* play) {
                 case 0x2B19:
                 case 0x2B20:
                 case 0x2B3C:
-                    func_80BDE27C(this, 5);
+                    EnAl_ChangeAnim(this, ENAL_ANIM_5);
+                    break;
+
+                default:
                     break;
             }
         }
@@ -637,12 +647,12 @@ s32 func_80BDF064(EnAl* this, PlayState* play) {
 
 s32 func_80BDF244(EnAl* this, PlayState* play, ScheduleOutput* scheduleOutput) {
     s32 ret = false;
-    Actor* sp20 = func_80BDE1A0(this, play, ACTORCAT_NPC, ACTOR_EN_GM);
-    Actor* temp_v0 = func_80BDE1A0(this, play, ACTORCAT_NPC, ACTOR_EN_TOTO);
+    Actor* sp20 = EnAl_FindActor(this, play, ACTORCAT_NPC, ACTOR_EN_GM);
+    Actor* temp_v0 = EnAl_FindActor(this, play, ACTORCAT_NPC, ACTOR_EN_TOTO);
 
     if ((sp20 != NULL) && (sp20->update != NULL) && (temp_v0 != NULL) && (temp_v0->update != NULL)) {
-        func_80BDE27C(this, 0);
-        SubS_UpdateFlags(&this->unk_4C2, 3, 7);
+        EnAl_ChangeAnim(this, ENAL_ANIM_0);
+        SubS_SetOfferMode(&this->unk_4C2, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
         this->unk_368 = sp20;
         this->unk_4C2 |= 0x20;
         ret = true;
@@ -651,17 +661,20 @@ s32 func_80BDF244(EnAl* this, PlayState* play, ScheduleOutput* scheduleOutput) {
 }
 
 s32 func_80BDF308(EnAl* this, PlayState* play, ScheduleOutput* scheduleOutput) {
-    SubS_UpdateFlags(&this->unk_4C2, 3, 7);
+    SubS_SetOfferMode(&this->unk_4C2, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
 
     switch (scheduleOutput->result) {
         case 1:
-            func_80BDE27C(this, 0);
+            EnAl_ChangeAnim(this, ENAL_ANIM_0);
             break;
 
         case 2:
             this->unk_4F0 = PLAYER_IA_NONE;
             this->unk_4EA = 0;
-            func_80BDE27C(this, 2);
+            EnAl_ChangeAnim(this, ENAL_ANIM_2);
+            break;
+
+        default:
             break;
     }
     return true;
@@ -670,8 +683,8 @@ s32 func_80BDF308(EnAl* this, PlayState* play, ScheduleOutput* scheduleOutput) {
 s32 func_80BDF390(EnAl* this, PlayState* play, ScheduleOutput* scheduleOutput) {
     s32 ret;
 
-    this->actor.flags |= ACTOR_FLAG_1;
-    this->actor.targetMode = 0;
+    this->actor.flags |= ACTOR_FLAG_TARGETABLE;
+    this->actor.targetMode = TARGET_MODE_0;
     this->unk_4F0 = PLAYER_IA_NONE;
     this->unk_4C2 = 0;
     this->unk_4D4 = 40.0f;
@@ -721,9 +734,9 @@ void func_80BDF414(EnAl* this, PlayState* play) {
     temp_v0 = this->actor.world.rot.y - this->actor.yawTowardsPlayer;
     if (((this->unk_4EA == 0) && (ABS_ALT(temp_v0) >= 0x5800)) ||
         ((this->unk_4EA == 5) && (ABS_ALT(temp_v0) >= 0x5800)) || (this->unk_4EA == 2)) {
-        SubS_UpdateFlags(&this->unk_4C2, 3, 7);
+        SubS_SetOfferMode(&this->unk_4C2, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
     } else {
-        SubS_UpdateFlags(&this->unk_4C2, 0, 7);
+        SubS_SetOfferMode(&this->unk_4C2, SUBS_OFFER_MODE_NONE, SUBS_OFFER_MODE_MASK);
     }
 }
 
@@ -740,6 +753,9 @@ void func_80BDF578(EnAl* this, PlayState* play) {
         case 2:
             func_80BDF414(this, play);
             break;
+
+        default:
+            break;
     }
 
     Math_ApproachS(&this->actor.shape.rot.y, this->actor.world.rot.y, 3, 0x2AA8);
@@ -752,11 +768,11 @@ void func_80BDF5E8(EnAl* this, PlayState* play) {
     if (!Schedule_RunScript(play, D_80BDFC70, &sp20) ||
         ((this->unk_35C != sp20.result) && !func_80BDF390(this, play, &sp20))) {
         this->actor.shape.shadowDraw = NULL;
-        this->actor.flags &= ~ACTOR_FLAG_1;
+        this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
         sp20.result = 0;
     } else {
         this->actor.shape.shadowDraw = ActorShadow_DrawCircle;
-        this->actor.flags |= ACTOR_FLAG_1;
+        this->actor.flags |= ACTOR_FLAG_TARGETABLE;
     }
     this->unk_35C = sp20.result;
     this->unk_368 = func_80BDE384(this, play);
@@ -765,7 +781,7 @@ void func_80BDF5E8(EnAl* this, PlayState* play) {
 
 void func_80BDF6C4(EnAl* this, PlayState* play) {
     if (func_8010BF58(&this->actor, play, this->unk_360, this->unk_4EC, &this->unk_364)) {
-        SubS_UpdateFlags(&this->unk_4C2, 3, 7);
+        SubS_SetOfferMode(&this->unk_4C2, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
         this->unk_4C2 &= ~0x20;
         this->unk_4C2 |= 0x200;
         this->actor.child = NULL;
@@ -783,8 +799,8 @@ void EnAl_Init(Actor* thisx, PlayState* play) {
     ActorShape_Init(&this->actor.shape, 0.0f, NULL, 0.0f);
     SkelAnime_InitFlex(play, &this->skelAnime, &gMadameAromaSkel, NULL, this->jointTable, this->morphTable,
                        MADAME_AROMA_LIMB_MAX);
-    this->unk_4F8 = -1;
-    func_80BDE27C(this, 1);
+    this->animIndex = ENAL_ANIM_NONE;
+    EnAl_ChangeAnim(this, ENAL_ANIM_1);
     Collider_InitAndSetCylinder(play, &this->unk_310, &this->actor, &sCylinderInit);
     CollisionCheck_SetInfo2(&this->actor.colChkInfo, DamageTable_Get(0x16), &sColChkInfoInit);
     Actor_SetScale(&this->actor, 0.01f);
@@ -810,9 +826,9 @@ void EnAl_Update(Actor* thisx, PlayState* play) {
     func_80BDF064(this, play);
 
     if (this->unk_35C != 0) {
-        func_80BDE250(this);
+        EnAl_UpdateSkelAnime(this);
         func_80BDEE5C(this);
-        func_8013C964(&this->actor, play, this->unk_4D4, 30.0f, this->unk_4F0, this->unk_4C2 & 7);
+        SubS_Offer(&this->actor, play, this->unk_4D4, 30.0f, this->unk_4F0, this->unk_4C2 & SUBS_OFFER_MODE_MASK);
         func_80BDE318(this, play);
     }
 }
@@ -829,6 +845,9 @@ s32 EnAl_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
             break;
 
         case MADAME_AROMA_LIMB_HEAD:
+            break;
+
+        default:
             break;
     }
     return false;
@@ -866,6 +885,9 @@ void EnAl_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
             Matrix_MultVec3f(&D_80BE0070, &this->actor.focus.pos);
             Math_Vec3s_Copy(&this->actor.focus.rot, &this->actor.world.rot);
             break;
+
+        default:
+            break;
     }
 }
 
@@ -886,7 +908,7 @@ void EnAl_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
         stepRot = false;
     }
 
-    if (limbIndex == 16) {
+    if (limbIndex == MADAME_AROMA_LIMB_HEAD) {
         SubS_UpdateLimb(this->unk_4DC + 0x4000, this->unk_4DE + this->actor.shape.rot.y + 0x4000, &this->unk_36C,
                         &this->unk_378, stepRot, overrideRot);
         Matrix_Pop();
@@ -906,7 +928,7 @@ void EnAl_Draw(Actor* thisx, PlayState* play) {
     if (this->unk_35C != 0) {
         OPEN_DISPS(play->state.gfxCtx);
 
-        func_8012C28C(play->state.gfxCtx);
+        Gfx_SetupDL25_Opa(play->state.gfxCtx);
         Matrix_Translate(0.0f, 0.0f, 850.0f, MTXMODE_APPLY);
         SkelAnime_DrawTransformFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable,
                                        this->skelAnime.dListCount, EnAl_OverrideLimbDraw, EnAl_PostLimbDraw,

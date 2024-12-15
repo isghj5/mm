@@ -12,7 +12,7 @@ typedef void (*DmStkActionFunc)(struct DmStk*, PlayState*);
 
 typedef enum {
     /* 0 */ DM_STK_TYPE_SKULL_KID,
-    /* 1 */ DM_STK_TYPE_MAJORAS_MASK,
+    /* 1 */ DM_STK_TYPE_MAJORAS_MASK
 } DmStkType;
 
 typedef struct DmStk {
@@ -41,11 +41,11 @@ typedef struct DmStk {
     /* 0x32E */ u8 fadeInState;
     /* 0x32F */ u8 fadeOutState;
     /* 0x330 */ s32 fadeOutTimer;
-    /* 0x334 */ u8 csAction;
+    /* 0x334 */ u8 cueId;
     /* 0x335 */ u8 hasBeenHit; // set but never used
-    /* 0x336 */ s8 objectStkObjectIndex;
-    /* 0x337 */ s8 objectStk2ObjectIndex;
-    /* 0x338 */ s8 objectStk3ObjectIndex;
+    /* 0x336 */ s8 objectStkObjectSlot;
+    /* 0x337 */ s8 objectStk2ObjectSlot;
+    /* 0x338 */ s8 objectStk3ObjectSlot;
     /* 0x339 */ u8 deflectCount;
     /* 0x33A */ u8 dekuPipesCutsceneState;
     /* 0x33B */ u8 shouldDraw;

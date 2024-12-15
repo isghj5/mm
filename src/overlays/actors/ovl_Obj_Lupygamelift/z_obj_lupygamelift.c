@@ -22,15 +22,15 @@ void func_80AF0514(ObjLupygamelift* this);
 void func_80AF0530(ObjLupygamelift* this, PlayState* play);
 
 ActorInit Obj_Lupygamelift_InitVars = {
-    ACTOR_OBJ_LUPYGAMELIFT,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_RAILLIFT,
-    sizeof(ObjLupygamelift),
-    (ActorFunc)ObjLupygamelift_Init,
-    (ActorFunc)ObjLupygamelift_Destroy,
-    (ActorFunc)ObjLupygamelift_Update,
-    (ActorFunc)ObjLupygamelift_Draw,
+    /**/ ACTOR_OBJ_LUPYGAMELIFT,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_RAILLIFT,
+    /**/ sizeof(ObjLupygamelift),
+    /**/ ObjLupygamelift_Init,
+    /**/ ObjLupygamelift_Destroy,
+    /**/ ObjLupygamelift_Update,
+    /**/ ObjLupygamelift_Draw,
 };
 
 static InitChainEntry sInitChain[] = {
@@ -53,9 +53,9 @@ void ObjLupygamelift_Init(Actor* thisx, PlayState* play) {
     this->dyna.actor.shape.rot.z = 0;
     this->dyna.actor.world.rot.z = 0;
     this->timer = 0;
-    Actor_UpdateBgCheckInfo(play, thisx, 0.0f, 0.0f, 0.0f, 4);
+    Actor_UpdateBgCheckInfo(play, thisx, 0.0f, 0.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
     ActorShape_Init(&thisx->shape, 0.0f, ActorShadow_DrawSquare, 0.0f);
-    DynaPolyActor_Init(&this->dyna, 1);
+    DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS);
     DynaPolyActor_LoadMesh(play, &this->dyna, &object_raillift_Colheader_0048D0);
     this->targetSpeedXZ = thisx->home.rot.z * 0.1f;
     if (this->targetSpeedXZ < 0.0f) {
@@ -65,13 +65,13 @@ void ObjLupygamelift_Init(Actor* thisx, PlayState* play) {
     this->dyna.actor.home.rot.y = 0;
     this->dyna.actor.home.rot.z = 0;
 
-    path = &play->setupPathList[OBJLUPYGAMELIFT_GET_PATH(thisx)];
+    path = &play->setupPathList[OBJLUPYGAMELIFT_GET_PATH_INDEX(thisx)];
     this->pointIndex = OBJLUPYGAMELIFT_GET_7(thisx);
     this->count = path->count;
     if (this->pointIndex >= this->count) {
         this->pointIndex = 0;
     }
-    this->points = Lib_SegmentedToVirtual(path->points);
+    this->pathPoints = Lib_SegmentedToVirtual(path->points);
     Actor_SpawnAsChild(&play->actorCtx, &this->dyna.actor, play, ACTOR_OBJ_ETCETERA, this->dyna.actor.world.pos.x,
                        this->dyna.actor.world.pos.y, this->dyna.actor.world.pos.z, this->dyna.actor.shape.rot.x,
                        this->dyna.actor.shape.rot.y, this->dyna.actor.shape.rot.z, 0);
@@ -138,9 +138,9 @@ void func_80AF0530(ObjLupygamelift* this, PlayState* play) {
     f32 distRemaining;
     Vec3f target;
 
-    target.x = this->points[this->pointIndex].x;
-    target.y = this->points[this->pointIndex].y;
-    target.z = this->points[this->pointIndex].z;
+    target.x = this->pathPoints[this->pointIndex].x;
+    target.y = this->pathPoints[this->pointIndex].y;
+    target.z = this->pathPoints[this->pointIndex].z;
     distRemaining = Math_Vec3f_StepTo(&this->dyna.actor.world.pos, &target, this->dyna.actor.speed);
     if (distRemaining > 30.0f) {
         Math_SmoothStepToF(&this->dyna.actor.speed, this->targetSpeedXZ, 0.5f, 5.0f, 0.1f);

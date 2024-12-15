@@ -13,7 +13,7 @@
 #define rAlphaStep regs[6]
 #define rFadeDelay regs[7]
 #define rScaleStep regs[8]
-#define rObjectIndex regs[9]
+#define rObjectSlot regs[9]
 
 #define PARAMS ((EffectSsDFireInitParams*)initParamsx)
 
@@ -21,7 +21,7 @@ u32 EffectSsDFire_Init(PlayState* play, u32 index, EffectSs* this, void* initPar
 void EffectSsDFire_Update(PlayState* play, u32 index, EffectSs* this);
 void EffectSsDFire_Draw(PlayState* play, u32 index, EffectSs* this);
 
-const EffectSsInit Effect_Ss_D_Fire_InitVars = {
+EffectSsInit Effect_Ss_D_Fire_InitVars = {
     EFFECT_SS_D_FIRE,
     EffectSsDFire_Init,
 };
@@ -29,8 +29,8 @@ const EffectSsInit Effect_Ss_D_Fire_InitVars = {
 static TexturePtr sFireTextures[] = { gDodongoFire0Tex, gDodongoFire1Tex, gDodongoFire2Tex, gDodongoFire3Tex };
 
 s32 EffectSsDFire_CheckForObject(EffectSs* this, PlayState* play) {
-    if (((this->rObjectIndex = Object_GetIndex(&play->objectCtx, OBJECT_DODONGO)) < 0) ||
-        !Object_IsLoaded(&play->objectCtx, this->rObjectIndex)) {
+    if (((this->rObjectSlot = Object_GetSlot(&play->objectCtx, OBJECT_DODONGO)) <= OBJECT_SLOT_NONE) ||
+        !Object_IsLoaded(&play->objectCtx, this->rObjectSlot)) {
         this->life = -1;
         this->draw = NULL;
         return false;
@@ -65,16 +65,16 @@ u32 EffectSsDFire_Init(PlayState* play, u32 index, EffectSs* this, void* initPar
 void EffectSsDFire_Draw(PlayState* play, u32 index, EffectSs* this) {
     GraphicsContext* gfxCtx = play->state.gfxCtx;
     s32 pad;
-    void* object;
+    void* objectPtr;
     f32 scale;
 
     if (EffectSsDFire_CheckForObject(this, play)) {
-        object = play->objectCtx.status[this->rObjectIndex].segment;
+        objectPtr = play->objectCtx.slots[this->rObjectSlot].segment;
 
         OPEN_DISPS(gfxCtx);
 
-        gSegments[6] = VIRTUAL_TO_PHYSICAL(object);
-        gSPSegment(POLY_XLU_DISP++, 0x06, object);
+        gSegments[0x06] = OS_K0_TO_PHYSICAL(objectPtr);
+        gSPSegment(POLY_XLU_DISP++, 0x06, objectPtr);
 
         scale = this->rScale / 100.0f;
 
@@ -83,7 +83,7 @@ void EffectSsDFire_Draw(PlayState* play, u32 index, EffectSs* this) {
         Matrix_Mult(&play->billboardMtxF, MTXMODE_APPLY);
 
         gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
-        func_8012C974(gfxCtx);
+        Gfx_SetupDL60_XluNoCD(gfxCtx);
         gDPSetEnvColor(POLY_XLU_DISP++, 255, 0, 0, 0);
         gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 255, 50, this->rAlpha);
 

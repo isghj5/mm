@@ -19,7 +19,7 @@ typedef enum {
     /*  9 */ EN_FALL_TYPE_CLOCK_TOWER_MOON,
     /* 10 */ EN_FALL_TYPE_STOPPED_MOON_OPEN_MOUTH,
     /* 11 */ EN_FALL_TYPE_CRASH_FIRE_RING,
-    /* 12 */ EN_FALL_TYPE_LODMOON_INVERTED_STONE_TOWER,
+    /* 12 */ EN_FALL_TYPE_LODMOON_INVERTED_STONE_TOWER
 } EnFallType;
 
 struct EnFall;
@@ -30,7 +30,7 @@ typedef struct EnFall {
     /* 0x000 */ Actor actor;
     /* 0x144 */ s16 dayStartTime;
     /* 0x146 */ s16 currentDay;
-    /* 0x148 */ u8 objIndex;
+    /* 0x148 */ u8 objectSlot;
     /* 0x14C */ f32 scale;
     /* 0x150 */ union {
                     f32 eyeGlowIntensity;

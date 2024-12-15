@@ -29,15 +29,15 @@ void ObjTokeiStep_DoNothingOpen(ObjTokeiStep* this, PlayState* play);
 void ObjTokeiStep_DrawOpen(Actor* thisx, PlayState* play);
 
 ActorInit Obj_Tokei_Step_InitVars = {
-    ACTOR_OBJ_TOKEI_STEP,
-    ACTORCAT_BG,
-    FLAGS,
-    OBJECT_TOKEI_STEP,
-    sizeof(ObjTokeiStep),
-    (ActorFunc)ObjTokeiStep_Init,
-    (ActorFunc)ObjTokeiStep_Destroy,
-    (ActorFunc)ObjTokeiStep_Update,
-    (ActorFunc)ObjTokeiStep_Draw,
+    /**/ ACTOR_OBJ_TOKEI_STEP,
+    /**/ ACTORCAT_BG,
+    /**/ FLAGS,
+    /**/ OBJECT_TOKEI_STEP,
+    /**/ sizeof(ObjTokeiStep),
+    /**/ ObjTokeiStep_Init,
+    /**/ ObjTokeiStep_Destroy,
+    /**/ ObjTokeiStep_Update,
+    /**/ ObjTokeiStep_Draw,
 };
 
 static f32 sPanelXOffsets[] = { -105.0f, -90.0f, -75.0f, -60.0f, -45.0f, -30.0f, -15.0f };
@@ -61,13 +61,13 @@ void ObjTokeiStep_SetSysMatrix(ObjTokeiStepPanel* panel) {
     mtx->zw = panel->pos.z;
 }
 
-void ObjTokeiStep_AddQuake(ObjTokeiStep* this, PlayState* play) {
+void ObjTokeiStep_RequestQuakeAndRumble(ObjTokeiStep* this, PlayState* play) {
     s32 pad[2];
-    s16 quakeIndex = Quake_Add(GET_ACTIVE_CAM(play), QUAKE_TYPE_3);
+    s16 quakeIndex = Quake_Request(GET_ACTIVE_CAM(play), QUAKE_TYPE_3);
 
     Quake_SetSpeed(quakeIndex, 20000);
-    Quake_SetQuakeValues(quakeIndex, 1, 0, 0, 0);
-    Quake_SetCountdown(quakeIndex, 7);
+    Quake_SetPerturbations(quakeIndex, 1, 0, 0, 0);
+    Quake_SetDuration(quakeIndex, 7);
 
     Rumble_Request(this->dyna.actor.xyzDistToPlayerSq, 120, 20, 10);
 }
@@ -140,7 +140,7 @@ void ObjTokeiStep_InitTimers(ObjTokeiStep* this) {
 }
 
 s32 ObjTokeiStep_OpenProcess(ObjTokeiStep* this, PlayState* play) {
-    ObjTokeiStep* this2 = this;
+    Actor* thisx = &this->dyna.actor;
     s32 i;
     ObjTokeiStepPanel* panel;
     f32 finalPosY;
@@ -179,8 +179,8 @@ s32 ObjTokeiStep_OpenProcess(ObjTokeiStep* this, PlayState* play) {
                         panel->pos.y += finalPosY;
                     }
                     if (panel->numBounces == 1) {
-                        ObjTokeiStep_SpawnDust(this2, panel, play);
-                        ObjTokeiStep_AddQuake(this2, play);
+                        ObjTokeiStep_SpawnDust(this, panel, play);
+                        ObjTokeiStep_RequestQuakeAndRumble(this, play);
                     }
                 }
             }
@@ -195,11 +195,11 @@ void ObjTokeiStep_Init(Actor* thisx, PlayState* play) {
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
     DynaPolyActor_Init(&this->dyna, 0);
-    if ((play->sceneId == SCENE_CLOCKTOWER) && (gSaveContext.sceneLayer == 2) && (play->csCtx.currentCsIndex == 0)) {
+    if ((play->sceneId == SCENE_CLOCKTOWER) && (gSaveContext.sceneLayer == 2) && (play->csCtx.scriptIndex == 0)) {
         DynaPolyActor_LoadMesh(play, &this->dyna, &gClocktowerPanelCol);
         ObjTokeiStep_InitSteps(this);
         ObjTokeiStep_SetupBeginOpen(this);
-    } else if (((CURRENT_DAY == 3) && (gSaveContext.save.time < CLOCK_TIME(6, 0))) || (gSaveContext.save.day >= 4)) {
+    } else if (((CURRENT_DAY == 3) && (CURRENT_TIME < CLOCK_TIME(6, 0))) || (gSaveContext.save.day >= 4)) {
         this->dyna.actor.draw = ObjTokeiStep_DrawOpen;
         ObjTokeiStep_InitStepsOpen(this);
         ObjTokeiStep_SetupDoNothingOpen(this);
@@ -221,12 +221,12 @@ void ObjTokeiStep_SetupBeginOpen(ObjTokeiStep* this) {
 }
 
 void ObjTokeiStep_BeginOpen(ObjTokeiStep* this, PlayState* play) {
-    CsCmdActorAction* action;
+    CsCmdActorCue* cue;
 
-    if (Cutscene_CheckActorAction(play, 134)) {
-        action = play->csCtx.actorActions[Cutscene_GetActorActionIndex(play, 134)];
+    if (Cutscene_IsCueInChannel(play, CS_CMD_ACTOR_CUE_134)) {
+        cue = play->csCtx.actorCues[Cutscene_GetCueChannel(play, CS_CMD_ACTOR_CUE_134)];
 
-        if ((action->startFrame == play->csCtx.frames) && (action->action != 0)) {
+        if ((cue->startFrame == play->csCtx.curFrame) && (cue->id != 0)) {
             this->dyna.actor.draw = ObjTokeiStep_DrawOpen;
             ObjTokeiStep_SetupOpen(this);
         }
@@ -247,7 +247,7 @@ void ObjTokeiStep_SetupOpen(ObjTokeiStep* this) {
 
 void ObjTokeiStep_Open(ObjTokeiStep* this, PlayState* play) {
     if (ObjTokeiStep_OpenProcess(this, play)) {
-        func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
+        DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
         ObjTokeiStep_SetupDoNothingOpen(this);
     }
 }
@@ -279,8 +279,9 @@ void ObjTokeiStep_DrawOpen(Actor* thisx, PlayState* play) {
     Gfx* gfx;
 
     OPEN_DISPS(play->state.gfxCtx);
+
     gfx = POLY_OPA_DISP;
-    gSPDisplayList(gfx++, &sSetupDL[6 * 0x19]);
+    gSPDisplayList(gfx++, gSetupDLs[SETUPDL_25]);
 
     for (i = 0; i < ARRAY_COUNT(this->panels); i++) {
         panel = &this->panels[i];
@@ -289,5 +290,6 @@ void ObjTokeiStep_DrawOpen(Actor* thisx, PlayState* play) {
         gSPDisplayList(gfx++, gClocktowerPanelDL);
     }
     POLY_OPA_DISP = gfx;
+
     CLOSE_DISPS(play->state.gfxCtx);
 }

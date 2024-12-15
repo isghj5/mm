@@ -39,7 +39,7 @@ static Color_RGBA8 sEnvColors[] = {
     { 150, 150, 150, 0 },
 };
 
-const EffectSsInit Effect_Ss_Dt_Bubble_InitVars = {
+EffectSsInit Effect_Ss_Dt_Bubble_InitVars = {
     EFFECT_SS_DT_BUBBLE,
     EffectSsDtBubble_Init,
 };
@@ -50,7 +50,7 @@ u32 EffectSsDtBubble_Init(PlayState* play, u32 index, EffectSs* this, void* init
     {
         TexturePtr tex = (Rand_ZeroOne() < 0.5f) ? gEffBubble1Tex : gEffBubble2Tex;
 
-        this->gfx = VIRTUAL_TO_PHYSICAL(SEGMENTED_TO_VIRTUAL(tex));
+        this->gfx = (void*)OS_K0_TO_PHYSICAL(SEGMENTED_TO_K0(tex));
     }
 
     Math_Vec3f_Copy(&this->pos, &initParams->pos);
@@ -97,7 +97,7 @@ void EffectSsDtBubble_Draw(PlayState* play, u32 index, EffectSs* this) {
     Matrix_Translate(this->pos.x, this->pos.y, this->pos.z, MTXMODE_NEW);
     Matrix_Scale(scale, scale, scale, MTXMODE_APPLY);
     gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
-    func_8012C28C(gfxCtx);
+    Gfx_SetupDL25_Opa(gfxCtx);
     gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, this->rPrimColorR, this->rPrimColorG, this->rPrimColorB,
                     (this->rPrimColorA * this->life) / this->rLifespan);
     gDPSetEnvColor(POLY_OPA_DISP++, this->rEnvColorR, this->rEnvColorG, this->rEnvColorB,

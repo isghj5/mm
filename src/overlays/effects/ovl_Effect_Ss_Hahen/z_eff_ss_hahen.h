@@ -15,10 +15,8 @@ typedef struct {
     /* 0x24 */ Gfx* dList;
     /* 0x28 */ s16 flags;
     /* 0x2A */ s16 scale;
-    /* 0x2C */ s16 objId;
+    /* 0x2C */ s16 objectId;
     /* 0x2C */ s16 life;
 } EffectSsHahenInitParams; // size = 0x30
-
-extern const EffectSsInit Effect_Ss_Hahen_InitVars;
 
 #endif

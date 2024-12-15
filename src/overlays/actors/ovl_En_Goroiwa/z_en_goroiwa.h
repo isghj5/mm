@@ -12,29 +12,31 @@ typedef s32 (*EnGoroiwaUnkFunc)(struct EnGoroiwa*);
 #define ENGOROIWA_GET_3000(thisx) (((thisx)->params >> 0xC) & 3)
 #define ENGOROIWA_GET_400(thisx) (((thisx)->params >> 0xA) & 1)
 #define ENGOROIWA_GET_300(thisx) (((thisx)->params >> 0x8) & 3)
-#define ENGOROIWA_GET_FF(thisx) ((thisx)->params & 0xFF)
+#define ENGOROIWA_GET_PATH_INDEX(thisx) ((thisx)->params & 0xFF)
 
-enum {
+#define ENGOROIWA_PATH_INDEX_NONE 0xFF
+
+typedef enum {
     /* 0 */ ENGOROIWA_300_0,
     /* 1 */ ENGOROIWA_300_1,
-    /* 3 */ ENGOROIWA_300_3 = 3,
-};
+    /* 3 */ ENGOROIWA_300_3 = 3
+} EnGoroiwaParam300;
 
-enum {
+typedef enum {
     /* 0 */ ENGOROIWA_400_0,
-    /* 1 */ ENGOROIWA_400_1,
-};
+    /* 1 */ ENGOROIWA_400_1
+} EnGoroiwaParam400;
 
-enum {
+typedef enum {
     /* 0 */ ENGOROIWA_3000_0,
     /* 1 */ ENGOROIWA_3000_1,
-    /* 2 */ ENGOROIWA_3000_2,
-};
+    /* 2 */ ENGOROIWA_3000_2
+} EnGoroiwaParam3000;
 
-enum {
+typedef enum {
     /* 1 */ ENGOROIWA_C000_1 = 1,
-    /* 2 */ ENGOROIWA_C000_2,
-};
+    /* 2 */ ENGOROIWA_C000_2
+} EnGoroiwaParamC000;
 
 typedef struct {
     /* 0x00 */ Vec3f unk_00;
@@ -66,7 +68,7 @@ typedef struct EnGoroiwa {
     /* 0x1CA */ s16 unk_1CA;
     /* 0x1CC */ s16 unk_1CC;
     /* 0x1CE */ s16 unk_1CE;
-    /* 0x1D0 */ Vec3s* unk_1D0;
+    /* 0x1D0 */ Vec3s* pathPoints;
     /* 0x1D4 */ s16 unk_1D4;
     /* 0x1D6 */ s16 unk_1D6;
     /* 0x1D8 */ s16 unk_1D8;

@@ -3,6 +3,7 @@
  * Overlay: ovl_Dm_Char01
  * Description: Woodfall scene objects (temple, water, walls, etc)
  */
+
 #include "prevent_bss_reordering.h"
 #include "z_dm_char01.h"
 #include "objects/object_mtoride/object_mtoride.h"
@@ -36,15 +37,15 @@ s16 D_80AAAE26;
 #include "overlays/ovl_Dm_Char01/ovl_Dm_Char01.c"
 
 ActorInit Dm_Char01_InitVars = {
-    ACTOR_DM_CHAR01,
-    ACTORCAT_ITEMACTION,
-    FLAGS,
-    OBJECT_MTORIDE,
-    sizeof(DmChar01),
-    (ActorFunc)DmChar01_Init,
-    (ActorFunc)DmChar01_Destroy,
-    (ActorFunc)DmChar01_Update,
-    (ActorFunc)DmChar01_Draw,
+    /**/ ACTOR_DM_CHAR01,
+    /**/ ACTORCAT_ITEMACTION,
+    /**/ FLAGS,
+    /**/ OBJECT_MTORIDE,
+    /**/ sizeof(DmChar01),
+    /**/ DmChar01_Init,
+    /**/ DmChar01_Destroy,
+    /**/ DmChar01_Update,
+    /**/ DmChar01_Draw,
 };
 
 static InitChainEntry sInitChain[] = {
@@ -67,15 +68,15 @@ void DmChar01_Init(Actor* thisx, PlayState* play) {
 
     switch (DMCHAR01_GET(&this->dyna.actor)) {
         case DMCHAR01_0:
-            if (CHECK_WEEKEVENTREG(WEEKEVENTREG_20_02)) {
+            if (CHECK_WEEKEVENTREG(WEEKEVENTREG_CLEARED_WOODFALL_TEMPLE)) {
                 this->unk_34C = 2;
                 this->actionFunc = func_80AA8F1C;
                 break;
             }
 
             if (gSaveContext.sceneLayer == 0) {
-                play->envCtx.unk_1F = 5;
-                play->envCtx.unk_20 = 5;
+                play->envCtx.lightConfig = 5;
+                play->envCtx.changeLightNextConfig = 5;
             }
             this->unk_348 = 255.0f;
 
@@ -97,7 +98,7 @@ void DmChar01_Init(Actor* thisx, PlayState* play) {
             break;
 
         case DMCHAR01_1:
-            if (CHECK_WEEKEVENTREG(WEEKEVENTREG_20_02) || (gSaveContext.sceneLayer == 1)) {
+            if (CHECK_WEEKEVENTREG(WEEKEVENTREG_CLEARED_WOODFALL_TEMPLE) || (gSaveContext.sceneLayer == 1)) {
                 this->unk_34C = 1;
                 this->actionFunc = func_80AA8F1C;
             } else {
@@ -134,7 +135,7 @@ void DmChar01_Init(Actor* thisx, PlayState* play) {
             DynaPolyActor_LoadMesh(play, &this->dyna, &gWoodfallSceneryTempleRampAndPlatformCol);
 
             this->unk_34D = true;
-            if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_20_02)) {
+            if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_CLEARED_WOODFALL_TEMPLE)) {
                 this->actionFunc = func_80AA9020;
                 this->dyna.actor.world.pos.y -= 120.0f;
             } else {
@@ -168,14 +169,14 @@ void func_80AA8698(DmChar01* this, PlayState* play) {
         (player2->actor.world.pos.x < 40.0f) && (player2->actor.world.pos.z > 1000.0f) &&
         (player2->actor.world.pos.z < 1078.0f)) {
         if (!D_80AAAAB4) {
-            play_sound(NA_SE_SY_TRE_BOX_APPEAR);
+            Audio_PlaySfx(NA_SE_SY_TRE_BOX_APPEAR);
             D_80AAAAB4 = true;
         }
     } else {
         D_80AAAAB4 = false;
     }
 
-    if ((player->transformation == PLAYER_FORM_DEKU) && (play->msgCtx.ocarinaMode == 3) &&
+    if ((player->transformation == PLAYER_FORM_DEKU) && (play->msgCtx.ocarinaMode == OCARINA_MODE_EVENT) &&
         (play->msgCtx.lastPlayedSong == OCARINA_SONG_SONATA)) {
 
         if ((player2->actor.world.pos.x > -40.0f) && (player2->actor.world.pos.x < 40.0f) &&
@@ -187,19 +188,20 @@ void func_80AA8698(DmChar01* this, PlayState* play) {
 }
 
 void func_80AA884C(DmChar01* this, PlayState* play) {
-    s16 sp1E = this->dyna.actor.cutscene;
+    s16 csId = this->dyna.actor.csId;
 
-    if (ActorCutscene_GetCanPlayNext(sp1E)) {
-        ActorCutscene_Start(sp1E, &this->dyna.actor);
+    if (CutsceneManager_IsNext(csId)) {
+        CutsceneManager_Start(csId, &this->dyna.actor);
         this->actionFunc = func_80AA88A8;
     } else {
-        ActorCutscene_SetIntentToPlay(sp1E);
+        CutsceneManager_Queue(csId);
     }
 }
 
 void func_80AA88A8(DmChar01* this, PlayState* play) {
-    if (Cutscene_CheckActorAction(play, 135)) {
-        if (play->csCtx.frames == play->csCtx.actorActions[Cutscene_GetActorActionIndex(play, 135)]->startFrame) {
+    if (Cutscene_IsCueInChannel(play, CS_CMD_ACTOR_CUE_135)) {
+        if (play->csCtx.curFrame ==
+            play->csCtx.actorCues[Cutscene_GetCueChannel(play, CS_CMD_ACTOR_CUE_135)]->startFrame) {
             D_80AAAE24 = 1;
             Actor_PlaySfx(&this->dyna.actor, NA_SE_EV_FORT_RISING);
         }
@@ -344,11 +346,11 @@ void func_80AA8F2C(DmChar01* this, PlayState* play) {
 }
 
 void func_80AA9020(DmChar01* this, PlayState* play) {
-    if (Cutscene_CheckActorAction(play, 135)) {
-        CsCmdActorAction* temp_v1 = play->csCtx.actorActions[Cutscene_GetActorActionIndex(play, 135)];
+    if (Cutscene_IsCueInChannel(play, CS_CMD_ACTOR_CUE_135)) {
+        CsCmdActorCue* cue = play->csCtx.actorCues[Cutscene_GetCueChannel(play, CS_CMD_ACTOR_CUE_135)];
 
-        if ((temp_v1->startFrame == play->csCtx.frames) && (temp_v1->action == 2)) {
-            SET_WEEKEVENTREG(WEEKEVENTREG_20_02);
+        if ((cue->startFrame == play->csCtx.curFrame) && (cue->id == 2)) {
+            SET_WEEKEVENTREG(WEEKEVENTREG_CLEARED_WOODFALL_TEMPLE);
             this->actionFunc = func_80AA90AC;
         }
     }
@@ -373,17 +375,17 @@ void DmChar01_Update(Actor* thisx, PlayState* play2) {
             Player* player = GET_PLAYER(play);
 
             if (player->actor.world.pos.y > 5.0f) {
-                func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
+                DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
             } else {
-                func_800C6314(play, &play->colCtx.dyna, this->dyna.bgId);
+                DynaPoly_EnableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
             }
         }
 
         if (DMCHAR01_GET(&this->dyna.actor) == DMCHAR01_2) {
             if (this->dyna.actor.xzDistToPlayer > 600.0f) {
-                func_800C62BC(play, &play->colCtx.dyna, this->dyna.bgId);
+                DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
             } else {
-                func_800C6314(play, &play->colCtx.dyna, this->dyna.bgId);
+                DynaPoly_EnableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
             }
         }
     }
@@ -422,7 +424,7 @@ void DmChar01_Draw(Actor* thisx, PlayState* play) {
                     OPEN_DISPS(play->state.gfxCtx);
 
                     if ((u8)this->unk_348 == 255) {
-                        func_8012C28C(play->state.gfxCtx);
+                        Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
                         gDPSetRenderMode(POLY_OPA_DISP++, G_RM_FOG_SHADE_A, G_RM_AA_ZB_OPA_SURF2);
                         gDPPipeSync(POLY_OPA_DISP++);
@@ -434,7 +436,7 @@ void DmChar01_Draw(Actor* thisx, PlayState* play) {
                                   G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
                         gSPDisplayList(POLY_OPA_DISP++, gWoodfallSceneryDynamicPoisonWaterDL);
                     } else {
-                        func_8012C2DC(play->state.gfxCtx);
+                        Gfx_SetupDL25_Xlu(play->state.gfxCtx);
 
                         gDPSetRenderMode(POLY_XLU_DISP++, G_RM_FOG_SHADE_A, G_RM_AA_ZB_XLU_SURF2);
                         gDPPipeSync(POLY_XLU_DISP++);
@@ -481,7 +483,7 @@ void DmChar01_Draw(Actor* thisx, PlayState* play) {
 
                 OPEN_DISPS(play->state.gfxCtx);
 
-                func_8012C2DC(play->state.gfxCtx);
+                Gfx_SetupDL25_Xlu(play->state.gfxCtx);
 
                 gDPPipeSync(POLY_XLU_DISP++);
                 gDPSetEnvColor(POLY_XLU_DISP++, 0, 0, 0, (u8)this->unk_348);
@@ -527,13 +529,13 @@ void DmChar01_Draw(Actor* thisx, PlayState* play) {
                             sp44.x = (Rand_ZeroOne() - 0.5f) * (2.0f * phi_f2);
                             sp44.y = D_80AAAAB8;
                             sp44.z = (Rand_ZeroOne() * D_80AAAAC4) + phi_f2;
-                            temp = (s16)spBC + D_80AAAACC;
+                            temp = TRUNCF_BINANG(spBC) + D_80AAAACC;
                             EffectSsGSplash_Spawn(play, &sp44, NULL, NULL, 0, temp);
                         } else {
                             sp44.x = -phi_f2 - (Rand_ZeroOne() * D_80AAAAC4);
                             sp44.y = D_80AAAAB8;
                             sp44.z = (Rand_ZeroOne() - 0.5f) * (2.0f * phi_f2);
-                            temp = (s16)spBC + D_80AAAACC;
+                            temp = TRUNCF_BINANG(spBC) + D_80AAAACC;
                             EffectSsGSplash_Spawn(play, &sp44, NULL, NULL, 0, temp);
                         }
                     }

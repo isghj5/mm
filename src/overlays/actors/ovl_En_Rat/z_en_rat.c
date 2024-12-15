@@ -8,7 +8,7 @@
 #include "objects/gameplay_keep/gameplay_keep.h"
 #include "overlays/actors/ovl_En_Bom/z_en_bom.h"
 
-#define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_4 | ACTOR_FLAG_200)
+#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_UNFRIENDLY | ACTOR_FLAG_200)
 
 #define THIS ((EnRat*)thisx)
 
@@ -32,19 +32,19 @@ void EnRat_PostDetonation(EnRat* this, PlayState* play);
 
 typedef enum {
     /* -2 */ EN_RAT_HOOK_STARTED = -2,
-    /* -1 */ EN_RAT_HOOKED,
+    /* -1 */ EN_RAT_HOOKED
 } EnRatHookedState;
 
 ActorInit En_Rat_InitVars = {
-    ACTOR_EN_RAT,
-    ACTORCAT_ENEMY,
-    FLAGS,
-    OBJECT_RAT,
-    sizeof(EnRat),
-    (ActorFunc)EnRat_Init,
-    (ActorFunc)EnRat_Destroy,
-    (ActorFunc)EnRat_Update,
-    (ActorFunc)EnRat_Draw,
+    /**/ ACTOR_EN_RAT,
+    /**/ ACTORCAT_ENEMY,
+    /**/ FLAGS,
+    /**/ OBJECT_RAT,
+    /**/ sizeof(EnRat),
+    /**/ EnRat_Init,
+    /**/ EnRat_Destroy,
+    /**/ EnRat_Update,
+    /**/ EnRat_Draw,
 };
 
 static ColliderSphereInit sSphereInit = {
@@ -70,7 +70,7 @@ static ColliderSphereInit sSphereInit = {
 typedef enum {
     /* 0x0 */ EN_RAT_DMGEFF_NONE,
     /* 0x1 */ EN_RAT_DMGEFF_STUN,
-    /* 0xF */ EN_RAT_DMGEFF_HOOKSHOT = 0xF, // Pulls the Real Bombchu towards the player
+    /* 0xF */ EN_RAT_DMGEFF_HOOKSHOT = 0xF // Pulls the Real Bombchu towards the player
 } EnRatDamageEffect;
 
 static DamageTable sDamageTable = {
@@ -124,8 +124,19 @@ static InitChainEntry sInitChain[] = {
 };
 
 static EffectBlureInit2 sBlureInit = {
-    0, 0, 0, { 250, 0, 0, 250 }, { 200, 0, 0, 130 }, { 150, 0, 0, 100 }, { 100, 0, 0, 50 }, 16,
-    0, 0, 0, { 0, 0, 0, 0 },     { 0, 0, 0, 0 },
+    0,
+    0,
+    0,
+    { 250, 0, 0, 250 },
+    { 200, 0, 0, 130 },
+    { 150, 0, 0, 100 },
+    { 100, 0, 0, 50 },
+    16,
+    0,
+    EFF_BLURE_DRAW_MODE_SIMPLE,
+    0,
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
 };
 
 static s32 sTexturesDesegmented = false;
@@ -230,7 +241,7 @@ s32 EnRat_UpdateFloorPoly(EnRat* this, CollisionPoly* floorPoly, PlayState* play
         return false;
     }
 
-    angle = func_80086C48(normDotUp);
+    angle = Math_FAcosF(normDotUp);
     if (angle < 0.001f) {
         return false;
     }
@@ -324,14 +335,14 @@ void EnRat_ChooseDirection(EnRat* this) {
                 angle -= 0x8000;
             }
 
-            angle += (s16)randPlusMinusPoint5Scaled(0x800);
+            angle += TRUNCF_BINANG(Rand_CenteredFloat(0x800));
         } else {
-            angle = (Rand_ZeroOne() < 0.1f) ? (s16)randPlusMinusPoint5Scaled(0x800) : 0;
+            angle = (Rand_ZeroOne() < 0.1f) ? TRUNCF_BINANG(Rand_CenteredFloat(0x800)) : 0;
         }
     }
 
     angle = CLAMP(angle, -0x800, 0x800);
-    Matrix_RotateAxisF(angle * (M_PI / 0x8000), &this->axisUp, MTXMODE_NEW);
+    Matrix_RotateAxisF(BINANG_TO_RAD(angle), &this->axisUp, MTXMODE_NEW);
     Matrix_MultVec3f(&this->axisForwards, &newAxisForwards);
     Math_Vec3f_Copy(&this->axisForwards, &newAxisForwards);
     Math3D_CrossProduct(&this->axisUp, &this->axisForwards, &this->axisLeft);
@@ -355,7 +366,8 @@ s32 EnRat_IsOnCollisionPoly(PlayState* play, Vec3f* posA, Vec3f* posB, Vec3f* po
     }
 
     if (BgCheck_EntityLineTest1(&play->colCtx, posA, posB, posResult, poly, 1, 1, 1, 1, bgId)) {
-        if (!(func_800C9A4C(&play->colCtx, *poly, *bgId) & 0x30) && (!isOnWater || (waterSurface <= posResult->y))) {
+        if (!(SurfaceType_GetWallFlags(&play->colCtx, *poly, *bgId) & (WALL_FLAG_4 | WALL_FLAG_5)) &&
+            (!isOnWater || (waterSurface <= posResult->y))) {
             return true;
         }
     }
@@ -494,7 +506,7 @@ void EnRat_HandleNonSceneCollision(EnRat* this, PlayState* play) {
     f32 cos;
     f32 tempX;
 
-    BgCheck2_UpdateActorAttachedToMesh(&play->colCtx, this->actor.floorBgId, &this->actor);
+    DynaPolyActor_TransformCarriedActor(&play->colCtx, this->actor.floorBgId, &this->actor);
 
     if (yaw != this->actor.shape.rot.y) {
         yaw = this->actor.shape.rot.y - yaw;
@@ -534,7 +546,7 @@ void EnRat_SetupRevive(EnRat* this) {
     this->actor.shape.rot.z = this->actor.home.rot.z;
     EnRat_InitializeAxes(this);
     EnRat_UpdateRotation(this);
-    this->actor.flags &= ~ACTOR_FLAG_1;
+    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
     this->actor.speed = 0.0f;
     Animation_PlayLoopSetSpeed(&this->skelAnime, &gRealBombchuSpotAnim, 0.0f);
     this->revivePosY = 2666.6667f;
@@ -551,7 +563,7 @@ void EnRat_Revive(EnRat* this, PlayState* play) {
     if (this->timer > 0) {
         this->timer--;
         if (this->timer == 0) {
-            this->actor.flags |= ACTOR_FLAG_1;
+            this->actor.flags |= ACTOR_FLAG_TARGETABLE;
             this->actor.draw = EnRat_Draw;
             this->skelAnime.playSpeed = 1.0f;
         }
@@ -632,9 +644,9 @@ void EnRat_UpdateSparkOffsets(EnRat* this) {
 
     for (i = 0; i < ARRAY_COUNT(this->sparkOffsets); i++) {
         ptr = &this->sparkOffsets[i];
-        ptr->x = randPlusMinusPoint5Scaled(6.0f);
-        ptr->y = randPlusMinusPoint5Scaled(6.0f);
-        ptr->z = randPlusMinusPoint5Scaled(6.0f);
+        ptr->x = Rand_CenteredFloat(6.0f);
+        ptr->y = Rand_CenteredFloat(6.0f);
+        ptr->z = Rand_CenteredFloat(6.0f);
     }
 }
 
@@ -699,7 +711,7 @@ void EnRat_ChasePlayer(EnRat* this, PlayState* play) {
         func_800B1210(play, &this->actor.world.pos, &sDustVelocity, &gZeroVec3f, 550, 50);
     }
 
-    if ((this->actor.floorPoly == NULL) && (Animation_OnFrame(&this->skelAnime, 0.0f))) {
+    if ((this->actor.floorPoly == NULL) && Animation_OnFrame(&this->skelAnime, 0.0f)) {
         EnRat_SpawnWaterEffects(this, play);
     }
 
@@ -708,7 +720,7 @@ void EnRat_ChasePlayer(EnRat* this, PlayState* play) {
         this->animLoopCounter = 5;
     }
 
-    func_800B9010(&this->actor, NA_SE_EN_BOMCHU_RUN - SFX_FLAG);
+    Actor_PlaySfx_Flagged(&this->actor, NA_SE_EN_BOMCHU_RUN - SFX_FLAG);
     EnRat_UpdateSparkOffsets(this);
 }
 
@@ -739,8 +751,9 @@ void EnRat_Bounced(EnRat* this, PlayState* play) {
 }
 
 void EnRat_Explode(EnRat* this, PlayState* play) {
-    EnBom* bomb = (EnBom*)Actor_Spawn(&play->actorCtx, play, ACTOR_EN_BOM, this->actor.world.pos.x,
-                                      this->actor.world.pos.y, this->actor.world.pos.z, 0, 0, 0, ENBOM_0);
+    EnBom* bomb =
+        (EnBom*)Actor_Spawn(&play->actorCtx, play, ACTOR_EN_BOM, this->actor.world.pos.x, this->actor.world.pos.y,
+                            this->actor.world.pos.z, BOMB_EXPLOSIVE_TYPE_BOMB, 0, 0, BOMB_TYPE_BODY);
 
     if (bomb != NULL) {
         bomb->timer = 0;
@@ -853,7 +866,8 @@ void EnRat_Update(Actor* thisx, PlayState* play) {
             this->actor.floorHeight = this->actor.world.pos.y;
         } else {
             Actor_MoveWithGravity(&this->actor);
-            Actor_UpdateBgCheckInfo(play, &this->actor, 20.0f, 30.0f, 60.0f, 7);
+            Actor_UpdateBgCheckInfo(play, &this->actor, 20.0f, 30.0f, 60.0f,
+                                    UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_2 | UPDBGCHECKINFO_FLAG_4);
         }
 
         if (SurfaceType_IsWallDamage(&play->colCtx, this->actor.floorPoly, this->actor.floorBgId)) {
@@ -934,14 +948,14 @@ void EnRat_PostLimbDraw(PlayState* play2, s32 limbIndex, Gfx** dList, Vec3s* rot
         gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
         gSPDisplayList(POLY_OPA_DISP++, gBombCapDL);
         if (EN_RAT_GET_TYPE(&this->actor) == EN_RAT_TYPE_DUNGEON) {
-            redModifier = fabsf(cos_rad(this->timer * (M_PI / 30.f)));
+            redModifier = fabsf(Math_CosF(this->timer * (M_PI / 30.f)));
         } else {
             if (this->timer >= 120) {
-                redModifier = fabsf(cos_rad((this->timer % 30) * (M_PI / 30.0f)));
+                redModifier = fabsf(Math_CosF((this->timer % 30) * (M_PI / 30.0f)));
             } else if (this->timer >= 30) {
-                redModifier = fabsf(cos_rad((this->timer % 6) * (M_PI / 6.0f)));
+                redModifier = fabsf(Math_CosF((this->timer % 6) * (M_PI / 6.0f)));
             } else {
-                redModifier = fabsf(cos_rad((this->timer % 3) * (M_PI / 3.0f)));
+                redModifier = fabsf(Math_CosF((this->timer % 3) * (M_PI / 3.0f)));
             }
         }
 
@@ -958,8 +972,8 @@ void EnRat_PostLimbDraw(PlayState* play2, s32 limbIndex, Gfx** dList, Vec3s* rot
 void EnRat_Draw(Actor* thisx, PlayState* play) {
     EnRat* this = THIS;
 
-    func_8012C28C(play->state.gfxCtx);
-    func_8012C974(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
+    Gfx_SetupDL60_XluNoCD(play->state.gfxCtx);
     func_800B8050(&this->actor, play, 0);
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                           EnRat_OverrideLimbDraw, EnRat_PostLimbDraw, &this->actor);

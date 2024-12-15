@@ -5,9 +5,8 @@
  */
 
 #include "z_en_ms.h"
-#include "objects/object_ms/object_ms.h"
 
-#define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_8)
+#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
 
 #define THIS ((EnMs*)thisx)
 
@@ -22,15 +21,15 @@ void EnMs_Sell(EnMs* this, PlayState* play);
 void EnMs_TalkAfterPurchase(EnMs* this, PlayState* play);
 
 ActorInit En_Ms_InitVars = {
-    ACTOR_EN_MS,
-    ACTORCAT_NPC,
-    FLAGS,
-    OBJECT_MS,
-    sizeof(EnMs),
-    (ActorFunc)EnMs_Init,
-    (ActorFunc)EnMs_Destroy,
-    (ActorFunc)EnMs_Update,
-    (ActorFunc)EnMs_Draw,
+    /**/ ACTOR_EN_MS,
+    /**/ ACTORCAT_NPC,
+    /**/ FLAGS,
+    /**/ OBJECT_MS,
+    /**/ sizeof(EnMs),
+    /**/ EnMs_Init,
+    /**/ EnMs_Destroy,
+    /**/ EnMs_Update,
+    /**/ EnMs_Draw,
 };
 
 static ColliderCylinderInitType1 sCylinderInit = {
@@ -53,7 +52,7 @@ static ColliderCylinderInitType1 sCylinderInit = {
 };
 
 static InitChainEntry sInitChain[] = {
-    ICHAIN_U8(targetMode, 2, ICHAIN_CONTINUE),
+    ICHAIN_U8(targetMode, TARGET_MODE_2, ICHAIN_CONTINUE),
     ICHAIN_F32(targetArrowOffset, 500, ICHAIN_STOP),
 };
 
@@ -61,8 +60,8 @@ void EnMs_Init(Actor* thisx, PlayState* play) {
     EnMs* this = THIS;
 
     Actor_ProcessInitChain(thisx, sInitChain);
-    SkelAnime_InitFlex(play, &this->skelAnime, &object_ms_Skel_003DC0, &object_ms_Anim_0005EC, this->jointTable,
-                       this->morphTable, 9);
+    SkelAnime_InitFlex(play, &this->skelAnime, &gBeanSalesmanSkel, &gBeanSalesmanEatingAnim, this->jointTable,
+                       this->morphTable, BEAN_SALESMAN_LIMB_MAX);
     Collider_InitCylinder(play, &this->collider);
     Collider_SetCylinderType1(play, &this->collider, &this->actor, &sCylinderInit);
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 35.0f);
@@ -83,16 +82,16 @@ void EnMs_Destroy(Actor* thisx, PlayState* play) {
 void EnMs_Wait(EnMs* this, PlayState* play) {
     s16 yawDiff = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
 
-    if (gSaveContext.save.inventory.items[SLOT_MAGIC_BEANS] == ITEM_NONE) {
-        this->actor.textId = 0x92E; // "[...] You're the first customer [...]"
+    if (gSaveContext.save.saveInfo.inventory.items[SLOT_MAGIC_BEANS] == ITEM_NONE) {
+        this->actor.textId = 0x92E;
     } else {
-        this->actor.textId = 0x932; // "[...] So you liked my Magic Beans [...]"
+        this->actor.textId = 0x932;
     }
 
-    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
+    if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
         this->actionFunc = EnMs_Talk;
     } else if ((this->actor.xzDistToPlayer < 90.0f) && (ABS_ALT(yawDiff) < 0x2000)) {
-        func_800B8614(&this->actor, play, 90.0f);
+        Actor_OfferTalk(&this->actor, play, 90.0f);
     }
 }
 
@@ -104,9 +103,9 @@ void EnMs_Talk(EnMs* this, PlayState* play) {
             }
             break;
 
-        case TEXT_STATE_5:
+        case TEXT_STATE_EVENT:
             if (Message_ShouldAdvance(play)) {
-                func_801477B4(play);
+                Message_CloseTextbox(play);
                 Actor_OfferGetItem(&this->actor, play, GI_MAGIC_BEANS, this->actor.xzDistToPlayer,
                                    this->actor.playerHeightRel);
                 this->actionFunc = EnMs_Sell;
@@ -117,15 +116,15 @@ void EnMs_Talk(EnMs* this, PlayState* play) {
             if (Message_ShouldAdvance(play)) {
                 switch (play->msgCtx.choiceIndex) {
                     case 0: // yes
-                        func_801477B4(play);
-                        if (gSaveContext.save.playerData.rupees < 10) {
-                            play_sound(NA_SE_SY_ERROR);
-                            func_80151938(play, 0x935); // "[...] You don't have enough Rupees."
+                        Message_CloseTextbox(play);
+                        if (gSaveContext.save.saveInfo.playerData.rupees < 10) {
+                            Audio_PlaySfx(NA_SE_SY_ERROR);
+                            Message_ContinueTextbox(play, 0x935);
                         } else if (AMMO(ITEM_MAGIC_BEANS) >= 20) {
-                            play_sound(NA_SE_SY_ERROR);
-                            func_80151938(play, 0x937); // "[...] You can't carry anymore."
+                            Audio_PlaySfx(NA_SE_SY_ERROR);
+                            Message_ContinueTextbox(play, 0x937);
                         } else {
-                            func_8019F208();
+                            Audio_PlaySfx_MessageDecide();
                             Actor_OfferGetItem(&this->actor, play, GI_MAGIC_BEANS, 90.0f, 10.0f);
                             Rupees_ChangeBy(-10);
                             this->actionFunc = EnMs_Sell;
@@ -134,8 +133,8 @@ void EnMs_Talk(EnMs* this, PlayState* play) {
 
                     case 1: // no
                     default:
-                        func_8019F230();
-                        func_80151938(play, 0x934); // "[...] Well, if your mood changes [...]"
+                        Audio_PlaySfx_MessageCancel();
+                        Message_ContinueTextbox(play, 0x934);
                         break;
                 }
             }
@@ -149,7 +148,8 @@ void EnMs_Talk(EnMs* this, PlayState* play) {
 void EnMs_Sell(EnMs* this, PlayState* play) {
     if (Actor_HasParent(&this->actor, play)) {
         this->actor.textId = 0;
-        func_800B8500(&this->actor, play, this->actor.xzDistToPlayer, this->actor.playerHeightRel, PLAYER_IA_NONE);
+        Actor_OfferTalkExchange(&this->actor, play, this->actor.xzDistToPlayer, this->actor.playerHeightRel,
+                                PLAYER_IA_NONE);
         this->actionFunc = EnMs_TalkAfterPurchase;
     } else {
         Actor_OfferGetItem(&this->actor, play, GI_MAGIC_BEANS, this->actor.xzDistToPlayer, this->actor.playerHeightRel);
@@ -157,11 +157,12 @@ void EnMs_Sell(EnMs* this, PlayState* play) {
 }
 
 void EnMs_TalkAfterPurchase(EnMs* this, PlayState* play) {
-    if (Actor_ProcessTalkRequest(&this->actor, &play->state)) {
-        func_80151938(play, 0x936); // "You can plant 'em whenever you want [...]"
+    if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
+        Message_ContinueTextbox(play, 0x936);
         this->actionFunc = EnMs_Talk;
     } else {
-        func_800B8500(&this->actor, play, this->actor.xzDistToPlayer, this->actor.playerHeightRel, PLAYER_IA_MINUS1);
+        Actor_OfferTalkExchange(&this->actor, play, this->actor.xzDistToPlayer, this->actor.playerHeightRel,
+                                PLAYER_IA_MINUS1);
     }
 }
 
@@ -181,7 +182,7 @@ void EnMs_Update(Actor* thisx, PlayState* play) {
 void EnMs_Draw(Actor* thisx, PlayState* play) {
     EnMs* this = THIS;
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount, NULL,
                           NULL, &this->actor);
 }

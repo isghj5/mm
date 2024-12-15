@@ -5,10 +5,9 @@
  */
 
 #include "z_en_pr2.h"
-#include "objects/object_pr/object_pr.h"
 #include "overlays/actors/ovl_En_Encount1/z_en_encount1.h"
 
-#define FLAGS (ACTOR_FLAG_1 | ACTOR_FLAG_4 | ACTOR_FLAG_10)
+#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_UNFRIENDLY | ACTOR_FLAG_10)
 
 #define THIS ((EnPr2*)thisx)
 
@@ -82,24 +81,35 @@ static ColliderCylinderInit sCylinderInit = {
 };
 
 ActorInit En_Pr2_InitVars = {
-    ACTOR_EN_PR2,
-    ACTORCAT_ENEMY,
-    FLAGS,
-    OBJECT_PR,
-    sizeof(EnPr2),
-    (ActorFunc)EnPr2_Init,
-    (ActorFunc)EnPr2_Destroy,
-    (ActorFunc)EnPr2_Update,
-    (ActorFunc)EnPr2_Draw,
+    /**/ ACTOR_EN_PR2,
+    /**/ ACTORCAT_ENEMY,
+    /**/ FLAGS,
+    /**/ OBJECT_PR,
+    /**/ sizeof(EnPr2),
+    /**/ EnPr2_Init,
+    /**/ EnPr2_Destroy,
+    /**/ EnPr2_Update,
+    /**/ EnPr2_Draw,
 };
 
-static AnimationHeader* sAnimations[] = {
-    &object_pr_Anim_004340,
-    &object_pr_Anim_004274,
-    &object_pr_Anim_003904,
+typedef enum EnPr2Animation {
+    /* 0 */ ENPR2_ANIM_0,
+    /* 1 */ ENPR2_ANIM_1,
+    /* 2 */ ENPR2_ANIM_2,
+    /* 3 */ ENPR2_ANIM_MAX
+} EnPr2Animation;
+
+static AnimationHeader* sAnimations[ENPR2_ANIM_MAX] = {
+    &object_pr_Anim_004340, // ENPR2_ANIM_0
+    &object_pr_Anim_004274, // ENPR2_ANIM_1
+    &object_pr_Anim_003904, // ENPR2_ANIM_2
 };
 
-u8 D_80A75C38[] = { ANIMMODE_LOOP, ANIMMODE_LOOP, ANIMMODE_ONCE, ANIMMODE_LOOP };
+static u8 sAnimationModes[ENPR2_ANIM_MAX] = {
+    ANIMMODE_LOOP, // ENPR2_ANIM_0
+    ANIMMODE_LOOP, // ENPR2_ANIM_1
+    ANIMMODE_ONCE, // ENPR2_ANIM_2
+};
 
 s16 D_80A75C3C[] = {
     0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80, 0x90, 0xA0, 0xB0, 0xC0, 0xD0, 0xE0, 0xF0,
@@ -108,14 +118,14 @@ s16 D_80A75C3C[] = {
 void EnPr2_Init(Actor* thisx, PlayState* play) {
     EnPr2* this = THIS;
 
-    this->actor.targetMode = 3;
+    this->actor.targetMode = TARGET_MODE_3;
     this->actor.hintId = TATL_HINT_ID_SKULLFISH;
     this->unk_1EC = 255;
     this->actor.colChkInfo.health = 1;
     this->actor.colChkInfo.damageTable = &sDamageTable;
 
     SkelAnime_InitFlex(play, &this->skelAnime, &object_pr_Skel_004188, &object_pr_Anim_004340, this->jointTable,
-                       this->morphtable, 5);
+                       this->morphTable, OBJECT_PR_2_LIMB_MAX);
     this->unk_1E0 = ENPR2_GET_F(&this->actor);
     this->actor.colChkInfo.mass = 10;
     Math_Vec3f_Copy(&this->unk_228, &this->actor.home.pos);
@@ -151,8 +161,8 @@ void EnPr2_Init(Actor* thisx, PlayState* play) {
                 Actor* parent = this->actor.parent;
 
                 if (parent->update != NULL) {
-                    this->unk_1C8 = ((EnEncount1*)parent)->unk_15A;
-                    this->path = SubS_GetPathByIndex(play, this->unk_1C8, 0x3F);
+                    this->pathIndex = ((EnEncount1*)parent)->pathIndex;
+                    this->path = SubS_GetPathByIndex(play, this->pathIndex, ENPR2_PATH_INDEX_NONE);
                     this->unk_208 = parent->world.rot.z * 20.0f;
                     if (this->unk_208 < 20.0f) {
                         this->unk_208 = 20.0f;
@@ -171,7 +181,9 @@ void EnPr2_Init(Actor* thisx, PlayState* play) {
         func_80A751B4(this);
     }
 
-    Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 20.0f, 20.0f, 0x1D);
+    Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 20.0f, 20.0f,
+                            UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4 | UPDBGCHECKINFO_FLAG_8 |
+                                UPDBGCHECKINFO_FLAG_10);
 
     if (!(this->actor.bgCheckFlags & (BGCHECKFLAG_WATER | BGCHECKFLAG_WATER_TOUCH))) {
         Actor_Kill(&this->actor);
@@ -188,21 +200,22 @@ void EnPr2_Destroy(Actor* thisx, PlayState* play) {
     if (this->actor.parent != NULL) {
         EnEncount1* encount1 = (EnEncount1*)this->actor.parent;
 
-        if ((encount1->actor.update != NULL) && (encount1->unk_14E > 0)) {
-            encount1->unk_14E--;
+        if ((encount1->actor.update != NULL) && (encount1->spawnActiveCount > 0)) {
+            encount1->spawnActiveCount--;
         }
     }
 }
 
 s32 func_80A7429C(EnPr2* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
-    s16 sp1A;
-    s16 sp18;
+    s16 screenPosX;
+    s16 screenPosY;
 
-    Actor_GetScreenPos(play, &this->actor, &sp1A, &sp18);
+    Actor_GetScreenPos(play, &this->actor, &screenPosX, &screenPosY);
 
     if ((fabsf(player->actor.world.pos.y - this->actor.world.pos.y) > 160.0f) ||
-        (this->actor.projectedPos.z < -40.0f) || (sp1A < 0) || (sp1A > 320) || (sp18 < 0) || (sp18 > 240)) {
+        (this->actor.projectedPos.z < -40.0f) || (screenPosX < 0) || (screenPosX > SCREEN_WIDTH) || (screenPosY < 0) ||
+        (screenPosY > SCREEN_HEIGHT)) {
         return false;
     }
 
@@ -226,9 +239,9 @@ void func_80A7436C(EnPr2* this, s16 arg1) {
 
     if (fabsf(this->actor.world.pos.y - this->unk_21C.y) > 10.0f) {
         Math_SmoothStepToS(&this->actor.world.rot.x, Math_Vec3f_Pitch(&this->actor.world.pos, &this->unk_21C) * 0.3f,
-                           20, 5000, 500);
+                           20, 0x1388, 0x1F4);
     } else {
-        Math_SmoothStepToS(&this->actor.world.rot.x, 0, 20, 5000, 500);
+        Math_SmoothStepToS(&this->actor.world.rot.x, 0, 20, 0x1388, 0x1F4);
     }
 
     if (fabsf(this->actor.world.rot.y - arg1) < 30.0f) {
@@ -237,22 +250,23 @@ void func_80A7436C(EnPr2* this, s16 arg1) {
         Math_ApproachF(&this->unk_1FC, sp2E, 0.5f, 3000.0f);
     }
 
-    Math_SmoothStepToS(&this->actor.world.rot.y, arg1, 1, 2000, 300);
+    Math_SmoothStepToS(&this->actor.world.rot.y, arg1, 1, 0x7D0, 300);
 }
 
-void func_80A74510(EnPr2* this, s32 arg0) {
-    f32 sp34 = 1.0f;
+void EnPr2_ChangeAnim(EnPr2* this, s32 animIndex) {
+    f32 playSpeed = 1.0f;
 
-    this->unk_210 = arg0;
-    this->unk_1F8 = Animation_GetLastFrame(sAnimations[arg0]);
-    if (this->unk_210 == 3) {
-        sp34 = 0.0f;
+    this->animIndex = animIndex;
+    this->animEndFrame = Animation_GetLastFrame(sAnimations[animIndex]);
+    if (this->animIndex == ENPR2_ANIM_MAX) {
+        playSpeed = 0.0f;
     }
-    Animation_Change(&this->skelAnime, sAnimations[arg0], sp34, 0.0f, this->unk_1F8, D_80A75C38[arg0], 0.0f);
+    Animation_Change(&this->skelAnime, sAnimations[animIndex], playSpeed, 0.0f, this->animEndFrame,
+                     sAnimationModes[animIndex], 0.0f);
 }
 
 void func_80A745C4(EnPr2* this) {
-    func_80A74510(this, 0);
+    EnPr2_ChangeAnim(this, ENPR2_ANIM_0);
     this->unk_1D4 = 0;
     this->actionFunc = func_80A745FC;
 }
@@ -270,7 +284,7 @@ void func_80A745FC(EnPr2* this, PlayState* play) {
     Actor_PlaySfx(&this->actor, NA_SE_EN_PIRANHA_EXIST - SFX_FLAG);
     Math_ApproachF(&this->unk_204, 0.02f, 0.1f, 0.005f);
 
-    if (this->path->unk2 < this->unk_1D0) {
+    if (this->path->customValue < this->unk_1D0) {
         Math_ApproachF(&this->actor.speed, 5.0f, 0.3f, 1.0f);
     } else {
         Math_ApproachF(&this->actor.speed, 10.0f, 0.3f, 1.0f);
@@ -284,9 +298,9 @@ void func_80A745FC(EnPr2* this, PlayState* play) {
 
     if (fabsf(this->actor.world.pos.y - this->unk_21C.y) > 10.0f) {
         Math_SmoothStepToS(&this->actor.world.rot.x, Math_Vec3f_Pitch(&this->actor.world.pos, &this->unk_21C) * 0.3f,
-                           20, 5000, 500);
+                           20, 0x1388, 0x1F4);
     } else {
-        Math_SmoothStepToS(&this->actor.world.rot.x, 0, 20, 5000, 500);
+        Math_SmoothStepToS(&this->actor.world.rot.x, 0, 20, 0x1388, 0x1F4);
     }
 
     x = this->actor.world.pos.x - this->unk_21C.x;
@@ -308,7 +322,7 @@ void func_80A745FC(EnPr2* this, PlayState* play) {
 }
 
 void func_80A74888(EnPr2* this) {
-    func_80A74510(this, 0);
+    EnPr2_ChangeAnim(this, ENPR2_ANIM_0);
     this->unk_1DA = 2;
     this->unk_1D8 = 0;
     Math_Vec3f_Copy(&this->unk_21C, &this->unk_228);
@@ -374,6 +388,9 @@ void func_80A748E8(EnPr2* this, PlayState* play) {
                     }
                 }
                 break;
+
+            default:
+                break;
         }
 
         if (!sp4C) {
@@ -388,8 +405,8 @@ void func_80A748E8(EnPr2* this, PlayState* play) {
                 if (this->unk_1DA == 1) {
                     this->unk_1D8 = Rand_S16Offset(100, 100);
                     Math_Vec3f_Copy(&sp3C, &this->unk_228);
-                    sp3C.x += randPlusMinusPoint5Scaled(300.0f);
-                    sp3C.z += randPlusMinusPoint5Scaled(300.0f);
+                    sp3C.x += Rand_CenteredFloat(300.0f);
+                    sp3C.z += Rand_CenteredFloat(300.0f);
                     Math_Vec3f_Copy(&this->unk_21C, &sp3C);
                 }
             } else {
@@ -407,7 +424,7 @@ void func_80A748E8(EnPr2* this, PlayState* play) {
                             this->unk_1F0 += 0x2000;
                         }
                     } else {
-                        Math_SmoothStepToS(&this->unk_1F0, 0, 1, 1000, 100);
+                        Math_SmoothStepToS(&this->unk_1F0, 0, 1, 0x3E8, 0x64);
                         this->unk_1F2 = 0;
                     }
                 }
@@ -430,7 +447,7 @@ void func_80A74DEC(EnPr2* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
 
     this->unk_1F0 = 0;
-    func_80A74510(this, 1);
+    EnPr2_ChangeAnim(this, ENPR2_ANIM_1);
     Actor_PlaySfx(&this->actor, NA_SE_EN_PIRANHA_ATTACK);
     Math_Vec3f_Copy(&this->unk_21C, &player->actor.world.pos);
 
@@ -444,7 +461,7 @@ void func_80A74DEC(EnPr2* this, PlayState* play) {
 
 void func_80A74E90(EnPr2* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
-    WaterBox* sp40;
+    WaterBox* waterBox;
 
     Math_ApproachF(&this->unk_204, 0.02f, 0.1f, 0.005f);
     if ((this->unk_1D8 == 0) || !(player->stateFlags1 & PLAYER_STATE1_8000000) || (this->unk_1E0 == 0)) {
@@ -489,8 +506,8 @@ void func_80A74E90(EnPr2* this, PlayState* play) {
         }
 
         if (WaterBox_GetSurface1(play, &play->colCtx, this->actor.world.pos.x, this->actor.world.pos.z, &this->unk_200,
-                                 &sp40)) {
-            if ((this->unk_200 - 40.0f) < this->unk_21C.y) {
+                                 &waterBox)) {
+            if (this->unk_21C.y > (this->unk_200 - 40.0f)) {
                 this->unk_21C.y = this->unk_200 - 40.0f;
             }
         }
@@ -516,13 +533,13 @@ void func_80A74E90(EnPr2* this, PlayState* play) {
 void func_80A751B4(EnPr2* this) {
     this->unk_1EC = 0;
     this->actor.flags |= ACTOR_FLAG_CANT_LOCK_ON;
-    this->actor.flags &= ~ACTOR_FLAG_1;
+    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
     if (this->unk_1E0 < 10) {
-        func_80A74510(this, 2);
+        EnPr2_ChangeAnim(this, ENPR2_ANIM_2);
     } else {
-        this->unk_1F8 = Animation_GetLastFrame(&object_pr_Anim_003904);
-        Animation_Change(&this->skelAnime, &object_pr_Anim_003904, 1.0f, this->unk_1F8, this->unk_1F8, ANIMMODE_ONCE,
-                         0.0f);
+        this->animEndFrame = Animation_GetLastFrame(&object_pr_Anim_003904);
+        Animation_Change(&this->skelAnime, &object_pr_Anim_003904, 1.0f, this->animEndFrame, this->animEndFrame,
+                         ANIMMODE_ONCE, 0.0f);
         this->unk_1D8 = Rand_S16Offset(20, 30);
         this->unk_1E4 = 0x4000;
         if (Rand_ZeroOne() < 0.5f) {
@@ -534,7 +551,7 @@ void func_80A751B4(EnPr2* this) {
         this->actor.shape.rot.z = this->actor.world.rot.z;
         this->unk_1D8 = 30;
         this->actor.speed = Rand_ZeroFloat(0.5f);
-        this->actor.world.rot.y = randPlusMinusPoint5Scaled(0x8000);
+        this->actor.world.rot.y = Rand_CenteredFloat(0x8000);
     }
     Actor_SetColorFilter(&this->actor, COLORFILTER_COLORFLAG_RED, 255, COLORFILTER_BUFFLAG_OPA, 10);
     this->unk_1D4 = 3;
@@ -543,16 +560,16 @@ void func_80A751B4(EnPr2* this) {
 
 void func_80A75310(EnPr2* this, PlayState* play) {
     s32 temp;
-    f32 frame;
-    WaterBox* sp74;
+    f32 curFrame;
+    WaterBox* waterBox;
 
     SkelAnime_Update(&this->skelAnime);
     if (this->unk_1E0 < 10) {
         s32 i;
 
-        frame = this->skelAnime.curFrame;
+        curFrame = this->skelAnime.curFrame;
 
-        if (this->unk_1F8 <= frame) {
+        if (curFrame >= this->animEndFrame) {
             for (i = 0; i < ARRAY_COUNT(this->unk_234); i++) {
                 Actor_Spawn(&play->actorCtx, play, ACTOR_EN_PR2, this->unk_234[i].x, this->unk_234[i].y,
                             this->unk_234[i].z, this->actor.world.rot.x, this->actor.world.rot.y,
@@ -566,22 +583,20 @@ void func_80A75310(EnPr2* this, PlayState* play) {
         Vec3f sp64;
 
         temp = false;
-        Math_SmoothStepToS(&this->actor.shape.rot.x, 0, 5, 10000, 1000);
-        Math_SmoothStepToS(&this->actor.shape.rot.z, this->unk_1E4, 5, 10000, 1000);
-        Math_SmoothStepToS(&this->actor.shape.rot.y, this->unk_1E6, 5, 10000, 1000);
+        Math_SmoothStepToS(&this->actor.shape.rot.x, 0, 5, 0x2710, 0x3E8);
+        Math_SmoothStepToS(&this->actor.shape.rot.z, this->unk_1E4, 5, 0x2710, 0x3E8);
+        Math_SmoothStepToS(&this->actor.shape.rot.y, this->unk_1E6, 5, 0x2710, 0x3E8);
 
         if ((Rand_ZeroOne() < 0.3f) && !this->unk_1D6) {
             this->unk_1D6 = true;
         }
 
         if (WaterBox_GetSurface1(play, &play->colCtx, this->actor.world.pos.x, this->actor.world.pos.z, &this->unk_200,
-                                 &sp74)) {
-            frame = this->unk_200 - 15.0f;
-
-            if (frame <= this->actor.world.pos.y) {
+                                 &waterBox)) {
+            if (this->actor.world.pos.y >= (this->unk_200 - 15.0f)) {
                 temp = true;
             } else {
-                Math_ApproachF(&this->actor.world.pos.y, frame, 0.3f, 1.0f);
+                Math_ApproachF(&this->actor.world.pos.y, this->unk_200 - 15.0f, 0.3f, 1.0f);
             }
         }
 
@@ -594,12 +609,11 @@ void func_80A75310(EnPr2* this, PlayState* play) {
                 for (i = 0; i < 10; i++) {
                     Math_Vec3f_Copy(&sp64, &this->actor.world.pos);
 
-                    sp64.x += randPlusMinusPoint5Scaled(20.0f);
-                    sp64.y += randPlusMinusPoint5Scaled(5.0f);
-                    sp64.z += randPlusMinusPoint5Scaled(20.0f);
-                    frame = Rand_ZeroFloat(0.03f) + 0.07f;
+                    sp64.x += Rand_CenteredFloat(20.0f);
+                    sp64.y += Rand_CenteredFloat(5.0f);
+                    sp64.z += Rand_CenteredFloat(20.0f);
 
-                    EffectSsBubble_Spawn(play, &sp64, 0.0f, 5.0f, 5.0f, frame);
+                    EffectSsBubble_Spawn(play, &sp64, 0.0f, 5.0f, 5.0f, Rand_ZeroFloat(0.03f) + 0.07f);
                 }
 
                 Actor_Kill(&this->actor);
@@ -636,32 +650,21 @@ void EnPr2_Update(Actor* thisx, PlayState* play) {
     EnPr2* this = THIS;
     f32 rand;
 
-    if (thisx) {}
-
     Actor_SetScale(&this->actor, this->unk_204);
 
     this->actionFunc(this, play);
 
-    if (this->unk_1DA != 0) {
-        this->unk_1DA--;
-    }
-
-    if (this->unk_1D8 != 0) {
-        this->unk_1D8--;
-    }
-
-    if (this->unk_1DC != 0) {
-        this->unk_1DC--;
-    }
-
-    if (this->unk_1DE != 0) {
-        this->unk_1DE--;
-    }
+    DECR(this->unk_1DA);
+    DECR(this->unk_1D8);
+    DECR(this->unk_1DC);
+    DECR(this->unk_1DE);
 
     Actor_SetFocus(&this->actor, 10.0f);
     func_80A755D8(this, play);
     Actor_MoveWithGravity(&this->actor);
-    Actor_UpdateBgCheckInfo(play, &this->actor, 0, 10.0f, 20.0f, 0x1F);
+    Actor_UpdateBgCheckInfo(play, &this->actor, 0, 10.0f, 20.0f,
+                            UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_2 | UPDBGCHECKINFO_FLAG_4 |
+                                UPDBGCHECKINFO_FLAG_8 | UPDBGCHECKINFO_FLAG_10);
 
     if (this->unk_1D6) {
         s32 i;
@@ -671,9 +674,9 @@ void EnPr2_Update(Actor* thisx, PlayState* play) {
         Math_Vec3f_Copy(&sp58, &this->unk_270);
         this->unk_1D6 = false;
 
-        sp58.x += randPlusMinusPoint5Scaled(20.0f);
-        sp58.y += randPlusMinusPoint5Scaled(5.0f);
-        sp58.z += randPlusMinusPoint5Scaled(20.0f);
+        sp58.x += Rand_CenteredFloat(20.0f);
+        sp58.y += Rand_CenteredFloat(5.0f);
+        sp58.z += Rand_CenteredFloat(20.0f);
 
         for (i = 0; i < 2; i++) {
             rand = Rand_ZeroFloat(0.03f) + 0.07f;
@@ -694,12 +697,12 @@ void EnPr2_Update(Actor* thisx, PlayState* play) {
     }
 }
 
-s32 func_80A758E8(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
+s32 EnPr2_OverrideLimbDrawOpa(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
     EnPr2* this = THIS;
 
     if (this->unk_1E0 < 10) {
-        if (limbIndex == 2) {
-            rot->y += (s16)this->unk_1FC * -1;
+        if (limbIndex == OBJECT_PR_2_LIMB_02) {
+            rot->y += TRUNCF_BINANG(this->unk_1FC) * -1;
         }
     } else if ((limbIndex + 10) != this->unk_1E0) {
         *dList = NULL;
@@ -707,11 +710,11 @@ s32 func_80A758E8(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s
     return false;
 }
 
-void func_80A75950(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
+void EnPr2_PostLimbDrawOpa(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
     EnPr2* this = THIS;
 
     if (this->unk_1E0 < 10) {
-        if (limbIndex == 2) {
+        if (limbIndex == OBJECT_PR_2_LIMB_02) {
             Matrix_Translate(0.0f, 0.0f, 0.0f, MTXMODE_APPLY);
             Matrix_MultZero(&this->unk_270);
         }
@@ -719,12 +722,13 @@ void func_80A75950(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Acto
     }
 }
 
-s32 func_80A759D8(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx, Gfx** gfx) {
+s32 EnPr2_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx,
+                           Gfx** gfx) {
     EnPr2* this = THIS;
 
     if (this->unk_1E0 < 10) {
-        if (limbIndex == 2) {
-            rot->y += (s16)this->unk_1FC * -1;
+        if (limbIndex == OBJECT_PR_2_LIMB_02) {
+            rot->y += TRUNCF_BINANG(this->unk_1FC) * -1;
         }
     } else if ((limbIndex + 10) != this->unk_1E0) {
         *dList = NULL;
@@ -737,7 +741,7 @@ void EnPr2_Draw(Actor* thisx, PlayState* play) {
 
     OPEN_DISPS(play->state.gfxCtx);
 
-    func_8012C28C(play->state.gfxCtx);
+    Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
     if (this->unk_1F4 == 255) {
         gDPPipeSync(POLY_OPA_DISP++);
@@ -746,7 +750,7 @@ void EnPr2_Draw(Actor* thisx, PlayState* play) {
 
         Scene_SetRenderModeXlu(play, 0, 1);
         SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
-                              func_80A758E8, func_80A75950, &this->actor);
+                              EnPr2_OverrideLimbDrawOpa, EnPr2_PostLimbDrawOpa, &this->actor);
     } else {
         gDPPipeSync(POLY_XLU_DISP++);
         gDPSetEnvColor(POLY_XLU_DISP++, 0, 0, 0, this->unk_1F4);
@@ -754,7 +758,7 @@ void EnPr2_Draw(Actor* thisx, PlayState* play) {
         Scene_SetRenderModeXlu(play, 1, 2);
         POLY_XLU_DISP =
             SkelAnime_DrawFlex(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
-                               func_80A759D8, NULL, &this->actor, POLY_XLU_DISP);
+                               EnPr2_OverrideLimbDraw, NULL, &this->actor, POLY_XLU_DISP);
     }
 
     CLOSE_DISPS(play->state.gfxCtx);

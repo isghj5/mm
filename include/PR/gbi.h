@@ -1,7 +1,11 @@
 #include "mbi.h"
 
-#ifndef _ULTRA64_GBI_H_
-#define _ULTRA64_GBI_H_
+#ifndef PR_GBI_H
+#define PR_GBI_H
+
+#include "ultratypes.h"
+
+/* Not original to libultra: Point Lights, DW, and Mtx intPart/FracPart union */
 
 /* To enable Fast3DEX grucode support, define F3DEX_GBI. */
 
@@ -1054,6 +1058,16 @@ typedef struct {
 	unsigned char	v[3];
 } Tri;
 
+typedef long int Mtx_t[4][4];
+typedef union {
+    Mtx_t m;
+    struct {
+        u16 intPart[4][4];
+        u16 fracPart[4][4];
+    };
+    long long int force_structure_alignment;
+} Mtx; // size = 0x40
+
 /*
  * Viewport
  */
@@ -1265,12 +1279,12 @@ typedef struct {
 
 // Added in MM
 typedef struct {
-    unsigned char col[3];
-    unsigned char unk3;
-    unsigned char colc[3];
-    unsigned char unk7;
-    short pos[3];
-    unsigned char unkE;
+  unsigned char col[3];
+  unsigned char kc;
+  unsigned char colc[3];
+  unsigned char kl;
+  short pos[3];
+  unsigned char kq;
 } PointLight_t;
 
 typedef struct {
@@ -4699,7 +4713,7 @@ _DW({									\
 
 /* like gSPTextureRectangle but accepts negative position arguments */
 #define gSPScisTextureRectangle(pkt, xl, yl, xh, yh, tile, s, t, dsdx, dtdy) \
-{                                                                            \
+_DW({                                                                        \
     Gfx *_g = (Gfx *)(pkt);                                                  \
                                                                              \
     _g->words.w0 = (_SHIFTL(G_TEXRECT, 24, 8) |                              \
@@ -4723,7 +4737,7 @@ _DW({									\
 			 0, 16)));                                           \
     gImmp1(pkt, G_RDPHALF_2, (_SHIFTL((dsdx), 16, 16) |                      \
                               _SHIFTL((dtdy), 0, 16)));                      \
-}
+})
 
 #define gsSPTextureRectangleFlip(xl, yl, xh, yh, tile, s, t, dsdx, dtdy) \
     (_SHIFTL(G_TEXRECTFLIP, 24, 8) | _SHIFTL(xh, 12, 12) |		\

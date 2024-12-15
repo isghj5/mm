@@ -17,22 +17,22 @@ void ObjSmork_Update(Actor* thisx, PlayState* play);
 void ObjSmork_Draw(Actor* thisx, PlayState* play);
 
 ActorInit Obj_Smork_InitVars = {
-    ACTOR_OBJ_SMORK,
-    ACTORCAT_PROP,
-    FLAGS,
-    OBJECT_F53_OBJ,
-    sizeof(ObjSmork),
-    (ActorFunc)ObjSmork_Init,
-    (ActorFunc)ObjSmork_Destroy,
-    (ActorFunc)ObjSmork_Update,
-    (ActorFunc)ObjSmork_Draw,
+    /**/ ACTOR_OBJ_SMORK,
+    /**/ ACTORCAT_PROP,
+    /**/ FLAGS,
+    /**/ OBJECT_F53_OBJ,
+    /**/ sizeof(ObjSmork),
+    /**/ ObjSmork_Init,
+    /**/ ObjSmork_Destroy,
+    /**/ ObjSmork_Update,
+    /**/ ObjSmork_Draw,
 };
 
 #include "overlays/ovl_Obj_Smork/ovl_Obj_Smork.c"
 
 u8 func_80A3D680(s16 arg0) {
     u8 ret = 0;
-    s16 temp_f18 = TIME_TO_MINUTES_F(gSaveContext.save.time);
+    s16 temp_f18 = TIME_TO_MINUTES_F(CURRENT_TIME);
     s32 hours = temp_f18 / 60;
     s32 minutes = temp_f18 % 60;
 
@@ -115,7 +115,7 @@ void func_80A3D9C4(ObjSmork* this, PlayState* play) {
 
         OPEN_DISPS(play->state.gfxCtx);
 
-        func_8012C28C(play->state.gfxCtx);
+        Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
         gSPSegment(POLY_XLU_DISP++, 0x08,
                    Gfx_TwoTexScroll(play->state.gfxCtx, 0, 0, sp57, 0x20, 0x20, 1, 0, sp56, 0x20, 0x20));
