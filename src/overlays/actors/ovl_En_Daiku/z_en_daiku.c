@@ -111,7 +111,7 @@ void EnDaiku_Init(Actor* thisx, PlayState* play) {
     if (this->type == DAIKU_TYPE_WALKING) {
         this->pathIndex = ENDAIKU_GET_PATH_INDEX(&this->actor);
         this->path = SubS_GetPathByIndex(play, this->pathIndex, ENDAIKU_PATH_INDEX_NONE);
-    } else if (this->type == DAIKU_TYPE_2) {
+    } else if (this->type == DAIKU_TYPE_SHOUTING_WAVING) {
         this->unk_264 = -2000;
     }
 
@@ -138,12 +138,12 @@ void EnDaiku_Init(Actor* thisx, PlayState* play) {
         case DAIKU_TYPE_MAYOR_MEETING:
             this->mayorOfficeSkeletonUpdateTimer = this->type * 4 + 4; // (0) + 4
 
-        case DAIKU_TYPE_1:
+        case DAIKU_TYPE_POSTER_READING:
             SkelAnime_InitFlex(play, &this->skelAnime, &object_daiku_Skel_00A850, &object_daiku_Anim_002FA0,
                                this->jointTable, this->morphTable, OBJECT_DAIKU_LIMB_MAX);
             break;
 
-        case DAIKU_TYPE_2:
+        case DAIKU_TYPE_SHOUTING_WAVING:
             SkelAnime_InitFlex(play, &this->skelAnime, &object_daiku_Skel_00A850, &object_daiku_Anim_00B690,
                                this->jointTable, this->morphTable, OBJECT_DAIKU_LIMB_MAX);
             break;
@@ -164,6 +164,21 @@ void EnDaiku_Init(Actor* thisx, PlayState* play) {
             Actor_SetFocus(&this->actor, 25.0f);
             EnDaiku2_SetIdle(this);
             return;
+    }
+
+    // our new types should have random pants colors
+    if (this->type >= 5){
+        // this is bad because of all the float conversions
+        //u32 protoColor = thisx->home.pos.x + thisx->home.pos.y + thisx->home.pos.z;// + thisx->home.rot.y;
+        // smaller but still too much float
+        //u32 protoColor = (u16)thisx->home.pos.x + ((u16)thisx->home.pos.y) + (u16)thisx->home.pos.z;// + thisx->home.rot.y;
+        //this->RandomPantsColor.seededInt = Rand_Next_Variable(protoColor);
+
+        // yes its a float but its just a random value we want thats different than the other actors
+        // almost no actors should have the same X cords, even they did it's different in series
+        // this saves SOOO MUCH code, like 0x200 bytes of instruction and no coprocessor use
+        // then we save to union so we dont have to care about all the shifting nonsense
+        this->RandomPantsColor.seededInt = Rand_Next_Variable(&thisx->home.pos.x);
     }
 
     // why set the animation above when we get reset in next function?
@@ -249,7 +264,7 @@ void func_809438F8(EnDaiku* this, PlayState* play) {
     s32 pad2;
 
     if (Player_GetMask(play) == PLAYER_MASK_KAFEIS_MASK) {
-        if (this->type == DAIKU_TYPE_1) {
+        if (this->type == DAIKU_TYPE_POSTER_READING) {
             this->actor.textId = 0x2365;
         } else {
             this->actor.textId = 0x2366;
@@ -265,7 +280,7 @@ void func_809438F8(EnDaiku* this, PlayState* play) {
     }
 
 
-    if ((this->type == DAIKU_TYPE_2) && (curFrame >= this->animEndFrame)) {
+    if ((this->type == DAIKU_TYPE_SHOUTING_WAVING) && (curFrame >= this->animEndFrame)) {
         if (Rand_ZeroOne() < 0.5f) {
             EnDaiku_ChangeAnim(this, ENDAIKU_ANIM_7);
         } else {
@@ -300,7 +315,7 @@ void func_809438F8(EnDaiku* this, PlayState* play) {
         s16 angle = ABS_ALT(BINANG_SUB(this->actor.yawTowardsPlayer, this->actor.world.rot.y));
 
         this->unusedYaw280 = this->actor.yawTowardsPlayer;
-        if ((this->type == DAIKU_TYPE_1) || (this->type == DAIKU_TYPE_2) || (angle <= 0x2890)) {
+        if ((this->type == DAIKU_TYPE_POSTER_READING) || (this->type == DAIKU_TYPE_SHOUTING_WAVING) || (angle <= 0x2890)) {
             Actor_OfferTalk(&this->actor, play, 100.0f);
         }
     }
@@ -316,7 +331,7 @@ void func_80943BC0(EnDaiku* this) {
 void func_80943BDC(EnDaiku* this, PlayState* play) {
     f32 curFrame = this->skelAnime.curFrame;
 
-    if ((this->type == DAIKU_TYPE_2) && (curFrame >= this->animEndFrame)) {
+    if ((this->type == DAIKU_TYPE_SHOUTING_WAVING) && (curFrame >= this->animEndFrame)) {
         if (Rand_ZeroOne() < 0.5f) {
             EnDaiku_ChangeAnim(this, ENDAIKU_ANIM_7);
         } else {
@@ -418,6 +433,7 @@ void EnDaiku_Draw(Actor* thisx, PlayState* play) {
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
+    // envcolor is his pants color
     switch (this->type) {
         case 0:
             gDPSetEnvColor(POLY_OPA_DISP++, 170, 10, 70, 255);
@@ -438,8 +454,12 @@ void EnDaiku_Draw(Actor* thisx, PlayState* play) {
         case 4: // this type doesn't exist in vanilla
             gDPSetEnvColor(POLY_OPA_DISP++, 200, 0, 0, 255);
             break;
-        default:
-            gDPSetEnvColor(POLY_OPA_DISP++, 170, 200, 255, 255);
+
+        default: // our new types
+            gDPSetEnvColor(POLY_OPA_DISP++, 
+                    this->RandomPantsColor.color.r,
+                    this->RandomPantsColor.color.g,
+                    this->RandomPantsColor.color.b , 255);
             break;
     }
 

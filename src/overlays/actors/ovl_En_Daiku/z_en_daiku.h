@@ -14,8 +14,8 @@ typedef void (*EnDaikuActionFunc)(struct EnDaiku*, PlayState*);
 
 typedef enum {
     /* 0 */ DAIKU_TYPE_MAYOR_MEETING,
-    /* 1 */ DAIKU_TYPE_1,
-    /* 2 */ DAIKU_TYPE_2,
+    /* 1 */ DAIKU_TYPE_POSTER_READING,
+    /* 2 */ DAIKU_TYPE_SHOUTING_WAVING,
     /* 3 */ DAIKU_TYPE_WALKING
 } EnDaikuType;
 
@@ -34,7 +34,11 @@ typedef struct EnDaiku {
       /* 0x263 */ s8 randomThing2;
     /* 0x264 */ s16 unk_264; // limb rotation based
     /* 0x266 */ s16 unk_266; // limb rotation based
-    /* 0x268 */ UNK_TYPE1 unk_268[0x4];
+    ///* 0x268 */ UNK_TYPE1 unk_268[0x4];
+    union {
+      /* 0x268 */ Color_RGBA8 color;
+      /* 0x268 */ u32 seededInt;
+    } RandomPantsColor ;
     /* 0x26C */ Vec3f pathNextPointPos;
     /* 0x278 */ s32 type;
     /* 0x27C */ s16 unusedTimer27C;
@@ -43,7 +47,7 @@ typedef struct EnDaiku {
     /* 0x282 */ s16 yawToNextPathPoint;
     /* 0x284 */ f32 animEndFrame;
     /* 0x288 */ s16 pathIndex;
-    /* 0x28A */ s16 unusedBool28A;
+      /* 0x28A */ s16 unusedBool28A;
     /* 0x28C */ s16 unk_28C;
     /* 0x28E */ UNK_TYPE1 unk_28E[0xE];
     /* 0x29C */ ColliderCylinder collider;
