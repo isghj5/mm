@@ -20,6 +20,9 @@ void EnWiz_Destroy(Actor* thisx, PlayState* play);
 void EnWiz_Update(Actor* thisx, PlayState* play);
 void EnWiz_Draw(Actor* thisx, PlayState* play);
 
+// new
+void EnWiz2_Init2(Actor* thisx, PlayState* play);
+
 void EnWiz_StartIntroCutscene(EnWiz* this, PlayState* play);
 void EnWiz_SetupAppear(EnWiz* this, PlayState* play);
 void EnWiz_Appear(EnWiz* this, PlayState* play);
@@ -87,7 +90,7 @@ ActorInit En_Wiz_InitVars = {
     /**/ FLAGS,
     /**/ OBJECT_WIZ,
     /**/ sizeof(EnWiz),
-    /**/ EnWiz_Init,
+    /**/ EnWiz2_Init2,
     /**/ EnWiz_Destroy,
     /**/ EnWiz_Update,
     /**/ EnWiz_Draw,
@@ -274,7 +277,7 @@ static DamageTable sFireWizrobeDamageTable = {
     /* Thrown object  */ DMG_ENTRY(1, EN_WIZ_DMGEFF_NONE),
     /* Zora punch     */ DMG_ENTRY(1, EN_WIZ_DMGEFF_NONE),
     /* Spin attack    */ DMG_ENTRY(1, EN_WIZ_DMGEFF_NONE),
-    /* Sword beam     */ DMG_ENTRY(0, EN_WIZ_DMGEFF_IMMUNE),
+    /* Sword beam     */ DMG_ENTRY(1, EN_WIZ_DMGEFF_NONE),
     /* Normal Roll    */ DMG_ENTRY(0, EN_WIZ_DMGEFF_IMMUNE),
     /* UNK_DMG_0x1B   */ DMG_ENTRY(0, EN_WIZ_DMGEFF_IMMUNE),
     /* UNK_DMG_0x1C   */ DMG_ENTRY(0, EN_WIZ_DMGEFF_IMMUNE),
@@ -309,7 +312,7 @@ static DamageTable sIceWizrobeDamageTable = {
     /* Thrown object  */ DMG_ENTRY(1, EN_WIZ_DMGEFF_NONE),
     /* Zora punch     */ DMG_ENTRY(1, EN_WIZ_DMGEFF_NONE),
     /* Spin attack    */ DMG_ENTRY(1, EN_WIZ_DMGEFF_NONE),
-    /* Sword beam     */ DMG_ENTRY(0, EN_WIZ_DMGEFF_IMMUNE),
+    /* Sword beam     */ DMG_ENTRY(1, EN_WIZ_DMGEFF_NONE),
     /* Normal Roll    */ DMG_ENTRY(0, EN_WIZ_DMGEFF_IMMUNE),
     /* UNK_DMG_0x1B   */ DMG_ENTRY(0, EN_WIZ_DMGEFF_IMMUNE),
     /* UNK_DMG_0x1C   */ DMG_ENTRY(0, EN_WIZ_DMGEFF_IMMUNE),
@@ -413,37 +416,39 @@ void EnWiz_ChangeAnim(EnWiz* this, s32 animIndex, s32 updateGhostAnim) {
  * Responsible for moving the camera around and making the Wizrobe run in circles during the intro cutscene.
  */
 void EnWiz_HandleIntroCutscene(EnWiz* this, PlayState* play) {
-    Camera* subCam;
-    Vec3f eyeNext;
-    Vec3f atNext;
+    //Camera* subCam;
+    //Vec3f eyeNext;
+    //Vec3f atNext;
 
     if (this->introCutsceneState < EN_WIZ_INTRO_CS_DISAPPEAR) {
-        subCam = Play_GetCamera(play, this->subCamId);
+        //subCam = Play_GetCamera(play, this->subCamId);
         switch (this->introCutsceneState) {
             case EN_WIZ_INTRO_CS_NOT_STARTED:
                 this->introCutsceneTimer = 100;
-                this->introCutsceneCameraAngle = this->actor.world.rot.y;
+                //this->introCutsceneCameraAngle = this->actor.world.rot.y;
                 this->introCutsceneState++;
                 break;
 
             case EN_WIZ_INTRO_CS_CAMERA_MOVE_TO_PLATFORM:
-                Math_Vec3f_Copy(&eyeNext, &this->actor.world.pos);
-                Math_Vec3f_Copy(&atNext, &this->actor.world.pos);
-                eyeNext.x += Math_SinS(this->introCutsceneCameraAngle) * 200.0f;
-                eyeNext.y += 100.0f;
-                eyeNext.z += Math_CosS(this->introCutsceneCameraAngle) * 200.0f;
-                atNext.y += 80.0f;
-                Math_ApproachF(&subCam->eye.x, eyeNext.x, 0.3f, 30.0f);
-                Math_ApproachF(&subCam->eye.z, eyeNext.z, 0.3f, 30.0f);
-                Math_ApproachF(&subCam->at.x, atNext.x, 0.3f, 30.0f);
-                Math_ApproachF(&subCam->at.z, atNext.z, 0.3f, 30.0f);
-                subCam->eye.y = eyeNext.y;
-                subCam->at.y = atNext.y;
-                if ((fabsf(subCam->eye.x - eyeNext.x) < 2.0f) && (fabsf(subCam->eye.y - eyeNext.y) < 2.0f) &&
-                    (fabsf(subCam->eye.z - eyeNext.z) < 2.0f) && (fabsf(subCam->at.x - atNext.x) < 2.0f) &&
-                    (fabsf(subCam->at.y - atNext.y) < 2.0f) && (fabsf(subCam->at.z - atNext.z) < 2.0f)) {
-                    Player* player = GET_PLAYER(play);
-                    s32 i;
+                
+                {
+                Player* player = GET_PLAYER(play);
+                s32 i;
+                //Math_Vec3f_Copy(&eyeNext, &this->actor.world.pos);
+                //Math_Vec3f_Copy(&atNext, &this->actor.world.pos);
+                //eyeNext.x += Math_SinS(this->introCutsceneCameraAngle) * 200.0f;
+                //eyeNext.y += 100.0f;
+                //eyeNext.z += Math_CosS(this->introCutsceneCameraAngle) * 200.0f;
+                //atNext.y += 80.0f;
+                //Math_ApproachF(&subCam->eye.x, eyeNext.x, 0.3f, 30.0f);
+                //Math_ApproachF(&subCam->eye.z, eyeNext.z, 0.3f, 30.0f);
+                //Math_ApproachF(&subCam->at.x, atNext.x, 0.3f, 30.0f);
+                //Math_ApproachF(&subCam->at.z, atNext.z, 0.3f, 30.0f);
+                //subCam->eye.y = eyeNext.y;
+                //subCam->at.y = atNext.y;
+                //if ((fabsf(subCam->eye.x - eyeNext.x) < 2.0f) && (fabsf(subCam->eye.y - eyeNext.y) < 2.0f) &&
+                    //(fabsf(subCam->eye.z - eyeNext.z) < 2.0f) && (fabsf(subCam->at.x - atNext.x) < 2.0f) &&
+                    //(fabsf(subCam->at.y - atNext.y) < 2.0f) && (fabsf(subCam->at.z - atNext.z) < 2.0f)) {
 
                     this->actor.world.rot.y = this->actor.shape.rot.y =
                         Math_Vec3f_Yaw(&this->actor.world.pos, &player->actor.world.pos);
@@ -465,6 +470,7 @@ void EnWiz_HandleIntroCutscene(EnWiz* this, PlayState* play) {
                     this->introCutsceneTimer = 40;
                     this->introCutsceneState++;
                 }
+                //}
                 break;
 
             case EN_WIZ_INTRO_CS_APPEAR:
@@ -475,23 +481,23 @@ void EnWiz_HandleIntroCutscene(EnWiz* this, PlayState* play) {
                 break;
 
             case EN_WIZ_INTRO_CS_CAMERA_SPIN_TO_FACE_WIZROBE:
-                Math_Vec3f_Copy(&eyeNext, &this->actor.world.pos);
-                Math_Vec3f_Copy(&atNext, &this->actor.world.pos);
-                eyeNext.x += Math_SinS(this->actor.world.rot.y) * 160.0f;
-                eyeNext.y += 70.0f;
-                eyeNext.z += Math_CosS(this->actor.world.rot.y) * 140.0f;
-                atNext.x += -10.0f;
-                atNext.y += 100.0f;
-                Math_ApproachF(&subCam->eye.x, eyeNext.x, 0.3f, 30.0f);
-                Math_ApproachF(&subCam->eye.z, eyeNext.z, 0.3f, 30.0f);
-                Math_ApproachF(&subCam->at.x, atNext.x, 0.3f, 30.0f);
-                Math_ApproachF(&subCam->at.z, atNext.z, 0.3f, 30.0f);
-                subCam->eye.y = eyeNext.y;
-                subCam->at.y = atNext.y;
+                //Math_Vec3f_Copy(&eyeNext, &this->actor.world.pos);
+                //Math_Vec3f_Copy(&atNext, &this->actor.world.pos);
+                //eyeNext.x += Math_SinS(this->actor.world.rot.y) * 160.0f;
+                //eyeNext.y += 70.0f;
+                //eyeNext.z += Math_CosS(this->actor.world.rot.y) * 140.0f;
+                //atNext.x += -10.0f;
+                //atNext.y += 100.0f;
+                //Math_ApproachF(&subCam->eye.x, eyeNext.x, 0.3f, 30.0f);
+                //Math_ApproachF(&subCam->eye.z, eyeNext.z, 0.3f, 30.0f);
+                //Math_ApproachF(&subCam->at.x, atNext.x, 0.3f, 30.0f);
+                //Math_ApproachF(&subCam->at.z, atNext.z, 0.3f, 30.0f);
+                //subCam->eye.y = eyeNext.y;
+                //subCam->at.y = atNext.y;
                 if (this->introCutsceneTimer == 0) {
                     this->introCutsceneTimer = 10;
                     this->introCutsceneState++;
-                    this->introCutsceneCameraAngle = this->actor.world.rot.y;
+                    //this->introCutsceneCameraAngle = this->actor.world.rot.y;
                 }
                 break;
 
@@ -507,25 +513,25 @@ void EnWiz_HandleIntroCutscene(EnWiz* this, PlayState* play) {
             case EN_WIZ_INTRO_CS_RUN_IN_CIRCLES:
                 Actor_PlaySfx(&this->actor, NA_SE_EN_WIZ_RUN - SFX_FLAG);
                 if (this->introCutsceneTimer == 0) {
-                    this->animLoopCounter = this->introCutsceneCameraAngle = 0;
-                    this->introCutsceneState = EN_WIZ_INTRO_CS_DISAPPEAR;
+                    //this->animLoopCounter = this->introCutsceneCameraAngle = 0;
+                    //this->introCutsceneState = EN_WIZ_INTRO_CS_DISAPPEAR;
                 } else {
                     Math_SmoothStepToS(&this->angularVelocity, 0x1388, 0x64, 0x3E8, 0x3E8);
                     this->actor.world.rot.y += this->angularVelocity;
                 }
 
-                Math_Vec3f_Copy(&eyeNext, &this->actor.world.pos);
-                Math_Vec3f_Copy(&atNext, &this->actor.world.pos);
-                eyeNext.x += Math_SinS(this->introCutsceneCameraAngle) * 200.0f;
-                eyeNext.y += 100.0f;
-                eyeNext.z += Math_CosS(this->introCutsceneCameraAngle) * 200.0f;
-                atNext.y += 80.0f;
-                Math_ApproachF(&subCam->eye.x, eyeNext.x, 0.3f, 30.0f);
-                Math_ApproachF(&subCam->eye.z, eyeNext.z, 0.3f, 30.0f);
-                Math_ApproachF(&subCam->at.x, atNext.x, 0.3f, 30.0f);
-                Math_ApproachF(&subCam->at.z, atNext.z, 0.3f, 30.0f);
-                subCam->eye.y = eyeNext.y;
-                subCam->at.y = atNext.y;
+                //Math_Vec3f_Copy(&eyeNext, &this->actor.world.pos);
+                //Math_Vec3f_Copy(&atNext, &this->actor.world.pos);
+                //eyeNext.x += Math_SinS(this->introCutsceneCameraAngle) * 200.0f;
+                //eyeNext.y += 100.0f;
+                //eyeNext.z += Math_CosS(this->introCutsceneCameraAngle) * 200.0f;
+                //atNext.y += 80.0f;
+                //Math_ApproachF(&subCam->eye.x, eyeNext.x, 0.3f, 30.0f);
+                //Math_ApproachF(&subCam->eye.z, eyeNext.z, 0.3f, 30.0f);
+                //Math_ApproachF(&subCam->at.x, atNext.x, 0.3f, 30.0f);
+                //Math_ApproachF(&subCam->at.z, atNext.z, 0.3f, 30.0f);
+                //subCam->eye.y = eyeNext.y;
+                //subCam->at.y = atNext.y;
                 break;
 
             default:
@@ -673,14 +679,14 @@ void EnWiz_MoveGhosts(EnWiz* this) {
 }
 
 void EnWiz_StartIntroCutscene(EnWiz* this, PlayState* play) {
-    if (CutsceneManager_IsNext(this->actor.csId)) {
-        CutsceneManager_StartWithPlayerCsAndSetFlag(this->actor.csId, &this->actor);
-        this->subCamId = CutsceneManager_GetCurrentSubCamId(this->actor.csId);
+    //if (CutsceneManager_IsNext(this->actor.csId)) {
+        //CutsceneManager_StartWithPlayerCsAndSetFlag(this->actor.csId, &this->actor);
+        //this->subCamId = CutsceneManager_GetCurrentSubCamId(this->actor.csId);
         this->actor.flags |= ACTOR_FLAG_100000;
         EnWiz_SetupAppear(this, play);
-    } else {
-        CutsceneManager_Queue(this->actor.csId);
-    }
+    //} else {
+        //CutsceneManager_Queue(this->actor.csId);
+    //}
 }
 
 void EnWiz_SetupAppear(EnWiz* this, PlayState* play) {
@@ -728,7 +734,7 @@ void EnWiz_Appear(EnWiz* this, PlayState* play) {
 
     EnWiz_HandleIntroCutscene(this, play);
 
-    if (this->introCutsceneState >= EN_WIZ_INTRO_CS_APPEAR) {
+    //if (this->introCutsceneState >= EN_WIZ_INTRO_CS_APPEAR) {
         SkelAnime_Update(&this->skelAnime);
 
         if ((this->fightState == EN_WIZ_FIGHT_STATE_FIRST_PHASE) &&
@@ -779,7 +785,7 @@ void EnWiz_Appear(EnWiz* this, PlayState* play) {
                 }
             }
         }
-    }
+    //}
 }
 
 void EnWiz_SetupDance(EnWiz* this) {
@@ -833,13 +839,13 @@ void EnWiz_Dance(EnWiz* this, PlayState* play) {
 }
 
 void EnWiz_SetupSecondPhaseCutscene(EnWiz* this, PlayState* play) {
-    s16 secondPhaseCsId = CutsceneManager_GetAdditionalCsId(this->actor.csId);
+    //s16 secondPhaseCsId = CutsceneManager_GetAdditionalCsId(this->actor.csId);
 
-    if (!CutsceneManager_IsNext(secondPhaseCsId)) {
-        CutsceneManager_Queue(secondPhaseCsId);
-    } else {
-        CutsceneManager_StartWithPlayerCsAndSetFlag(secondPhaseCsId, &this->actor);
-        this->subCamId = CutsceneManager_GetCurrentSubCamId(secondPhaseCsId);
+    //if (!CutsceneManager_IsNext(secondPhaseCsId)) {
+        //CutsceneManager_Queue(secondPhaseCsId);
+    //} else {
+        //CutsceneManager_StartWithPlayerCsAndSetFlag(secondPhaseCsId, &this->actor);
+        //this->subCamId = CutsceneManager_GetCurrentSubCamId(secondPhaseCsId);
         this->actor.flags |= ACTOR_FLAG_100000;
         EnWiz_ChangeAnim(this, EN_WIZ_ANIM_DANCE, false);
         this->action = EN_WIZ_ACTION_RUN_BETWEEN_PLATFORMS;
@@ -847,7 +853,7 @@ void EnWiz_SetupSecondPhaseCutscene(EnWiz* this, PlayState* play) {
         this->hasRunToEveryPlatform = false;
         Math_SmoothStepToS(&this->alpha, 255, 1, 5, 0);
         this->actionFunc = EnWiz_SecondPhaseCutscene;
-    }
+    //}
 }
 
 /**
@@ -855,12 +861,12 @@ void EnWiz_SetupSecondPhaseCutscene(EnWiz* this, PlayState* play) {
  * original platform and disappearing. Ghosts trail behind the Wizrobe as it runs.
  */
 void EnWiz_SecondPhaseCutscene(EnWiz* this, PlayState* play) {
-    Camera* subCam;
+    //Camera* subCam;
     s32 i;
 
     Math_SmoothStepToS(&this->alpha, 255, 1, 5, 0);
-    subCam = Play_GetCamera(play, this->subCamId);
-    Math_Vec3f_Copy(&subCam->at, &this->actor.focus.pos);
+    //subCam = Play_GetCamera(play, this->subCamId);
+    //Math_Vec3f_Copy(&subCam->at, &this->actor.focus.pos);
     Actor_PlaySfx(&this->actor, NA_SE_EN_WIZ_RUN - SFX_FLAG);
     if (this->platforms[this->nextPlatformIndex] != NULL) {
         f32 diffX = this->actor.world.pos.x - this->platforms[this->nextPlatformIndex]->world.pos.x;
@@ -890,7 +896,7 @@ void EnWiz_SecondPhaseCutscene(EnWiz* this, PlayState* play) {
                     this->platformCount = 0;
                     this->fightState = EN_WIZ_FIGHT_STATE_SECOND_PHASE_GHOSTS_COPY_WIZROBE;
                     this->timer = 0;
-                    CutsceneManager_Stop(CutsceneManager_GetAdditionalCsId(this->actor.csId));
+                    //CutsceneManager_Stop(CutsceneManager_GetAdditionalCsId(this->actor.csId));
                     this->actor.flags &= ~ACTOR_FLAG_100000;
                     EnWiz_SetupDisappear(this);
                     return;
@@ -909,8 +915,7 @@ void EnWiz_SecondPhaseCutscene(EnWiz* this, PlayState* play) {
         this->ghostRot[i].y = this->ghostRot[i - 1].y;
     }
 
-    this->actor.world.rot.y =
-        Math_Vec3f_Yaw(&this->actor.world.pos, &this->platforms[this->nextPlatformIndex]->world.pos);
+    this->actor.world.rot.y = Math_Vec3f_Yaw(&this->actor.world.pos, &this->platforms[this->nextPlatformIndex]->world.pos);
 }
 
 void EnWiz_SetupWindUp(EnWiz* this) {
@@ -1447,6 +1452,7 @@ void EnWiz_PostLimbDrawXlu(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* r
         }
     }
 }
+void Debug_PrintToScreen(Actor* thisx, PlayState* play);
 
 void EnWiz_Draw(Actor* thisx, PlayState* play) {
     s32 pad;
@@ -1577,4 +1583,78 @@ void EnWiz_Draw(Actor* thisx, PlayState* play) {
     gSPDisplayList(POLY_XLU_DISP++, gEffFire1DL);
 
     CLOSE_DISPS(play->state.gfxCtx);
+    Debug_PrintToScreen(thisx, play); // put this in your actors draw func
 }
+
+void EnWiz2_WaitForPlayer(EnWiz* this, PlayState* play){
+   // if player within ranch, change
+  //if (this->actor.xzDistToPlayer < 900.0f) {
+    this->actor.flags |= ACTOR_FLAG_100000;
+    EnWiz_SetupAppear(this, play);
+    //this->actionFunc = EnWiz_SetupAppear;
+  //}
+}
+
+void EnWiz2_Init2(Actor* thisx, PlayState* play) {
+  EnWiz* this = THIS;
+
+  EnWiz_Init(thisx, play);
+  if (thisx->csId == CS_ID_NONE) {
+    this->actionFunc = EnWiz2_WaitForPlayer;
+  }
+
+}
+
+
+void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
+    EnWiz* this = THIS; // replace with THIS actor
+    // with explanation comments
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // the dlist will be written in the opa buffer because that buffer is larger,
+    // but executed from the overlay buffer (overlay draws last, for example the hud is drawn to overlay)
+    gfx = POLY_OPA_DISP + 1;
+    gSPDisplayList(OVERLAY_DISP++, gfx);
+
+    // initialize GfxPrint struct
+    GfxPrint_Init(&printer);
+    GfxPrint_Open(&printer, gfx);
+
+    GfxPrint_SetColor(&printer, 255, 255, 255, 255);
+    GfxPrint_SetPos(&printer, 1, 10);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+
+    { // address locations
+        void* actionFuncAddr = this->actionFunc;
+        u32 convertedAddr = (u32) Fault_ConvertAddress(actionFuncAddr);
+        GfxPrint_SetPos(&printer, 1, 11);
+        GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
+        GfxPrint_SetPos(&printer, 1, 12);
+        GfxPrint_Printf(&printer, "actionfunc actual ram:  %X", actionFuncAddr);
+
+    }
+
+    GfxPrint_SetPos(&printer, 1, 13);
+    
+    //GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
+    //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
+    GfxPrint_Printf(&printer, "mesgState %X", Message_GetState(&play->msgCtx));
+
+    // end of text printing
+    gfx = GfxPrint_Close(&printer);
+    GfxPrint_Destroy(&printer);
+
+    gSPEndDisplayList(gfx++);
+    // make the opa dlist jump over the part that will be executed as part of overlay
+    gSPBranchList(POLY_OPA_DISP, gfx);
+    POLY_OPA_DISP = gfx;
+
+    CLOSE_DISPS(play->state.gfxCtx);
+    //if (BREG(86)) 
+    //  Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+} // */
+
+
