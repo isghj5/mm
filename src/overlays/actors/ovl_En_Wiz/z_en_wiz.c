@@ -514,7 +514,7 @@ void EnWiz_HandleIntroCutscene(EnWiz* this, PlayState* play) {
                 Actor_PlaySfx(&this->actor, NA_SE_EN_WIZ_RUN - SFX_FLAG);
                 if (this->introCutsceneTimer == 0) {
                     //this->animLoopCounter = this->introCutsceneCameraAngle = 0;
-                    //this->introCutsceneState = EN_WIZ_INTRO_CS_DISAPPEAR;
+                    this->introCutsceneState = EN_WIZ_INTRO_CS_DISAPPEAR;
                 } else {
                     Math_SmoothStepToS(&this->angularVelocity, 0x1388, 0x64, 0x3E8, 0x3E8);
                     this->actor.world.rot.y += this->angularVelocity;
@@ -734,7 +734,7 @@ void EnWiz_Appear(EnWiz* this, PlayState* play) {
 
     EnWiz_HandleIntroCutscene(this, play);
 
-    //if (this->introCutsceneState >= EN_WIZ_INTRO_CS_APPEAR) {
+    if (this->introCutsceneState >= EN_WIZ_INTRO_CS_APPEAR) {
         SkelAnime_Update(&this->skelAnime);
 
         if ((this->fightState == EN_WIZ_FIGHT_STATE_FIRST_PHASE) &&
@@ -785,7 +785,7 @@ void EnWiz_Appear(EnWiz* this, PlayState* play) {
                 }
             }
         }
-    //}
+    }
 }
 
 void EnWiz_SetupDance(EnWiz* this) {
@@ -1325,6 +1325,7 @@ void EnWiz_Update(Actor* thisx, PlayState* play) {
     s32 i;
     s32 j;
 
+    // why doesnt it update if its appearing?
     if (this->action != EN_WIZ_ACTION_APPEAR) {
         SkelAnime_Update(&this->skelAnime);
         SkelAnime_Update(&this->ghostSkelAnime);
@@ -1624,24 +1625,28 @@ void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     GfxPrint_Open(&printer, gfx);
 
     GfxPrint_SetColor(&printer, 255, 255, 255, 255);
-    GfxPrint_SetPos(&printer, 1, 10);
-    GfxPrint_Printf(&printer, "actor struct loc: %X", &thisx);
+    GfxPrint_SetPos(&printer, 1, 13);
+    GfxPrint_Printf(&printer, "actor struct loc: %X", thisx);
 
     { // address locations
         void* actionFuncAddr = this->actionFunc;
         u32 convertedAddr = (u32) Fault_ConvertAddress(actionFuncAddr);
-        GfxPrint_SetPos(&printer, 1, 11);
+        GfxPrint_SetPos(&printer, 1, 14);
         GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
-        GfxPrint_SetPos(&printer, 1, 12);
-        GfxPrint_Printf(&printer, "actionfunc actual ram:  %X", actionFuncAddr);
+        GfxPrint_SetPos(&printer, 1, 15);
+        GfxPrint_Printf(&printer, "actionfunc ram:  %X", actionFuncAddr);
+      GfxPrint_SetPos(&printer, 1, 16);
+        GfxPrint_Printf(&printer, "init ram:  %X", EnWiz_Init);
+      GfxPrint_SetPos(&printer, 1, 17);
+        GfxPrint_Printf(&printer, "update ram:  %X", EnWiz_Update);
 
     }
 
-    GfxPrint_SetPos(&printer, 1, 13);
+    GfxPrint_SetPos(&printer, 1, 16);
     
     //GfxPrint_Printf(&printer, "drawflags %X", this->drawFlags);
     //GfxPrint_Printf(&printer, "BREG86 %X", BREG(86));
-    GfxPrint_Printf(&printer, "mesgState %X", Message_GetState(&play->msgCtx));
+    //GfxPrint_Printf(&printer, "mesgState %X", Message_GetState(&play->msgCtx));
 
     // end of text printing
     gfx = GfxPrint_Close(&printer);
