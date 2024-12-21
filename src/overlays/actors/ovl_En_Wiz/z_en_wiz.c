@@ -86,7 +86,7 @@ typedef enum {
 
 ActorInit En_Wiz_InitVars = {
     /**/ ACTOR_EN_WIZ,
-    /**/ ACTORCAT_ENEMY,
+    /**/ ACTORCAT_ENEMY, // not a boss?
     /**/ FLAGS,
     /**/ OBJECT_WIZ,
     /**/ sizeof(EnWiz),
@@ -827,12 +827,15 @@ void EnWiz_Dance(EnWiz* this, PlayState* play) {
     Math_SmoothStepToS(&this->angularVelocity, 0x1388, 0x64, 0x3E8, 0x3E8);
     Math_SmoothStepToS(&this->platformLightAlpha, this->targetPlatformLightAlpha, 20, 50, 10);
     if (this->endFrame <= curFrame) {
-        if (this->animLoopCounter < 10) {
+        //if (this->animLoopCounter < 10) { // why is the limit 10?
+        if (this->animLoopCounter < 100) {
             this->animLoopCounter++;
         }
     }
 
-    if ((this->animLoopCounter >= 3) && !this->hasActiveProjectile) {
+    // active projectile is always active? does it not reset itself?
+    // looks like the projectile is supposed to update the value for us
+    if (((this->animLoopCounter >= 3) && !this->hasActiveProjectile) || this->animLoopCounter >= 100) {
         this->targetPlatformLightAlpha = 0;
         EnWiz_SetupWindUp(this);
     }
@@ -1584,7 +1587,7 @@ void EnWiz_Draw(Actor* thisx, PlayState* play) {
     gSPDisplayList(POLY_XLU_DISP++, gEffFire1DL);
 
     CLOSE_DISPS(play->state.gfxCtx);
-    Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+    //Debug_PrintToScreen(thisx, play); // put this in your actors draw func
 }
 
 void EnWiz2_WaitForPlayer(EnWiz* this, PlayState* play){
@@ -1605,7 +1608,6 @@ void EnWiz2_Init2(Actor* thisx, PlayState* play) {
   }
 
 }
-
 
 void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     EnWiz* this = THIS; // replace with THIS actor
