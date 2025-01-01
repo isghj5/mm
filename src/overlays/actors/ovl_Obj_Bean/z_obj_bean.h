@@ -19,7 +19,7 @@ typedef void (*ObjBeanUnkFunc)(struct ObjBean*);
 // TODO make params make macro
 
 enum {
-    /* 0x0 */ ENOBJBEAN_GET_C000_0,
+    /* 0x0 */ ENOBJBEAN_GET_C000_0, // flying type
     /* 0x1 */ ENOBJBEAN_GET_PATHLESS_SOIL,
     /* 0x2 */ ENOBJBEAN_GET_WALLCRACK,
 };
