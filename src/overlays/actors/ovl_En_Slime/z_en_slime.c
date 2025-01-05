@@ -147,18 +147,19 @@ static InitChainEntry sInitChain[] = {
     ICHAIN_F32(targetArrowOffset, 6000, ICHAIN_STOP),
 };
 
-static s32 sTexturesDesegmented = false;
 
 static Color_RGBA8 sBubblePrimColor = { 255, 255, 255, 255 };
 static Color_RGBA8 sBubbleEnvColor = { 150, 150, 150, 0 };
 static Vec3f sBubbleAccel = { 0.0f, -0.8f, 0.0f };
 
+static s32 sTextureDesegmentedRoom = -1;
 AnimatedMaterial* sSlimeTexAnim;
 
 void EnSlime_Init(Actor* thisx, PlayState* play) {
     EnSlime* this = THIS;
     s32 reviveTimeSeconds;
     s32 i;
+    int room;
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
     Collider_InitAndSetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
@@ -188,12 +189,16 @@ void EnSlime_Init(Actor* thisx, PlayState* play) {
     this->reviveTime = (reviveTimeSeconds * 20) + 200;
 
     // Update addresses of texture assets (if another instance hasn't already)
-    if (!sTexturesDesegmented) {
+    // in vanilla this only happens once, but if you go through a room transit
+    //  and the object moves: animatmat crashes, because the object texture has moved,
+    //  so update this every room, not that expensive
+    room = play->roomCtx.curRoom.num;
+    if (sTextureDesegmentedRoom != room) { // if room is -1, never init, if room is different, we need to re-init
         for (i = 0; i < EN_SLIME_EYETEX_MAX; i++) {
             sEyeTextures[i] = Lib_SegmentedToVirtual(sEyeTextures[i]);
         }
         sSlimeTexAnim = Lib_SegmentedToVirtual(gChuchuSlimeFlowTexAnim);
-        sTexturesDesegmented = true;
+        sTextureDesegmentedRoom = room;
     }
 
     // Set hint IDs and drop item icon depending on chuchu color
