@@ -124,7 +124,7 @@ static DamageTable sDamageTable = {
     /* Thrown object  */ DMG_ENTRY(0, EN_SLIME_DMGEFF_BLUNT),
     /* Zora punch     */ DMG_ENTRY(1, EN_SLIME_DMGEFF_NORMAL),
     /* Spin attack    */ DMG_ENTRY(1, EN_SLIME_DMGEFF_NORMAL),
-    /* Sword beam     */ DMG_ENTRY(0, EN_SLIME_DMGEFF_NORMAL),
+    /* Sword beam     */ DMG_ENTRY(2, EN_SLIME_DMGEFF_NORMAL),
     /* Normal Roll    */ DMG_ENTRY(0, EN_SLIME_DMGEFF_NORMAL),
     /* UNK_DMG_0x1B   */ DMG_ENTRY(0, EN_SLIME_DMGEFF_NORMAL),
     /* UNK_DMG_0x1C   */ DMG_ENTRY(0, EN_SLIME_DMGEFF_NORMAL),
@@ -1088,7 +1088,7 @@ void EnSlime_UpdateDamage(EnSlime* this, PlayState* play) {
 
 void EnSlime_Update(Actor* thisx, PlayState* play) {
     EnSlime* this = THIS;
-    s32 pad;
+    //s32 pad;
     Player* player = GET_PLAYER(play);
 
     EnSlime_UpdateDamage(this, play);
@@ -1171,7 +1171,7 @@ void EnSlime_Draw(Actor* thisx, PlayState* play) {
     Vec3f wobbleScale;
     Color_RGBA8* primColor;
     Color_RGBA8* envColor;
-    s32 pad;
+    //s32 pad;
 
     OPEN_DISPS(play->state.gfxCtx);
 

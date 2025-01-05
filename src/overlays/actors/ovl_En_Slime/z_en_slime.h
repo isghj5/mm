@@ -36,6 +36,7 @@ typedef struct EnSlime {
     /* 0x148 */ u8 iceBlockTimer;
     /* 0x149 */ u8 eyeTexIndex;
     /* 0x14A */ u8 drawDmgEffType;
+    /* 0x14B */ //u8 unusedStruct14B;
     /* 0x14C */ s16 timer;
     /* 0x14E */ s16 idleRotY;
     /* 0x150 */ s16 reviveRotY;
