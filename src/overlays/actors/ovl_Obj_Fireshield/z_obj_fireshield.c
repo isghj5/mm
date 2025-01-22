@@ -6,6 +6,8 @@
 
 #include "z_obj_fireshield.h"
 #include "assets/objects/gameplay_keep/gameplay_keep.h"
+#include "overlays/actors/ovl_En_Arrow/z_en_arrow.h"
+
 
 #define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
@@ -351,6 +353,15 @@ void ObjFireshield_Update(Actor* thisx, PlayState* play) {
 
     if (this->unk_198 >= 0.7f) {
         Player* player = GET_PLAYER(play);
+
+        // new: light arrows on fire
+        Actor* flameColliderACActor = this->collider.base.ac;
+
+        if ( (flameColliderACActor != NULL ) && (flameColliderACActor->update != NULL) && (flameColliderACActor->id == ACTOR_EN_ARROW)) {
+
+            flameColliderACActor->params = ARROW_TYPE_NORMAL_LIT;
+            ((EnArrow*)flameColliderACActor)->collider.elem.atDmgInfo.dmgFlags = 0x800;
+        }
 
         this->collider.dim.height = this->unk_198 * 80.0f;
 
