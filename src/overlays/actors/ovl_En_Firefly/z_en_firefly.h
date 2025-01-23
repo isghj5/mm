@@ -16,7 +16,7 @@ typedef enum {
 } KeeseMainType;
 
 #define KEESE_INVISIBLE (1 << 0xF)
-#define KEESE_GET_MAIN_TYPE(thisx) ((thisx)->params & 0x7FFF)
+#define KEESE_GET_MAIN_TYPE(thisx) ((thisx)->params & 0x7F)
 
 typedef enum KeeseBodyPart {
     /* 0 */ KEESE_BODYPART_LEFT_WING_END,

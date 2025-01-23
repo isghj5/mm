@@ -89,7 +89,7 @@ typedef enum {
 static DamageTable sDamageTable = {
     /* Deku Nut       */ DMG_ENTRY(0, KEESE_DMGEFF_STUN),
     /* Deku Stick     */ DMG_ENTRY(1, KEESE_DMGEFF_NONE),
-    /* Horse trample  */ DMG_ENTRY(0, KEESE_DMGEFF_NONE),
+    /* Horse trample  */ DMG_ENTRY(1, KEESE_DMGEFF_NONE),
     /* Explosives     */ DMG_ENTRY(1, KEESE_DMGEFF_NONE),
     /* Zora boomerang */ DMG_ENTRY(1, KEESE_DMGEFF_NONE),
     /* Normal arrow   */ DMG_ENTRY(1, KEESE_DMGEFF_NONE),
@@ -112,7 +112,7 @@ static DamageTable sDamageTable = {
     /* Thrown object  */ DMG_ENTRY(1, KEESE_DMGEFF_NONE),
     /* Zora punch     */ DMG_ENTRY(1, KEESE_DMGEFF_NONE),
     /* Spin attack    */ DMG_ENTRY(1, KEESE_DMGEFF_NONE),
-    /* Sword beam     */ DMG_ENTRY(0, KEESE_DMGEFF_NONE),
+    /* Sword beam     */ DMG_ENTRY(1, KEESE_DMGEFF_LIGHT),
     /* Normal Roll    */ DMG_ENTRY(0, KEESE_DMGEFF_NONE),
     /* UNK_DMG_0x1B   */ DMG_ENTRY(0, KEESE_DMGEFF_NONE),
     /* UNK_DMG_0x1C   */ DMG_ENTRY(0, KEESE_DMGEFF_NONE),
@@ -140,23 +140,31 @@ void EnFirefly_Init(Actor* thisx, PlayState* play) {
 
     if (this->actor.params & KEESE_INVISIBLE) {
         this->actor.flags |= ACTOR_FLAG_REACT_TO_LENS;
-        this->actor.params = KEESE_GET_MAIN_TYPE(thisx);
         this->isInvisible = true;
     }
+    this->actor.params = KEESE_GET_MAIN_TYPE(thisx);
 
     if (this->actor.params == KEESE_FIRE_FLY) {
         this->auraType = KEESE_AURA_FIRE;
         this->timer = Rand_S16Offset(20, 60);
-        this->actor.shape.rot.x = 0x1554;
+        this->actor.shape.rot.x = 0x1554; // wat
         this->actor.hintId = TATL_HINT_ID_FIRE_KEESE;
-        this->maxAltitude = this->actor.home.pos.y;
+        this->maxAltitude = this->actor.home.pos.y + 10.0f;
         this->actionFunc = EnFirefly_FlyIdle;
     } else if (this->actor.params == KEESE_ICE_FLY) {
         this->auraType = KEESE_AURA_ICE;
         this->collider.elem.atDmgInfo.effect = 2; // Freeze
         this->actor.hintId = TATL_HINT_ID_ICE_KEESE;
-        this->maxAltitude = this->actor.home.pos.y + 100.0f;
+        this->maxAltitude = this->actor.home.pos.y + 16.0f;
         this->actionFunc = EnFirefly_FlyIdle;
+    }else if (this->actor.params == KEESE_NORMAL_FLY) {
+        this->auraType = KEESE_AURA_NONE;
+        this->collider.elem.atDmgInfo.effect = 0; // Nothing
+        this->actor.hintId = TATL_HINT_ID_KEESE;
+        this->maxAltitude = this->actor.home.pos.y + 10.0f;
+        this->actionFunc = EnFirefly_FlyIdle;
+        this->actor.params = KEESE_NORMAL; // for behavior later 
+
     } else {
         this->auraType = KEESE_AURA_NONE;
         this->collider.elem.atDmgInfo.effect = 0; // Nothing
