@@ -34,21 +34,26 @@ ActorProfile Obj_Fireshield_Profile = {
     /**/ ObjFireshield_Draw,
 };
 
+// modifications: this collider wont interact with arrow
 static ColliderCylinderInit sCylinderInit = {
     {
         COL_MATERIAL_NONE,
         AT_ON | AT_TYPE_ENEMY,
-        AC_NONE,
+        //AC_NONE,
+        AC_ON | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_PLAYER,
         OC2_TYPE_2,
         COLSHAPE_CYLINDER,
     },
     {
-        ELEM_MATERIAL_UNK0,
+        //ELEM_MATERIAL_UNK0,
+        ELEM_MATERIAL_UNK2,
         { 0x20000000, 0x01, 0x04 },
-        { 0x00000000, 0x00, 0x00 },
+        //{ 0x00000000, 0x00, 0x00 },
+        { 0x00000820, 0x00, 0x00 },
         ATELEM_ON | ATELEM_SFX_NONE,
-        ACELEM_NONE,
+        //ACELEM_NONE,
+        ACELEM_ON,
         OCELEM_ON,
     },
     { 28, 144, 0, { 0, 0, 0 } },
@@ -383,6 +388,7 @@ void ObjFireshield_Update(Actor* thisx, PlayState* play) {
 
         Collider_UpdateCylinder(thisx, &this->collider);
         CollisionCheck_SetAT(play, &play->colChkCtx, &this->collider.base);
+        CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base); // new
         CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
     }
 }
