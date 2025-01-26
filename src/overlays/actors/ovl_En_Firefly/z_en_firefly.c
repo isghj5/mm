@@ -16,6 +16,8 @@ void EnFirefly_Destroy(Actor* thisx, PlayState* play);
 void EnFirefly_Update(Actor* thisx, PlayState* play2);
 void EnFirefly_Draw(Actor* thisx, PlayState* play);
 
+void EnFirefly2_SpawnMany(Actor* thisx, PlayState* play);
+
 void EnFirefly_FlyIdle(EnFirefly* this, PlayState* play);
 void EnFirefly_Fall(EnFirefly* this, PlayState* play);
 void EnFirefly_SetupDie(EnFirefly* this);
@@ -138,11 +140,20 @@ void EnFirefly_Init(Actor* thisx, PlayState* play) {
     Collider_InitAndSetSphere(play, &this->collider, &this->actor, &sSphereInit);
     CollisionCheck_SetInfo(&this->actor.colChkInfo, &sDamageTable, &sColChkInfoInit);
 
+    this->actor.home.rot.z = (thisx->params & 0xF0) >> 4; // forced perching for the ice/fire types
+    this->actor.home.rot.x = (thisx->params & 0xF00) >> 8; // spawn count for certain type
+
     if (this->actor.params & KEESE_INVISIBLE) {
         this->actor.flags |= ACTOR_FLAG_REACT_TO_LENS;
         this->isInvisible = true;
     }
+
     this->actor.params = KEESE_GET_MAIN_TYPE(thisx);
+
+    if (this->actor.home.rot.x > 0){
+      EnFirefly2_SpawnMany(thisx, play);
+      return;
+    }
 
     if (this->actor.params == KEESE_FIRE_FLY) {
         this->auraType = KEESE_AURA_FIRE;
@@ -163,7 +174,7 @@ void EnFirefly_Init(Actor* thisx, PlayState* play) {
         this->actor.hintId = TATL_HINT_ID_KEESE;
         this->maxAltitude = this->actor.home.pos.y + 10.0f;
         this->actionFunc = EnFirefly_FlyIdle;
-        this->actor.params = KEESE_NORMAL; // for behavior later 
+        //this->actor.params = KEESE_NORMAL; // for behavior later
 
     } else {
         this->auraType = KEESE_AURA_NONE;
@@ -173,8 +184,27 @@ void EnFirefly_Init(Actor* thisx, PlayState* play) {
         this->actionFunc = EnFirefly_Perch;
     }
 
+    if (this->actor.home.rot.z & 1){
+        this->actionFunc = EnFirefly_Perch;
+    }
+
     this->currentType = this->actor.params;
     this->collider.dim.worldSphere.radius = sSphereInit.dim.modelSphere.radius;
+}
+
+void EnFirefly2_SpawnMany(Actor* thisx, PlayState* play){
+  EnFirefly* this = (EnFirefly*)thisx;
+
+  while (this->actor.home.rot.x > 0) {
+      Actor_SpawnAsChildAndCutscene(
+          &play->actorCtx, play, ACTOR_EN_FIREFLY, thisx->world.pos.x + Rand_CenteredFloat(200.0f),
+          thisx->world.pos.y + Rand_CenteredFloat(100.0f), thisx->world.pos.z + Rand_CenteredFloat(200.0f),
+          Rand_CenteredFloat(0x2000), 0xFFFF * Rand_ZeroOne(), 0,
+          this->actor.params, CS_ID_NONE, thisx->halfDaysBits, NULL);
+      this->actor.home.rot.x--;
+  }
+
+  Actor_Kill(thisx);
 }
 
 void EnFirefly_Destroy(Actor* thisx, PlayState* play) {
