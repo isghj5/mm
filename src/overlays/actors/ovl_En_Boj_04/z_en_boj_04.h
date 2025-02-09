@@ -6,7 +6,8 @@
 struct EnBoj04;
 
 // no point in using an even bigger memory required
-#define GROTTO_SPAWNER_OBJ_ID(thisx) thisx->home.rot.x
+#define GROTTO_SPAWNER_ACTORID(thisx) thisx->home.rot.x
+#define GROTTO_SPAWNER_PARAMS(thisx) thisx->home.rot.y
 #define GROTTO_SPAWNER_GROTTO_DATA(thisx) thisx->home.rot.z
 
 typedef struct EnBoj04 {
