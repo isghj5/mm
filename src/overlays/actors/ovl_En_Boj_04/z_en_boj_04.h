@@ -10,6 +10,16 @@ struct EnBoj04;
 #define GROTTO_SPAWNER_PARAMS(thisx) thisx->home.rot.y
 #define GROTTO_SPAWNER_GROTTO_DATA(thisx) thisx->home.rot.z
 
+typedef struct ActorCombo{
+  u16 actorId;
+  u16 params;
+} ActorCombo;
+
+typedef struct GrottoCombo {
+    ActorCombo actors[3]; // the three dekubaba
+} GrottoCombo;
+
+
 typedef struct EnBoj04 {
     /* 0x000 */ Actor actor;
 } EnBoj04;

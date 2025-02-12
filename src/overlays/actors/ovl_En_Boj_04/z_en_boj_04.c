@@ -15,6 +15,10 @@ void EnBoj04_Destroy(Actor* thisx, PlayState* play);
 void EnBoj04_Update(Actor* thisx, PlayState* play);
 void EnBoj04_Draw(Actor* thisx, PlayState* play);
 
+void GS_SpawnReplacement(Actor* thisx, PlayState* play);
+void GS_ChooseGeneric(Actor* thisx, PlayState* play);
+void GS_AssignReplacementParameters(Actor* thisx, u32 roomIndex, u32 babaIndex);
+
 ActorInit En_Boj_04_InitVars = {
     /**/ ACTOR_EN_BOJ_04,
     /**/ ACTORCAT_PROP,
@@ -24,64 +28,17 @@ ActorInit En_Boj_04_InitVars = {
     /**/ EnBoj04_Init,
     /**/ EnBoj04_Destroy,
     /**/ //EnBoj04_Update,
-    /**/ NULL,
+    /**/ Actor_Noop, // NULL, if we make it actually null it wont draw for debug and might do nothing else eitehr
     /**/ EnBoj04_Draw, // debugging
     /**/ //NULL, // we dont need to draw anything
     // NULL, // draw func n/a
-};
-
-typedef struct ActorCombo{
-  u16 actorId;
-  u16 params;
-} ActorCombo;
-
-typedef struct GrottoCombo {
-    ActorCombo actors[3]; // the three dekubaba
-} GrottoCombo;
-
-// each grotto gets data for the chest, we need to map them to each area so we can index everything
-static GrottoIdIndexMap [] = {
- 1, // 1  tf grass (3F)
- 2, // 2  tf pillar (9A)
- 3, // 3  road to south tree (3E)
- 4, // 4  woods of mystery ()
- 5, // 5  swamp spiderhouse
- 6, // 6  racetrack grotto
- 7, // 7  road to snowhead
- 8, // 8  tunnel to goron grave
- 9, // 9  fishermans hut (37)
- 10, // 10 zora cape rock (95)
- 11, // 11 road to ikana
- 12, // 12 graveyard
- 13, // 13 secret shrine
-};
-
-
-// going to need a way to map this data to the entrance, torch does this too but only for 8 items and we have a least 10 grottos
-// 13 generic grottos:
-
-static GrottoCombo grottoDekuBabaPlacementData[13] = {
-//static ActorCombo grottoDekuBabaPlacementData[][] = {
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 1  tf grass (3F)
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 2  tf pillar (9A)
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 3  road to south tree (3E)
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 4  woods of mystery ()
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 5  swamp spiderhouse
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 6  racetrack grotto
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 7  road to snowhead
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 8  tunnel to goron grave
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 9  fishermans hut (37)
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 10 zora cape rock (95)
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 11 road to ikana
- {{ {10, 0}, {0, 0}, {0, 0}   }}, // 12 graveyard
- {{ {10, 0}, {0, 0}, {0, 0}   }}  // 13 secret shrine
 };
 
 // for actorizer, we want to randomize the grass too
 // except, I dont want highly specific data for every single grass/beetle spawn in every grotto, too much data
 // instead, lets just make a shorter array that we randomly access, filled with common stuff
 // so far, we have butterflies, grottos, water, rocks, bushes(trees), bushes()
-static GrottoCombo grottoGrassSpawnData[] = {
+static ActorCombo grottoGrassSpawnData[] = {
      //{ACTOR_EN_KUSA2, 0x0400} // keaton grass without the object could be funny? maybe not if people expect fox
     {ACTOR_EN_BUTTE, 0},
     {ACTOR_EN_BUTTE, 1},
@@ -109,6 +66,8 @@ static GrottoCombo grottoGrassSpawnData[] = {
     {ACTOR_DOOR_ANA, 0x0}, 
 };
 
+// what parameters for grottos are acceptable
+// we want some variety, but we dont want to increase chances of spawning in the list
 static u16 grottoParameters[] = {
     0x6033, // 60XX are item grottos
     0x603B,
@@ -127,69 +86,207 @@ static u16 grottoParameters[] = {
     0xD000
 };
 
+static s16 ourLocation = -1;
+static u32 ourSeed = -1;
+void GS_GetOurLocation(u16 grottoData); // get location from grotto data
+void GS_GetOurSeed(u16 grottoData); // get location from grotto data
 
-// grotto passes this actor an itemId, we can use that to identify what items we have,
-// do we need an itemId map to grottoId map?
+// each grotto gets data for the chest, we need to map them to each area so we can index everything
+// we dont need this anymore, its here for reference or in case I was wrong
+/* static u8 GrottoIdIndexMap [] = {
+ 0x13, // 7  road to snowhead 
+ 0x14, // 13 secret shrine (B4)
+ 0x15, // 10 zora cape rock (95)
+ 0x16, // 11 road to ikana (96)
+ 0x17, // 9  fishermans hut (37)
+ 0x18, // 12 graveyard 
+ 0x19, // 6  goron racetrack grotto
+ 0x1A, // 2  tf pillar (9A)
+ 0x1B, // 8  tunnel to goron grave (3B)
+ 0x1C, // 4  woods of mystery (5C)
+ 0x1D, // 5  swamp spiderhouse (3D)
+ 0x1E, // 3  road to south tree (3E)
+ 0x1F, // 1  tf grass (3F)
+}; // */
+
+// going to need a way to map this data to the entrance, torch does this too but only for 8 items and we have a least 10 grottos
+// 13 generic grottos: the order matches the item param of the grotto hole
+// default clay pot params 101 for testing
+static GrottoCombo grottoDekuBabaPlacementData[13] = {
+//static ActorCombo grottoDekuBabaPlacementData[][] = {
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 7  road to snowhead
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 13 secret shrine
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 10 zora cape rock (95)
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 11 road to ikana
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 9  fishermans hut (37)
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 12 graveyard
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 6  racetrack grotto
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 2  tf pillar (9A)
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 8  tunnel to goron grave
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 4  woods of mystery ()
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 5  swamp spiderhouse
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 3  road to south tree (3E)
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}  // 1  tf grass (3F)
+}; // where 0x82 should be clay pot
 
 void EnBoj04_Init(Actor* thisx, PlayState* play) {
   EnBoj04* this = THIS;
-  //u16 actorId;
-  //u16 actorParams;
- 
   GrottoCombo* thisCombo = NULL;
 
-  // TODO we need to find a way to turn the grotto spawn data into a linear array index
-  thisCombo = &grottoDekuBabaPlacementData[GROTTO_SPAWNER_GROTTO_DATA(thisx)];
 
   // first, we need to figure out where we are, which grotto is this?
   // this is what enTorch has to work with to spawn the correct chest for a given grotto, 
   //  rando leaves 0x1F data vanilla so we can keep using that
+
+  // if the static value is already loaded, use that
+  if (ourLocation == -1){
+      // the value we get from the save context is range 13-1F, sequential, we can just reduce
+      s16 temp = (gSaveContext.respawn[RESPAWN_MODE_UNK_3].data & 0x1F) - 0x13;
+      if (temp < 0)
+         temp = 0;
+      ourLocation = temp;
+  } // else: we are the first actor, look up the value from the array
+
+  if (ourSeed == -1){
+      GS_GetOurSeed(GROTTO_SPAWNER_GROTTO_DATA(thisx));
+  } // else: previous actor in this room already loaded it, reuse
+
+  // we dont really need this anymore, we can get ourLocation
+  // DEBUGGING
   //GROTTO_SPAWNER_GROTTO_DATA(thisx) = gSaveContext.respawn[RESPAWN_MODE_UNK_3].data & 0x1F;
 
   // if the param is 0x0001/2/3, then its a dekubaba, look up params from the table and use those
   if (thisx->params & 0x8000) // grass
   {
-      
-      // chance of spawning a regular list actor, not a generic actor
-
-      // figure out which one of the actor/param combos we want
-
-      // if its a grotto, re-get more seeded randomized values for the grotto params instead of using the actual data
-
-      // if butterfly, raise height
+      GS_ChooseGeneric(thisx, play); 
   }
   else // dekubaba
   {
-     u8 babaId = thisx->params & 0xF;
-     GROTTO_SPAWNER_ACTORID(thisx) = thisCombo->actors[babaId].actorId;
-     GROTTO_SPAWNER_PARAMS(thisx) = thisCombo->actors[babaId].params;
+      GS_AssignReplacementParameters(thisx, ourLocation, (thisx->params & 0xF));
+
   }
+
+  GS_SpawnReplacement(thisx, play); 
+
+}
+
+void GS_AssignReplacementParameters(Actor* thisx, u32 roomIndex, u32 babaIndex){
+
+      GrottoCombo* thisCombo = &grottoDekuBabaPlacementData[roomIndex];
+      GROTTO_SPAWNER_ACTORID(thisx) = thisCombo->actors[babaIndex].actorId;
+      GROTTO_SPAWNER_PARAMS(thisx) = thisCombo->actors[babaIndex].params;
+}
+
+void GS_ChooseGeneric(Actor* thisx, PlayState* play) {
+      u32 spawnMarker = thisx->params & 0xFFF;
+      u32 seedStarter = (ourSeed & 0xFFFFFF);
+
+      u32 randomRoll = ourSeed & 0xDEADBEEF % 100;
+
+      if (randomRoll < 25){         // 10% and 25 merged
+          // chance to roll a random actor from a different grotto group
+          u32 chosenRoom = (randomRoll < 10) ? (ourLocation + ((ourSeed >> 4) & 0xFFFFFF) % 13) : (ourLocation);
+        
+          // chance to roll an actor from this grotto group
+          u32 chosenSpawn = spawnMarker + seedStarter % 3;
+          GS_AssignReplacementParameters(thisx, chosenRoom, chosenSpawn);
+
+      } else {                      // 75%
+          // spawn generic actor from generic list 
+          u32 chosenSpawn = spawnMarker + seedStarter % sizeof(grottoGrassSpawnData);
+          ActorCombo* thisCombo = &grottoGrassSpawnData[chosenSpawn];
+
+          GROTTO_SPAWNER_ACTORID(thisx) = thisCombo->actorId;
+          GROTTO_SPAWNER_PARAMS(thisx) = thisCombo->params;
+
+          // if butterfly, raise height
+          if (GROTTO_SPAWNER_ACTORID(thisx) == ACTOR_EN_BUTTE){
+              thisx->world.pos.y += 100;     
+          }
+      }
+
+      // if grotto, we need to re-roll for what the door parameters will be
+      if (GROTTO_SPAWNER_ACTORID(thisx) == ACTOR_DOOR_ANA){
+        u32 chosenGrottoParams = spawnMarker + seedStarter % sizeof(grottoParameters);
+        GROTTO_SPAWNER_PARAMS(thisx) = grottoParameters[chosenGrottoParams];
+          
+      }
+}
+
+void GS_SpawnReplacement(Actor* thisx, PlayState* play) {
 
   Actor_Spawn(&play->actorCtx, play,
                 //ACTOR_EN_DINOFOS,
                 GROTTO_SPAWNER_ACTORID(thisx),
-                this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z,
-                this->actor.shape.rot.x, this->actor.shape.rot.y, this->actor.shape.rot.z,
+                thisx->world.pos.x, thisx->world.pos.y, thisx->world.pos.z,
+                thisx->shape.rot.x, thisx->shape.rot.y, thisx->shape.rot.z,
                 GROTTO_SPAWNER_PARAMS(thisx)); // debugging with dinofos
-                //ENBOX_PARAMS(ENBOX_TYPE_SMALL, sChestContents[(returnData >> 0x5) & 0x7], returnData));
+                //ENBOX_PARAMS(ENBOX_TYPE_SMALL, sChestContents[(returnData >> 0x5) & 0x7],
+                    // returnData));
 
   //Actor_Kill(&this); // disabled to debug test keep the actor drawing 
+  thisx->update = Actor_Noop;
 }
 
-void EnBoj04_Destroy(Actor* thisx, PlayState* play) {
+
+void EnBoj04_Destroy(Actor* thisx, PlayState* play) { }
+
+// grotto passes this actor an itemId, we can use that to identify what items we have,
+// left here, but we just reordered the grotto order by flags which are sequential
+/*
+void GS_GetOurLocation(u16 grottoData){
+  u16 i;
+
+  for(i = 0; i < sizeof(GrottoIdIndexMap); i++) {
+    if (grottoData == GrottoIdIndexMap[i]){
+      ourLocation = i;
+    }
+  }
+  if (ourLocation == -1) 
+    ourLocation = 1; 
+} // */
+
+// maybe needlessly expensive seed converter
+void GS_GetOurSeed(u16 grottoData){
+
+    // generate the seed value from seed data
+    // for now, just use the vanilla games randomized save values
+    u32 seed = 0;
+    
+    {
+      // the code is an array of 5 bytes, lets just read as is for the first four bytes
+      seed +=  *(u32 *)gSaveContext.save.saveInfo.bomberCode; 
+      seed *=  gSaveContext.save.saveInfo.bomberCode[4]; // last digit is multiplier
+      // value max should be below 0x140F,0A05 from this
+    }
+    
+    seed *= (gSaveContext.save.saveInfo.checksum & 0x4);
+ 
+    {
+      u32 spiderhouseTemp = gSaveContext.save.saveInfo.spiderHouseMaskOrder[0] * gSaveContext.save.saveInfo.spiderHouseMaskOrder[1] + gSaveContext.save.saveInfo.spiderHouseMaskOrder[2];
+      spiderhouseTemp += gSaveContext.save.saveInfo.spiderHouseMaskOrder[3] * gSaveContext.save.saveInfo.spiderHouseMaskOrder[4] + gSaveContext.save.saveInfo.spiderHouseMaskOrder[5]; 
+      seed += spiderhouseTemp;
+    }
+    
+    {
+      u32 lotteryTemp = gSaveContext.save.saveInfo.lotteryCodes[0][1] + gSaveContext.save.saveInfo.lotteryCodes[0][2] * gSaveContext.save.saveInfo.lotteryCodes[0][3]; 
+      lotteryTemp += gSaveContext.save.saveInfo.lotteryCodes[1][1] * gSaveContext.save.saveInfo.lotteryCodes[1][2] * gSaveContext.save.saveInfo.lotteryCodes[1][3]; 
+      lotteryTemp += gSaveContext.save.saveInfo.lotteryCodes[2][1] * gSaveContext.save.saveInfo.lotteryCodes[2][2] + gSaveContext.save.saveInfo.lotteryCodes[2][3]; 
+      seed += lotteryTemp;
+    }
+
+    ourSeed = seed ;
+
 }
 
+// we dont need this as an actor spawner
 /*
 void EnBoj04_Update(Actor* thisx, PlayState* play) {
   EnBoj04* this = THIS;
-
-  // if object is loaded, spawn actor
-  //if (Object_IsLoaded(&play->objectCtx, &GROTTO_SPAWNER_OBJ_ID(thisx))){
-  if (Object_IsLoaded(&play->objectCtx, GROTTO_SPAWNER_OBJ_ID(thisx))){
-
-  }
 }
 // */
+
+// debug print while I try to figure out if this is working
 void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     //ObjBean* this = THIS; // replace with THIS actor
     // with explanation comments
