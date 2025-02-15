@@ -5,6 +5,7 @@
  */
 
 #include "z_en_boj_04.h"
+#include "build.h"
 
 #define FLAGS 0x0
 
@@ -28,8 +29,9 @@ ActorInit En_Boj_04_InitVars = {
     /**/ EnBoj04_Init,
     /**/ EnBoj04_Destroy,
     /**/ //EnBoj04_Update,
-    /**/ Actor_Noop, // NULL, if we make it actually null it wont draw for debug and might do nothing else eitehr
-    /**/ EnBoj04_Draw, // debugging
+    ///**/ NULL,
+    /**/ Actor_Noop, // Update: NULL, if we make it actually null it wont draw for debug and might do nothing else eitehr
+    /**/ EnBoj04_Draw, // Draw: debugging
     /**/ //NULL, // we dont need to draw anything
     // NULL, // draw func n/a
 };
@@ -93,7 +95,7 @@ void GS_GetOurSeed(u16 grottoData); // get location from grotto data
 
 // each grotto gets data for the chest, we need to map them to each area so we can index everything
 // we dont need this anymore, its here for reference or in case I was wrong
-/* static u8 GrottoIdIndexMap [] = {
+/* static u8 GrottoIdIndexMap [] = { // the number on the right is chronological order
  0x13, // 7  road to snowhead 
  0x14, // 13 secret shrine (B4)
  0x15, // 10 zora cape rock (95)
@@ -114,19 +116,19 @@ void GS_GetOurSeed(u16 grottoData); // get location from grotto data
 // default clay pot params 101 for testing
 static GrottoCombo grottoDekuBabaPlacementData[13] = {
 //static ActorCombo grottoDekuBabaPlacementData[][] = {
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 7  road to snowhead
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 13 secret shrine
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 10 zora cape rock (95)
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 11 road to ikana
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 9  fishermans hut (37)
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 12 graveyard
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 6  racetrack grotto
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 2  tf pillar (9A)
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 8  tunnel to goron grave
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 4  woods of mystery ()
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 5  swamp spiderhouse
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 3  road to south tree (3E)
- {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}  // 1  tf grass (3F)
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 0 road to snowhead
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 1 secret shrine
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 2 zora cape rock (95)
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 3 road to ikana
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 4 fishermans hut (37)
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 5 Ikana graveyard
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 6 Goron racetrack grotto
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 7 tf pillar (9A)
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 8 goron grave (spring) tunnel
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // 9 woods of mystery ()
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // A swamp spiderhouse
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}, // B road to south tree (3E)
+ {{ {0x82, 0x101}, {0x82, 0x101}, {0x82, 0x101} }}  // C tf grass (3F)
 }; // where 0x82 should be clay pot
 
 void EnBoj04_Init(Actor* thisx, PlayState* play) {
@@ -211,6 +213,8 @@ void GS_ChooseGeneric(Actor* thisx, PlayState* play) {
         GROTTO_SPAWNER_PARAMS(thisx) = grottoParameters[chosenGrottoParams];
           
       }
+
+
 }
 
 void GS_SpawnReplacement(Actor* thisx, PlayState* play) {
@@ -246,6 +250,16 @@ void GS_GetOurLocation(u16 grottoData){
     ourLocation = 1; 
 } // */
 
+u32 GS_GetBuildDateChkSum(){
+    u32 buildCksum = 0;
+    u8 i = 0;
+    //for (i = 0; i < sizeof(gBuildDate); i++){ // not known at build time, C cannot know this size yet
+    for (i = 0; i < 17; i++){
+        buildCksum += gBuildDate[i];
+    }
+    return buildCksum;
+}
+
 // maybe needlessly expensive seed converter
 void GS_GetOurSeed(u16 grottoData){
 
@@ -260,22 +274,26 @@ void GS_GetOurSeed(u16 grottoData){
       // value max should be below 0x140F,0A05 from this
     }
     
-    seed *= (gSaveContext.save.saveInfo.checksum & 0x4);
+    seed += (gSaveContext.save.saveInfo.checksum & 0xFFFFFFF);
  
     {
       u32 spiderhouseTemp = gSaveContext.save.saveInfo.spiderHouseMaskOrder[0] * gSaveContext.save.saveInfo.spiderHouseMaskOrder[1] + gSaveContext.save.saveInfo.spiderHouseMaskOrder[2];
       spiderhouseTemp += gSaveContext.save.saveInfo.spiderHouseMaskOrder[3] * gSaveContext.save.saveInfo.spiderHouseMaskOrder[4] + gSaveContext.save.saveInfo.spiderHouseMaskOrder[5]; 
-      seed += spiderhouseTemp;
+      seed += spiderhouseTemp << 4;
     }
     
     {
       u32 lotteryTemp = gSaveContext.save.saveInfo.lotteryCodes[0][1] + gSaveContext.save.saveInfo.lotteryCodes[0][2] * gSaveContext.save.saveInfo.lotteryCodes[0][3]; 
       lotteryTemp += gSaveContext.save.saveInfo.lotteryCodes[1][1] * gSaveContext.save.saveInfo.lotteryCodes[1][2] * gSaveContext.save.saveInfo.lotteryCodes[1][3]; 
       lotteryTemp += gSaveContext.save.saveInfo.lotteryCodes[2][1] * gSaveContext.save.saveInfo.lotteryCodes[2][2] + gSaveContext.save.saveInfo.lotteryCodes[2][3]; 
-      seed += lotteryTemp;
+      seed += lotteryTemp << 2;
     }
 
-    ourSeed = seed ;
+    // however, not only do I want this seed based, 
+    //  I want this build-based too so its not always the same on my debug seed
+    seed += GS_GetBuildDateChkSum();
+
+    ourSeed = seed;
 
 }
 
@@ -315,9 +333,13 @@ void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
         //GfxPrint_Printf(&printer, "actionfunc vram:        func_%X", convertedAddr);
         GfxPrint_Printf(&printer, "grotto data:      %X", GROTTO_SPAWNER_GROTTO_DATA(thisx));
         GfxPrint_SetPos(&printer, 1, 12);
-        GfxPrint_Printf(&printer, "grotto actorid:      %X", GROTTO_SPAWNER_ACTORID(thisx));
+        GfxPrint_Printf(&printer, "grotto SEED:      %X", ourSeed);
         GfxPrint_SetPos(&printer, 1, 13);
-        GfxPrint_Printf(&printer, "grotto actor params:      %X", GROTTO_SPAWNER_PARAMS(thisx));
+        GfxPrint_Printf(&printer, "grotto location:      %X", ourLocation);
+        //GfxPrint_SetPos(&printer, 1, 12);
+        //GfxPrint_Printf(&printer, "grotto actorid:      %X", GROTTO_SPAWNER_ACTORID(thisx));
+        //GfxPrint_SetPos(&printer, 1, 13);
+        //GfxPrint_Printf(&printer, "grotto actor params:      %X", GROTTO_SPAWNER_PARAMS(thisx));
     }
 
     //GfxPrint_SetPos(&printer, 1, 13);
