@@ -22,6 +22,7 @@ typedef struct GrottoCombo {
 
 typedef struct EnBoj04 {
     /* 0x000 */ Actor actor;
+                Color_RGBA8 debugColor;
 } EnBoj04;
 
 #endif // Z_EN_BOJ_04_H

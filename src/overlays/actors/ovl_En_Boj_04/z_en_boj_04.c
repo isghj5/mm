@@ -7,6 +7,10 @@
 #include "z_en_boj_04.h"
 #include "build.h"
 
+// for the debug draw
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
+
+
 #define FLAGS 0x0
 
 #define THIS ((EnBoj04*)thisx)
@@ -42,9 +46,9 @@ ActorInit En_Boj_04_InitVars = {
 // so far, we have butterflies, grottos, water, rocks, bushes(trees), bushes()
 static ActorCombo grottoGrassSpawnData[] = {
      //{ACTOR_EN_KUSA2, 0x0400} // keaton grass without the object could be funny? maybe not if people expect fox
-    {ACTOR_EN_BUTTE, 0},
-    {ACTOR_EN_BUTTE, 1},
-    {ACTOR_EN_BUTTE, 2},
+    {ACTOR_EN_BUTTE | 0x8000, 0},
+    {ACTOR_EN_BUTTE | 0x8000, 1},
+    {ACTOR_EN_BUTTE | 0x8000, 2},
 
     {ACTOR_EN_KUSA, 0x0D00}, // all magic
     {ACTOR_EN_KUSA, 0x0E00}, // flexible
@@ -135,7 +139,6 @@ void EnBoj04_Init(Actor* thisx, PlayState* play) {
   EnBoj04* this = THIS;
   GrottoCombo* thisCombo = NULL;
 
-
   // first, we need to figure out where we are, which grotto is this?
   // this is what enTorch has to work with to spawn the correct chest for a given grotto, 
   //  rando leaves 0x1F data vanilla so we can keep using that
@@ -155,7 +158,7 @@ void EnBoj04_Init(Actor* thisx, PlayState* play) {
 
   // we dont really need this anymore, we can get ourLocation
   // DEBUGGING
-  //GROTTO_SPAWNER_GROTTO_DATA(thisx) = gSaveContext.respawn[RESPAWN_MODE_UNK_3].data & 0x1F;
+  GROTTO_SPAWNER_GROTTO_DATA(thisx) = gSaveContext.respawn[RESPAWN_MODE_UNK_3].data & 0x1F;
 
   // if the param is 0x0001/2/3, then its a dekubaba, look up params from the table and use those
   if (thisx->params & 0x8000) // grass
@@ -172,53 +175,68 @@ void EnBoj04_Init(Actor* thisx, PlayState* play) {
 
 }
 
-void GS_AssignReplacementParameters(Actor* thisx, u32 roomIndex, u32 babaIndex){
+void EnBoj04_Destroy(Actor* thisx, PlayState* play) { }
 
+void GS_AssignReplacementParameters(Actor* thisx, u32 roomIndex, u32 babaIndex){
       GrottoCombo* thisCombo = &grottoDekuBabaPlacementData[roomIndex];
+
       GROTTO_SPAWNER_ACTORID(thisx) = thisCombo->actors[babaIndex].actorId;
       GROTTO_SPAWNER_PARAMS(thisx) = thisCombo->actors[babaIndex].params;
 }
 
 void GS_ChooseGeneric(Actor* thisx, PlayState* play) {
-      u32 spawnMarker = thisx->params & 0xFFF;
-      u32 seedStarter = (ourSeed & 0xFFFFFF);
+    EnBoj04* this = THIS;
+    u32 spawnMarker = thisx->params & 0xFFF;
 
-      u32 randomRoll = ourSeed & 0xDEADBEEF % 100;
+    //u32 randomRoll = (ourSeed & 0xDEADBEEF + (spawnMarker << 3 * 33)) % 100;
+    u32 randomRoll = ourSeed + (ourLocation << 4) + (spawnMarker /*<< 1 */) ;
+    u32 seedStarter = Rand_Next_Variable(&randomRoll); 
+    randomRoll = randomRoll % 100;
 
-      if (randomRoll < 25){         // 10% and 25 merged
-          // chance to roll a random actor from a different grotto group
-          u32 chosenRoom = (randomRoll < 10) ? (ourLocation + ((ourSeed >> 4) & 0xFFFFFF) % 13) : (ourLocation);
-        
-          // chance to roll an actor from this grotto group
-          u32 chosenSpawn = spawnMarker + seedStarter % 3;
-          GS_AssignReplacementParameters(thisx, chosenRoom, chosenSpawn);
+    if (randomRoll < 25){         // 10% and 25 merged
+        // chance to roll a random actor from a different grotto group
+        // chance to roll an actor from this grotto group
+        u32 chosenRoom = (randomRoll < 10) ? ((ourLocation + randomRoll) % 13) : (ourLocation);
+      
+        u32 chosenSpawn = (spawnMarker + seedStarter) % 3;
+        GS_AssignReplacementParameters(thisx, chosenRoom, chosenSpawn);
+        this->debugColor.r = 255;
+        this->debugColor.g = (randomRoll < 10) ? ( 0 ) : ( 100 );
 
-      } else {                      // 75%
-          // spawn generic actor from generic list 
-          u32 chosenSpawn = spawnMarker + seedStarter % sizeof(grottoGrassSpawnData);
-          ActorCombo* thisCombo = &grottoGrassSpawnData[chosenSpawn];
+    } else {                      // 75%
+        // spawn generic actor from generic list 
+        u32 chosenSpawn = (spawnMarker + seedStarter) % sizeof(grottoGrassSpawnData);
+        ActorCombo* thisCombo = &grottoGrassSpawnData[chosenSpawn];
 
-          GROTTO_SPAWNER_ACTORID(thisx) = thisCombo->actorId;
-          GROTTO_SPAWNER_PARAMS(thisx) = thisCombo->params;
+        GROTTO_SPAWNER_ACTORID(thisx) = thisCombo->actorId;
+        GROTTO_SPAWNER_PARAMS(thisx) = thisCombo->params;
 
-          // if butterfly, raise height
-          if (GROTTO_SPAWNER_ACTORID(thisx) == ACTOR_EN_BUTTE){
-              thisx->world.pos.y += 100;     
-          }
-      }
+        this->debugColor.b = 255;
+    }
 
-      // if grotto, we need to re-roll for what the door parameters will be
-      if (GROTTO_SPAWNER_ACTORID(thisx) == ACTOR_DOOR_ANA){
-        u32 chosenGrottoParams = spawnMarker + seedStarter % sizeof(grottoParameters);
+    // if grotto, we need to re-roll for what the door parameters will be
+    if (GROTTO_SPAWNER_ACTORID(thisx) == ACTOR_DOOR_ANA){
+        u32 chosenGrottoParams = (spawnMarker + seedStarter) % sizeof(grottoParameters);
         GROTTO_SPAWNER_PARAMS(thisx) = grottoParameters[chosenGrottoParams];
-          
-      }
-
+        
+        this->debugColor.g = 200;
+        this->debugColor.r = 0;
+        this->debugColor.b = 0;
+    }
 
 }
 
 void GS_SpawnReplacement(Actor* thisx, PlayState* play) {
 
+  // TODO we also need to check if the actor id has a flag at the top meaning its a flying actor and should be raised
+  int flyingFlag = GROTTO_SPAWNER_ACTORID(thisx) & 0xF000;
+  GROTTO_SPAWNER_ACTORID(thisx) &= ~0xF000;
+
+  if (flyingFlag > 0){
+      thisx->world.pos.y += 100;
+  }
+
+  /*
   Actor_Spawn(&play->actorCtx, play,
                 //ACTOR_EN_DINOFOS,
                 GROTTO_SPAWNER_ACTORID(thisx),
@@ -227,13 +245,12 @@ void GS_SpawnReplacement(Actor* thisx, PlayState* play) {
                 GROTTO_SPAWNER_PARAMS(thisx)); // debugging with dinofos
                 //ENBOX_PARAMS(ENBOX_TYPE_SMALL, sChestContents[(returnData >> 0x5) & 0x7],
                     // returnData));
-
+  // */
+  
   //Actor_Kill(&this); // disabled to debug test keep the actor drawing 
   thisx->update = Actor_Noop;
 }
 
-
-void EnBoj04_Destroy(Actor* thisx, PlayState* play) { }
 
 // grotto passes this actor an itemId, we can use that to identify what items we have,
 // left here, but we just reordered the grotto order by flags which are sequential
@@ -304,6 +321,45 @@ void EnBoj04_Update(Actor* thisx, PlayState* play) {
 }
 // */
 
+void Debug_ShowTintedStar(Actor* thisx, PlayState* play){
+    EnBoj04* this = (EnBoj04*) thisx;
+    GfxPrint printer;
+    Gfx* gfx;
+
+    OPEN_DISPS(play->state.gfxCtx);
+
+    // this was ripped from xlu, but it should probably be changed to opa if possible that buffer is bigger
+
+    // this was ripped from demo_kankyo
+
+    POLY_XLU_DISP = Gfx_SetupDL(POLY_XLU_DISP, SETUPDL_20);
+
+    gSPSegment(POLY_XLU_DISP++, 0x08, Lib_SegmentedToVirtual(gSun1Tex));
+    gSPDisplayList(POLY_XLU_DISP++, gSunSparkleMaterialDL);
+
+    Matrix_Translate(thisx->world.pos.x, thisx->world.pos.y + 25, thisx->world.pos.z, MTXMODE_NEW);
+
+    gDPPipeSync(POLY_XLU_DISP++);
+
+    // colors
+    //gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 255, 155, 255); // this used to be gold
+    gDPSetPrimColor(POLY_XLU_DISP++, 0, 0,
+         this->debugColor.r, this->debugColor.g, this->debugColor.b, 255); 
+    gDPSetEnvColor(POLY_XLU_DISP++, 200, 200, 200, 255); // silver outline
+
+    Matrix_Mult(&play->billboardMtxF, MTXMODE_APPLY);
+    Matrix_RotateZF(DEG_TO_RAD(play->state.frames * 20.0f), MTXMODE_APPLY);
+
+    //MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
+    gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx),
+      G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+
+    gSPDisplayList(POLY_XLU_DISP++, gSunSparkleModelDL);
+
+    CLOSE_DISPS(play->state.gfxCtx);
+}
+
+
 // debug print while I try to figure out if this is working
 void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     //ObjBean* this = THIS; // replace with THIS actor
@@ -336,10 +392,10 @@ void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
         GfxPrint_Printf(&printer, "grotto SEED:      %X", ourSeed);
         GfxPrint_SetPos(&printer, 1, 13);
         GfxPrint_Printf(&printer, "grotto location:      %X", ourLocation);
-        //GfxPrint_SetPos(&printer, 1, 12);
-        //GfxPrint_Printf(&printer, "grotto actorid:      %X", GROTTO_SPAWNER_ACTORID(thisx));
-        //GfxPrint_SetPos(&printer, 1, 13);
-        //GfxPrint_Printf(&printer, "grotto actor params:      %X", GROTTO_SPAWNER_PARAMS(thisx));
+        GfxPrint_SetPos(&printer, 1, 14);
+        GfxPrint_Printf(&printer, "grotto actorid:      %X", GROTTO_SPAWNER_ACTORID(thisx));
+        GfxPrint_SetPos(&printer, 1, 15);
+        GfxPrint_Printf(&printer, "grotto actor params:      %X", GROTTO_SPAWNER_PARAMS(thisx));
     }
 
     //GfxPrint_SetPos(&printer, 1, 13);
@@ -361,9 +417,12 @@ void Debug_PrintToScreen(Actor* thisx, PlayState* play) {
     //  Debug_PrintToScreen(thisx, play); // put this in your actors draw func
 } // */
 
+
 void EnBoj04_Draw(Actor* thisx, PlayState* play){
     EnBoj04* this = THIS;
 
-    Debug_PrintToScreen(thisx, play); // put this in your actors draw func
+    Debug_ShowTintedStar(thisx, play);
+    if (thisx->xzDistToPlayer < 30)
+      Debug_PrintToScreen(thisx, play); // put this in your actors draw func
 }
 
