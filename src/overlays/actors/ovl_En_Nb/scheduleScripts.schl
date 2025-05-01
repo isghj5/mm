@@ -16,7 +16,6 @@ sScheduleScript {
             return_none
         }
     } else {
-        if_scene (SCENE_YADOYA) {
             if_day (1) {
                 if_time_range (8, 0, 12, 0) {
                     return_l (EN_NB_SCH_1)
@@ -44,8 +43,5 @@ sScheduleScript {
                     return_l (EN_NB_SCH_3)
                 }
             }
-        } else {
-            return_none
-        }
     }
 }
