@@ -72,6 +72,18 @@ typedef enum KaizokuAction {
     /* 16 */ KAIZOKU_ACTION_SCENE_FADE
 } KaizokuAction;
 
+ActorProfile En_Kaizoku_Profile = {
+    /**/ ACTOR_EN_KAIZOKU,
+    /**/ ACTORCAT_ENEMY,
+    /**/ FLAGS,
+    /**/ OBJECT_KZ,
+    /**/ sizeof(EnKaizoku),
+    /**/ EnKaizoku_Init,
+    /**/ EnKaizoku_Destroy,
+    /**/ EnKaizoku_Update,
+    /**/ NULL,
+};
+
 // text Ids, grouped into two batches of 4, and two mask values
 static u16 sKaizokuTextIds[] = {
     0x11A4, // (shout) halt
@@ -175,17 +187,6 @@ static DamageTable sDamageTable = {
     /* Powder Keg     */ DMG_ENTRY(1, KAIZOKU_DMGEFF_ALWAYS_HIT),
 };
 
-ActorProfile En_Kaizoku_Profile = {
-    /**/ ACTOR_EN_KAIZOKU,
-    /**/ ACTORCAT_ENEMY,
-    /**/ FLAGS,
-    /**/ OBJECT_KZ,
-    /**/ sizeof(EnKaizoku),
-    /**/ EnKaizoku_Init,
-    /**/ EnKaizoku_Destroy,
-    /**/ EnKaizoku_Update,
-    /**/ NULL,
-};
 
 static ColliderCylinderInit sCylinderInit = {
     {
@@ -271,6 +272,9 @@ static u8 sAnimationModes[KAIZOKU_ANIM_MAX] = {
     ANIMMODE_ONCE, // KAIZOKU_ANIM_THROW_FLASH
 };
 
+// new
+static u8 busyInCutscene = false;
+
 void EnKaizoku_Init(Actor* thisx, PlayState* play) {
     s32 pad;
     EnKaizoku* this = (EnKaizoku*)thisx;
@@ -310,14 +314,16 @@ void EnKaizoku_Init(Actor* thisx, PlayState* play) {
     blureInit.elemDuration = 8;
     blureInit.unkFlag = 0;
     blureInit.calcMode = 2;
+
     Effect_Add(play, &this->blureIndex, EFFECT_BLURE1, 0, 0, &blureInit);
     Actor_SetScale(&this->picto.actor, 0.0125f);
+
     this->picto.actor.flags |= ACTOR_FLAG_LOCK_ON_DISABLED;
     this->picto.actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+
     if (this->switchFlag == KAIZOKU_SWITCH_FLAG_NONE) {
         this->switchFlag = SWITCH_FLAG_NONE;
     }
-
     if ((this->switchFlag > SWITCH_FLAG_NONE) && Flags_GetSwitch(play, this->switchFlag)) {
         Actor_Kill(&this->picto.actor);
         return;
@@ -508,8 +514,19 @@ void EnKaizoku_WaitForApproach(EnKaizoku* this, PlayState* play) {
                 return;
             }
 
-            CutsceneManager_StartWithPlayerCs(this->csId, &this->picto.actor);
-            Player_SetCsActionWithHaltedActors(play, &this->picto.actor, PLAYER_CSACTION_21);
+            // check if another is busy
+            if (busyInCutscene){
+                Actor_Kill(&this->picto.actor); 
+                return;
+            } else {
+                busyInCutscene = true;
+            }
+
+            if (this->csId != 0xFF){
+                // maybe ignorable?
+                CutsceneManager_StartWithPlayerCs(this->csId, &this->picto.actor);
+                Player_SetCsActionWithHaltedActors(play, &this->picto.actor, PLAYER_CSACTION_21);
+            }
             this->subCamId = CutsceneManager_GetCurrentSubCamId(this->picto.actor.csId);
             this->picto.actor.shape.rot.y = this->picto.actor.world.rot.y = this->picto.actor.yawTowardsPlayer;
 
@@ -537,7 +554,9 @@ void EnKaizoku_WaitForApproach(EnKaizoku* this, PlayState* play) {
             this->cutsceneTimer = 0;
             Audio_SetMainBgmVolume(0, 0xA);
             this->cutsceneState++;
+
             FALLTHROUGH;
+
         case 1: // waiting for (intro1) text advance
             player->actor.shape.rot.y = player->actor.world.rot.y =
                 Math_Vec3f_Yaw(&player->actor.world.pos, &this->picto.actor.world.pos);
@@ -638,29 +657,32 @@ void EnKaizoku_WaitForApproach(EnKaizoku* this, PlayState* play) {
 
         case 7: // wait for cutscene timer, then start fight
             if (this->cutsceneTimer == 0) {
-                Player_SetCsActionWithHaltedActors(play, &this->picto.actor, PLAYER_CSACTION_END);
-                CutsceneManager_Stop(this->csId);
-                this->cutsceneState = 0;
+                if (this->csId != 0xFF){
+                  Player_SetCsActionWithHaltedActors(play, &this->picto.actor, PLAYER_CSACTION_END);
+                  CutsceneManager_Stop(this->csId);
+                  this->cutsceneState = 0;
+                }
                 this->subCamId = SUB_CAM_ID_DONE;
                 this->picto.actor.flags &= ~ACTOR_FLAG_FREEZE_EXCEPTION;
                 this->picto.actor.flags &= ~ACTOR_FLAG_LOCK_ON_DISABLED;
                 this->picto.actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+                busyInCutscene = false;
                 EnKaizoku_SetupReady(this);
             }
             break;
     }
 
     if (this->cutsceneState < 7) {
-        s32 cameraIndex = this->colorType * 8;
+        s32 cameraPosIndex = this->colorType * 8;
 
-        cameraIndex += this->cutsceneState;
-        this->subCamEyeTarget.x = sCutsceneCameraPositions[cameraIndex].x + this->picto.actor.home.pos.x;
-        this->subCamEyeTarget.y = sCutsceneCameraPositions[cameraIndex].y + player->actor.world.pos.y;
-        this->subCamEyeTarget.z = sCutsceneCameraPositions[cameraIndex].z + this->picto.actor.home.pos.z;
+        cameraPosIndex += this->cutsceneState;
+        this->subCamEyeTarget.x = sCutsceneCameraPositions[cameraPosIndex].x + this->picto.actor.home.pos.x;
+        this->subCamEyeTarget.y = sCutsceneCameraPositions[cameraPosIndex].y + player->actor.world.pos.y;
+        this->subCamEyeTarget.z = sCutsceneCameraPositions[cameraPosIndex].z + this->picto.actor.home.pos.z;
 
-        this->subCamAtTarget.x = sCutsceneCameraTargetPositions[cameraIndex].x + this->picto.actor.home.pos.x;
-        this->subCamAtTarget.y = sCutsceneCameraTargetPositions[cameraIndex].y + player->actor.world.pos.y;
-        this->subCamAtTarget.z = sCutsceneCameraTargetPositions[cameraIndex].z + this->picto.actor.home.pos.z;
+        this->subCamAtTarget.x = sCutsceneCameraTargetPositions[cameraPosIndex].x + this->picto.actor.home.pos.x;
+        this->subCamAtTarget.y = sCutsceneCameraTargetPositions[cameraPosIndex].y + player->actor.world.pos.y;
+        this->subCamAtTarget.z = sCutsceneCameraTargetPositions[cameraPosIndex].z + this->picto.actor.home.pos.z;
     }
 
     if (this->cutsceneState >= 5) {
@@ -757,6 +779,7 @@ void EnKaizoku_PlayerLoss(EnKaizoku* this, PlayState* play) {
                 Player_SetCsActionWithHaltedActors(play, &this->picto.actor, PLAYER_CSACTION_END);
                 CutsceneManager_Stop(this->csId);
                 this->subCamId = SUB_CAM_ID_DONE;
+                // TODO change this for the new type?
                 play->nextEntrance = play->setupExitList[this->exitIndex];
                 gSaveContext.nextCutsceneIndex = 0;
                 Scene_SetExitFade(play);
