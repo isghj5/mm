@@ -79,6 +79,8 @@ typedef struct EnKaizoku {
     /* 0x2B8 */ s16 drawDmgEffTimer;
     /* 0x2BA */ s16 drawDmgEffType;
     /* 0x2BC */ s16 switchFlag;
+    /* 0x2BE */ u8  boolOutsideOfVanilla;
+      
     /* 0x2C0 */ f32 drawDmgEffScale;
     /* 0x2C4 */ f32 drawDmgEffFrozenSteamScale;
     /* 0x2C8 */ s16 textIdOffset; // which of the 4 text states during interaction 

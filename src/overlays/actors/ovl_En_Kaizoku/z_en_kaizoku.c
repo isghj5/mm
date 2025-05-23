@@ -298,6 +298,8 @@ void EnKaizoku_Init(Actor* thisx, PlayState* play) {
         this->textType = 0;
     }
 
+    this->boolOutsideOfVanilla = (play->sceneId != SCENE_PIRATE);
+
     this->colorType = KAIZOKU_GET_TYPE(this);
     this->picto.actor.world.rot.z = 0; // clear TYPE param, which was rot.z, as we dont want skew
     this->picto.actor.colChkInfo.damageTable = &sDamageTable;
@@ -522,21 +524,29 @@ void EnKaizoku_WaitForApproach(EnKaizoku* this, PlayState* play) {
                 busyInCutscene = true;
             }
 
+
             if (this->csId != 0xFF){
-                // maybe ignorable?
+                // only in vanilla
                 CutsceneManager_StartWithPlayerCs(this->csId, &this->picto.actor);
                 Player_SetCsActionWithHaltedActors(play, &this->picto.actor, PLAYER_CSACTION_21);
-            }
+            } 
+
             this->subCamId = CutsceneManager_GetCurrentSubCamId(this->picto.actor.csId);
             this->picto.actor.shape.rot.y = this->picto.actor.world.rot.y = this->picto.actor.yawTowardsPlayer;
 
             nextTextId = (this->textType * 4) + this->textIdOffset;
-            if (this->colorType != 2) {
-                player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
-                player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
+            
+            if (this->boolOutsideOfVanilla){
+               this->picto.actor.home.pos.x = player->actor.home.pos.x;
+               this->picto.actor.home.pos.z = player->actor.home.pos.z;
             } else {
-                player->actor.world.pos.x = this->picto.actor.home.pos.x - 90.0f;
-                player->actor.world.pos.z = this->picto.actor.home.pos.z - 30.0f;
+                if (this->colorType != 2) {
+                    player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
+                    player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
+                } else {
+                    player->actor.world.pos.x = this->picto.actor.home.pos.x - 90.0f;
+                    player->actor.world.pos.z = this->picto.actor.home.pos.z - 30.0f;
+                }
             }
 
             player->actor.speed = 0.0f;
@@ -562,12 +572,14 @@ void EnKaizoku_WaitForApproach(EnKaizoku* this, PlayState* play) {
                 Math_Vec3f_Yaw(&player->actor.world.pos, &this->picto.actor.world.pos);
             this->picto.actor.shape.rot.y = this->picto.actor.world.rot.y = this->picto.actor.yawTowardsPlayer;
 
-            if (this->colorType != 2) {
-                player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
-                player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
-            } else {
-                player->actor.world.pos.x = this->picto.actor.home.pos.x - 90.0f;
-                player->actor.world.pos.z = this->picto.actor.home.pos.z - 30.0f;
+            if ( ! this->boolOutsideOfVanilla){
+                if (this->colorType != 2) {
+                    player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
+                    player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
+                } else {
+                    player->actor.world.pos.x = this->picto.actor.home.pos.x - 90.0f;
+                    player->actor.world.pos.z = this->picto.actor.home.pos.z - 30.0f;
+                }
             }
 
             if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
@@ -815,10 +827,12 @@ void EnKaizoku_PlayerWinCutscene(EnKaizoku* this, PlayState* play) {
 
     if (this->cutsceneState < 2) {
         Math_SmoothStepToS(&this->picto.actor.shape.rot.y, this->picto.actor.yawTowardsPlayer, 1, 0xFA0, 1);
-        player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
-        player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
-        this->picto.actor.world.pos.x = this->picto.actor.home.pos.x;
-        this->picto.actor.world.pos.z = this->picto.actor.home.pos.z;
+        if ( ! this->boolOutsideOfVanilla){
+            player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
+            player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
+            this->picto.actor.world.pos.x = this->picto.actor.home.pos.x;
+            this->picto.actor.world.pos.z = this->picto.actor.home.pos.z;
+        }
         this->subCamEyeTarget.x = player->actor.world.pos.x + 39.0f;
         this->subCamEyeTarget.y = player->actor.world.pos.y + 4.0f;
         this->subCamEyeTarget.z = player->actor.world.pos.z - 41.0f;
@@ -1788,10 +1802,12 @@ void EnKaizoku_DefeatKnockdown(EnKaizoku* this, PlayState* play) {
         }
 
         Math_Vec3f_Copy(&this->velocity, &gZeroVec3f);
-        player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
-        player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
-        this->picto.actor.world.pos.x = this->picto.actor.home.pos.x;
-        this->picto.actor.world.pos.z = this->picto.actor.home.pos.z;
+        if ( ! this->boolOutsideOfVanilla){
+            player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
+            player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
+            this->picto.actor.world.pos.x = this->picto.actor.home.pos.x;
+            this->picto.actor.world.pos.z = this->picto.actor.home.pos.z;
+        }
 
         this->subCamEye.x = this->subCamEyeTarget.x = player->actor.world.pos.x + 39.0f;
         this->subCamEye.y = this->subCamEyeTarget.y = player->actor.world.pos.y + 4.0f;
