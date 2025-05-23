@@ -155,7 +155,7 @@ typedef enum KaizokuDamageEffect {
 static DamageTable sDamageTable = {
     /* Deku Nut       */ DMG_ENTRY(0, KAIZOKU_DMGEFF_STUN),
     /* Deku Stick     */ DMG_ENTRY(1, KAIZOKU_DMGEFF_IFRAME_PROTECTED),
-    /* Horse trample  */ DMG_ENTRY(0, KAIZOKU_DMGEFF_NONE),
+    /* Horse trample  */ DMG_ENTRY(1, KAIZOKU_DMGEFF_ALWAYS_HIT),
     /* Explosives     */ DMG_ENTRY(1, KAIZOKU_DMGEFF_IFRAME_PROTECTED),
     /* Zora boomerang */ DMG_ENTRY(0, KAIZOKU_DMGEFF_STUN),
     /* Normal arrow   */ DMG_ENTRY(1, KAIZOKU_DMGEFF_IFRAME_PROTECTED),
@@ -178,7 +178,7 @@ static DamageTable sDamageTable = {
     /* Thrown object  */ DMG_ENTRY(1, KAIZOKU_DMGEFF_ALWAYS_HIT),
     /* Zora punch     */ DMG_ENTRY(1, KAIZOKU_DMGEFF_ALWAYS_HIT),
     /* Spin attack    */ DMG_ENTRY(1, KAIZOKU_DMGEFF_STUNNED_ONLY),
-    /* Sword beam     */ DMG_ENTRY(0, KAIZOKU_DMGEFF_NONE),
+    /* Sword beam     */ DMG_ENTRY(2, KAIZOKU_DMGEFF_ALWAYS_HIT),
     /* Normal Roll    */ DMG_ENTRY(0, KAIZOKU_DMGEFF_NONE),
     /* UNK_DMG_0x1B   */ DMG_ENTRY(0, KAIZOKU_DMGEFF_NONE),
     /* UNK_DMG_0x1C   */ DMG_ENTRY(0, KAIZOKU_DMGEFF_NONE),
