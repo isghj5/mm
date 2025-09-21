@@ -10,9 +10,14 @@
 #include "overlays/actors/ovl_En_Arrow/z_en_arrow.h"
 #include "overlays/effects/ovl_Effect_Ss_Hitmark/z_eff_ss_hitmark.h"
 
+
+// why does it have freeze exception? that allows it to move in transitions?
+//#define FLAGS                                                                                 \
+    //(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE | ACTOR_FLAG_UPDATE_CULLING_DISABLED | \
+     //ACTOR_FLAG_FREEZE_EXCEPTION)
 #define FLAGS                                                                                 \
-    (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE | ACTOR_FLAG_UPDATE_CULLING_DISABLED | \
-     ACTOR_FLAG_FREEZE_EXCEPTION)
+    (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE | ACTOR_FLAG_UPDATE_CULLING_DISABLED)
+     
 
 void EnKaizoku_Init(Actor* thisx, PlayState* play);
 void EnKaizoku_Destroy(Actor* thisx, PlayState* play);
@@ -276,7 +281,7 @@ static u8 sAnimationModes[KAIZOKU_ANIM_MAX] = {
 static u8 busyInCutscene = false;
 
 void EnKaizoku_Init(Actor* thisx, PlayState* play) {
-    s32 pad;
+    //s32 pad;
     EnKaizoku* this = (EnKaizoku*)thisx;
     Player* player = GET_PLAYER(play);
     EffectBlureInit1 blureInit;
@@ -298,7 +303,8 @@ void EnKaizoku_Init(Actor* thisx, PlayState* play) {
         this->textType = 0;
     }
 
-    this->boolOutsideOfVanilla = (play->sceneId != SCENE_PIRATE);
+    // this could probably be handled with type look up instead if we decided to do a non-vanilla flag, but lazy
+    this->postVanilla = (play->sceneId != SCENE_PIRATE);
 
     this->colorType = KAIZOKU_GET_TYPE(this);
     this->picto.actor.world.rot.z = 0; // clear TYPE param, which was rot.z, as we dont want skew
@@ -507,23 +513,26 @@ void EnKaizoku_WaitForApproach(EnKaizoku* this, PlayState* play) {
 
     switch (this->cutsceneState) {
         case 0: // waiting for proximity
-            if (!(this->picto.actor.xzDistToPlayer < 200.0f)) {
+            // for some reason this actor functions while the player is transitioning?
+            if ( !(this->picto.actor.xzDistToPlayer < 200.0f)) {
                 break;
             }
 
-            if (!CutsceneManager_IsNext(this->csId)) {
+            if (this->csId != 0xFF && !CutsceneManager_IsNext(this->csId)) {
                 CutsceneManager_Queue(this->csId);
                 return;
             }
 
             // check if another is busy
             if (busyInCutscene){
-                Actor_Kill(&this->picto.actor); 
+                Actor_Kill(&this->picto.actor);  // what if we just wait?
                 return;
             } else {
-                busyInCutscene = true;
+                busyInCutscene = true; // set for us
             }
 
+            // freeze exception is crazy it can trigger the actor in room transitions early, dont turn on until we get here
+            this->picto.actor.flags |= ACTOR_FLAG_FREEZE_EXCEPTION;
 
             if (this->csId != 0xFF){
                 // only in vanilla
@@ -536,10 +545,12 @@ void EnKaizoku_WaitForApproach(EnKaizoku* this, PlayState* play) {
 
             nextTextId = (this->textType * 4) + this->textIdOffset;
             
-            if (this->boolOutsideOfVanilla){
+            if (this->postVanilla){
+               // move actor to player
                this->picto.actor.home.pos.x = player->actor.home.pos.x;
                this->picto.actor.home.pos.z = player->actor.home.pos.z;
             } else {
+                // player is moved to center, actor is moved relevative to center
                 if (this->colorType != 2) {
                     player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
                     player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
@@ -563,7 +574,7 @@ void EnKaizoku_WaitForApproach(EnKaizoku* this, PlayState* play) {
             this->picto.actor.draw = EnKaizoku_Draw;
             this->cutsceneTimer = 0;
             Audio_SetMainBgmVolume(0, 0xA);
-            this->cutsceneState++;
+            this->cutsceneState++; // = 1
 
             FALLTHROUGH;
 
@@ -572,7 +583,7 @@ void EnKaizoku_WaitForApproach(EnKaizoku* this, PlayState* play) {
                 Math_Vec3f_Yaw(&player->actor.world.pos, &this->picto.actor.world.pos);
             this->picto.actor.shape.rot.y = this->picto.actor.world.rot.y = this->picto.actor.yawTowardsPlayer;
 
-            if ( ! this->boolOutsideOfVanilla){
+            if ( ! this->postVanilla){
                 if (this->colorType != 2) {
                     player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
                     player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
@@ -592,7 +603,9 @@ void EnKaizoku_WaitForApproach(EnKaizoku* this, PlayState* play) {
             break;
 
         case 2: // waiting for fall to land
-            if (this->picto.actor.bgCheckFlags & BGCHECKFLAG_GROUND) {
+            // because I changed it so they move to player, they can spawn out of bounds, need to keep going and not lock up
+            if (this->picto.actor.bgCheckFlags & BGCHECKFLAG_GROUND 
+                  || this->picto.actor.floorHeight <= BGCHECK_Y_MIN) {
                 if (this->animationsDisabled) {
                     this->animationsDisabled = false;
                     this->picto.actor.world.pos.y = this->picto.actor.floorHeight;
@@ -827,7 +840,7 @@ void EnKaizoku_PlayerWinCutscene(EnKaizoku* this, PlayState* play) {
 
     if (this->cutsceneState < 2) {
         Math_SmoothStepToS(&this->picto.actor.shape.rot.y, this->picto.actor.yawTowardsPlayer, 1, 0xFA0, 1);
-        if ( ! this->boolOutsideOfVanilla){
+        if ( ! this->postVanilla){
             player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
             player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
             this->picto.actor.world.pos.x = this->picto.actor.home.pos.x;
@@ -1802,7 +1815,7 @@ void EnKaizoku_DefeatKnockdown(EnKaizoku* this, PlayState* play) {
         }
 
         Math_Vec3f_Copy(&this->velocity, &gZeroVec3f);
-        if ( ! this->boolOutsideOfVanilla){
+        if ( ! this->postVanilla){
             player->actor.world.pos.x = this->picto.actor.home.pos.x + 90.0f;
             player->actor.world.pos.z = this->picto.actor.home.pos.z + 30.0f;
             this->picto.actor.world.pos.x = this->picto.actor.home.pos.x;
