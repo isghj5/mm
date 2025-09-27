@@ -800,12 +800,20 @@ void EnKaizoku_PlayerLoss(EnKaizoku* this, PlayState* play) {
 
         case 2: // wait for text to finish
             if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+                u16 nextEntrance;
                 Message_CloseTextbox(play);
                 Player_SetCsActionWithHaltedActors(play, &this->picto.actor, PLAYER_CSACTION_END);
                 CutsceneManager_Stop(this->csId);
                 this->subCamId = SUB_CAM_ID_DONE;
                 // TODO change this for the new type?
-                play->nextEntrance = play->setupExitList[this->exitIndex];
+                nextEntrance = play->setupExitList[this->exitIndex];
+                // new: grotto fix
+                if (nextEntrance == 0xFFFF) { // grotto return, broken if not set by player code
+                    // ripped from ovl_player::func_808354A4
+                    gSaveContext.respawnFlag = 4; 
+                    nextEntrance = gSaveContext.respawn[RESPAWN_MODE_UNK_3].entrance; // set by doorana
+                }
+                play->nextEntrance = nextEntrance;
                 gSaveContext.nextCutsceneIndex = 0;
                 Scene_SetExitFade(play);
                 play->transitionTrigger = TRANS_TRIGGER_START;
