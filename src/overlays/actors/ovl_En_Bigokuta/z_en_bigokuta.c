@@ -55,7 +55,7 @@ static ColliderCylinderInit sShellCylinderInit = {
     {
         ELEMTYPE_UNK0,
         { 0x00000000, 0x00, 0x00 },
-        { 0xF7CFC74F, 0x00, 0x00 },
+        { 0xB7CFC74F, 0x00, 0x00 }, // changed from F7 to B7, zoey changed it I'm just mirroring
         TOUCH_NONE | TOUCH_SFX_NORMAL,
         BUMP_ON,
         OCELEM_ON,
@@ -75,7 +75,7 @@ static ColliderCylinderInit sBodyCylinderInit = {
     {
         ELEMTYPE_UNK0,
         { 0x00000000, 0x00, 0x00 },
-        { 0x000038B0, 0x00, 0x00 },
+        { 0x400038B0, 0x00, 0x00 }, // 0x00 was changed to 0x40 by zoey
         TOUCH_NONE | TOUCH_SFX_NORMAL,
         BUMP_ON,
         OCELEM_NONE,
