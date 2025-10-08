@@ -129,9 +129,11 @@ void EnBigokuta_Destroy(Actor* thisx, PlayState* play) {
 void EnBigokuta_SetupCutsceneCamera(EnBigokuta* this, PlayState* play, Vec3f* subCamAt, Vec3f* subCamEye) {
     s16 angle;
 
-    CutsceneManager_Start(this->picto.actor.csId, &this->picto.actor);
-    this->subCamId = CutsceneManager_GetCurrentSubCamId(this->picto.actor.csId);
-    Play_SetCameraAtEye(play, this->subCamId, subCamAt, subCamEye);
+    if (this->csId != CS_ID_NONE){
+      CutsceneManager_Start(this->picto.actor.csId, &this->picto.actor);
+      this->subCamId = CutsceneManager_GetCurrentSubCamId(this->picto.actor.csId);
+      Play_SetCameraAtEye(play, this->subCamId, subCamAt, subCamEye);
+    }
 
     angle = BINANG_SUB(Actor_WorldYawTowardPoint(&this->picto.actor, subCamEye), this->picto.actor.home.rot.y);
     if (angle > 0) {
@@ -289,8 +291,11 @@ void EnBigokuta_SetupSuckInPlayer(EnBigokuta* this, PlayState* play) {
     this->timer = 0;
 
     Animation_Change(&this->skelAnime, &gBigOctoIdleAnim, 1.0f, 12.0f, 12.0f, ANIMMODE_ONCE, -3.0f);
-    CutsceneManager_Queue(this->picto.actor.csId);
-
+    // this should be the second cutscene because the actor uses queue'd cutscenes
+    if (this->csId != CS_ID_NONE){ // we still use the first one, because if there isn't the first one, second is also empty
+      // the code is no smaller if we re-use picto.actor.csId because of branch delay slot shinanigans
+      CutsceneManager_Queue(this->picto.actor.csId);
+    }
     this->playerHoldPos.x = (Math_SinS(this->picto.actor.shape.rot.y) * 66.0f) + this->picto.actor.world.pos.x;
     this->playerHoldPos.y = (this->picto.actor.home.pos.y - 49.5f) + 42.899998f;
     this->playerHoldPos.z = (Math_CosS(this->picto.actor.shape.rot.y) * 66.0f) + this->picto.actor.world.pos.z;
@@ -355,7 +360,10 @@ void EnBigokuta_HoldPlayer(EnBigokuta* this, PlayState* play) {
 }
 
 void EnBigokuta_SetupDeathCutscene(EnBigokuta* this) {
-    CutsceneManager_Queue(this->csId);
+  
+    if (this->csId != CS_ID_NONE){
+      CutsceneManager_Queue(this->csId);
+    }
     this->timer = 0;
     this->bodyCollider.base.acFlags &= ~AC_ON;
     this->actionFunc = EnBigokuta_PlayDeathCutscene;
@@ -374,7 +382,7 @@ void EnBigokuta_PlayDeathCutscene(EnBigokuta* this, PlayState* play) {
             Actor_SpawnIceEffects(play, &this->picto.actor, this->bodyPartsPos, BIGOKUTA_BODYPART_MAX, 2, 0.5f, 0.35f);
             EnBigokuta_SetupDeathEffects(this);
         }
-    } else if (CutsceneManager_IsNext(this->csId)) {
+    } else if ( this->csId != CS_ID_NONE && CutsceneManager_IsNext(this->csId)) {
         CutsceneManager_Start(this->csId, &this->picto.actor);
 
         if (!CHECK_EVENTINF(EVENTINF_41) && !CHECK_EVENTINF(EVENTINF_35)) {
@@ -389,7 +397,7 @@ void EnBigokuta_PlayDeathCutscene(EnBigokuta* this, PlayState* play) {
         } else {
             EnBigokuta_SetupDeathEffects(this);
         }
-    } else {
+    } else if (this->csId != CS_ID_NONE) {
         CutsceneManager_Queue(this->csId);
     }
 }
@@ -450,7 +458,9 @@ void EnBigokuta_PlayDeathEffects(EnBigokuta* this, PlayState* play) {
                     Flags_SetSwitch(play, EN_BIGOKUTA_GET_SWITCH_FLAG(&this->picto.actor));
                 }
 
-                CutsceneManager_Stop(this->csId);
+                if(this->csId != CS_ID_NONE){
+                  CutsceneManager_Stop(this->csId);
+                }
                 Actor_Kill(&this->picto.actor);
 
                 if (!CHECK_EVENTINF(EVENTINF_41) && !CHECK_EVENTINF(EVENTINF_35)) {
