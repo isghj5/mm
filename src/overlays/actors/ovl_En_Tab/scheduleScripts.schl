@@ -1,4 +1,4 @@
-D_80BE18D0 {
+sScheduleScript {
     if_day (3) {
         if_scene (SCENE_MILK_BAR) {
             if_time_range (9, 50, 18, 1) {

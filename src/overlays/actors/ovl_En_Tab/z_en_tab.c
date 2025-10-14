@@ -322,14 +322,14 @@ void func_80BE0664(EnTab* this) {
 s32 func_80BE06DC(EnTab* this, PlayState* play) {
     s32 ret = false;
 
-    if (((this->unk_2FC & SUBS_OFFER_MODE_MASK) != SUBS_OFFER_MODE_NONE) &&
+    if (((this->actionFlags & SUBS_OFFER_MODE_MASK) != SUBS_OFFER_MODE_NONE) &&
         Actor_TalkOfferAccepted(&this->actor, &play->state)) {
-        SubS_SetOfferMode(&this->unk_2FC, SUBS_OFFER_MODE_NONE, SUBS_OFFER_MODE_MASK);
+        SubS_SetOfferMode(&this->actionFlags, SUBS_OFFER_MODE_NONE, SUBS_OFFER_MODE_MASK);
         ret = true;
         this->unk_320 = 0;
         this->msgScriptCallback = NULL;
         this->actor.child = &GET_PLAYER(play)->actor;
-        this->unk_2FC |= 8;
+        this->actionFlags |= 8;
         this->actionFunc = func_80BE1348;
     }
     return ret;
@@ -378,21 +378,21 @@ void func_80BE07A0(EnTab* this) {
 
 void func_80BE09A8(EnTab* this, PlayState* play) {
     this->unk_1E0 = func_80BE0778(this, play);
-    if ((this->unk_2FC & 8) && (this->unk_1E0 != 0) && (DECR(this->unk_324) == 0)) {
+    if ((this->actionFlags & 8) && (this->unk_1E0 != 0) && (DECR(this->unk_324) == 0)) {
         func_80BE07A0(this);
         this->unk_316 = 0;
         this->unk_318 = 0;
-        this->unk_2FC &= ~0x40;
-        this->unk_2FC |= 0x10;
-    } else if (this->unk_2FC & 0x10) {
-        this->unk_2FC &= ~0x10;
+        this->actionFlags &= ~0x40;
+        this->actionFlags |= 0x10;
+    } else if (this->actionFlags & 0x10) {
+        this->actionFlags &= ~0x10;
         this->unk_312 = 0;
         this->unk_314 = 0;
         this->unk_316 = 0;
         this->unk_318 = 0;
         this->unk_324 = 20;
     } else if (DECR(this->unk_324) == 0) {
-        this->unk_2FC |= 0x40;
+        this->actionFlags |= 0x40;
     }
 }
 
@@ -507,17 +507,17 @@ s32 func_80BE0F04(EnTab* this, PlayState* play, ScheduleOutput* scheduleOutput) 
     static Vec3f D_80BE1AF0 = { -28.0f, -8.0f, -195.0f };
     static Vec3s D_80BE1AFC = { 0, 0, 0 };
     s32 ret = false;
-    EnGm* sp28 = (EnGm*)EnTab_FindActor(this, play, ACTORCAT_NPC, ACTOR_EN_GM);
+    EnGm* gormanSearch = (EnGm*)EnTab_FindActor(this, play, ACTORCAT_NPC, ACTOR_EN_GM);
 
-    if (sp28) {
+    if (gormanSearch) {
         Math_Vec3f_Copy(&this->actor.world.pos, &D_80BE1AF0);
         Math_Vec3s_Copy(&this->actor.world.rot, &D_80BE1AFC);
         Math_Vec3s_Copy(&this->actor.shape.rot, &this->actor.world.rot);
         this->actor.attentionRangeType = ATTENTION_RANGE_0;
-        SubS_SetOfferMode(&this->unk_2FC, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
-        this->unk_2FC |= (0x40 | 0x20);
+        SubS_SetOfferMode(&this->actionFlags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
+        this->actionFlags |= (0x40 | 0x20);
         this->unk_30C = 30;
-        this->unk_1E4 = sp28;
+        this->gorman = gormanSearch;
         EnTab_ChangeAnim(this, ENTAB_ANIM_0);
         ret = true;
     }
@@ -533,8 +533,8 @@ s32 func_80BE0FC4(EnTab* this, PlayState* play, ScheduleOutput* scheduleOutput) 
     Math_Vec3s_Copy(&this->actor.world.rot, &D_80BE1B10);
     Math_Vec3s_Copy(&this->actor.shape.rot, &this->actor.world.rot);
     this->actor.attentionRangeType = ATTENTION_RANGE_6;
-    SubS_SetOfferMode(&this->unk_2FC, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
-    this->unk_2FC |= (0x40 | 0x20);
+    SubS_SetOfferMode(&this->actionFlags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
+    this->actionFlags |= (0x40 | 0x20);
     this->unk_30C = 0x50;
     EnTab_ChangeAnim(this, ENTAB_ANIM_1);
     return true;
@@ -543,7 +543,7 @@ s32 func_80BE0FC4(EnTab* this, PlayState* play, ScheduleOutput* scheduleOutput) 
 s32 func_80BE1060(EnTab* this, PlayState* play, ScheduleOutput* scheduleOutput) {
     s32 ret;
 
-    this->unk_2FC = 0;
+    this->actionFlags = 0;
 
     switch (scheduleOutput->result) {
         case 1:
@@ -561,6 +561,7 @@ s32 func_80BE1060(EnTab* this, PlayState* play, ScheduleOutput* scheduleOutput) 
     return ret;
 }
 
+// one of the HandleSch_Thing func
 s32 func_80BE10BC(EnTab* this, PlayState* play) {
     s32 pad;
     Player* player = GET_PLAYER(play);
@@ -571,32 +572,32 @@ s32 func_80BE10BC(EnTab* this, PlayState* play) {
         case 1:
             if ((player->stateFlags1 & PLAYER_STATE1_TALKING) && !(play->msgCtx.currentTextId <= 0x2B00) &&
                 (play->msgCtx.currentTextId < 0x2B08)) {
-                this->actor.child = &this->unk_1E4->actor;
-                this->unk_2FC |= 8;
+                this->actor.child = &this->gorman->actor;
+                this->actionFlags |= 8;
             } else {
-                dist = Math_Vec3f_DistXYZ(&this->actor.world.pos, &this->unk_1E4->actor.world.pos);
+                dist = Math_Vec3f_DistXYZ(&this->actor.world.pos, &this->gorman->actor.world.pos);
 
-                if (CHECK_WEEKEVENTREG(WEEKEVENTREG_75_01) || (this->unk_1E4->actor.draw == NULL) || !(dist < 160.0f)) {
+                if (CHECK_WEEKEVENTREG(WEEKEVENTREG_75_01) || (this->gorman->actor.draw == NULL) || !(dist < 160.0f)) {
                     tempActor = &GET_PLAYER(play)->actor;
                     this->actor.child = tempActor;
                 } else {
-                    tempActor = &this->unk_1E4->actor;
+                    tempActor = &this->gorman->actor;
                     this->actor.child = tempActor;
                 }
 
                 if (func_80BE0C04(this, tempActor, 160.0f)) {
-                    this->unk_2FC |= 8;
+                    this->actionFlags |= 8;
                 } else {
-                    this->unk_2FC &= ~8;
+                    this->actionFlags &= ~8;
                 }
             }
             break;
 
         case 2:
             if (func_80BE0C04(this, &GET_PLAYER(play)->actor, 200.0f)) {
-                this->unk_2FC |= 8;
+                this->actionFlags |= 8;
             } else {
-                this->unk_2FC &= ~8;
+                this->actionFlags &= ~8;
             }
             break;
     }
@@ -604,6 +605,7 @@ s32 func_80BE10BC(EnTab* this, PlayState* play) {
     return false;
 }
 
+// HandleSchedule
 void func_80BE1224(EnTab* this, PlayState* play) {
     if ((this->scheduleResult == 1) || (this->scheduleResult == 2)) {
         func_80BE10BC(this, play);
@@ -611,13 +613,16 @@ void func_80BE1224(EnTab* this, PlayState* play) {
     Math_ApproachS(&this->actor.shape.rot.y, this->actor.world.rot.y, 3, 0x2AA8);
 }
 
+// called directly from init, not just actionfunc
+// FollowSchedule
 void func_80BE127C(EnTab* this, PlayState* play) {
     ScheduleOutput scheduleOutput;
 
-    this->unk_31A = R_TIME_SPEED + ((void)0, gSaveContext.save.timeSpeedOffset);
+    this->timePathTimeSpeed = R_TIME_SPEED + ((void)0, gSaveContext.save.timeSpeedOffset);
 
-    if (!Schedule_RunScript(play, D_80BE18D0, &scheduleOutput) ||
-        ((this->scheduleResult != scheduleOutput.result) && !func_80BE1060(this, play, &scheduleOutput))) {
+    if (!Schedule_RunScript(play, sScheduleScript, &scheduleOutput) ||
+         ((this->scheduleResult != scheduleOutput.result) &&
+         !func_80BE1060(this, play, &scheduleOutput))) {
         this->actor.shape.shadowDraw = NULL;
         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
         scheduleOutput.result = 0;
@@ -636,9 +641,9 @@ void func_80BE1348(EnTab* this, PlayState* play) {
 
     if (MsgEvent_RunScript(&this->actor, play, EnTab_GetMsgScript(this, play), this->msgScriptCallback,
                            &this->msgScriptPos)) {
-        SubS_SetOfferMode(&this->unk_2FC, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
-        this->unk_2FC &= ~8;
-        this->unk_2FC |= 0x40;
+        SubS_SetOfferMode(&this->actionFlags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
+        this->actionFlags &= ~8;
+        this->actionFlags |= 0x40;
         this->unk_324 = 20;
         this->msgScriptPos = 0;
         this->actionFunc = func_80BE127C;
@@ -662,8 +667,8 @@ void EnTab_Init(Actor* thisx, PlayState* play) {
 
     this->scheduleResult = 0;
     this->msgScriptCallback = NULL;
-    this->unk_2FC = 0;
-    this->unk_2FC |= 0x40;
+    this->actionFlags = 0;
+    this->actionFlags |= 0x40;
     this->actor.gravity = -1.0f;
 
     this->actionFunc = func_80BE127C;
@@ -693,7 +698,7 @@ void EnTab_Update(Actor* thisx, PlayState* play) {
         radius = this->collider.dim.radius + this->unk_30C;
         height = this->collider.dim.height + 10;
 
-        SubS_Offer(&this->actor, play, radius, height, PLAYER_IA_NONE, this->unk_2FC & SUBS_OFFER_MODE_MASK);
+        SubS_Offer(&this->actor, play, radius, height, PLAYER_IA_NONE, this->actionFlags & SUBS_OFFER_MODE_MASK);
         Actor_MoveWithGravity(&this->actor);
         Actor_UpdateBgCheckInfo(play, &this->actor, 30.0f, 12.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
         func_80BE0620(this, play);
@@ -728,8 +733,9 @@ void EnTab_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
     s32 rotStep;
     s32 overrideStep;
 
-    if (!(this->unk_2FC & 0x40)) {
-        if (this->unk_2FC & 0x10) {
+    // TODO convert these flags
+    if (!(this->actionFlags & 0x40)) {
+        if (this->actionFlags & 0x10) {
             overrideStep = true;
         } else {
             overrideStep = false;
