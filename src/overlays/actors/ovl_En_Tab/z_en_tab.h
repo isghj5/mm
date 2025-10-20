@@ -16,33 +16,33 @@ typedef struct EnTab {
     /* 0x18C */ ColliderCylinder collider;
     /* 0x1D8 */ u8 scheduleResult;
     /* 0x1DC */ s32 msgScriptPos;
-    /* 0x1E0 */ Actor* unk_1E0;
+    /* 0x1E0 */ Actor* unk_1E0; // target actor?
     /* 0x1E4 */ EnGm* gorman;
-    /* 0x1E8 */ Vec3f unk_1E8[2];
-    /* 0x200 */ Vec3s unk_200[2];
+    /* 0x1E8 */ Vec3f unk_1E8[2]; // head angle?
+    /* 0x200 */ Vec3s unk_200[2]; // head angle?
     /* 0x20C */ Vec3s jointTable[BARTEN_LIMB_MAX];
     /* 0x284 */ Vec3s morphTable[BARTEN_LIMB_MAX];
     /* 0x2FC */ u16 actionFlags; // passed to SubS_SetOfferMode
     /* 0x300 */ f32 animPlaySpeed;
-    /* 0x304 */ f32 unk_304;
+    /* 0x304 */ f32 unk_304; // 1 or 0, talking head bobble toggle? why is it a float?
     /* 0x308 */ f32 unk_308;
-    /* 0x30C */ s16 unk_30C;
+    /* 0x30C */ s16 offerRange; // extra range on talk request acceptance
     /* 0x30E */ UNK_TYPE1 unk30E[4];
-    /* 0x312 */ s16 unk_312;
-    /* 0x314 */ s16 unk_314;
-    /* 0x316 */ s16 unk_316;
-    /* 0x318 */ s16 unk_318;
+    /* 0x312 */ s16 unk_312; // head limb data
+    /* 0x314 */ s16 unk_314; // head limb data
+    /* 0x316 */ s16 unk_316; // head limb data
+    /* 0x318 */ s16 unk_318; // head limb data
     /* 0x31A */ s16 timePathTimeSpeed;
     /* 0x31C */ s16 unk_31C;
     /* 0x31E */ s16 unk_31E;
     /* 0x320 */ s16 unk_320;
-    /* 0x322 */ s16 unk_322;
+    /* 0x322 */ s16 unk_322; // timer rand: 60-120
     /* 0x324 */ s16 unk_324;
     /* 0x328 */ MsgScriptCallback msgScriptCallback;
     /* 0x32C */ s32 animIndex;
-    /* 0x330 */ UNK_TYPE1 unk330[4];
+    /* 0x330 */ UNK_TYPE1 unk330[4]; //padding?
     /* 0x334 */ s32 prevTalkState;
-    /* 0x338 */ s32 unk_338;
+    /* 0x338 */ s32 unk_338; // state
 } EnTab; // size = 0x33C
 
 #endif // Z_EN_TAB_H

@@ -335,6 +335,7 @@ s32 func_80BE06DC(EnTab* this, PlayState* play) {
     return ret;
 }
 
+// get some actor, but it depends on schedule
 Actor* func_80BE0778(EnTab* this, PlayState* play) {
     Actor* actor;
 
@@ -421,24 +422,26 @@ void func_80BE0A98(EnTab* this, PlayState* play) {
     this->prevTalkState = talkState;
 }
 
-s32 func_80BE0C04(EnTab* this, Actor* actor, f32 arg2) {
-    Vec3f sp44;
-    Vec3f sp38;
+// actor is player or gorman
+// distance passed is 160 or 200 vanilla
+s32 func_80BE0C04(EnTab* this, Actor* actor, f32 distance) {
+    Vec3f targetPos;
+    Vec3f ourPos;
     s32 ret = false;
-    f32 sp30;
-    s16 sp2E;
+    f32 requiredDistance;
+    s16 yawToTarget;
 
     if (actor != NULL) {
-        Math_Vec3f_Copy(&sp38, &this->actor.world.pos);
-        Math_Vec3f_Copy(&sp44, &actor->world.pos);
-        sp2E = Math_Vec3f_Yaw(&sp38, &sp44);
+        Math_Vec3f_Copy(&ourPos, &this->actor.world.pos);
+        Math_Vec3f_Copy(&targetPos, &actor->world.pos);
+        yawToTarget = Math_Vec3f_Yaw(&ourPos, &targetPos);
 
         if (this->unk_338) {
-            sp30 = arg2;
+            requiredDistance = distance;
         } else {
-            sp30 = arg2 * 0.5f;
+            requiredDistance = distance * 0.5f;
         }
-        if ((Math_Vec3f_DistXZ(&sp44, &sp38) < sp30) && (ABS_ALT(BINANG_SUB(sp2E, this->actor.shape.rot.y)) < 0x38E0)) {
+        if ((Math_Vec3f_DistXZ(&targetPos, &ourPos) < requiredDistance) && (ABS_ALT(BINANG_SUB(yawToTarget, this->actor.shape.rot.y)) < 0x38E0)) {
             ret = true;
         }
 
@@ -503,20 +506,21 @@ MsgScript* EnTab_GetMsgScript(EnTab* this, PlayState* play) {
     return NULL;
 }
 
+// CheckGorman 
 s32 func_80BE0F04(EnTab* this, PlayState* play, ScheduleOutput* scheduleOutput) {
-    static Vec3f D_80BE1AF0 = { -28.0f, -8.0f, -195.0f };
-    static Vec3s D_80BE1AFC = { 0, 0, 0 };
+    static Vec3f sPosIfGormanPresent = { -28.0f, -8.0f, -195.0f };
+    static Vec3s sRotIfGormanPresent = { 0, 0, 0 };
     s32 ret = false;
     EnGm* gormanSearch = (EnGm*)EnTab_FindActor(this, play, ACTORCAT_NPC, ACTOR_EN_GM);
 
     if (gormanSearch) {
-        Math_Vec3f_Copy(&this->actor.world.pos, &D_80BE1AF0);
-        Math_Vec3s_Copy(&this->actor.world.rot, &D_80BE1AFC);
+        Math_Vec3f_Copy(&this->actor.world.pos, &sPosIfGormanPresent);
+        Math_Vec3s_Copy(&this->actor.world.rot, &sRotIfGormanPresent);
         Math_Vec3s_Copy(&this->actor.shape.rot, &this->actor.world.rot);
         this->actor.attentionRangeType = ATTENTION_RANGE_0;
         SubS_SetOfferMode(&this->actionFlags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
         this->actionFlags |= (0x40 | 0x20);
-        this->unk_30C = 30;
+        this->offerRange = 0x1E;
         this->gorman = gormanSearch;
         EnTab_ChangeAnim(this, ENTAB_ANIM_0);
         ret = true;
@@ -535,7 +539,7 @@ s32 func_80BE0FC4(EnTab* this, PlayState* play, ScheduleOutput* scheduleOutput) 
     this->actor.attentionRangeType = ATTENTION_RANGE_6;
     SubS_SetOfferMode(&this->actionFlags, SUBS_OFFER_MODE_ONSCREEN, SUBS_OFFER_MODE_MASK);
     this->actionFlags |= (0x40 | 0x20);
-    this->unk_30C = 0x50;
+    this->offerRange = 0x50;
     EnTab_ChangeAnim(this, ENTAB_ANIM_1);
     return true;
 }
@@ -566,7 +570,7 @@ s32 func_80BE10BC(EnTab* this, PlayState* play) {
     s32 pad;
     Player* player = GET_PLAYER(play);
     f32 dist;
-    Actor* tempActor;
+    Actor* targetActor;
 
     switch (this->scheduleResult) {
         case 1:
@@ -578,14 +582,14 @@ s32 func_80BE10BC(EnTab* this, PlayState* play) {
                 dist = Math_Vec3f_DistXYZ(&this->actor.world.pos, &this->gorman->actor.world.pos);
 
                 if (CHECK_WEEKEVENTREG(WEEKEVENTREG_75_01) || (this->gorman->actor.draw == NULL) || !(dist < 160.0f)) {
-                    tempActor = &GET_PLAYER(play)->actor;
-                    this->actor.child = tempActor;
+                    targetActor = &GET_PLAYER(play)->actor;
+                    this->actor.child = targetActor;
                 } else {
-                    tempActor = &this->gorman->actor;
-                    this->actor.child = tempActor;
+                    targetActor = &this->gorman->actor;
+                    this->actor.child = targetActor;
                 }
 
-                if (func_80BE0C04(this, tempActor, 160.0f)) {
+                if (func_80BE0C04(this, targetActor, 160.0f)) {
                     this->actionFlags |= 8;
                 } else {
                     this->actionFlags &= ~8;
@@ -695,7 +699,7 @@ void EnTab_Update(Actor* thisx, PlayState* play) {
         func_80BE0664(this);
         func_80BE09A8(this, play);
 
-        radius = this->collider.dim.radius + this->unk_30C;
+        radius = this->collider.dim.radius + this->offerRange;
         height = this->collider.dim.height + 10;
 
         SubS_Offer(&this->actor, play, radius, height, PLAYER_IA_NONE, this->actionFlags & SUBS_OFFER_MODE_MASK);
