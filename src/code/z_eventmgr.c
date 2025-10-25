@@ -4,9 +4,14 @@
  * Manages all cutscenes except for manual
  */
 
+#include "z64cutscene.h"
+
+#include "string.h"
+#include "attributes.h"
+
 #include "global.h"
+#include "z64olib.h"
 #include "z64shrink_window.h"
-#include "libc/string.h"
 
 CutsceneEntry sGlobalCutsceneList[] = {
     // CS_ID_GLOBAL_78
@@ -173,7 +178,7 @@ s16 CutsceneManager_MarkNextCutscenes(void) {
     s32 j;
     s32 count = 0;
     s16 csIdMax = CS_ID_NONE;
-    s16 priorityMax = SHT_MAX; // lower number means higher priority
+    s16 priorityMax = SHRT_MAX; // lower number means higher priority
     s16 csId;
     s16 priority;
 
@@ -210,8 +215,8 @@ void CutsceneManager_End(void) {
 
     switch (sCutsceneMgr.startMethod) {
         case CS_START_2:
-            sCutsceneMgr.targetActor->flags &= ~ACTOR_FLAG_100000;
-            // fallthrough
+            sCutsceneMgr.targetActor->flags &= ~ACTOR_FLAG_FREEZE_EXCEPTION;
+            FALLTHROUGH;
         case CS_START_1:
             Player_SetCsActionWithHaltedActors(sCutsceneMgr.play, NULL, PLAYER_CSACTION_END);
             sCutsceneMgr.startMethod = CS_START_0;
@@ -318,7 +323,7 @@ s16 CutsceneManager_Update(void) {
 }
 
 void CutsceneManager_Queue(s16 csId) {
-    if (csId >= 0) {
+    if (csId > CS_ID_NONE) {
         sWaitingCutsceneList[csId >> 3] |= 1 << (csId & 7);
     }
 }
@@ -343,7 +348,7 @@ s16 CutsceneManager_IsNext(s16 csId) {
 s16 CutsceneManager_StartWithPlayerCs(s16 csId, Actor* actor) {
     s16 startCsId = CutsceneManager_Start(csId, actor);
 
-    if (startCsId >= 0) {
+    if (startCsId > CS_ID_NONE) {
         Player_SetCsActionWithHaltedActors(sCutsceneMgr.play, NULL, PLAYER_CSACTION_WAIT);
         if (sCutsceneMgr.length == 0) {
             CutsceneManager_Stop(sCutsceneMgr.csId);
@@ -354,18 +359,18 @@ s16 CutsceneManager_StartWithPlayerCs(s16 csId, Actor* actor) {
 }
 
 /**
- * Start an actor cutscene, activate Player Cutscene Action "Wait", turn on ACTOR_FLAG_100000
+ * Start an actor cutscene, activate Player Cutscene Action "Wait", turn on ACTOR_FLAG_FREEZE_EXCEPTION
  */
 s16 CutsceneManager_StartWithPlayerCsAndSetFlag(s16 csId, Actor* actor) {
     s16 startCsId = CutsceneManager_Start(csId, actor);
 
-    if (startCsId >= 0) {
+    if (startCsId > CS_ID_NONE) {
         Player_SetCsActionWithHaltedActors(sCutsceneMgr.play, NULL, PLAYER_CSACTION_WAIT);
         if (sCutsceneMgr.length == 0) {
             CutsceneManager_Stop(sCutsceneMgr.csId);
         }
         if (actor != NULL) {
-            actor->flags |= ACTOR_FLAG_100000;
+            actor->flags |= ACTOR_FLAG_FREEZE_EXCEPTION;
             sCutsceneMgr.startMethod = CS_START_2;
         } else {
             sCutsceneMgr.startMethod = CS_START_1;
@@ -513,12 +518,14 @@ s16 CutsceneManager_FindEntranceCsId(void) {
     s32 csId;
 
     for (csId = 0; csId < sSceneCutsceneCount; csId++) {
-        //! FAKE:
-        if ((sSceneCutsceneList[csId].scriptIndex != CS_SCRIPT_ID_NONE) &&
-            (sSceneCutsceneList[csId].scriptIndex < (play = sCutsceneMgr.play)->csCtx.scriptListCount) &&
-            (sCutsceneMgr.play->curSpawn ==
-             sCutsceneMgr.play->csCtx.scriptList[sSceneCutsceneList[csId].scriptIndex].spawn)) {
-            return csId;
+        if (sSceneCutsceneList[csId].scriptIndex != CS_SCRIPT_ID_NONE) {
+            PlayState* play = sCutsceneMgr.play;
+
+            if ((sSceneCutsceneList[csId].scriptIndex < play->csCtx.scriptListCount) &&
+                (sCutsceneMgr.play->curSpawn ==
+                 sCutsceneMgr.play->csCtx.scriptList[sSceneCutsceneList[csId].scriptIndex].spawn)) {
+                return csId;
+            }
         }
     }
 

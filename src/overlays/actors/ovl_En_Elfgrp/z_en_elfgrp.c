@@ -34,9 +34,7 @@
 #include "overlays/actors/ovl_En_Elforg/z_en_elforg.h"
 #include "overlays/actors/ovl_Demo_Effect/z_demo_effect.h"
 
-#define FLAGS (ACTOR_FLAG_10)
-
-#define THIS ((EnElfgrp*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 //! TODO: this file require macros for its uses of weekEventReg
 
@@ -66,7 +64,7 @@ typedef enum ElfgrpSpawnedFairyTypes {
     /* 1 */ SPAWNED_STRAY_FAIRY_TYPE_RETURNING // STRAY_FAIRY_TYPE_RETURNING_TO_FOUNTAIN
 } ElfgrpSpawnedFairyTypes;
 
-ActorInit En_Elfgrp_InitVars = {
+ActorProfile En_Elfgrp_Profile = {
     /**/ ACTOR_EN_ELFGRP,
     /**/ ACTORCAT_PROP,
     /**/ FLAGS,
@@ -99,14 +97,14 @@ void EnElfgrp_SetCutscene(EnElfgrp* this, s32 numCutscenes) {
 
 void EnElfgrp_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnElfgrp* this = THIS;
+    EnElfgrp* this = (EnElfgrp*)thisx;
     s32 numberInFountain;
 
     this->type = ENELFGRP_GET_TYPE(&this->actor);
     this->unk_148 = 0;
     this->stateFlags = 0;
     this->actor.focus.pos.y += 40.0f;
-    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+    this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
 
     switch (this->type) {
         case ENELFGRP_TYPE_POWER:
@@ -132,7 +130,7 @@ void EnElfgrp_Init(Actor* thisx, PlayState* play) {
 
                 switch (this->type) {
                     case ENELFGRP_TYPE_POWER:
-                        if (CHECK_WEEKEVENTREG(WEEKEVENTREG_OBTAINED_GREAT_SPIN_ATTACK)) {
+                        if (CHECK_WEEKEVENTREG(WEEKEVENTREG_RECEIVED_GREAT_SPIN_ATTACK)) {
                             EnElfgrp_SetCutscene(this, 1);
                         } else {
                             this->stateFlags |= ELFGRP_STATE_2;
@@ -216,7 +214,7 @@ void EnElfgrp_Init(Actor* thisx, PlayState* play) {
                 } else {
                     this->actor.textId = 0x578;
                 }
-                this->actor.flags |= (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY);
+                this->actor.flags |= (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
             }
             break;
     }
@@ -487,7 +485,7 @@ void func_80A3A398(EnElfgrp* this, PlayState* play) {
         }
 
         if (this->stateFlags & ELFGRP_STATE_2) {
-            SET_WEEKEVENTREG(WEEKEVENTREG_OBTAINED_GREAT_SPIN_ATTACK);
+            SET_WEEKEVENTREG(WEEKEVENTREG_RECEIVED_GREAT_SPIN_ATTACK);
         }
 
         if (this->stateFlags & ELFGRP_STATE_4) {
@@ -602,7 +600,7 @@ void func_80A3A7FC(EnElfgrp* this, PlayState* play) {
 
         EnElfgrp_SetFountainFairiesCount(play, this->type, curTotalFairies);
     } else if (this->actor.xzDistToPlayer < 280.0f) {
-        this->actor.flags |= ACTOR_FLAG_10000;
+        this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
         Actor_OfferTalk(&this->actor, play, 300.0f);
     }
 }
@@ -626,23 +624,23 @@ void func_80A3A8F8(EnElfgrp* this, PlayState* play) {
 
     if (this->actor.xzDistToPlayer < 30.0f) {
         if (GET_PLAYER_FORM == PLAYER_FORM_DEKU) {
-            this->actor.flags &= ~ACTOR_FLAG_10000;
+            this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
             player->actor.freezeTimer = 100;
             player->stateFlags1 |= PLAYER_STATE1_20000000;
             Message_StartTextbox(play, this->actor.textId, &this->actor);
             this->actionFunc = func_80A3A77C;
             gSaveContext.save.saveInfo.weekEventReg[9] |= this->talkedOnceFlag;
         } else {
-            this->actor.flags |= ACTOR_FLAG_10000;
+            this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
             Actor_OfferTalk(&this->actor, play, 100.0f);
         }
     } else {
-        this->actor.flags &= ~ACTOR_FLAG_10000;
+        this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
     }
 }
 
 void EnElfgrp_Update(Actor* thisx, PlayState* play) {
-    EnElfgrp* this = THIS;
+    EnElfgrp* this = (EnElfgrp*)thisx;
 
     this->actionFunc(this, play);
 

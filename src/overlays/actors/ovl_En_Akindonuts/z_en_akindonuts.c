@@ -5,11 +5,11 @@
  */
 
 #include "z_en_akindonuts.h"
-#include "objects/object_dnt/object_dnt.h"
+#include "assets/objects/object_dnt/object_dnt.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((EnAkindonuts*)thisx)
+#define FLAGS                                                                                  \
+    (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED | \
+     ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 void EnAkindonuts_Init(Actor* thisx, PlayState* play);
 void EnAkindonuts_Destroy(Actor* thisx, PlayState* play);
@@ -31,7 +31,7 @@ void func_80BEF9F0(EnAkindonuts* this, PlayState* play);
 void func_80BEFAF0(EnAkindonuts* this, PlayState* play);
 void func_80BEFD74(EnAkindonuts* this, PlayState* play);
 
-ActorInit En_Akindonuts_InitVars = {
+ActorProfile En_Akindonuts_Profile = {
     /**/ ACTOR_EN_AKINDONUTS,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -45,18 +45,18 @@ ActorInit En_Akindonuts_InitVars = {
 
 static ColliderCylinderInitType1 sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_ALL,
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_ON,
     },
     { 27, 32, 0, { 0, 0, 0 } },
@@ -152,8 +152,8 @@ static u16 D_80BF04AC[] = {
 };
 
 static InitChainEntry sInitChain[] = {
-    ICHAIN_U8(targetMode, TARGET_MODE_0, ICHAIN_CONTINUE),
-    ICHAIN_F32(targetArrowOffset, 30, ICHAIN_STOP),
+    ICHAIN_U8(attentionRangeType, ATTENTION_RANGE_0, ICHAIN_CONTINUE),
+    ICHAIN_F32(lockOnArrowOffset, 30, ICHAIN_STOP),
 };
 
 void func_80BECBE0(EnAkindonuts* this, s16 arg1) {
@@ -207,7 +207,7 @@ s32 EnAkindonuts_HasReachedPoint(EnAkindonuts* this, Path* path, s32 pointIndex)
         diffZ = points[index + 1].z - points[index - 1].z;
     }
 
-    func_8017B7F8(&point, RAD_TO_BINANG(Math_FAtan2F(diffX, diffZ)), &px, &pz, &d);
+    Math3D_RotateXZPlane(&point, RAD_TO_BINANG(Math_FAtan2F(diffX, diffZ)), &px, &pz, &d);
 
     if (((px * this->actor.world.pos.x) + (pz * this->actor.world.pos.z) + d) > 0.0f) {
         reached = true;
@@ -1342,7 +1342,7 @@ void func_80BEEFA8(EnAkindonuts* this, PlayState* play) {
                 this->actionFunc = func_80BEEE10;
             } else if (this->unk_32C & 0x20) {
                 this->unk_32C &= ~0x20;
-                this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+                this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
                 this->unk_32C &= ~0x4;
                 play->msgCtx.msgMode = MSGMODE_TEXT_CLOSING;
                 play->msgCtx.stateTimer = 4;
@@ -1493,6 +1493,7 @@ void func_80BEF518(EnAkindonuts* this, PlayState* play) {
         case 19:
             this->unk_344 += 0.27f;
             break;
+
         case 20:
             this->unk_33E = 2;
             this->unk_344 = 1.8f;
@@ -1687,7 +1688,7 @@ void func_80BEFD74(EnAkindonuts* this, PlayState* play) {
 
 void EnAkindonuts_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnAkindonuts* this = THIS;
+    EnAkindonuts* this = (EnAkindonuts*)thisx;
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
     SkelAnime_InitFlex(play, &this->skelAnime, &gBusinessScrubSkel, &gBusinessScrubStandingAnim, this->jointTable,
@@ -1719,13 +1720,13 @@ void EnAkindonuts_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnAkindonuts_Destroy(Actor* thisx, PlayState* play) {
-    EnAkindonuts* this = THIS;
+    EnAkindonuts* this = (EnAkindonuts*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
 
 void EnAkindonuts_Update(Actor* thisx, PlayState* play) {
-    EnAkindonuts* this = THIS;
+    EnAkindonuts* this = (EnAkindonuts*)thisx;
 
     Actor_SetFocus(&this->actor, 60.0f);
     SkelAnime_Update(&this->skelAnime);
@@ -1740,7 +1741,7 @@ void EnAkindonuts_Update(Actor* thisx, PlayState* play) {
 }
 
 s32 EnAkindonuts_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnAkindonuts* this = THIS;
+    EnAkindonuts* this = (EnAkindonuts*)thisx;
 
     if (((this->animIndex == ENAKINDONUTS_ANIM_4) && (this->unk_33E == 0)) ||
         ((this->animIndex == ENAKINDONUTS_ANIM_8) && (this->unk_33E == 0)) ||
@@ -1796,7 +1797,7 @@ void EnAkindonuts_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3
 }
 
 void EnAkindonuts_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
-    EnAkindonuts* this = THIS;
+    EnAkindonuts* this = (EnAkindonuts*)thisx;
 
     if (((this->unk_33E == 1) || (this->unk_33E == 2)) &&
         ((limbIndex == BUSINESS_SCRUB_LIMB_SCALP) || (limbIndex == BUSINESS_SCRUB_LIMB_HAIR))) {
@@ -1815,7 +1816,7 @@ void EnAkindonuts_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx
 }
 
 void EnAkindonuts_Draw(Actor* thisx, PlayState* play) {
-    EnAkindonuts* this = THIS;
+    EnAkindonuts* this = (EnAkindonuts*)thisx;
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawTransformFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable,

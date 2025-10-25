@@ -5,18 +5,16 @@
  */
 
 #include "z_obj_yado.h"
-#include "objects/object_yado_obj/object_yado_obj.h"
+#include "assets/objects/object_yado_obj/object_yado_obj.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((ObjYado*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 void ObjYado_Init(Actor* thisx, PlayState* play);
 void ObjYado_Destroy(Actor* thisx, PlayState* play);
 void ObjYado_Update(Actor* thisx, PlayState* play);
 void ObjYado_Draw(Actor* thisx, PlayState* play);
 
-ActorInit Obj_Yado_InitVars = {
+ActorProfile Obj_Yado_Profile = {
     /**/ ACTOR_OBJ_YADO,
     /**/ ACTORCAT_BG,
     /**/ FLAGS,
@@ -35,7 +33,7 @@ static InitChainEntry sInitChain[] = {
 AnimatedMaterial* D_80C16470;
 
 void ObjYado_Init(Actor* thisx, PlayState* play) {
-    ObjYado* this = THIS;
+    ObjYado* this = (ObjYado*)thisx;
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
     D_80C16470 = Lib_SegmentedToVirtual(object_yado_obj_Matanimheader_0012E8);
@@ -46,14 +44,14 @@ void ObjYado_Destroy(Actor* thisx, PlayState* play) {
 }
 
 void ObjYado_Update(Actor* thisx, PlayState* play) {
-    ObjYado* this = THIS;
+    ObjYado* this = (ObjYado*)thisx;
 
     this->isNight = gSaveContext.save.isNight;
 }
 
 void ObjYado_Draw(Actor* thisx, PlayState* play) {
     s32 pad;
-    ObjYado* this = THIS;
+    ObjYado* this = (ObjYado*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 

@@ -8,9 +8,7 @@
 #include "overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.h"
 #include "overlays/actors/ovl_En_Prz/z_en_prz.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_UNFRIENDLY | ACTOR_FLAG_10)
-
-#define THIS ((EnPr*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE | ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 void EnPr_Init(Actor* thisx, PlayState* play2);
 void EnPr_Destroy(Actor* thisx, PlayState* play);
@@ -74,7 +72,7 @@ f32 D_80A338C0[PLAYER_FORM_MAX] = {
     15.0f, // PLAYER_FORM_HUMAN
 };
 
-ActorInit En_Pr_InitVars = {
+ActorProfile En_Pr_Profile = {
     /**/ ACTOR_EN_PR,
     /**/ ACTORCAT_ENEMY,
     /**/ FLAGS,
@@ -88,7 +86,7 @@ ActorInit En_Pr_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_ON | AT_TYPE_ENEMY,
         AC_ON | AC_TYPE_PLAYER,
         OC1_NONE,
@@ -96,11 +94,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK4,
+        ELEM_MATERIAL_UNK4,
         { 0x20000000, 0x00, 0x04 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_ON | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_ON | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_NONE,
     },
     { 18, 20, 5, { 0, 0, 0 } },
@@ -133,7 +131,7 @@ static u8 sAnimationModes[ENPR_ANIM_MAX] = {
 
 void EnPr_Init(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    EnPr* this = THIS;
+    EnPr* this = (EnPr*)thisx;
     EnPrz* prz;
     s32 i;
     s32 temp_s4;
@@ -149,7 +147,7 @@ void EnPr_Init(Actor* thisx, PlayState* play2) {
 
     Actor_SetScale(&this->actor, 0.01f);
 
-    this->actor.targetMode = TARGET_MODE_3;
+    this->actor.attentionRangeType = ATTENTION_RANGE_3;
     this->unk_2B8 = this->actor.world.pos.y;
     this->actor.shape.yOffset = 1500.0f;
     this->actor.colChkInfo.damageTable = &sDamageTable;
@@ -192,7 +190,7 @@ void EnPr_Init(Actor* thisx, PlayState* play2) {
 }
 
 void EnPr_Destroy(Actor* thisx, PlayState* play) {
-    EnPr* this = THIS;
+    EnPr* this = (EnPr*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -202,24 +200,24 @@ void EnPr_ChangeAnim(EnPr* this, s32 animIndex) {
 
     this->animIndex = animIndex;
     playSpeed = 1.0f;
-    this->unk_2BC = Animation_GetLastFrame(sAnimations[animIndex]);
+    this->animEndFrame = Animation_GetLastFrame(sAnimations[animIndex]);
 
     if (this->animIndex == ENPR_ANIM_2) {
         playSpeed = 2.0f;
     }
 
-    Animation_Change(&this->skelAnime, sAnimations[this->animIndex], playSpeed, 0.0f, this->unk_2BC,
+    Animation_Change(&this->skelAnime, sAnimations[this->animIndex], playSpeed, 0.0f, this->animEndFrame,
                      sAnimationModes[this->animIndex], -2.0f);
 }
 
 s32 func_80A324E0(EnPr* this, PlayState* play) {
     CollisionPoly* sp54;
     Vec3f sp48;
-    s32 sp44;
+    s32 bgId;
     WaterBox* waterBox;
 
     if (BgCheck_EntityLineTest1(&play->colCtx, &this->actor.world.pos, &this->unk_2E0, &sp48, &sp54, 1, 0, 0, 1,
-                                &sp44)) {
+                                &bgId)) {
         return 1;
     }
 
@@ -425,11 +423,11 @@ void func_80A32E60(EnPr* this) {
 void func_80A32EA4(EnPr* this, PlayState* play) {
     f32 curFrame = this->skelAnime.curFrame;
 
-    if (this->unk_2BC <= curFrame) {
+    if (curFrame >= this->animEndFrame) {
         if (this->actor.colChkInfo.health <= 0) {
             this->unk_206 = 7;
             this->unk_20A = 50;
-            this->actor.flags |= ACTOR_FLAG_CANT_LOCK_ON;
+            this->actor.flags |= ACTOR_FLAG_LOCK_ON_DISABLED;
             this->unk_2C4 = 0.0f;
             Enemy_StartFinishingBlow(play, &this->actor);
             Actor_PlaySfx(&this->actor, NA_SE_EN_BUBLEWALK_DEAD);
@@ -502,7 +500,7 @@ void func_80A33098(EnPr* this, PlayState* play) {
 
 void EnPr_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnPr* this = THIS;
+    EnPr* this = (EnPr*)thisx;
     s32 i;
 
     SkelAnime_Update(&this->skelAnime);
@@ -585,7 +583,7 @@ void EnPr_Update(Actor* thisx, PlayState* play) {
 }
 
 s32 EnPr_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnPr* this = THIS;
+    EnPr* this = (EnPr*)thisx;
 
     if (limbIndex == OBJECT_PR_1_LIMB_02) {
         rot->y += this->unk_214;
@@ -595,7 +593,7 @@ s32 EnPr_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
 
 void EnPr_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
     Vec3f sp24 = { 0.0f, 0.0f, 0.0f };
-    EnPr* this = THIS;
+    EnPr* this = (EnPr*)thisx;
 
     if (limbIndex == OBJECT_PR_1_LIMB_02) {
         Matrix_Translate(0.0f, 0.0f, 0.0f, MTXMODE_APPLY);
@@ -616,7 +614,7 @@ void EnPr_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
 }
 
 void EnPr_Draw(Actor* thisx, PlayState* play) {
-    EnPr* this = THIS;
+    EnPr* this = (EnPr*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 
@@ -641,6 +639,9 @@ void EnPr_Draw(Actor* thisx, PlayState* play) {
     }
 
     if (this->drawDmgEffAlpha != 0) {
+        //! @bug: `this->drawDmgEffAlpha` is not decremented, so once active; the damage effect will remain until the
+        //! actor is killed. This only affects zora barrier as the only other damage effect, light arrows, kills in one
+        //! hit.
         f32 drawDmgEffAlpha = this->drawDmgEffAlpha * 0.05f;
 
         this->unk_238 = 0.8f;

@@ -5,11 +5,11 @@
  */
 
 #include "z_en_rsn.h"
-#include "objects/object_rsn/object_rsn.h"
+#include "assets/objects/object_rsn/object_rsn.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_2000000)
-
-#define THIS ((EnRsn*)thisx)
+#define FLAGS                                                                                  \
+    (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED | \
+     ACTOR_FLAG_UPDATE_DURING_OCARINA)
 
 void EnRsn_Init(Actor* thisx, PlayState* play);
 void EnRsn_Destroy(Actor* thisx, PlayState* play);
@@ -18,7 +18,7 @@ void EnRsn_Draw(Actor* thisx, PlayState* play);
 
 void EnRsn_DoNothing(EnRsn* this, PlayState* play);
 
-ActorInit En_Rsn_InitVars = {
+ActorProfile En_Rsn_Profile = {
     /**/ ACTOR_EN_RSN,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -48,22 +48,22 @@ void EnRsn_DoNothing(EnRsn* this, PlayState* play) {
 }
 
 void EnRsn_Init(Actor* thisx, PlayState* play) {
-    EnRsn* this = THIS;
+    EnRsn* this = (EnRsn*)thisx;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 20.0f);
     SkelAnime_InitFlex(play, &this->skelAnime, &gBombShopkeeperSkel, &gBombShopkeeperWalkAnim, NULL, NULL, 0);
-    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+    this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
     func_80C25D40(this);
 }
 
 void EnRsn_Destroy(Actor* thisx, PlayState* play) {
-    EnRsn* this = THIS;
+    EnRsn* this = (EnRsn*)thisx;
 
     SkelAnime_Free(&this->skelAnime, play);
 }
 
 void EnRsn_Update(Actor* thisx, PlayState* play) {
-    EnRsn* this = THIS;
+    EnRsn* this = (EnRsn*)thisx;
 
     this->actionFunc(this, play);
     Actor_MoveWithGravity(&this->actor);
@@ -72,7 +72,7 @@ void EnRsn_Update(Actor* thisx, PlayState* play) {
 }
 
 s32 EnRsn_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnRsn* this = THIS;
+    EnRsn* this = (EnRsn*)thisx;
 
     if (limbIndex == BOMB_SHOPKEEPER_LIMB_RIGHT_HAND) {
         Matrix_RotateXS(this->headRot.y, MTXMODE_APPLY);
@@ -81,7 +81,7 @@ s32 EnRsn_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
 }
 
 void EnRsn_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    EnRsn* this = THIS;
+    EnRsn* this = (EnRsn*)thisx;
     Vec3f zeroVec = { 0.0f, 0.0f, 0.0f };
 
     if (limbIndex == BOMB_SHOPKEEPER_LIMB_RIGHT_HAND) {
@@ -90,7 +90,7 @@ void EnRsn_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
 }
 
 void EnRsn_Draw(Actor* thisx, PlayState* play) {
-    EnRsn* this = THIS;
+    EnRsn* this = (EnRsn*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 

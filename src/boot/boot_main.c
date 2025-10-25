@@ -1,15 +1,16 @@
+#include "boot.h"
 #include "carthandle.h"
 #include "CIC6105.h"
 #include "idle.h"
 #include "stack.h"
-#include "stackcheck.h"
+#include "libu64/stackcheck.h"
 #include "z64thread.h"
 
 StackEntry sBootStackInfo;
 OSThread sIdleThread;
 STACK(sIdleStack, 0x400);
 StackEntry sIdleStackInfo;
-STACK(sBootStack, 0x400);
+STACK(sBootStack, BOOT_STACK_SIZE);
 
 void bootproc(void) {
     StackCheck_Init(&sBootStackInfo, sBootStack, STACK_TOP(sBootStack), 0, -1, "boot");

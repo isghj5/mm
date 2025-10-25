@@ -5,11 +5,9 @@
  */
 
 #include "z_en_gakufu.h"
-#include "interface/parameter_static/parameter_static.h"
+#include "assets/interface/parameter_static/parameter_static.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_2000000)
-
-#define THIS ((EnGakufu*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_UPDATE_DURING_OCARINA)
 
 void EnGakufu_Init(Actor* thisx, PlayState* play);
 void EnGakufu_Destroy(Actor* thisx, PlayState* play);
@@ -25,7 +23,7 @@ void EnGakufu_GiveReward(EnGakufu* this, PlayState* play);
 void EnGakufu_PlayRewardCutscene(EnGakufu* this, PlayState* play);
 void EnGakufu_WaitForSong(EnGakufu* this, PlayState* play);
 
-ActorInit En_Gakufu_InitVars = {
+ActorProfile En_Gakufu_Profile = {
     /**/ ACTOR_EN_GAKUFU,
     /**/ ACTORCAT_ITEMACTION,
     /**/ FLAGS,
@@ -96,7 +94,7 @@ TexturePtr sOcarinaBtnWallTextures[] = {
     gOcarinaATex, gOcarinaCDownTex, gOcarinaCRightTex, gOcarinaCLeftTex, gOcarinaCUpTex,
 };
 
-#include "overlays/ovl_En_Gakufu/ovl_En_Gakufu.c"
+#include "assets/overlays/ovl_En_Gakufu/ovl_En_Gakufu.c"
 
 void EnGakufu_ProcessNotes(EnGakufu* this) {
     OcarinaStaff* playbackStaff;
@@ -130,7 +128,7 @@ void EnGakufu_ProcessNotes(EnGakufu* this) {
 }
 
 void EnGakufu_Init(Actor* thisx, PlayState* play) {
-    EnGakufu* this = THIS;
+    EnGakufu* this = (EnGakufu*)thisx;
 
     this->songIndex = OCARINA_SONG_TERMINA_WALL;
     EnGakufu_ProcessNotes(this);
@@ -142,7 +140,7 @@ void EnGakufu_Init(Actor* thisx, PlayState* play) {
         return;
     }
 
-    this->actor.flags &= ~ACTOR_FLAG_2000000;
+    this->actor.flags &= ~ACTOR_FLAG_UPDATE_DURING_OCARINA;
 
     if (EnGakufu_IsPlayerInRange(this, play)) {
         SET_EVENTINF(EVENTINF_31);
@@ -155,7 +153,7 @@ void EnGakufu_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnGakufu_Destroy(Actor* thisx, PlayState* play) {
-    EnGakufu* this = THIS;
+    EnGakufu* this = (EnGakufu*)thisx;
 
     if (GAKUFU_GET_TYPE(&this->actor) != GAKUFU_MILK_BAR) {
         CLEAR_EVENTINF(EVENTINF_31);
@@ -252,7 +250,7 @@ void EnGakufu_WaitForSong(EnGakufu* this, PlayState* play) {
 }
 
 void EnGakufu_Update(Actor* thisx, PlayState* play) {
-    EnGakufu* this = THIS;
+    EnGakufu* this = (EnGakufu*)thisx;
 
     this->actionFunc(this, play);
 }
@@ -260,7 +258,7 @@ void EnGakufu_Update(Actor* thisx, PlayState* play) {
 void EnGakufu_Draw(Actor* thisx, PlayState* play) {
     s32 i;
     s32 pad;
-    EnGakufu* this = THIS;
+    EnGakufu* this = (EnGakufu*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 
@@ -272,7 +270,7 @@ void EnGakufu_Draw(Actor* thisx, PlayState* play) {
         Matrix_Translate(30 * i - 105, sOcarinaBtnWallYOffsets[this->buttonIndex[i]] * 7.5f, 1.0f, MTXMODE_APPLY);
         Matrix_Scale(0.6f, 0.6f, 0.6f, MTXMODE_APPLY);
 
-        gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+        MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
         gDPSetTextureLUT(POLY_XLU_DISP++, G_TT_NONE);
         gDPLoadTextureBlock(POLY_XLU_DISP++, sOcarinaBtnWallTextures[this->buttonIndex[i]], G_IM_FMT_IA, G_IM_SIZ_8b,
                             16, 16, 0, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, 4, 4, G_TX_NOLOD,

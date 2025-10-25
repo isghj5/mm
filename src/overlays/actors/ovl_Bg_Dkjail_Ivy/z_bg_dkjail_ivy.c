@@ -10,8 +10,6 @@
 
 #define FLAGS 0x00000000
 
-#define THIS ((BgDkjailIvy*)thisx)
-
 void BgDkjailIvy_Init(Actor* thisx, PlayState* play);
 void BgDkjailIvy_Destroy(Actor* thisx, PlayState* play);
 void BgDkjailIvy_Update(Actor* thisx, PlayState* play);
@@ -24,7 +22,7 @@ void BgDkjailIvy_BeginCutscene(BgDkjailIvy* this, PlayState* play);
 void BgDkjailIvy_SetupFadeOut(BgDkjailIvy* this);
 void BgDkjailIvy_FadeOut(BgDkjailIvy* this, PlayState* play);
 
-ActorInit Bg_Dkjail_Ivy_InitVars = {
+ActorProfile Bg_Dkjail_Ivy_Profile = {
     /**/ ACTOR_BG_DKJAIL_IVY,
     /**/ ACTORCAT_BG,
     /**/ FLAGS,
@@ -38,7 +36,7 @@ ActorInit Bg_Dkjail_Ivy_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_NONE,
@@ -46,11 +44,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0x01000200, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_NONE,
     },
     { 20, 80, 0, { 0, 0, 0 } },
@@ -106,15 +104,15 @@ void BgDkjailIvy_IvyCutEffects(BgDkjailIvy* this, PlayState* play) {
 }
 
 static InitChainEntry sInitChain[] = {
-    ICHAIN_F32(uncullZoneForward, 4000, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneScale, 200, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneDownward, 200, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeDistance, 4000, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeScale, 200, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeDownward, 200, ICHAIN_CONTINUE),
     ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_STOP),
 };
 
 void BgDkjailIvy_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    BgDkjailIvy* this = THIS;
+    BgDkjailIvy* this = (BgDkjailIvy*)thisx;
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
     DynaPolyActor_Init(&this->dyna, 0);
@@ -133,7 +131,7 @@ void BgDkjailIvy_Init(Actor* thisx, PlayState* play) {
 }
 
 void BgDkjailIvy_Destroy(Actor* thisx, PlayState* play) {
-    BgDkjailIvy* this = THIS;
+    BgDkjailIvy* this = (BgDkjailIvy*)thisx;
 
     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
     Collider_DestroyCylinder(play, &this->collider);
@@ -146,7 +144,7 @@ void BgDkjailIvy_SetupWaitForCut(BgDkjailIvy* this) {
 void BgDkjailIvy_WaitForCut(BgDkjailIvy* this, PlayState* play) {
     if (this->collider.base.acFlags & AC_HIT) {
         this->collider.base.acFlags &= ~AC_HIT;
-        this->dyna.actor.flags |= ACTOR_FLAG_10;
+        this->dyna.actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
         CutsceneManager_Queue(this->dyna.actor.csId);
         BgDkjailIvy_SetupCutscene(this);
     } else {
@@ -191,20 +189,20 @@ void BgDkjailIvy_FadeOut(BgDkjailIvy* this, PlayState* play) {
 }
 
 void BgDkjailIvy_Update(Actor* thisx, PlayState* play) {
-    BgDkjailIvy* this = THIS;
+    BgDkjailIvy* this = (BgDkjailIvy*)thisx;
 
     this->actionFunc(this, play);
 }
 
 void BgDkjailIvy_Draw(Actor* thisx, PlayState* play) {
-    BgDkjailIvy* this = THIS;
+    BgDkjailIvy* this = (BgDkjailIvy*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 
     Gfx_SetupDL25_Xlu(play->state.gfxCtx);
 
     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0xFF, 255, 255, 255, this->alpha);
-    gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
     gSPDisplayList(POLY_XLU_DISP++, &gDkjailIvyDL);
 
     CLOSE_DISPS(play->state.gfxCtx);

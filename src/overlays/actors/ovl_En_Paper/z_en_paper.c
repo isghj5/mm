@@ -9,11 +9,11 @@
  */
 
 #include "z_en_paper.h"
-#include "objects/object_bal/object_bal.h"
+#include "su_mtx.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_100000 | ACTOR_FLAG_2000000)
+#include "assets/objects/object_bal/object_bal.h"
 
-#define THIS ((EnPaper*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_FREEZE_EXCEPTION | ACTOR_FLAG_UPDATE_DURING_OCARINA)
 
 void EnPaper_Init(Actor* thisx, PlayState* play);
 void EnPaper_Destroy(Actor* thisx, PlayState* play);
@@ -27,7 +27,7 @@ void EnPaper_FlyConfettiGroup(EnPaper* this, PlayState* play);
 void EnPaper_InitConfettiPiece(EnPaper* this, EnPaperConfetto* piece);
 void EnPaper_FlyConfettiPiece(EnPaper* this, EnPaperConfetto* piece);
 
-ActorInit En_Paper_InitVars = {
+ActorProfile En_Paper_Profile = {
     /**/ ACTOR_EN_PAPER,
     /**/ ACTORCAT_ITEMACTION,
     /**/ FLAGS,
@@ -42,7 +42,7 @@ ActorInit En_Paper_InitVars = {
 static Vec3f sUnitVecZ = { 0.0f, 0.0f, 1.0f };
 
 void EnPaper_Init(Actor* thisx, PlayState* play) {
-    EnPaper* this = THIS;
+    EnPaper* this = (EnPaper*)thisx;
 
     Actor_SetScale(&this->actor, 0.01f);
     this->timer = 70;
@@ -193,7 +193,7 @@ void EnPaper_UpdateWind(EnPaper* this) {
 }
 
 void EnPaper_Update(Actor* thisx, PlayState* play) {
-    EnPaper* this = THIS;
+    EnPaper* this = (EnPaper*)thisx;
 
     this->actionFunc(this, play);
     EnPaper_UpdateWind(this);
@@ -207,7 +207,7 @@ void EnPaper_Update(Actor* thisx, PlayState* play) {
 }
 
 void EnPaper_Draw(Actor* thisx, PlayState* play) {
-    EnPaper* this = THIS;
+    EnPaper* this = (EnPaper*)thisx;
     EnPaperConfetto* piece = this->pieces;
     s32 i;
 

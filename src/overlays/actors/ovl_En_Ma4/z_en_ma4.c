@@ -6,9 +6,9 @@
 
 #include "z_en_ma4.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_20 | ACTOR_FLAG_2000000)
-
-#define THIS ((EnMa4*)thisx)
+#define FLAGS                                                                                  \
+    (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED | \
+     ACTOR_FLAG_DRAW_CULLING_DISABLED | ACTOR_FLAG_UPDATE_DURING_OCARINA)
 
 void EnMa4_Init(Actor* thisx, PlayState* play);
 void EnMa4_Destroy(Actor* thisx, PlayState* play);
@@ -54,7 +54,7 @@ typedef enum {
     /* 3 */ MA4_STATE_AFTERDESCRIBETHEMCS
 } EnMa4State;
 
-ActorInit En_Ma4_InitVars = {
+ActorProfile En_Ma4_Profile = {
     /**/ ACTOR_EN_MA4,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -68,7 +68,7 @@ ActorInit En_Ma4_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_NONE,
         OC1_ON | OC1_TYPE_ALL,
@@ -76,11 +76,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0x00000000, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_NONE,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_NONE,
         OCELEM_ON,
     },
     { 18, 46, 0, { 0, 0, 0 } },
@@ -205,7 +205,7 @@ void EnMa4_InitPath(EnMa4* this, PlayState* play) {
 }
 
 void EnMa4_Init(Actor* thisx, PlayState* play) {
-    EnMa4* this = THIS;
+    EnMa4* this = (EnMa4*)thisx;
     s32 pad;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 18.0f);
@@ -218,7 +218,7 @@ void EnMa4_Init(Actor* thisx, PlayState* play) {
     Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
     Actor_SetScale(&this->actor, 0.01f);
 
-    this->actor.targetMode = TARGET_MODE_0;
+    this->actor.attentionRangeType = ATTENTION_RANGE_0;
     this->interactInfo.talkState = NPC_TALK_STATE_IDLE;
     this->unk_334 = 0;
     this->hasBow = true;
@@ -227,7 +227,7 @@ void EnMa4_Init(Actor* thisx, PlayState* play) {
 
     if (CURRENT_DAY == 1) {
         this->type = MA4_TYPE_DAY1;
-    } else if (CHECK_WEEKEVENTREG(WEEKEVENTREG_DEFENDED_AGAINST_THEM)) {
+    } else if (CHECK_WEEKEVENTREG(WEEKEVENTREG_DEFENDED_AGAINST_ALIENS)) {
         this->type = MA4_TYPE_ALIENS_DEFEATED;
     } else {
         this->type = MA4_TYPE_ALIENS_WON;
@@ -262,7 +262,7 @@ void EnMa4_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnMa4_Destroy(Actor* thisx, PlayState* play) {
-    EnMa4* this = THIS;
+    EnMa4* this = (EnMa4*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
     CLEAR_WEEKEVENTREG(WEEKEVENTREG_08_01);
@@ -357,7 +357,7 @@ void EnMa4_Wait(EnMa4* this, PlayState* play) {
     s16 yaw = this->actor.shape.rot.y - this->actor.yawTowardsPlayer;
 
     if ((this->state == MA4_STATE_AFTERHORSEBACKGAME) || (this->state == MA4_STATE_AFTERDESCRIBETHEMCS)) {
-        this->actor.flags |= ACTOR_FLAG_10000;
+        this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
     } else if (this->type != MA4_TYPE_ALIENS_WON) {
         EnMa4_RunInCircles(this, play);
     } else if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
@@ -399,7 +399,7 @@ void EnMa4_HandlePlayerChoice(EnMa4* this, PlayState* play) {
             case 0x3341:
                 if (play->msgCtx.choiceIndex == 0) {
                     Audio_PlaySfx_MessageDecide();
-                    SET_WEEKEVENTREG(WEEKEVENTREG_PROMISED_TO_HELP_WITH_THEM);
+                    SET_WEEKEVENTREG(WEEKEVENTREG_PROMISED_TO_HELP_WITH_ALIENS);
                     Message_StartTextbox(play, 0x3343, &this->actor);
                     this->textId = 0x3343;
                 } else {
@@ -415,7 +415,7 @@ void EnMa4_HandlePlayerChoice(EnMa4* this, PlayState* play) {
             case 0x3346:
                 if (play->msgCtx.choiceIndex == 0) {
                     Audio_PlaySfx_MessageDecide();
-                    SET_WEEKEVENTREG(WEEKEVENTREG_PROMISED_TO_HELP_WITH_THEM);
+                    SET_WEEKEVENTREG(WEEKEVENTREG_PROMISED_TO_HELP_WITH_ALIENS);
                     Message_StartTextbox(play, 0x3343, &this->actor);
                     this->textId = 0x3343;
                 } else {
@@ -447,7 +447,7 @@ void EnMa4_HandlePlayerChoice(EnMa4* this, PlayState* play) {
                     Message_StartTextbox(play, 0x334E, &this->actor);
                     this->textId = 0x334E;
                     if (CHECK_QUEST_ITEM(QUEST_SONG_EPONA)) {
-                        Message_BombersNotebookQueueEvent(play, BOMBERS_NOTEBOOK_EVENT_PROMISED_TO_HELP_WITH_THEM);
+                        Message_BombersNotebookQueueEvent(play, BOMBERS_NOTEBOOK_EVENT_PROMISED_TO_HELP_WITH_ALIENS);
                     }
                     Message_BombersNotebookQueueEvent(play, BOMBERS_NOTEBOOK_EVENT_MET_ROMANI);
                 } else { // No.
@@ -674,6 +674,7 @@ void EnMa4_DialogueHandler(EnMa4* this, PlayState* play) {
                     EnMa4_SetupWait(this);
                 }
             }
+            break;
 
         case TEXT_STATE_NONE:
         case TEXT_STATE_NEXT:
@@ -879,12 +880,12 @@ void EnMa4_SetupEndEponasSongCs(EnMa4* this) {
 void EnMa4_EndEponasSongCs(EnMa4* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
 
-    this->actor.flags |= ACTOR_FLAG_10000;
+    this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
     if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
         player->stateFlags1 &= ~PLAYER_STATE1_20;
         Message_StartTextbox(play, 0x334C, &this->actor);
         this->textId = 0x334C;
-        this->actor.flags &= ~ACTOR_FLAG_10000;
+        this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
         EnMa4_SetupDialogueHandler(this);
     } else {
         Actor_OfferTalkExchangeEquiCylinder(&this->actor, play, 200.0f, PLAYER_IA_MINUS1);
@@ -922,7 +923,7 @@ void EnMa4_StartDialogue(EnMa4* this, PlayState* play) {
                 }
             } else if (this->state == MA4_STATE_DEFAULT) {
                 if (CHECK_WEEKEVENTREG(WEEKEVENTREG_21_40)) {
-                    if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_PROMISED_TO_HELP_WITH_THEM)) {
+                    if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_PROMISED_TO_HELP_WITH_ALIENS)) {
                         Message_StartTextbox(play, 0x3346, &this->actor);
                         this->textId = 0x3346;
                     } else {
@@ -955,12 +956,12 @@ void EnMa4_StartDialogue(EnMa4* this, PlayState* play) {
                     }
                 }
                 this->state = MA4_STATE_DEFAULT;
-                this->actor.flags &= ~ACTOR_FLAG_10000;
+                this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
             } else if (this->state == MA4_STATE_AFTERDESCRIBETHEMCS) {
                 // "Cremia doesn't believe me..."
                 Message_StartTextbox(play, 0x3340, &this->actor);
                 this->textId = 0x3340;
-                this->actor.flags &= ~ACTOR_FLAG_10000;
+                this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
             }
             break;
 
@@ -997,7 +998,7 @@ void EnMa4_StartDialogue(EnMa4* this, PlayState* play) {
                     }
                 }
                 this->state = MA4_STATE_DEFAULT;
-                this->actor.flags &= ~ACTOR_FLAG_10000;
+                this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
             }
             break;
 
@@ -1025,7 +1026,7 @@ void EnMa4_StartDialogue(EnMa4* this, PlayState* play) {
                     }
                 }
                 this->state = MA4_STATE_DEFAULT;
-                this->actor.flags &= ~ACTOR_FLAG_10000;
+                this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
             }
             break;
 
@@ -1051,7 +1052,7 @@ void EnMa4_InitFaceExpression(EnMa4* this) {
 }
 
 void EnMa4_Update(Actor* thisx, PlayState* play) {
-    EnMa4* this = THIS;
+    EnMa4* this = (EnMa4*)thisx;
     s32 pad;
 
     Collider_UpdateCylinder(&this->actor, &this->collider);
@@ -1063,7 +1064,7 @@ void EnMa4_Update(Actor* thisx, PlayState* play) {
 }
 
 s32 EnMa4_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnMa4* this = THIS;
+    EnMa4* this = (EnMa4*)thisx;
     Vec3s limbRot;
 
     if (limbIndex == ROMANI_LIMB_HEAD) {
@@ -1081,7 +1082,7 @@ s32 EnMa4_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
 }
 
 void EnMa4_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    EnMa4* this = THIS;
+    EnMa4* this = (EnMa4*)thisx;
     Vec3f sp28 = { 800.0f, 0.0f, 0.0f };
 
     if (limbIndex == ROMANI_LIMB_HEAD) {
@@ -1098,12 +1099,12 @@ void EnMa4_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
 }
 
 void EnMa4_Draw(Actor* thisx, PlayState* play) {
-    EnMa4* this = THIS;
+    EnMa4* this = (EnMa4*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 
     if (this->type == MA4_TYPE_ALIENS_WON) {
-        gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+        MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
         gSPDisplayList(POLY_OPA_DISP++, gRomaniWoodenBoxDL);
     }
 

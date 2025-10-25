@@ -6,7 +6,7 @@ You will need [Docker](https://docs.docker.com/get-docker/) Follow the instructi
 
 ## 1. Clone the Repository
 
-You will need to prepare a local version of the project with a copied base ROM (see steps [2](../README.md#2-clone-the-repository) and [4](../README.md#4-prepare-a-base-rom) of the Linux instructions).
+You will need to prepare a local version of the project with a copied base ROM (see steps [2. Clone the repository](../README.md#2-clone-the-repository) and [3. Prepare a base ROM](../README.md#3-prepare-a-base-rom) of the Linux instructions).
 
 ## 2. Create the Docker image
 
@@ -29,7 +29,7 @@ and look for `mm` under the "REPOSITORY" column.
 To start the container, you can mount your local filesystem into the Docker container and run an interactive bash session.
 
 ```bash
-docker run -it --rm --mount type=bind,source="$(pwd)",destination=/mm mm /bin/bash
+docker run -it --rm --mount type=bind,source="$(pwd)",destination=/mm mm "/usr/bin/env bash"
 ```
 
 - The `-it` flags Keep STDIN open even if not attached to the container and allocates a pseudo-tty terminal.
@@ -38,10 +38,4 @@ docker run -it --rm --mount type=bind,source="$(pwd)",destination=/mm mm /bin/ba
 
 ## 4. Setup and Build the ROM
 
-Once inside the container, you will need to set the repository as a trusted repository with the following command:
-
-```bash
-git config --global --add safe.directory /mm
-```
-
-After that continue with step [5. Make and Build the ROM](../README.md#5-make-and-build-the-rom) of the Linux instructions to setup and build the ROM, or run any other command you need.
+After that continue with step [4. Make and Build the ROM](../README.md#4-make-and-build-the-rom) of the Linux instructions to setup and build the ROM, or run any other command you need.

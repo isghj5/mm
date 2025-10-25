@@ -7,9 +7,7 @@
 #include "z_en_stop_heishi.h"
 #include "z64quake.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
-
-#define THIS ((EnStopheishi*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY)
 
 void EnStopheishi_Init(Actor* thisx, PlayState* play);
 void EnStopheishi_Destroy(Actor* thisx, PlayState* play);
@@ -22,7 +20,7 @@ void func_80AE7E9C(EnStopheishi* this);
 void func_80AE854C(EnStopheishi* this, PlayState* play);
 void func_80AE795C(EnStopheishi* this, PlayState* play);
 
-ActorInit En_Stop_heishi_InitVars = {
+ActorProfile En_Stop_heishi_Profile = {
     /**/ ACTOR_EN_STOP_HEISHI,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -36,7 +34,7 @@ ActorInit En_Stop_heishi_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_NONE,
         OC1_ON | OC1_TYPE_ALL,
@@ -44,11 +42,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_NONE,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_NONE,
         OCELEM_ON,
     },
     { 50, 260, 0, { 0, 0, 0 } },
@@ -96,7 +94,7 @@ static AnimationHeader* sAnimations[SOLDIER_ANIM_MAX] = {
 };
 
 void EnStopheishi_Init(Actor* thisx, PlayState* play) {
-    EnStopheishi* this = THIS;
+    EnStopheishi* this = (EnStopheishi*)thisx;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 25.0f);
     SkelAnime_InitFlex(play, &this->skelAnime, &gSoldierSkel, &gSoldierStandHandOnHipAnim, this->jointTable,
@@ -114,7 +112,7 @@ void EnStopheishi_Init(Actor* thisx, PlayState* play) {
         Actor_Kill(&this->actor);
         return;
     }
-    this->actor.targetMode = TARGET_MODE_0;
+    this->actor.attentionRangeType = ATTENTION_RANGE_0;
     this->actor.gravity = -3.0f;
     Collider_InitAndSetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
     this->rotYTarget = this->actor.world.rot.y;
@@ -123,7 +121,7 @@ void EnStopheishi_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnStopheishi_Destroy(Actor* thisx, PlayState* play) {
-    EnStopheishi* this = THIS;
+    EnStopheishi* this = (EnStopheishi*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -304,7 +302,7 @@ void func_80AE795C(EnStopheishi* this, PlayState* play) {
             break;
 
         case 2:
-            if (this->animEndFrame <= curFrame) {
+            if (curFrame >= this->animEndFrame) {
                 EnStopHeishi_ChangeAnim(this, SOLDIER_ANIM_5);
                 this->unk_274 = 3;
             }
@@ -548,7 +546,7 @@ void EnStopheishi_Update(Actor* thisx, PlayState* play) {
                             UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4 | UPDBGCHECKINFO_FLAG_8 |
                                 UPDBGCHECKINFO_FLAG_10);
     Actor_SetScale(&this->actor, 0.01f);
-    this->actor.uncullZoneForward = 500.0f;
+    this->actor.cullingVolumeDistance = 500.0f;
     Math_Vec3f_Copy(&this->actor.focus.pos, &this->headWorldPos);
     Math_Vec3s_Copy(&this->actor.focus.rot, &this->actor.world.rot);
     if (!this->disableCollider) {
@@ -558,7 +556,7 @@ void EnStopheishi_Update(Actor* thisx, PlayState* play) {
 }
 
 s32 EnStopheishi_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnStopheishi* this = THIS;
+    EnStopheishi* this = (EnStopheishi*)thisx;
 
     if (limbIndex == SOLDIER_LIMB_HEAD) {
         rot->x += this->headRotX;
@@ -568,7 +566,7 @@ s32 EnStopheishi_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, V
 }
 
 void EnStopheishi_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    EnStopheishi* this = THIS;
+    EnStopheishi* this = (EnStopheishi*)thisx;
 
     if (limbIndex == SOLDIER_LIMB_HEAD) {
         Matrix_MultVec3f(&gZeroVec3f, &this->headWorldPos);
@@ -576,7 +574,7 @@ void EnStopheishi_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3
 }
 
 void EnStopheishi_Draw(Actor* thisx, PlayState* play) {
-    EnStopheishi* this = THIS;
+    EnStopheishi* this = (EnStopheishi*)thisx;
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,

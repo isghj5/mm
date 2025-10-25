@@ -5,11 +5,9 @@
  */
 
 #include "z_obj_hgdoor.h"
-#include "objects/object_hgdoor/object_hgdoor.h"
+#include "assets/objects/object_hgdoor/object_hgdoor.h"
 
-#define FLAGS (ACTOR_FLAG_100000)
-
-#define THIS ((ObjHgdoor*)thisx)
+#define FLAGS (ACTOR_FLAG_FREEZE_EXCEPTION)
 
 void ObjHgdoor_Init(Actor* thisx, PlayState* play);
 void ObjHgdoor_Destroy(Actor* thisx, PlayState* play);
@@ -26,7 +24,7 @@ void ObjHgdoor_SetupStopCs(ObjHgdoor* this);
 void ObjHgdoor_StopCs(ObjHgdoor* this, PlayState* play);
 s32 ObjHgdoor_Rotate(ObjHgdoor* this, PlayState* play);
 
-ActorInit Obj_Hgdoor_InitVars = {
+ActorProfile Obj_Hgdoor_Profile = {
     /**/ ACTOR_OBJ_HGDOOR,
     /**/ ACTORCAT_PROP,
     /**/ FLAGS,
@@ -65,7 +63,7 @@ void ObjHgdoor_SetParent(ObjHgdoor* this, PlayState* play) {
 }
 
 void ObjHgdoor_Init(Actor* thisx, PlayState* play) {
-    ObjHgdoor* this = THIS;
+    ObjHgdoor* this = (ObjHgdoor*)thisx;
     s32 pad;
     CollisionHeader* header = NULL;
 
@@ -84,7 +82,7 @@ void ObjHgdoor_Init(Actor* thisx, PlayState* play) {
 }
 
 void ObjHgdoor_Destroy(Actor* thisx, PlayState* play) {
-    ObjHgdoor* this = THIS;
+    ObjHgdoor* this = (ObjHgdoor*)thisx;
 
     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
 }
@@ -191,7 +189,7 @@ void ObjHgdoor_Open(ObjHgdoor* this) {
 }
 
 void ObjHgdoor_Update(Actor* thisx, PlayState* play) {
-    ObjHgdoor* this = THIS;
+    ObjHgdoor* this = (ObjHgdoor*)thisx;
 
     this->actionFunc(this, play);
     ObjHgdoor_Open(this);
@@ -202,7 +200,7 @@ void ObjHgdoor_Draw(Actor* thisx, PlayState* play) {
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
-    gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
     if (OBJHGDOOR_IS_RIGHT_DOOR(thisx)) {
         gSPDisplayList(POLY_OPA_DISP++, object_hgdoor_DL_001AB0);
         gSPDisplayList(POLY_OPA_DISP++, object_hgdoor_DL_001BA8);

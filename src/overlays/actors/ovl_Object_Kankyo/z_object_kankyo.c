@@ -5,11 +5,9 @@
  */
 
 #include "z_object_kankyo.h"
-#include "objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20 | ACTOR_FLAG_2000000)
-
-#define THIS ((ObjectKankyo*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED | ACTOR_FLAG_UPDATE_DURING_OCARINA)
 
 void ObjectKankyo_Init(Actor* thisx, PlayState* play);
 void ObjectKankyo_Destroy(Actor* thisx, PlayState* play);
@@ -27,7 +25,7 @@ void func_808DDE9C(Actor* thisx, PlayState* play2);
 
 static f32 D_808DE5B0;
 
-ActorInit Object_Kankyo_InitVars = {
+ActorProfile Object_Kankyo_Profile = {
     /**/ ACTOR_OBJECT_KANKYO,
     /**/ ACTORCAT_ITEMACTION,
     /**/ FLAGS,
@@ -93,7 +91,7 @@ void func_808DC038(ObjectKankyo* this, PlayState* play) {
 }
 
 void ObjectKankyo_Init(Actor* thisx, PlayState* play) {
-    ObjectKankyo* this = THIS;
+    ObjectKankyo* this = (ObjectKankyo*)thisx;
     s16 i;
 
     for (i = 0; i < ARRAY_COUNT(this->unk_14C); i++) {
@@ -123,7 +121,7 @@ void ObjectKankyo_Init(Actor* thisx, PlayState* play) {
 }
 
 void ObjectKankyo_Destroy(Actor* thisx, PlayState* play) {
-    ObjectKankyo* this = THIS;
+    ObjectKankyo* this = (ObjectKankyo*)thisx;
 
     Actor_Kill(&this->actor);
 }
@@ -407,7 +405,6 @@ void func_808DCDB4(ObjectKankyo* this, PlayState* play) {
                 break;
 
             case 1:
-
                 temp_f26 = play->view.eye.x + (spAC * 120.0f);
                 temp_f28 = play->view.eye.y + (spA8 * 120.0f);
                 temp_f18 = play->view.eye.z + (spA4 * 120.0f);
@@ -472,13 +469,13 @@ void func_808DCDB4(ObjectKankyo* this, PlayState* play) {
 }
 
 void ObjectKankyo_Update(Actor* thisx, PlayState* play) {
-    ObjectKankyo* this = THIS;
+    ObjectKankyo* this = (ObjectKankyo*)thisx;
 
     this->actionFunc(this, play);
 }
 
 void ObjectKankyo_Draw(Actor* thisx, PlayState* play) {
-    ObjectKankyo* this = THIS;
+    ObjectKankyo* this = (ObjectKankyo*)thisx;
 
     switch (this->actor.params) {
         case 0:
@@ -499,7 +496,7 @@ void ObjectKankyo_Draw(Actor* thisx, PlayState* play) {
 
 void func_808DD3C8(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    ObjectKankyo* this = THIS;
+    ObjectKankyo* this = (ObjectKankyo*)thisx;
     Vec3f worldPos;
     Vec3f screenPos;
     s16 i;
@@ -569,7 +566,7 @@ void func_808DD3C8(Actor* thisx, PlayState* play2) {
 
             Matrix_Mult(&play->billboardMtxF, MTXMODE_APPLY);
 
-            gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+            MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
             gSPDisplayList(POLY_XLU_DISP++, gEffDustDL);
         }
     }
@@ -586,7 +583,7 @@ void func_808DD970(Actor* thisx, PlayState* play2) {
     s16 i;
     f32 phi_f26;
     PlayState* play = play2;
-    ObjectKankyo* this = THIS;
+    ObjectKankyo* this = (ObjectKankyo*)thisx;
     f32 tempA;
 
     if (play->sceneId == SCENE_KYOJINNOMA) {
@@ -629,7 +626,7 @@ void func_808DD970(Actor* thisx, PlayState* play2) {
 
             Matrix_Mult(&play->billboardMtxF, MTXMODE_APPLY);
 
-            gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+            MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
             gSPSegment(POLY_XLU_DISP++, 0x08, Lib_SegmentedToVirtual(gEffDust5Tex));
             gSPClearGeometryMode(POLY_XLU_DISP++, G_LIGHTING);
 
@@ -650,7 +647,7 @@ f32 func_808DDE74(void) {
 
 void func_808DDE9C(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    ObjectKankyo* this = THIS;
+    ObjectKankyo* this = (ObjectKankyo*)thisx;
     Player* player = GET_PLAYER(play);
     s32 i;
     u8 phi_s5;
@@ -687,7 +684,7 @@ void func_808DDE9C(Actor* thisx, PlayState* play2) {
                 Matrix_Scale(2.0f, 4.0f, 2.0f, MTXMODE_APPLY);
             }
 
-            gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+            MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
             gSPDisplayList(POLY_XLU_DISP++, gFallingRainDropDL);
         }
     }
@@ -712,8 +709,7 @@ void func_808DDE9C(Actor* thisx, PlayState* play2) {
                 temp_f12 = (Rand_ZeroOne() * 0.05f) + 0.05f;
                 Matrix_Scale(temp_f12, temp_f12, temp_f12, MTXMODE_APPLY);
 
-                gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx),
-                          G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+                MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
                 gSPDisplayList(POLY_XLU_DISP++, gEffShockwaveDL);
             }
         }

@@ -5,11 +5,9 @@
  */
 
 #include "z_en_dy_extra.h"
-#include "objects/object_dy_obj/object_dy_obj.h"
+#include "assets/objects/object_dy_obj/object_dy_obj.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((EnDyExtra*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 void EnDyExtra_Init(Actor* thisx, PlayState* play);
 void EnDyExtra_Destroy(Actor* thisx, PlayState* play);
@@ -19,7 +17,7 @@ void EnDyExtra_Draw(Actor* thisx, PlayState* play);
 void EnDyExtra_WaitForTrigger(EnDyExtra* this, PlayState* play);
 void EnDyExtra_Fall(EnDyExtra* this, PlayState* play);
 
-ActorInit En_Dy_Extra_InitVars = {
+ActorProfile En_Dy_Extra_Profile = {
     /**/ ACTOR_EN_DY_EXTRA,
     /**/ ACTORCAT_PROP,
     /**/ FLAGS,
@@ -35,7 +33,7 @@ void EnDyExtra_Destroy(Actor* thisx, PlayState* play) {
 }
 
 void EnDyExtra_Init(Actor* thisx, PlayState* play) {
-    EnDyExtra* this = THIS;
+    EnDyExtra* this = (EnDyExtra*)thisx;
 
     this->type = this->actor.params;
     this->actor.scale.x = 0.025f;
@@ -77,7 +75,7 @@ void EnDyExtra_Fall(EnDyExtra* this, PlayState* play) {
 }
 
 void EnDyExtra_Update(Actor* thisx, PlayState* play) {
-    EnDyExtra* this = THIS;
+    EnDyExtra* this = (EnDyExtra*)thisx;
 
     DECR(this->timer);
     Actor_PlaySfx(&this->actor, NA_SE_PL_SPIRAL_HEAL_BEAM - SFX_FLAG);
@@ -100,7 +98,7 @@ static u8 sAlphaTypeIndices[] = {
 
 void EnDyExtra_Draw(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnDyExtra* this = THIS;
+    EnDyExtra* this = (EnDyExtra*)thisx;
     GraphicsContext* gfxCtx = play->state.gfxCtx;
     Vtx* vertices = Lib_SegmentedToVirtual(gGreatFairySpiralBeamVtx);
     s32 i;
@@ -123,7 +121,7 @@ void EnDyExtra_Draw(Actor* thisx, PlayState* play) {
                Gfx_TwoTexScroll(play->state.gfxCtx, 0, play->state.frames * 2, 0, 0x20, 0x40, 1, play->state.frames,
                                 play->state.frames * -8, 0x10, 0x10));
     gDPPipeSync(POLY_XLU_DISP++);
-    gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0x80, sPrimColors[this->type].r, sPrimColors[this->type].g,
                     sPrimColors[this->type].b, 255);
     gDPSetEnvColor(POLY_XLU_DISP++, sEnvColors[this->type].r, sEnvColors[this->type].g, sEnvColors[this->type].b, 128);

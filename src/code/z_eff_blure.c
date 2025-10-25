@@ -1,13 +1,13 @@
 #include "z64eff_blure.h"
 
-#include "libc/stdbool.h"
+#include "stdbool.h"
 #include "gfx.h"
 #include "macros.h"
 #include "sys_matrix.h"
 #include "z64effect_ss.h"
 #include "global.h"
 
-#include "objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
 
 void EffectBlure_AddVertex(EffectBlure* this, Vec3f* p1, Vec3f* p2) {
     EffectBlureElement* elem;
@@ -43,10 +43,11 @@ void EffectBlure_AddVertex(EffectBlure* this, Vec3f* p1, Vec3f* p2) {
             MtxF sp50;
             Vec3f sp44;
             Vec3f sp38;
+            EffectBlureElement* prev = elem - 1;
 
-            sp16C.x = ((f32)(elem - 1)->p2.x + (f32)(elem - 1)->p1.x) / 2.0f;
-            sp16C.y = ((f32)(elem - 1)->p2.y + (f32)(elem - 1)->p1.y) / 2.0f;
-            sp16C.z = ((f32)(elem - 1)->p2.z + (f32)(elem - 1)->p1.z) / 2.0f;
+            sp16C.x = ((f32)prev->p2.x + (f32)prev->p1.x) / 2.0f;
+            sp16C.y = ((f32)prev->p2.y + (f32)prev->p1.y) / 2.0f;
+            sp16C.z = ((f32)prev->p2.z + (f32)prev->p1.z) / 2.0f;
             sp160.x = (p1->x + p2->x) / 2.0f;
             sp160.y = (p1->y + p2->y) / 2.0f;
             sp160.z = (p1->z + p2->z) / 2.0f;
@@ -286,8 +287,8 @@ void EffectBlure_UpdateFlags(EffectBlureElement* elem) {
         Math_Vec3s_DiffToVec3f(&sp4C, &next->p1, &elem->p1);
         Math_Vec3s_DiffToVec3f(&sp40, &next->p2, &elem->p2);
 
-        if (Math3D_AngleBetweenVectors(&sp64, &sp4C, &sp34) || Math3D_AngleBetweenVectors(&sp58, &sp40, &sp30) ||
-            Math3D_AngleBetweenVectors(&sp4C, &sp40, &sp2C)) {
+        if (Math3D_CosOut(&sp64, &sp4C, &sp34) || Math3D_CosOut(&sp58, &sp40, &sp30) ||
+            Math3D_CosOut(&sp4C, &sp40, &sp2C)) {
             elem->flags &= ~(EFFECT_BLURE_ELEMENT_FLAG_1 | EFFECT_BLURE_ELEMENT_FLAG_2);
             elem->flags |= 0;
         } else if ((sp34 <= -0.5f) || (sp30 <= -0.5f) || (sp2C <= 0.7071f)) {
@@ -309,9 +310,9 @@ void EffectBlure_GetComputedValues(EffectBlure* this, s32 index, f32 ratio, Vec3
 
     switch (this->calcMode) {
         case 1:
-            vec1->x = func_800B09D0(elem->p1.x, elem->p2.x, ratio);
-            vec1->y = func_800B09D0(elem->p1.y, elem->p2.y, ratio);
-            vec1->z = func_800B09D0(elem->p1.z, elem->p2.z, ratio);
+            vec1->x = EffectSs_LerpS16(elem->p1.x, elem->p2.x, ratio);
+            vec1->y = EffectSs_LerpS16(elem->p1.y, elem->p2.y, ratio);
+            vec1->z = EffectSs_LerpS16(elem->p1.z, elem->p2.z, ratio);
             vec2->x = elem->p2.x;
             vec2->y = elem->p2.y;
             vec2->z = elem->p2.z;
@@ -321,19 +322,19 @@ void EffectBlure_GetComputedValues(EffectBlure* this, s32 index, f32 ratio, Vec3
             vec1->x = elem->p1.x;
             vec1->y = elem->p1.y;
             vec1->z = elem->p1.z;
-            vec2->x = func_800B09D0(elem->p2.x, elem->p1.x, ratio);
-            vec2->y = func_800B09D0(elem->p2.y, elem->p1.y, ratio);
-            vec2->z = func_800B09D0(elem->p2.z, elem->p1.z, ratio);
+            vec2->x = EffectSs_LerpS16(elem->p2.x, elem->p1.x, ratio);
+            vec2->y = EffectSs_LerpS16(elem->p2.y, elem->p1.y, ratio);
+            vec2->z = EffectSs_LerpS16(elem->p2.z, elem->p1.z, ratio);
             break;
 
         case 3:
             ratio *= 0.5f;
-            vec1->x = func_800B09D0(elem->p1.x, elem->p2.x, ratio);
-            vec1->y = func_800B09D0(elem->p1.y, elem->p2.y, ratio);
-            vec1->z = func_800B09D0(elem->p1.z, elem->p2.z, ratio);
-            vec2->x = func_800B09D0(elem->p2.x, elem->p1.x, ratio);
-            vec2->y = func_800B09D0(elem->p2.y, elem->p1.y, ratio);
-            vec2->z = func_800B09D0(elem->p2.z, elem->p1.z, ratio);
+            vec1->x = EffectSs_LerpS16(elem->p1.x, elem->p2.x, ratio);
+            vec1->y = EffectSs_LerpS16(elem->p1.y, elem->p2.y, ratio);
+            vec1->z = EffectSs_LerpS16(elem->p1.z, elem->p2.z, ratio);
+            vec2->x = EffectSs_LerpS16(elem->p2.x, elem->p1.x, ratio);
+            vec2->y = EffectSs_LerpS16(elem->p2.y, elem->p1.y, ratio);
+            vec2->z = EffectSs_LerpS16(elem->p2.z, elem->p1.z, ratio);
             ratio *= 2.0f;
             break;
 
@@ -369,14 +370,14 @@ void EffectBlure_GetComputedValues(EffectBlure* this, s32 index, f32 ratio, Vec3
         color1->r = color1->g = color1->b = color1->a = 255;
         color2->r = color2->g = color2->b = color2->a = 255;
     } else {
-        color1->r = func_800B0A24(this->p1StartColor[0], this->p1EndColor[0], ratio);
-        color1->g = func_800B0A24(this->p1StartColor[1], this->p1EndColor[1], ratio);
-        color1->b = func_800B0A24(this->p1StartColor[2], this->p1EndColor[2], ratio);
-        color1->a = func_800B0A24(this->p1StartColor[3], this->p1EndColor[3], ratio);
-        color2->r = func_800B0A24(this->p2StartColor[0], this->p2EndColor[0], ratio);
-        color2->g = func_800B0A24(this->p2StartColor[1], this->p2EndColor[1], ratio);
-        color2->b = func_800B0A24(this->p2StartColor[2], this->p2EndColor[2], ratio);
-        color2->a = func_800B0A24(this->p2StartColor[3], this->p2EndColor[3], ratio);
+        color1->r = EffectSs_LerpU8(this->p1StartColor[0], this->p1EndColor[0], ratio);
+        color1->g = EffectSs_LerpU8(this->p1StartColor[1], this->p1EndColor[1], ratio);
+        color1->b = EffectSs_LerpU8(this->p1StartColor[2], this->p1EndColor[2], ratio);
+        color1->a = EffectSs_LerpU8(this->p1StartColor[3], this->p1EndColor[3], ratio);
+        color2->r = EffectSs_LerpU8(this->p2StartColor[0], this->p2EndColor[0], ratio);
+        color2->g = EffectSs_LerpU8(this->p2StartColor[1], this->p2EndColor[1], ratio);
+        color2->b = EffectSs_LerpU8(this->p2StartColor[2], this->p2EndColor[2], ratio);
+        color2->a = EffectSs_LerpU8(this->p2StartColor[3], this->p2EndColor[3], ratio);
     }
 }
 
@@ -390,7 +391,7 @@ void EffectBlure_SetupSmooth(EffectBlure* this, GraphicsContext* gfxCtx) {
 
 void EffectBlure_DrawElemNoInterpolation(EffectBlure* this, EffectBlureElement* elem, s32 index,
                                          GraphicsContext* gfxCtx) {
-    static Vtx_t baseVtx = VTX_T(0, 0, 0, 0, 0, 255, 255, 255, 255);
+    static Vtx_t sBaseVtx = VTX_T(0, 0, 0, 0, 0, 255, 255, 255, 255);
     Vtx* vtx;
     Vec3s sp8C;
     Vec3s sp84;
@@ -408,10 +409,10 @@ void EffectBlure_DrawElemNoInterpolation(EffectBlure* this, EffectBlureElement* 
     vtx = GRAPH_ALLOC(gfxCtx, 4 * sizeof(Vtx));
     if (vtx == NULL) {
     } else {
-        vtx[0].v = baseVtx;
-        vtx[1].v = baseVtx;
-        vtx[2].v = baseVtx;
-        vtx[3].v = baseVtx;
+        vtx[0].v = sBaseVtx;
+        vtx[1].v = sBaseVtx;
+        vtx[2].v = sBaseVtx;
+        vtx[3].v = sBaseVtx;
 
         ratio = (f32)elem->timer / (f32)this->elemDuration;
         EffectBlure_GetComputedValues(this, index, ratio, &sp8C, &sp84, &sp7C, &sp78);
@@ -480,7 +481,7 @@ void EffectBlure_DrawElemNoInterpolation(EffectBlure* this, EffectBlureElement* 
 
 void EffectBlure_DrawElemHermiteInterpolation(EffectBlure* this, EffectBlureElement* elem, s32 index,
                                               GraphicsContext* gfxCtx) {
-    static Vtx_t baseVtx = VTX_T(0, 0, 0, 0, 0, 255, 255, 255, 255);
+    static Vtx_t sBaseVtx = VTX_T(0, 0, 0, 0, 0, 255, 255, 255, 255);
     Vtx* vtx;
     Vec3s sp1EC;
     Vec3s sp1E4;
@@ -568,8 +569,8 @@ void EffectBlure_DrawElemHermiteInterpolation(EffectBlure* this, EffectBlureElem
         Color_RGBA8_Copy(&sp148, &sp1A4);
         Color_RGBA8_Copy(&sp144, &sp1A0);
 
-        vtx[0].v = baseVtx;
-        vtx[1].v = baseVtx;
+        vtx[0].v = sBaseVtx;
+        vtx[1].v = sBaseVtx;
 
         vtx[0].v.ob[0] = Math_FNearbyIntF(sp158.x);
         vtx[0].v.ob[1] = Math_FNearbyIntF(sp158.y);
@@ -613,24 +614,24 @@ void EffectBlure_DrawElemHermiteInterpolation(EffectBlure* this, EffectBlureElem
             Math_Vec3f_Diff(&spE0, &sp138, &sp14C);
             Math_Vec3f_Scale(&sp14C, 10.0f);
 
-            vtx[j1].v = baseVtx;
-            vtx[j2].v = baseVtx;
+            vtx[j1].v = sBaseVtx;
+            vtx[j2].v = sBaseVtx;
 
             vtx[j1].v.ob[0] = Math_FNearbyIntF(sp158.x);
             vtx[j1].v.ob[1] = Math_FNearbyIntF(sp158.y);
             vtx[j1].v.ob[2] = Math_FNearbyIntF(sp158.z);
-            vtx[j1].v.cn[0] = func_800B0A24(sp1A4.r, sp19C.r, temp_f28);
-            vtx[j1].v.cn[1] = func_800B0A24(sp1A4.g, sp19C.g, temp_f28);
-            vtx[j1].v.cn[2] = func_800B0A24(sp1A4.b, sp19C.b, temp_f28);
-            vtx[j1].v.cn[3] = func_800B0A24(sp1A4.a, sp19C.a, temp_f28);
+            vtx[j1].v.cn[0] = EffectSs_LerpU8(sp1A4.r, sp19C.r, temp_f28);
+            vtx[j1].v.cn[1] = EffectSs_LerpU8(sp1A4.g, sp19C.g, temp_f28);
+            vtx[j1].v.cn[2] = EffectSs_LerpU8(sp1A4.b, sp19C.b, temp_f28);
+            vtx[j1].v.cn[3] = EffectSs_LerpU8(sp1A4.a, sp19C.a, temp_f28);
 
             vtx[j2].v.ob[0] = Math_FNearbyIntF(sp14C.x);
             vtx[j2].v.ob[1] = Math_FNearbyIntF(sp14C.y);
             vtx[j2].v.ob[2] = Math_FNearbyIntF(sp14C.z);
-            vtx[j2].v.cn[0] = func_800B0A24(sp1A0.r, sp198.r, temp_f28);
-            vtx[j2].v.cn[1] = func_800B0A24(sp1A0.g, sp198.g, temp_f28);
-            vtx[j2].v.cn[2] = func_800B0A24(sp1A0.b, sp198.b, temp_f28);
-            vtx[j2].v.cn[3] = func_800B0A24(sp1A0.a, sp198.a, temp_f28);
+            vtx[j2].v.cn[0] = EffectSs_LerpU8(sp1A0.r, sp198.r, temp_f28);
+            vtx[j2].v.cn[1] = EffectSs_LerpU8(sp1A0.g, sp198.g, temp_f28);
+            vtx[j2].v.cn[2] = EffectSs_LerpU8(sp1A0.b, sp198.b, temp_f28);
+            vtx[j2].v.cn[3] = EffectSs_LerpU8(sp1A0.a, sp198.a, temp_f28);
         }
 
         gSPVertex(POLY_XLU_DISP++, vtx, 16, 0);
@@ -658,6 +659,7 @@ void EffectBlure_DrawSmooth(EffectBlure* this2, GraphicsContext* gfxCtx) {
     OPEN_DISPS(gfxCtx);
 
     if (this->numElements < 2) {
+        //! @bug Skips CLOSE_DISPS
         return;
     }
 
@@ -678,6 +680,7 @@ void EffectBlure_DrawSmooth(EffectBlure* this2, GraphicsContext* gfxCtx) {
 
     mtx = SkinMatrix_MtxFToNewMtx(gfxCtx, &sp5C);
     if (mtx == NULL) {
+        //! @bug Skips CLOSE_DISPS
         return;
     }
 
@@ -958,31 +961,34 @@ void EffectBlure_Draw(void* thisx, GraphicsContext* gfxCtx) {
 
                         switch (this->calcMode) {
                             case 1:
-                                vtx[j].v.ob[0] = func_800B09D0(elem->p1.x, elem->p2.x, ratio);
-                                vtx[j].v.ob[1] = func_800B09D0(elem->p1.y, elem->p2.y, ratio);
-                                vtx[j].v.ob[2] = func_800B09D0(elem->p1.z, elem->p2.z, ratio);
+                                vtx[j].v.ob[0] = EffectSs_LerpS16(elem->p1.x, elem->p2.x, ratio);
+                                vtx[j].v.ob[1] = EffectSs_LerpS16(elem->p1.y, elem->p2.y, ratio);
+                                vtx[j].v.ob[2] = EffectSs_LerpS16(elem->p1.z, elem->p2.z, ratio);
                                 vtx[j + 1].v.ob[0] = elem->p2.x;
                                 vtx[j + 1].v.ob[1] = elem->p2.y;
                                 vtx[j + 1].v.ob[2] = elem->p2.z;
                                 break;
+
                             case 2:
                                 vtx[j].v.ob[0] = elem->p1.x;
                                 vtx[j].v.ob[1] = elem->p1.y;
                                 vtx[j].v.ob[2] = elem->p1.z;
-                                vtx[j + 1].v.ob[0] = func_800B09D0(elem->p2.x, elem->p1.x, ratio);
-                                vtx[j + 1].v.ob[1] = func_800B09D0(elem->p2.y, elem->p1.y, ratio);
-                                vtx[j + 1].v.ob[2] = func_800B09D0(elem->p2.z, elem->p1.z, ratio);
+                                vtx[j + 1].v.ob[0] = EffectSs_LerpS16(elem->p2.x, elem->p1.x, ratio);
+                                vtx[j + 1].v.ob[1] = EffectSs_LerpS16(elem->p2.y, elem->p1.y, ratio);
+                                vtx[j + 1].v.ob[2] = EffectSs_LerpS16(elem->p2.z, elem->p1.z, ratio);
                                 break;
+
                             case 3:
                                 ratio *= 0.5f;
-                                vtx[j].v.ob[0] = func_800B09D0(elem->p1.x, elem->p2.x, ratio);
-                                vtx[j].v.ob[1] = func_800B09D0(elem->p1.y, elem->p2.y, ratio);
-                                vtx[j].v.ob[2] = func_800B09D0(elem->p1.z, elem->p2.z, ratio);
-                                vtx[j + 1].v.ob[0] = func_800B09D0(elem->p2.x, elem->p1.x, ratio);
-                                vtx[j + 1].v.ob[1] = func_800B09D0(elem->p2.y, elem->p1.y, ratio);
-                                vtx[j + 1].v.ob[2] = func_800B09D0(elem->p2.z, elem->p1.z, ratio);
+                                vtx[j].v.ob[0] = EffectSs_LerpS16(elem->p1.x, elem->p2.x, ratio);
+                                vtx[j].v.ob[1] = EffectSs_LerpS16(elem->p1.y, elem->p2.y, ratio);
+                                vtx[j].v.ob[2] = EffectSs_LerpS16(elem->p1.z, elem->p2.z, ratio);
+                                vtx[j + 1].v.ob[0] = EffectSs_LerpS16(elem->p2.x, elem->p1.x, ratio);
+                                vtx[j + 1].v.ob[1] = EffectSs_LerpS16(elem->p2.y, elem->p1.y, ratio);
+                                vtx[j + 1].v.ob[2] = EffectSs_LerpS16(elem->p2.z, elem->p1.z, ratio);
                                 ratio *= 2.0f;
                                 break;
+
                             case 0:
                             default:
                                 vtx[j].v.ob[0] = elem->p1.x;
@@ -997,19 +1003,19 @@ void EffectBlure_Draw(void* thisx, GraphicsContext* gfxCtx) {
                         vtx[j].v.flag = 0;
                         vtx[j].v.tc[0] = 0;
                         vtx[j].v.tc[1] = 0;
-                        vtx[j].v.cn[0] = func_800B0A24(this->p1StartColor[0], this->p1EndColor[0], ratio);
-                        vtx[j].v.cn[1] = func_800B0A24(this->p1StartColor[1], this->p1EndColor[1], ratio);
-                        vtx[j].v.cn[2] = func_800B0A24(this->p1StartColor[2], this->p1EndColor[2], ratio);
-                        vtx[j].v.cn[3] = func_800B0A24(this->p1StartColor[3], this->p1EndColor[3], ratio);
+                        vtx[j].v.cn[0] = EffectSs_LerpU8(this->p1StartColor[0], this->p1EndColor[0], ratio);
+                        vtx[j].v.cn[1] = EffectSs_LerpU8(this->p1StartColor[1], this->p1EndColor[1], ratio);
+                        vtx[j].v.cn[2] = EffectSs_LerpU8(this->p1StartColor[2], this->p1EndColor[2], ratio);
+                        vtx[j].v.cn[3] = EffectSs_LerpU8(this->p1StartColor[3], this->p1EndColor[3], ratio);
                         j++;
 
                         vtx[j].v.flag = 0;
                         vtx[j].v.tc[0] = 0;
                         vtx[j].v.tc[1] = 0;
-                        vtx[j].v.cn[0] = func_800B0A24(this->p2StartColor[0], this->p2EndColor[0], ratio);
-                        vtx[j].v.cn[1] = func_800B0A24(this->p2StartColor[1], this->p2EndColor[1], ratio);
-                        vtx[j].v.cn[2] = func_800B0A24(this->p2StartColor[2], this->p2EndColor[2], ratio);
-                        vtx[j].v.cn[3] = func_800B0A24(this->p2StartColor[3], this->p2EndColor[3], ratio);
+                        vtx[j].v.cn[0] = EffectSs_LerpU8(this->p2StartColor[0], this->p2EndColor[0], ratio);
+                        vtx[j].v.cn[1] = EffectSs_LerpU8(this->p2StartColor[1], this->p2EndColor[1], ratio);
+                        vtx[j].v.cn[2] = EffectSs_LerpU8(this->p2StartColor[2], this->p2EndColor[2], ratio);
+                        vtx[j].v.cn[3] = EffectSs_LerpU8(this->p2StartColor[3], this->p2EndColor[3], ratio);
                         j++;
                     }
                 }

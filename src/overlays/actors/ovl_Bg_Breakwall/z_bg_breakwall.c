@@ -5,19 +5,17 @@
  */
 
 #include "z_bg_breakwall.h"
-#include "objects/object_omoya_obj/object_omoya_obj.h"
-#include "objects/object_yukimura_obj/object_yukimura_obj.h"
-#include "objects/object_keikoku_obj/object_keikoku_obj.h"
-#include "objects/object_posthouse_obj/object_posthouse_obj.h"
-#include "objects/object_kumo30/object_kumo30.h"
-#include "objects/object_mnk/object_mnk.h"
-#include "objects/object_ikninside_obj/object_ikninside_obj.h"
-#include "objects/object_kaizoku_obj/object_kaizoku_obj.h"
-#include "objects/object_spot11_obj/object_spot11_obj.h"
+#include "assets/objects/object_omoya_obj/object_omoya_obj.h"
+#include "assets/objects/object_yukimura_obj/object_yukimura_obj.h"
+#include "assets/objects/object_keikoku_obj/object_keikoku_obj.h"
+#include "assets/objects/object_posthouse_obj/object_posthouse_obj.h"
+#include "assets/objects/object_kumo30/object_kumo30.h"
+#include "assets/objects/object_mnk/object_mnk.h"
+#include "assets/objects/object_ikninside_obj/object_ikninside_obj.h"
+#include "assets/objects/object_kaizoku_obj/object_kaizoku_obj.h"
+#include "assets/objects/object_spot11_obj/object_spot11_obj.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((BgBreakwall*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 void BgBreakwall_Init(Actor* thisx, PlayState* play);
 void BgBreakwall_Update(Actor* thisx, PlayState* play);
@@ -45,7 +43,7 @@ void func_808B7B54(Actor* thisx, PlayState* play);
 void func_808B7D34(Actor* thisx, PlayState* play);
 void BgBreakwall_Draw(Actor* thisx, PlayState* play);
 
-ActorInit Bg_Breakwall_InitVars = {
+ActorProfile Bg_Breakwall_Profile = {
     /**/ ACTOR_BG_BREAKWALL,
     /**/ ACTORCAT_ITEMACTION,
     /**/ FLAGS,
@@ -95,9 +93,9 @@ BgBreakwallStruct D_808B8140[] = {
 
 static InitChainEntry sInitChain[] = {
     ICHAIN_VEC3F(scale, 1, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneForward, 4000, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneScale, 400, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneDownward, 800, ICHAIN_STOP),
+    ICHAIN_F32(cullingVolumeDistance, 4000, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeScale, 400, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeDownward, 800, ICHAIN_STOP),
 };
 
 Color_RGBA8 D_808B82F0[] = {
@@ -151,7 +149,7 @@ bool func_808B736C(BgBreakwall* this, PlayState* play) {
 }
 
 bool func_808B7380(BgBreakwall* this, PlayState* play) {
-    if ((gSaveContext.save.day >= 2) && !CHECK_WEEKEVENTREG(WEEKEVENTREG_DEFENDED_AGAINST_THEM)) {
+    if ((gSaveContext.save.day >= 2) && !CHECK_WEEKEVENTREG(WEEKEVENTREG_DEFENDED_AGAINST_ALIENS)) {
         return false;
     }
     return true;
@@ -214,7 +212,7 @@ bool func_808B751C(BgBreakwall* this, PlayState* play) {
 
 void BgBreakwall_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    BgBreakwall* this = THIS;
+    BgBreakwall* this = (BgBreakwall*)thisx;
     BgBreakwallStruct* sp24 = &D_808B8140[BGBREAKWALL_GET_F(&this->dyna.actor)];
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
@@ -230,7 +228,7 @@ void BgBreakwall_Init(Actor* thisx, PlayState* play) {
 }
 
 void BgBreakwall_Destroy(Actor* thisx, PlayState* play) {
-    BgBreakwall* this = THIS;
+    BgBreakwall* this = (BgBreakwall*)thisx;
     BgBreakwallStruct* temp_s1 = &D_808B8140[BGBREAKWALL_GET_F(&this->dyna.actor)];
 
     if (temp_s1->unk_10 != NULL) {
@@ -248,7 +246,7 @@ void func_808B76CC(BgBreakwall* this, PlayState* play) {
         if (((BGBREAKWALL_GET_F(&this->dyna.actor)) != BGBREAKWALL_F_7) &&
             ((BGBREAKWALL_GET_F(&this->dyna.actor)) != BGBREAKWALL_F_9) &&
             ((BGBREAKWALL_GET_F(&this->dyna.actor)) != BGBREAKWALL_F_11)) {
-            this->dyna.actor.flags &= ~ACTOR_FLAG_10;
+            this->dyna.actor.flags &= ~ACTOR_FLAG_UPDATE_CULLING_DISABLED;
         }
 
         Actor_SetObjectDependency(play, &this->dyna.actor);
@@ -333,7 +331,7 @@ void func_808B7A10(BgBreakwall* this, PlayState* play) {
 }
 
 void BgBreakwall_Update(Actor* thisx, PlayState* play) {
-    BgBreakwall* this = THIS;
+    BgBreakwall* this = (BgBreakwall*)thisx;
 
     this->actionFunc(this, play);
 }
@@ -362,14 +360,14 @@ void func_808B7B54(Actor* thisx, PlayState* play) {
 
     Gfx_SetupDL25_Xlu(play->state.gfxCtx);
 
-    gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
 
     Environment_LerpSandstormColors(D_808B8310, &sp50);
     Environment_LerpSandstormColors(D_808B8330, &sp4C);
 
     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0x80, sp50.r, sp50.g, sp50.b, 255);
     gDPSetEnvColor(POLY_XLU_DISP++, sp4C.r, sp4C.g, sp4C.b, 255);
-    gSPDisplayList(POLY_XLU_DISP++, object_posthouse_obj_DL_000A50);
+    gSPDisplayList(POLY_XLU_DISP++, object_kumo30_DL_000A50);
 
     Environment_LerpSandstormColors(D_808B8320, &sp50);
     Environment_LerpSandstormColors(D_808B8340, &sp4C);
@@ -382,7 +380,7 @@ void func_808B7B54(Actor* thisx, PlayState* play) {
 }
 
 void func_808B7D34(Actor* thisx, PlayState* play) {
-    BgBreakwall* this = THIS;
+    BgBreakwall* this = (BgBreakwall*)thisx;
     s32 sp48;
     s32 tempA;
     s32 tempB;
@@ -414,7 +412,7 @@ void func_808B7D34(Actor* thisx, PlayState* play) {
 
 void BgBreakwall_Draw(Actor* thisx, PlayState* play) {
     s32 pad;
-    BgBreakwall* this = THIS;
+    BgBreakwall* this = (BgBreakwall*)thisx;
     BgBreakwallStruct* temp_s2 = &D_808B8140[BGBREAKWALL_GET_F(&this->dyna.actor)];
 
     OPEN_DISPS(play->state.gfxCtx);
@@ -430,14 +428,14 @@ void BgBreakwall_Draw(Actor* thisx, PlayState* play) {
     if (temp_s2->unk_04 != NULL) {
         Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
-        gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+        MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
         gSPDisplayList(POLY_OPA_DISP++, temp_s2->unk_04);
     }
 
     if (temp_s2->unk_08 != NULL) {
         Gfx_SetupDL25_Xlu(play->state.gfxCtx);
 
-        gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+        MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
         gSPDisplayList(POLY_XLU_DISP++, temp_s2->unk_08);
     }
 

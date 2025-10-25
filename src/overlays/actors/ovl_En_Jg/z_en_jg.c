@@ -8,9 +8,7 @@
 #include "overlays/actors/ovl_En_S_Goro/z_en_s_goro.h"
 #include "overlays/actors/ovl_Obj_Ice_Poly/z_obj_ice_poly.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10)
-
-#define THIS ((EnJg*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 #define FLAG_SHRINE_GORON_ARMS_RAISED (1 << 0)
 #define FLAG_LOOKING_AT_PLAYER (1 << 2)
@@ -42,7 +40,7 @@ typedef enum {
     /* 3 */ EN_JG_ACTION_LULLABY_INTRO_CS
 } EnJgAction;
 
-ActorInit En_Jg_InitVars = {
+ActorProfile En_Jg_Profile = {
     /**/ ACTOR_EN_JG,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -56,7 +54,7 @@ ActorInit En_Jg_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_NONE,
         OC1_ON | OC1_TYPE_ALL,
@@ -64,11 +62,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_ON,
     },
     { 60, 80, 0, { 0, 0, 0 } },
@@ -244,7 +242,7 @@ s32 EnJg_HasReachedPoint(EnJg* this, Path* path, s32 pointIndex) {
         diffZ = points[index + 1].z - points[index - 1].z;
     }
 
-    func_8017B7F8(&point, RAD_TO_BINANG(Math_FAtan2F(diffX, diffZ)), &px, &pz, &d);
+    Math3D_RotateXZPlane(&point, RAD_TO_BINANG(Math_FAtan2F(diffX, diffZ)), &px, &pz, &d);
 
     if (((px * this->actor.world.pos.x) + (pz * this->actor.world.pos.z) + d) > 0.0f) {
         reached = true;
@@ -942,7 +940,7 @@ void EnJg_CheckIfTalkingToPlayerAndHandleFreezeTimer(EnJg* this, PlayState* play
 
 void EnJg_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnJg* this = THIS;
+    EnJg* this = (EnJg*)thisx;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 20.0f);
     SkelAnime_InitFlex(play, &this->skelAnime, &gGoronElderSkel, &gGoronElderIdleAnim, this->jointTable,
@@ -981,13 +979,13 @@ void EnJg_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnJg_Destroy(Actor* thisx, PlayState* play) {
-    EnJg* this = THIS;
+    EnJg* this = (EnJg*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
 
 void EnJg_Update(Actor* thisx, PlayState* play) {
-    EnJg* this = THIS;
+    EnJg* this = (EnJg*)thisx;
 
     if ((this->actionFunc != EnJg_FrozenIdle) && (this->actionFunc != EnJg_EndFrozenInteraction)) {
         EnJg_UpdateCollision(this, play);
@@ -1004,7 +1002,7 @@ void EnJg_Update(Actor* thisx, PlayState* play) {
 }
 
 s32 EnJg_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnJg* this = THIS;
+    EnJg* this = (EnJg*)thisx;
 
     if (limbIndex == GORON_ELDER_LIMB_ROOT) {
         if (this->flags & FLAG_LOOKING_AT_PLAYER) {
@@ -1021,7 +1019,7 @@ s32 EnJg_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
 }
 
 void EnJg_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    EnJg* this = THIS;
+    EnJg* this = (EnJg*)thisx;
 
     if (limbIndex == GORON_ELDER_LIMB_HEAD) {
         Matrix_MultVec3f(&sFocusOffset, &this->actor.focus.pos);
@@ -1036,7 +1034,7 @@ void EnJg_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
 }
 
 void EnJg_Draw(Actor* thisx, PlayState* play) {
-    EnJg* this = THIS;
+    EnJg* this = (EnJg*)thisx;
 
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
                           EnJg_OverrideLimbDraw, EnJg_PostLimbDraw, &this->actor);

@@ -8,8 +8,16 @@
     #endif
 #endif
 
-#define UNUSED      __attribute__((unused))
-#define FALLTHROUGH __attribute__((fallthrough))
-#define NORETURN    __attribute__((noreturn))
+#define UNUSED       __attribute__((unused))
+#define FALLTHROUGH  __attribute__((fallthrough))
+#define NORETURN     __attribute__((noreturn))
+#define NO_REORDER   __attribute__((no_reorder))
+#define SECTION_DATA __attribute__((section(".data")))
+
+#ifdef __GNUC__
+#define UNREACHABLE() __builtin_unreachable()
+#else
+#define UNREACHABLE()
+#endif
 
 #endif

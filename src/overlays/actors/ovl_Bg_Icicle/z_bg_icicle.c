@@ -5,11 +5,9 @@
  */
 
 #include "z_bg_icicle.h"
-#include "objects/object_icicle/object_icicle.h"
+#include "assets/objects/object_icicle/object_icicle.h"
 
 #define FLAGS 0x00000000
-
-#define THIS ((BgIcicle*)thisx)
 
 void BgIcicle_Init(Actor* thisx, PlayState* play);
 void BgIcicle_Destroy(Actor* thisx, PlayState* play);
@@ -24,7 +22,7 @@ void BgIcicle_Regrow(BgIcicle* this, PlayState* play);
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_ON | AT_TYPE_ENEMY,
         AC_ON | AC_TYPE_PLAYER,
         OC1_NONE,
@@ -32,17 +30,17 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0xF7CFFFFF, 0x00, 0x04 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_ON | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_ON | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_NONE,
     },
     { 13, 120, 0, { 0, 0, 0 } },
 };
 
-ActorInit Bg_Icicle_InitVars = {
+ActorProfile Bg_Icicle_Profile = {
     /**/ ACTOR_BG_ICICLE,
     /**/ ACTORCAT_PROP,
     /**/ FLAGS,
@@ -55,7 +53,7 @@ ActorInit Bg_Icicle_InitVars = {
 };
 
 static InitChainEntry sInitChain[] = {
-    ICHAIN_F32(uncullZoneScale, 1500, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeScale, 1500, ICHAIN_CONTINUE),
     ICHAIN_F32(gravity, -3, ICHAIN_CONTINUE),
     ICHAIN_F32(terminalVelocity, -30, ICHAIN_CONTINUE),
     ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_STOP),
@@ -63,7 +61,7 @@ static InitChainEntry sInitChain[] = {
 
 void BgIcicle_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    BgIcicle* this = THIS;
+    BgIcicle* this = (BgIcicle*)thisx;
     s32 paramsHigh;
     s32 paramsMid;
 
@@ -90,7 +88,7 @@ void BgIcicle_Init(Actor* thisx, PlayState* play) {
 }
 
 void BgIcicle_Destroy(Actor* thisx, PlayState* play) {
-    BgIcicle* this = THIS;
+    BgIcicle* this = (BgIcicle*)thisx;
 
     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
     Collider_DestroyCylinder(play, &this->collider);
@@ -230,7 +228,7 @@ void BgIcicle_UpdateAttacked(BgIcicle* this, PlayState* play) {
 
 void BgIcicle_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    BgIcicle* this = THIS;
+    BgIcicle* this = (BgIcicle*)thisx;
 
     BgIcicle_UpdateAttacked(this, play);
     this->actionFunc(this, play);

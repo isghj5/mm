@@ -11,9 +11,7 @@
 #include "z_en_time_tag.h"
 #include "overlays/actors/ovl_En_Elf/z_en_elf.h"
 
-#define FLAGS (ACTOR_FLAG_10)
-
-#define THIS ((EnTimeTag*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 void EnTimeTag_Init(Actor* thisx, PlayState* play);
 void EnTimeTag_Destroy(Actor* thisx, PlayState* play);
@@ -37,7 +35,7 @@ void EnTimeTag_KickOut_Transition(EnTimeTag* this, PlayState* play);
 void EnTimeTag_KickOut_WaitForTrigger(EnTimeTag* this, PlayState* play);
 void EnTimeTag_KickOut_WaitForTime(EnTimeTag* this, PlayState* play);
 
-ActorInit En_Time_Tag_InitVars = {
+ActorProfile En_Time_Tag_Profile = {
     /**/ ACTOR_EN_TIME_TAG,
     /**/ ACTORCAT_ITEMACTION,
     /**/ FLAGS,
@@ -50,7 +48,7 @@ ActorInit En_Time_Tag_InitVars = {
 };
 
 void EnTimeTag_Init(Actor* thisx, PlayState* play) {
-    EnTimeTag* this = THIS;
+    EnTimeTag* this = (EnTimeTag*)thisx;
 
     this->actionFunc = EnTimeTag_KickOut_WaitForTime;
 
@@ -67,12 +65,12 @@ void EnTimeTag_Init(Actor* thisx, PlayState* play) {
 
         case TIMETAG_ROOFTOP_OATH:
             this->actionFunc = EnTimeTag_RooftopOath_Wait;
-            this->actor.flags |= ACTOR_FLAG_2000000;
+            this->actor.flags |= ACTOR_FLAG_UPDATE_DURING_OCARINA;
             break;
 
         case TIMETAG_SOARING_ENGRAVING:
             this->actionFunc = EnTimeTag_SoaringEngraving_Wait;
-            this->actor.flags |= ACTOR_FLAG_2000000;
+            this->actor.flags |= ACTOR_FLAG_UPDATE_DURING_OCARINA;
             if (CHECK_QUEST_ITEM(QUEST_SONG_SOARING)) {
                 this->actor.textId = 0xC02;
             } else {
@@ -163,7 +161,7 @@ void EnTimeTag_SoaringEngraving_Wait(EnTimeTag* this, PlayState* play) {
     } else if ((this->actor.xzDistToPlayer < 100.0f) && Player_IsFacingActor(&this->actor, 0x3000, play) &&
                (Flags_GetSwitch(play, TIMETAG_SOARING_GET_SWITCH_FLAG(&this->actor)) ||
                 CHECK_QUEST_ITEM(QUEST_SONG_SOARING))) {
-        this->actor.flags |= ACTOR_FLAG_TARGETABLE;
+        this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
         Actor_OfferTalk(&this->actor, play, 110.0f);
     }
 }
@@ -264,12 +262,12 @@ void EnTimeTag_Diary_Wait(EnTimeTag* this, PlayState* play) {
                 Message_StartTextbox(play, 0x122B, &this->actor);
             }
             TIMETAG_DIARY_TIMER(&this->actor) = 1;
+
+            //! FAKE:
+            if (1) {}
         } else {
             // unable to read Zora script
             Message_StartTextbox(play, 0x122A, &this->actor);
-
-            //! FAKE: https://decomp.me/scratch/AHRNe
-            if (0) {}
 
             ((EnElf*)GET_PLAYER(play)->tatlActor)->unk_264 |= 4;
             Actor_ChangeFocus(&this->actor, play, GET_PLAYER(play)->tatlActor);
@@ -341,7 +339,7 @@ void EnTimeTag_KickOut_WaitForTime(EnTimeTag* this, PlayState* play) {
 }
 
 void EnTimeTag_Update(Actor* thisx, PlayState* play) {
-    EnTimeTag* this = THIS;
+    EnTimeTag* this = (EnTimeTag*)thisx;
 
     this->actionFunc(this, play);
 }

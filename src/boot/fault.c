@@ -46,16 +46,16 @@
 #include "libc64/sprintf.h"
 #include "PR/osint.h"
 
+#include "controller.h"
 #include "macros.h"
 #include "main.h"
 #include "vt.h"
-#include "stackcheck.h"
+#include "libu64/stackcheck.h"
 #include "z64thread.h"
 
 FaultMgr* sFaultInstance;
 f32 sFaultTimeTotal; // read but not set anywhere
 
-// data
 const char* sCpuExceptions[] = {
     "Interrupt",
     "TLB modification",
@@ -348,9 +348,9 @@ void Fault_DrawCornerRec(u16 color) {
 
 void Fault_PrintFReg(s32 index, f32* value) {
     u32 raw = *(u32*)value;
-    s32 exp = ((raw & 0x7F800000) >> 0x17) - 0x7F;
+    s32 exp = ((raw & 0x7F800000) >> 23) - 127;
 
-    if (((exp > -0x7F) && (exp <= 0x7F)) || (raw == 0)) {
+    if (((exp > -127) && (exp <= 127)) || (raw == 0)) {
         FaultDrawer_Printf("F%02d:%14.7e ", index, *value);
     } else {
         // Print subnormal floats as their IEEE-754 hex representation
@@ -360,9 +360,9 @@ void Fault_PrintFReg(s32 index, f32* value) {
 
 void Fault_LogFReg(s32 index, f32* value) {
     u32 raw = *(u32*)value;
-    s32 exp = ((raw & 0x7F800000) >> 0x17) - 0x7F;
+    s32 exp = ((raw & 0x7F800000) >> 23) - 127;
 
-    if (((exp > -0x7F) && (exp <= 0x7F)) || (raw == 0)) {
+    if (((exp > -127) && (exp <= 127)) || (raw == 0)) {
         osSyncPrintf("F%02d:%14.7e ", index, *value);
     } else {
         osSyncPrintf("F%02d:  %08x(16) ", index, *(u32*)value);
@@ -444,22 +444,22 @@ void Fault_PrintThreadContext(OSThread* thread) {
     Fault_PrintFReg(6, &threadCtx->fp6.f.f_even);
     FaultDrawer_Printf("\n");
     Fault_PrintFReg(8, &threadCtx->fp8.f.f_even);
-    Fault_PrintFReg(0xA, &threadCtx->fp10.f.f_even);
+    Fault_PrintFReg(10, &threadCtx->fp10.f.f_even);
     FaultDrawer_Printf("\n");
-    Fault_PrintFReg(0xC, &threadCtx->fp12.f.f_even);
-    Fault_PrintFReg(0xE, &threadCtx->fp14.f.f_even);
+    Fault_PrintFReg(12, &threadCtx->fp12.f.f_even);
+    Fault_PrintFReg(14, &threadCtx->fp14.f.f_even);
     FaultDrawer_Printf("\n");
-    Fault_PrintFReg(0x10, &threadCtx->fp16.f.f_even);
-    Fault_PrintFReg(0x12, &threadCtx->fp18.f.f_even);
+    Fault_PrintFReg(16, &threadCtx->fp16.f.f_even);
+    Fault_PrintFReg(18, &threadCtx->fp18.f.f_even);
     FaultDrawer_Printf("\n");
-    Fault_PrintFReg(0x14, &threadCtx->fp20.f.f_even);
-    Fault_PrintFReg(0x16, &threadCtx->fp22.f.f_even);
+    Fault_PrintFReg(20, &threadCtx->fp20.f.f_even);
+    Fault_PrintFReg(22, &threadCtx->fp22.f.f_even);
     FaultDrawer_Printf("\n");
-    Fault_PrintFReg(0x18, &threadCtx->fp24.f.f_even);
-    Fault_PrintFReg(0x1A, &threadCtx->fp26.f.f_even);
+    Fault_PrintFReg(24, &threadCtx->fp24.f.f_even);
+    Fault_PrintFReg(26, &threadCtx->fp26.f.f_even);
     FaultDrawer_Printf("\n");
-    Fault_PrintFReg(0x1C, &threadCtx->fp28.f.f_even);
-    Fault_PrintFReg(0x1E, &threadCtx->fp30.f.f_even);
+    Fault_PrintFReg(28, &threadCtx->fp28.f.f_even);
+    Fault_PrintFReg(30, &threadCtx->fp30.f.f_even);
     FaultDrawer_Printf("\n");
     FaultDrawer_SetCharPad(0, 0);
 
@@ -468,7 +468,7 @@ void Fault_PrintThreadContext(OSThread* thread) {
     }
 }
 
-void osSyncPrintfThreadContext(OSThread* thread) {
+void Fault_LogThreadContext(OSThread* thread) {
     __OSThreadContext* threadCtx;
     s16 causeStrIndex = _SHIFTR((u32)thread->context.cause, 2, 5);
 
@@ -924,7 +924,7 @@ void Fault_ProcessClients(void) {
 }
 
 void Fault_SetOptions(void) {
-    static u32 faultCustomOptions;
+    static u32 sFaultCustomOptions;
     Input* input3 = &sFaultInstance->inputs[3];
     s32 pad;
     uintptr_t pc;
@@ -932,18 +932,18 @@ void Fault_SetOptions(void) {
     uintptr_t sp;
 
     if (CHECK_BTN_ALL(input3->press.button, BTN_RESET)) {
-        faultCustomOptions = !faultCustomOptions;
+        sFaultCustomOptions = !sFaultCustomOptions;
     }
 
-    if (faultCustomOptions) {
+    if (sFaultCustomOptions) {
         pc = gGraphThread.context.pc;
         ra = gGraphThread.context.ra;
         sp = gGraphThread.context.sp;
         if (CHECK_BTN_ALL(input3->cur.button, BTN_R)) {
-            static u32 faultCopyToLog;
+            static u32 sFaultCopyToLog;
 
-            faultCopyToLog = !faultCopyToLog;
-            FaultDrawer_SetOsSyncPrintfEnabled(faultCopyToLog);
+            sFaultCopyToLog = !sFaultCopyToLog;
+            FaultDrawer_SetOsSyncPrintfEnabled(sFaultCopyToLog);
         }
         if (CHECK_BTN_ALL(input3->cur.button, BTN_A)) {
             osSyncPrintf("GRAPH PC=%08x RA=%08x STACK=%08x\n", pc, ra, sp);
@@ -1035,7 +1035,7 @@ void Fault_ThreadEntry(void* arg) {
         do {
             // Thread context page
             Fault_PrintThreadContext(faultedThread);
-            osSyncPrintfThreadContext(faultedThread);
+            Fault_LogThreadContext(faultedThread);
             Fault_WaitForInput();
 
             // Stack trace page
@@ -1047,7 +1047,7 @@ void Fault_ThreadEntry(void* arg) {
             Fault_ProcessClients();
 
             // Memory dump page
-            Fault_DrawMemDump((u32)(faultedThread->context.pc - 0x100), (u32)faultedThread->context.sp, 0, 0);
+            Fault_DrawMemDump(faultedThread->context.pc - 0x100, faultedThread->context.sp, 0, 0);
             Fault_DrawStackTrace(faultedThread, 1);
             Fault_LogStackTrace(faultedThread, 1);
             Fault_WaitForInput();
@@ -1114,19 +1114,23 @@ void Fault_HangupFaultClient(const char* exp1, const char* exp2) {
  * error occurs. The parameters specify two messages detailing the error, one
  * or both may be NULL.
  */
-void Fault_AddHungupAndCrashImpl(const char* exp1, const char* exp2) {
+NORETURN void Fault_AddHungupAndCrashImpl(const char* exp1, const char* exp2) {
     FaultClient client;
     s32 pad;
 
     Fault_AddClient(&client, (void*)Fault_HangupFaultClient, (void*)exp1, (void*)exp2);
     *(u32*)0x11111111 = 0; // trigger an exception via unaligned memory access
+
+    // Since the above line triggers an exception and transfers execution to the fault handler
+    // this function does not return and the rest of the function is unreachable.
+    UNREACHABLE();
 }
 
 /**
  * Like `Fault_AddHungupAndCrashImpl`, however provides a fixed message containing
  * file and line number
  */
-void Fault_AddHungupAndCrash(const char* file, s32 line) {
+NORETURN void Fault_AddHungupAndCrash(const char* file, s32 line) {
     char msg[0x100];
 
     sprintf(msg, "HungUp %s:%d", file, line);

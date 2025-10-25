@@ -5,7 +5,7 @@
 #include "z64.h"
 #include "functions.h"
 
-#include "objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
 
 LightsBuffer sLightsBuffer;
 
@@ -191,8 +191,8 @@ void Lights_BindDirectional(Lights* lights, LightParams* params, void* unused) {
     }
 }
 
-typedef void (*LightsBindFunc)(Lights* lights, LightParams* params, Vec3f* vec);
-typedef void (*LightsPosBindFunc)(Lights* lights, LightParams* params, struct PlayState* play);
+typedef void (*LightsBindFuncLegacy)(Lights* lights, LightParams* params, Vec3f* vec);
+typedef void (*LightsBindFunc)(Lights* lights, LightParams* params, struct PlayState* play);
 
 /**
  * For every light in a provided list, try to find a free slot in the provided Lights group and bind
@@ -201,28 +201,32 @@ typedef void (*LightsPosBindFunc)(Lights* lights, LightParams* params, struct Pl
  *
  * Note: Lights in a given list can only be binded to however many free slots are
  * available in the Lights group. This is at most 7 slots for a new group, but could be less.
+ *
+ * Note: In F3DZEX2 versions that predate MM, microcode point lights didn't exist so `PointLight_t` could not be used.
+ * Instead, fake point lights by using a directional light that constantly changes to face a reference position.
+ * `sBindFuncs` maps to the new microcode point lights, and `sBindFuncsLegacy` maps to the old fake point lights.
  */
 void Lights_BindAll(Lights* lights, LightNode* listHead, Vec3f* refPos, PlayState* play) {
-    static LightsPosBindFunc sPosBindFuncs[] = {
+    static LightsBindFunc sBindFuncs[] = {
         Lights_BindPoint,
-        (LightsPosBindFunc)Lights_BindDirectional,
+        (LightsBindFunc)Lights_BindDirectional,
         Lights_BindPoint,
     };
-    static LightsBindFunc sDirBindFuncs[] = {
+    static LightsBindFuncLegacy sBindFuncsLegacy[] = {
         Lights_BindPointWithReference,
-        (LightsBindFunc)Lights_BindDirectional,
+        (LightsBindFuncLegacy)Lights_BindDirectional,
         Lights_BindPointWithReference,
     };
 
     if (listHead != NULL) {
         if ((refPos == NULL) && (lights->enablePosLights == 1)) {
             do {
-                sPosBindFuncs[listHead->info->type](lights, &listHead->info->params, play);
+                sBindFuncs[listHead->info->type](lights, &listHead->info->params, play);
                 listHead = listHead->next;
             } while (listHead != NULL);
         } else {
             do {
-                sDirBindFuncs[listHead->info->type](lights, &listHead->info->params, refPos);
+                sBindFuncsLegacy[listHead->info->type](lights, &listHead->info->params, refPos);
                 listHead = listHead->next;
             } while (listHead != NULL);
         }
@@ -400,16 +404,16 @@ void Lights_GlowCheck(PlayState* play) {
             worldPos.z = params->z;
             Actor_GetProjectedPos(play, &worldPos, &projectedPos, &invW);
 
-            params->drawGlow = 0;
+            params->drawGlow = false;
 
             if ((projectedPos.z > 1) && (fabsf(projectedPos.x * invW) < 1) && (fabsf(projectedPos.y * invW) < 1)) {
                 s32 screenPosX = PROJECTED_TO_SCREEN_X(projectedPos, invW);
                 s32 screenPosY = PROJECTED_TO_SCREEN_Y(projectedPos, invW);
-                s32 wZ = (s32)((projectedPos.z * invW) * 16352.0f) + 16352;
+                s32 wZ = (s32)(projectedPos.z * invW * ((G_MAXZ / 2) * 32)) + ((G_MAXZ / 2) * 32);
                 s32 zBuf = SysCfb_GetZBufferInt(screenPosX, screenPosY);
 
                 if (wZ < zBuf) {
-                    params->drawGlow = 1;
+                    params->drawGlow = true;
                 }
             }
         }
@@ -428,7 +432,7 @@ void Lights_DrawGlow(PlayState* play) {
 
         gfx = Gfx_SetupDL65_NoCD(POLY_XLU_DISP);
 
-        gDPSetDither(gfx++, G_CD_NOISE);
+        gDPSetDither(gfx++, G_AD_PATTERN | G_CD_NOISE);
 
         gDPSetCombineLERP(gfx++, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0, 0, 0, 0, PRIMITIVE, TEXEL0, 0, PRIMITIVE,
                           0);
@@ -446,7 +450,7 @@ void Lights_DrawGlow(PlayState* play) {
                     Matrix_Translate(params->x, params->y, params->z, MTXMODE_NEW);
                     Matrix_Scale(scale, scale, scale, MTXMODE_APPLY);
 
-                    gSPMatrix(gfx++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+                    MATRIX_FINALIZE_AND_LOAD(gfx++, play->state.gfxCtx);
 
                     gSPDisplayList(gfx++, gameplay_keep_DL_029CF0);
                 }

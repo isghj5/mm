@@ -5,11 +5,9 @@
  */
 
 #include "z_obj_driftice.h"
-#include "objects/object_driftice/object_driftice.h"
+#include "assets/objects/object_driftice/object_driftice.h"
 
 #define FLAGS 0x00000000
-
-#define THIS ((ObjDriftice*)thisx)
 
 void ObjDriftice_Init(Actor* thisx, PlayState* play);
 void ObjDriftice_Destroy(Actor* thisx, PlayState* play);
@@ -25,7 +23,7 @@ void func_80A67450(ObjDriftice* this, PlayState* play);
 void func_80A674A8(ObjDriftice* this);
 void func_80A674C4(ObjDriftice* this, PlayState* play);
 
-ActorInit Obj_Driftice_InitVars = {
+ActorProfile Obj_Driftice_Profile = {
     /**/ ACTOR_OBJ_DRIFTICE,
     /**/ ACTORCAT_BG,
     /**/ FLAGS,
@@ -73,7 +71,7 @@ static ObjDrifticeDataStruct D_80A676D0[] = {
 };
 
 static InitChainEntry sInitChain[] = {
-    ICHAIN_F32(uncullZoneForward, 4000, ICHAIN_STOP),
+    ICHAIN_F32(cullingVolumeDistance, 4000, ICHAIN_STOP),
 };
 
 void func_80A66570(ObjDriftice* this, s32 arg1) {
@@ -265,10 +263,10 @@ void func_80A66E30(ObjDrifticeStruct* arg0, ObjDriftice* this) {
 
 void ObjDriftice_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    ObjDriftice* this = THIS;
+    ObjDriftice* this = (ObjDriftice*)thisx;
     f32* sp2C = D_80A67620[OBJDRIFTICE_GET_3(&this->dyna.actor)];
     Path* path;
-    s32 phi_a1;
+    s32 transformFlags;
     s32 sp20;
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
@@ -279,8 +277,8 @@ void ObjDriftice_Init(Actor* thisx, PlayState* play) {
     this->dyna.actor.world.rot.z = 0;
 
     Actor_SetScale(&this->dyna.actor, sp2C[0] * 0.035377357f);
-    this->dyna.actor.uncullZoneScale = sp2C[1];
-    this->dyna.actor.uncullZoneDownward = sp2C[2];
+    this->dyna.actor.cullingVolumeScale = sp2C[1];
+    this->dyna.actor.cullingVolumeDownward = sp2C[2];
     this->unk_240 = 1.0f / this->dyna.actor.scale.x;
     this->unk_23C = D_80A67644[OBJDRIFTICE_GET_E00(&this->dyna.actor)];
 
@@ -289,24 +287,24 @@ void ObjDriftice_Init(Actor* thisx, PlayState* play) {
         sp20 = 1;
     }
 
-    this->unk_244 = thisx->home.rot.z * 45.511112f;
+    this->unk_244 = thisx->home.rot.z * (0x8000 / 720.0f);
 
-    phi_a1 = 0;
+    transformFlags = 0;
     if (sp20 == 0) {
-        phi_a1 = 1;
+        transformFlags = DYNA_TRANSFORM_POS;
     }
 
     if (thisx->home.rot.z != 0) {
-        phi_a1 |= 3;
+        transformFlags |= DYNA_TRANSFORM_ROT_Y | DYNA_TRANSFORM_POS;
     }
 
-    DynaPolyActor_Init(&this->dyna, phi_a1);
+    DynaPolyActor_Init(&this->dyna, transformFlags);
     DynaPolyActor_LoadMesh(play, &this->dyna, &object_driftice_Colheader_001AA8);
 
     if (sp20 != 0) {
         func_80A671A8(this);
     } else {
-        this->dyna.actor.flags |= ACTOR_FLAG_10;
+        this->dyna.actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
 
         path = &play->setupPathList[OBJDRIFTICE_GET_PATH_INDEX(&this->dyna.actor)];
         this->unk_164 = 0;
@@ -320,7 +318,7 @@ void ObjDriftice_Init(Actor* thisx, PlayState* play) {
 }
 
 void ObjDriftice_Destroy(Actor* thisx, PlayState* play) {
-    ObjDriftice* this = THIS;
+    ObjDriftice* this = (ObjDriftice*)thisx;
 
     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
 }
@@ -426,7 +424,7 @@ void func_80A674C4(ObjDriftice* this, PlayState* play) {
 }
 
 void ObjDriftice_Update(Actor* thisx, PlayState* play) {
-    ObjDriftice* this = THIS;
+    ObjDriftice* this = (ObjDriftice*)thisx;
 
     if (DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
         if (this->unk_248 < 0) {
@@ -446,13 +444,13 @@ void ObjDriftice_Update(Actor* thisx, PlayState* play) {
 
     this->actionFunc(this, play);
 
-    if (OBJDRIFTICE_GET_ROT(&this->dyna.actor) && (this->dyna.actor.flags & ACTOR_FLAG_40)) {
+    if (OBJDRIFTICE_GET_ROT(&this->dyna.actor) && (this->dyna.actor.flags & ACTOR_FLAG_INSIDE_CULLING_VOLUME)) {
         func_80A66E30(&this->unk_170, this);
     }
 }
 
 void ObjDriftice_Draw(Actor* thisx, PlayState* play) {
-    ObjDriftice* this = THIS;
+    ObjDriftice* this = (ObjDriftice*)thisx;
 
     Gfx_DrawDListOpa(play, object_driftice_DL_0016A0);
 }

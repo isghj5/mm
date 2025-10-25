@@ -4,13 +4,12 @@
  * Description: Soaring effects (wings, sphere, etc)
  */
 
-#include "prevent_bss_reordering.h"
 #include "z_en_test7.h"
-#include "objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20 | ACTOR_FLAG_100000 | ACTOR_FLAG_200000 | ACTOR_FLAG_2000000)
-
-#define THIS ((EnTest7*)thisx)
+#define FLAGS                                                                                              \
+    (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED | ACTOR_FLAG_FREEZE_EXCEPTION | \
+     ACTOR_FLAG_UPDATE_DURING_SOARING_AND_SOT_CS | ACTOR_FLAG_UPDATE_DURING_OCARINA)
 
 void EnTest7_Init(Actor* thisx, PlayState* play2);
 void EnTest7_Destroy(Actor* thisx, PlayState* play);
@@ -36,7 +35,7 @@ void EnTest7_StartArriveCsSkip(EnTest7* this, PlayState* play);
 void EnTest7_ArriveCsPart2(EnTest7* this, PlayState* play);
 void EnTest7_ArriveCsPart3(EnTest7* this, PlayState* play);
 
-ActorInit En_Test7_InitVars = {
+ActorProfile En_Test7_Profile = {
     /**/ ACTOR_EN_TEST7,
     /**/ ACTORCAT_ITEMACTION,
     /**/ FLAGS,
@@ -233,20 +232,20 @@ void EnTest7_UpdateFeatherType2(PlayState* play, OwlWarpFeather* feather) {
 }
 
 void EnTest7_UpdateFeathers(PlayState* play, OwlWarpFeather* feathers, EnTest7* this, s32 arg3, s32 arg4) {
-    s32 pad[4];
-    OwlWarpFeather* feather;
-    s16 phi_s1;
+    s32 pad;
     s32 i;
     f32 temp_f28;
-    Vec3f sp8C;
     f32 temp_f0;
     f32 temp_f22;
     f32 temp_f24;
     f32 temp_f26;
     f32 temp_f2;
+    Vec3f sp8C;
+    OwlWarpFeather* feather;
+    s16 phi_s1;
 
-    for (i = 0, feather = feathers; i < (OWL_WARP_NUM_FEATHERS * sizeof(OwlWarpFeather));
-         i += sizeof(OwlWarpFeather), feather++) {
+    for (i = 0; i < OWL_WARP_NUM_FEATHERS; i++) {
+        feather = &feathers[i];
 
         if (feather->type == OWL_WARP_FEATHER_TYPE_DISABLED) {
             continue;
@@ -306,12 +305,8 @@ void EnTest7_UpdateFeathers(PlayState* play, OwlWarpFeather* feathers, EnTest7* 
 }
 
 void EnTest7_DrawFeathers(PlayState* play2, OwlWarpFeather* feathers) {
-    s32 pad[3];
     PlayState* play = play2;
-    Mtx* mtx;
-    OwlWarpFeather* feather;
     s32 i;
-    MtxF sp6C;
 
     OPEN_DISPS(play->state.gfxCtx);
 
@@ -322,8 +317,11 @@ void EnTest7_DrawFeathers(PlayState* play2, OwlWarpFeather* feathers) {
     gDPSetPrimColor(POLY_OPA_DISP++, 0, 0x80, 255, 255, 255, 255);
     gDPSetEnvColor(POLY_OPA_DISP++, 255, 255, 255, 255);
 
-    for (i = 0, feather = feathers; i < (OWL_WARP_NUM_FEATHERS * sizeof(OwlWarpFeather));
-         i += sizeof(OwlWarpFeather), feather++) {
+    for (i = 0; i < OWL_WARP_NUM_FEATHERS; i++) {
+        Mtx* mtx;
+        MtxF sp6C;
+        OwlWarpFeather* feather = &feathers[i];
+
         if (feather->type == OWL_WARP_FEATHER_TYPE_DISABLED) {
             continue;
         }
@@ -348,7 +346,7 @@ void EnTest7_DrawFeathers(PlayState* play2, OwlWarpFeather* feathers) {
             Matrix_Translate(0.0f, 30.0f, 0.0f, MTXMODE_APPLY);
         }
 
-        mtx = Matrix_NewMtx(play->state.gfxCtx);
+        mtx = Matrix_Finalize(play->state.gfxCtx);
         if (mtx == NULL) {
             continue;
         }
@@ -371,7 +369,7 @@ void EnTest7_InitWindCapsule(OwlWarpWindCapsule* windCapsule) {
 
 void EnTest7_Init(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    EnTest7* this = THIS;
+    EnTest7* this = (EnTest7*)thisx;
     Player* player = GET_PLAYER(play);
     Player* player2 = GET_PLAYER(play);
 
@@ -383,9 +381,9 @@ void EnTest7_Init(Actor* thisx, PlayState* play2) {
     this->playerScaleZ = player->actor.scale.z;
 
     // Keyframe animations
-    func_80183430(&this->skeletonInfo, &gameplay_keep_Blob_085640, &gameplay_keep_Blob_083534, this->unk_18FC,
-                  this->unk_1BA8, NULL);
-    func_801834A8(&this->skeletonInfo, &gameplay_keep_Blob_083534);
+    Keyframe_InitFlex(&this->kfSkelAnime, &gameplay_keep_KFSkel_085640, &gameplay_keep_KFAnim_083534, this->jointTable,
+                      this->morphTable, NULL);
+    Keyframe_FlexPlayOnce(&this->kfSkelAnime, &gameplay_keep_KFAnim_083534);
 
     EnTest7_InitFeathers(this->feathers);
     EnTest7_InitWindCapsule(&this->windCapsule);
@@ -413,7 +411,7 @@ void EnTest7_Init(Actor* thisx, PlayState* play2) {
 }
 
 void EnTest7_Destroy(Actor* thisx, PlayState* play) {
-    EnTest7* this = THIS;
+    EnTest7* this = (EnTest7*)thisx;
 
     CutsceneManager_Stop(play->playerCsIds[PLAYER_CS_ID_SONG_WARP]);
     LightContext_RemoveLight(play, &play->lightCtx, this->lightNode);
@@ -425,7 +423,7 @@ void EnTest7_StartWarpCs(EnTest7* this, PlayState* play) {
     } else {
         CutsceneManager_Start(play->playerCsIds[PLAYER_CS_ID_SONG_WARP], NULL);
         EnTest7_SetupAction(this, EnTest7_WarpCsPart1);
-        play->unk_18844 = true;
+        play->soaringCsOrSoTCsPlaying = true;
     }
 }
 
@@ -482,20 +480,20 @@ void EnTest7_UpdateGrowingWindCapsule(EnTest7* this, PlayState* play) {
 void EnTest7_WarpCsPart2(EnTest7* this, PlayState* play) {
     Vec3f featherPos;
 
-    if (func_80183DE0(&this->skeletonInfo)) {
+    if (Keyframe_UpdateFlex(&this->kfSkelAnime)) {
         EnTest7_SetupAction(this, EnTest7_WarpCsPart3);
     }
 
-    if (this->skeletonInfo.frameCtrl.unk_10 > 60.0f) {
+    if (this->kfSkelAnime.frameCtrl.curTime > 60.0f) {
         EnTest7_UpdateGrowingWindCapsule(this, play);
     }
 
-    if ((this->skeletonInfo.frameCtrl.unk_10 > 20.0f) && !(this->flags & OWL_WARP_FLAGS_40)) {
+    if ((this->kfSkelAnime.frameCtrl.curTime > 20.0f) && !(this->flags & OWL_WARP_FLAGS_40)) {
         this->flags |= OWL_WARP_FLAGS_40;
         Audio_PlaySfx_AtPos(&this->actor.projectedPos, NA_SE_PL_WARP_WING_CLOSE);
     }
 
-    if (this->skeletonInfo.frameCtrl.unk_10 > 42.0f) {
+    if (this->kfSkelAnime.frameCtrl.curTime > 42.0f) {
         if (!(this->flags & OWL_WARP_FLAGS_80)) {
             this->flags |= OWL_WARP_FLAGS_80;
             Audio_PlaySfx_AtPos(&this->actor.projectedPos, NA_SE_PL_WARP_WING_ROLL);
@@ -538,7 +536,7 @@ void EnTest7_WarpCsPart3(EnTest7* this, PlayState* play) {
 
     Math_Vec3f_Copy(&featherPos, &this->actor.world.pos);
     EnTest7_AddAndChooseFeather(this->feathers, &featherPos, true);
-    this->unk_18FC[1].y += 0x2EE0;
+    this->jointTable[1].y += 0x2EE0;
 }
 
 void EnTest7_WarpCsPart4(EnTest7* this, PlayState* play) {
@@ -592,7 +590,7 @@ void EnTest7_WarpCsPart5(EnTest7* this, PlayState* play) {
         R_PLAY_FILL_SCREEN_G = 255;
         R_PLAY_FILL_SCREEN_B = 255;
         R_PLAY_FILL_SCREEN_ALPHA = 255;
-        play->unk_18844 = false;
+        play->soaringCsOrSoTCsPlaying = false;
         this->flags &= ~OWL_WARP_FLAGS_DRAW_LENS_FLARE;
         EnTest7_SetupAction(this, EnTest7_WarpCsPart6);
         Play_DisableMotionBlur();
@@ -647,7 +645,7 @@ void EnTest7_WarpCsWarp(EnTest7* this, PlayState* play) {
     Vec3f featherPos;
 
     //! FAKE:
-    if (this) {}
+    if (1) {}
 
     Math_Vec3f_Copy(&featherPos, &this->actor.world.pos);
 
@@ -660,9 +658,9 @@ void EnTest7_WarpCsWarp(EnTest7* this, PlayState* play) {
     if (play->sceneId == SCENE_SECOM) {
         play->nextEntrance = ENTRANCE(IKANA_CANYON, 6);
     } else if (OWL_WARP_CS_GET_OCARINA_MODE(&this->actor) == OCARINA_MODE_WARP_TO_ENTRANCE) {
-        func_80169F78(&play->state);
+        func_80169F78(play);
         gSaveContext.respawn[RESPAWN_MODE_TOP].playerParams =
-            PLAYER_PARAMS(gSaveContext.respawn[RESPAWN_MODE_TOP].playerParams, PLAYER_INITMODE_6);
+            PLAYER_PARAMS(gSaveContext.respawn[RESPAWN_MODE_TOP].playerParams, PLAYER_START_MODE_OWL);
         gSaveContext.respawnFlag = -6;
     } else {
         play->nextEntrance =
@@ -768,7 +766,7 @@ void EnTest7_SetupArriveCs(EnTest7* this, PlayState* play) {
     this->flags |= OWL_WARP_FLAGS_DRAW_WIND_CAPSULE;
     this->windCapsule.unk_04 = 30.0f;
 
-    if (play->roomCtx.curRoom.behaviorType1 != ROOM_BEHAVIOR_TYPE1_1) {
+    if (play->roomCtx.curRoom.type != ROOM_TYPE_DUNGEON) {
         EnTest7_SetupAction(this, EnTest7_StartArriveCs);
     } else {
         EnTest7_SetupAction(this, EnTest7_StartArriveCsSkip);
@@ -939,7 +937,7 @@ void EnTest7_ArriveCsPart3(EnTest7* this, PlayState* play) {
 }
 
 void EnTest7_Update(Actor* thisx, PlayState* play) {
-    EnTest7* this = THIS;
+    EnTest7* this = (EnTest7*)thisx;
 
     this->actionFunc(this, play);
 
@@ -953,9 +951,9 @@ void EnTest7_Update(Actor* thisx, PlayState* play) {
                            (this->flags & OWL_WARP_FLAGS_10) != 0);
 }
 
-s32 func_80AF31D0(PlayState* play, SkeletonInfo* skeletonInfo, s32 limbIndex, Gfx** dList, u8* flags, Actor* thisx,
-                  Vec3f* scale, Vec3s* rot, Vec3f* pos) {
-    EnTest7* this = THIS;
+s32 EnTest7_OverrideLimbDraw(PlayState* play, KFSkelAnimeFlex* kfSkelAnime, s32 limbIndex, Gfx** dList, u8* flags,
+                             void* thisx, Vec3f* scale, Vec3s* rot, Vec3f* pos) {
+    EnTest7* this = (EnTest7*)thisx;
     Vec3f featherPos;
 
     if ((*dList != NULL) && (Rand_ZeroOne() < 0.03f)) {
@@ -967,17 +965,17 @@ s32 func_80AF31D0(PlayState* play, SkeletonInfo* skeletonInfo, s32 limbIndex, Gf
 
 void EnTest7_Draw(Actor* thisx, PlayState* play) {
     s32 pad[2];
-    EnTest7* this = THIS;
+    EnTest7* this = (EnTest7*)thisx;
     s32 sp40;
 
     // Draw wings
     if (this->flags & OWL_WARP_FLAGS_DRAW_WINGS) {
-        Mtx* mtx = GRAPH_ALLOC(play->state.gfxCtx, this->skeletonInfo.unk_18->unk_1 * sizeof(Mtx));
+        Mtx* mtxStack = GRAPH_ALLOC(play->state.gfxCtx, this->kfSkelAnime.skeleton->dListCount * sizeof(Mtx));
 
-        if (mtx == NULL) {
+        if (mtxStack == NULL) {
             return;
         }
-        func_8018450C(play, &this->skeletonInfo, mtx, func_80AF31D0, NULL, &this->actor);
+        Keyframe_DrawFlex(play, &this->kfSkelAnime, mtxStack, EnTest7_OverrideLimbDraw, NULL, &this->actor);
     }
 
     // Draw windCapsule encasing that surrounds player after wings

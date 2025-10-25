@@ -1,7 +1,6 @@
-#include "prevent_bss_reordering.h"
-#include "prevent_bss_reordering2.h"
-
 #include "PR/ultratypes.h"
+
+#pragma increment_block_number "n64-us:128"
 
 // Variables are put before most headers as a hacky way to bypass bss reordering
 struct CutsceneCamera;
@@ -17,6 +16,7 @@ s16 gDungeonBossWarpSceneId;
 #include "z64quake.h"
 #include "z64rumble.h"
 #include "z64shrink_window.h"
+
 #include "overlays/gamestates/ovl_daytelop/z_daytelop.h"
 #include "overlays/actors/ovl_En_Elf/z_en_elf.h"
 
@@ -439,7 +439,7 @@ void CutsceneCmd_FadeOutSequence(PlayState* play, CutsceneContext* csCtx, CsCmdF
 
 void CutsceneCmd_StartAmbience(PlayState* play, CutsceneContext* csCtx, CsCmdStartAmbience* cmd) {
     if (csCtx->curFrame == cmd->startFrame) {
-        Audio_PlayAmbience(play->sequenceCtx.ambienceId);
+        Audio_PlayAmbience(play->sceneSequences.ambienceId);
     }
 }
 
@@ -1252,7 +1252,7 @@ void Cutscene_ProcessScript(PlayState* play, CutsceneContext* csCtx, u8* script)
 
                 for (j = 0; j < cmdEntries; j++) {
                     CutsceneCmd_StopSequence(play, csCtx, (CsCmdStopSeq*)script);
-                    script += sizeof(CsCmdStartSeq);
+                    script += sizeof(CsCmdStopSeq);
                 }
                 break;
 

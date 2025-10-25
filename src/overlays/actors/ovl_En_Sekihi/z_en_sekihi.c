@@ -5,15 +5,13 @@
  */
 
 #include "z_en_sekihi.h"
-#include "objects/object_sekihil/object_sekihil.h"
-#include "objects/object_sekihig/object_sekihig.h"
-#include "objects/object_sekihin/object_sekihin.h"
-#include "objects/object_sekihiz/object_sekihiz.h"
-#include "objects/object_zog/object_zog.h"
+#include "assets/objects/object_sekihil/object_sekihil.h"
+#include "assets/objects/object_sekihig/object_sekihig.h"
+#include "assets/objects/object_sekihin/object_sekihin.h"
+#include "assets/objects/object_sekihiz/object_sekihiz.h"
+#include "assets/objects/object_zog/object_zog.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10)
-
-#define THIS ((EnSekihi*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 void EnSekihi_Init(Actor* thisx, PlayState* play);
 void EnSekihi_Destroy(Actor* thisx, PlayState* play);
@@ -24,7 +22,7 @@ void func_80A44DE8(EnSekihi* this, PlayState* play);
 void func_80A450B0(EnSekihi* this, PlayState* play);
 void EnSekihi_DoNothing(EnSekihi* this, PlayState* play);
 
-ActorInit En_Sekihi_InitVars = {
+ActorProfile En_Sekihi_Profile = {
     /**/ ACTOR_EN_SEKIHI,
     /**/ ACTORCAT_PROP,
     /**/ FLAGS,
@@ -53,7 +51,7 @@ static Gfx* sXluDLists[] = {
 static u16 sTextIds[] = { 0, 0, 0, 0, 0x1018 };
 
 void EnSekihi_Init(Actor* thisx, PlayState* play) {
-    EnSekihi* this = THIS;
+    EnSekihi* this = (EnSekihi*)thisx;
     s32 type = ENSIKIHI_GET_TYPE(thisx);
     s32 objectSlot;
     s32 pad;
@@ -82,7 +80,7 @@ void EnSekihi_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnSekihi_Destroy(Actor* thisx, PlayState* play) {
-    EnSekihi* this = THIS;
+    EnSekihi* this = (EnSekihi*)thisx;
 
     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
 }
@@ -170,23 +168,23 @@ void EnSekihi_DoNothing(EnSekihi* this, PlayState* play) {
 }
 
 void EnSekihi_Update(Actor* thisx, PlayState* play) {
-    EnSekihi* this = THIS;
+    EnSekihi* this = (EnSekihi*)thisx;
 
     this->actionFunc(this, play);
 }
 
 void EnSekihi_Draw(Actor* thisx, PlayState* play) {
-    EnSekihi* this = THIS;
+    EnSekihi* this = (EnSekihi*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 
     if (this->xluDList != NULL) {
-        gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+        MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
         Gfx_SetupDL25_Xlu(play->state.gfxCtx);
         gSPDisplayList(POLY_XLU_DISP++, this->xluDList);
     }
 
-    gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     gSPDisplayList(POLY_OPA_DISP++, this->opaDList);
 

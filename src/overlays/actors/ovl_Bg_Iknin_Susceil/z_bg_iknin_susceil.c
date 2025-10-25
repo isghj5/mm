@@ -7,11 +7,9 @@
 #include "z_bg_iknin_susceil.h"
 #include "z64quake.h"
 #include "z64rumble.h"
-#include "objects/object_ikninside_obj/object_ikninside_obj.h"
+#include "assets/objects/object_ikninside_obj/object_ikninside_obj.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((BgIkninSusceil*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 void BgIkninSusceil_Init(Actor* thisx, PlayState* play);
 void BgIkninSusceil_Destroy(Actor* thisx, PlayState* play);
@@ -29,7 +27,7 @@ void func_80C0AD44(BgIkninSusceil* this);
 void func_80C0AD64(BgIkninSusceil* this, PlayState* play);
 void func_80C0AE5C(BgIkninSusceil* this, PlayState* play);
 
-ActorInit Bg_Iknin_Susceil_InitVars = {
+ActorProfile Bg_Iknin_Susceil_Profile = {
     /**/ ACTOR_BG_IKNIN_SUSCEIL,
     /**/ ACTORCAT_BG,
     /**/ FLAGS,
@@ -56,7 +54,7 @@ bool func_80C0A740(BgIkninSusceil* this, PlayState* play) {
     Vec3f offset;
     Player* player = GET_PLAYER(play);
 
-    Actor_OffsetOfPointInActorCoords(&this->dyna.actor, &offset, &player->actor.world.pos);
+    Actor_WorldToActorCoords(&this->dyna.actor, &offset, &player->actor.world.pos);
 
     return (D_80C0B0E8.x < offset.z) && (offset.z < D_80C0B0E8.z) && (offset.x > -240.0f) && (offset.x < D_80C0B0E4);
 }
@@ -98,7 +96,7 @@ s32 func_80C0A95C(BgIkninSusceil* this, PlayState* play) {
     f32 temp3;
     f32 temp4;
 
-    Actor_OffsetOfPointInActorCoords(&this->dyna.actor, &offset, &player->actor.world.pos);
+    Actor_WorldToActorCoords(&this->dyna.actor, &offset, &player->actor.world.pos);
     for (i = 0; i < 7; i++) {
         temp3 = (D_80C0B0F0[i] * 80.0f) + 0.5f;
         temp4 = (D_80C0B0F0[i] * 80.0f) + 79.5f;
@@ -116,7 +114,7 @@ s32 func_80C0A95C(BgIkninSusceil* this, PlayState* play) {
 }
 
 void BgIkninSusceil_Init(Actor* thisx, PlayState* play) {
-    BgIkninSusceil* this = THIS;
+    BgIkninSusceil* this = (BgIkninSusceil*)thisx;
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
     DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS);
@@ -126,7 +124,7 @@ void BgIkninSusceil_Init(Actor* thisx, PlayState* play) {
 }
 
 void BgIkninSusceil_Destroy(Actor* thisx, PlayState* play) {
-    BgIkninSusceil* this = THIS;
+    BgIkninSusceil* this = (BgIkninSusceil*)thisx;
 
     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
 }
@@ -227,7 +225,7 @@ void func_80C0AE5C(BgIkninSusceil* this, PlayState* play) {
 
 void BgIkninSusceil_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    BgIkninSusceil* this = THIS;
+    BgIkninSusceil* this = (BgIkninSusceil*)thisx;
     Player* player = GET_PLAYER(play);
 
     if ((this->unk168 == 0) && (this->unk166 > 0) && (player->stateFlags3 & PLAYER_STATE3_100) &&
@@ -262,7 +260,7 @@ void BgIkninSusceil_Update(Actor* thisx, PlayState* play) {
 }
 
 void BgIkninSusceil_Draw(Actor* thisx, PlayState* play) {
-    BgIkninSusceil* this = THIS;
+    BgIkninSusceil* this = (BgIkninSusceil*)thisx;
 
     AnimatedMat_Draw(play, this->animatedTexture);
     Gfx_DrawDListOpa(play, object_ikninside_obj_DL_00C308);

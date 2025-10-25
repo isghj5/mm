@@ -1,13 +1,12 @@
 #include "global.h"
+#include "attributes.h"
 #include "overlays/actors/ovl_En_Elforg/z_en_elforg.h"
-#include "objects/gameplay_keep/gameplay_keep.h"
-#include "objects/object_gi_hearts/object_gi_hearts.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/object_gi_hearts/object_gi_hearts.h"
 #include "overlays/actors/ovl_En_Elf/z_en_elf.h"
 #include "overlays/actors/ovl_En_Elforg/z_en_elforg.h"
 
 #define FLAGS 0x00000000
-
-#define THIS ((EnItem00*)thisx)
 
 void EnItem00_Init(Actor* thisx, PlayState* play);
 void EnItem00_Destroy(Actor* thisx, PlayState* play);
@@ -25,7 +24,7 @@ void EnItem00_DrawSprite(EnItem00* this, PlayState* play);
 void EnItem00_DrawHeartContainer(EnItem00* this, PlayState* play);
 void EnItem00_DrawHeartPiece(EnItem00* this, PlayState* play);
 
-ActorInit En_Item00_InitVars = {
+ActorProfile En_Item00_Profile = {
     /**/ ACTOR_EN_ITEM00,
     /**/ ACTORCAT_MISC,
     /**/ FLAGS,
@@ -39,7 +38,7 @@ ActorInit En_Item00_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AT_TYPE_PLAYER,
         OC1_NONE,
@@ -47,18 +46,18 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0x00000010, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_NONE,
     },
     { 10, 30, 0, { 0, 0, 0 } },
 };
 
 static InitChainEntry sInitChain[] = {
-    ICHAIN_F32(targetArrowOffset, 2000, ICHAIN_STOP),
+    ICHAIN_F32(lockOnArrowOffset, 2000, ICHAIN_STOP),
 };
 
 static s32 sBssPad;
@@ -73,7 +72,7 @@ void EnItem00_SetObject(EnItem00* this, PlayState* play, f32* shadowOffset, f32*
 }
 
 void EnItem00_Init(Actor* thisx, PlayState* play) {
-    EnItem00* this = THIS;
+    EnItem00* this = (EnItem00*)thisx;
     s32 pad;
     f32 shadowOffset = 980.0f;
     f32 shadowScale = 6.0f;
@@ -311,7 +310,7 @@ void EnItem00_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnItem00_Destroy(Actor* thisx, PlayState* play) {
-    EnItem00* this = THIS;
+    EnItem00* this = (EnItem00*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -488,7 +487,7 @@ void func_800A6A40(EnItem00* this, PlayState* play) {
 }
 
 void EnItem00_Update(Actor* thisx, PlayState* play) {
-    EnItem00* this = THIS;
+    EnItem00* this = (EnItem00*)thisx;
     s32 pad;
     Player* player = GET_PLAYER(play);
     s32 sp38 = player->stateFlags3 & PLAYER_STATE3_1000;
@@ -702,7 +701,7 @@ void EnItem00_Update(Actor* thisx, PlayState* play) {
 
 void EnItem00_Draw(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnItem00* this = THIS;
+    EnItem00* this = (EnItem00*)thisx;
 
     if (!(this->unk14E & this->unk150)) {
         switch (this->actor.params) {
@@ -738,7 +737,7 @@ void EnItem00_Draw(Actor* thisx, PlayState* play) {
                     }
                     break;
                 }
-                // fallthrough
+                FALLTHROUGH;
             case ITEM00_BOMBS_A:
             case ITEM00_ARROWS_10:
             case ITEM00_ARROWS_30:
@@ -796,7 +795,7 @@ void EnItem00_DrawRupee(EnItem00* this, PlayState* play) {
         texIndex = this->actor.params - 0x10;
     }
 
-    gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_MODELVIEW | G_MTX_LOAD);
+    MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
 
     gSPSegment(POLY_OPA_DISP++, 0x08, Lib_SegmentedToVirtual(sRupeeTextures[texIndex]));
 
@@ -842,7 +841,7 @@ void EnItem00_DrawSprite(EnItem00* this, PlayState* play) {
 
     gSPSegment(POLY_OPA_DISP++, 0x08, Lib_SegmentedToVirtual(sItemDropTextures[texIndex]));
 
-    gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_MODELVIEW | G_MTX_LOAD);
+    MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
 
     gSPDisplayList(POLY_OPA_DISP++, gItemDropDL);
 
@@ -858,7 +857,7 @@ void EnItem00_DrawHeartContainer(EnItem00* this, PlayState* play) {
         Gfx_SetupDL25_Xlu(play->state.gfxCtx);
         Matrix_Scale(20.0f, 20.0f, 20.0f, MTXMODE_APPLY);
 
-        gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_MODELVIEW | G_MTX_LOAD);
+        MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
 
         gSPDisplayList(POLY_XLU_DISP++, gGiHeartBorderDL);
         gSPDisplayList(POLY_XLU_DISP++, gGiHeartContainerDL);
@@ -875,7 +874,7 @@ void EnItem00_DrawHeartPiece(EnItem00* this, PlayState* play) {
     Gfx_SetupDL25_Xlu(play->state.gfxCtx);
     func_800B8118(&this->actor, play, 0);
 
-    gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_MODELVIEW | G_MTX_LOAD);
+    MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
 
     gSPDisplayList(POLY_XLU_DISP++, gHeartPieceInteriorDL);
 
@@ -1430,7 +1429,7 @@ void Item_DropCollectibleRandom(PlayState* play, Actor* fromActor, Vec3f* spawnP
                             spawnedActor->actor.world.rot.y = Rand_ZeroOne() * 40000.0f;
                             Actor_SetScale(&spawnedActor->actor, 0.0f);
                             spawnedActor->actionFunc = func_800A6780;
-                            spawnedActor->actor.flags |= ACTOR_FLAG_10;
+                            spawnedActor->actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
                             if ((spawnedActor->actor.params != ITEM00_SMALL_KEY) &&
                                 (spawnedActor->actor.params != ITEM00_HEART_PIECE) &&
                                 (spawnedActor->actor.params != ITEM00_HEART_CONTAINER)) {

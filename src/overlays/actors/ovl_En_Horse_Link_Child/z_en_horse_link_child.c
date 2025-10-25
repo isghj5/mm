@@ -7,11 +7,9 @@
 
 #include "z_en_horse_link_child.h"
 #include "z64horse.h"
-#include "objects/object_horse_link_child/object_horse_link_child.h"
+#include "assets/objects/object_horse_link_child/object_horse_link_child.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_2000000)
-
-#define THIS ((EnHorseLinkChild*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_UPDATE_DURING_OCARINA)
 
 void EnHorseLinkChild_Init(Actor* thisx, PlayState* play);
 void EnHorseLinkChild_Destroy(Actor* thisx, PlayState* play);
@@ -30,7 +28,7 @@ void EnHorseLinkChild_ActionFunc5(EnHorseLinkChild* this, PlayState* play);
 void EnHorseLinkChild_SetupActionFunc4(EnHorseLinkChild* this);
 void EnHorseLinkChild_ActionFunc4(EnHorseLinkChild* this, PlayState* play);
 
-ActorInit En_Horse_Link_Child_InitVars = {
+ActorProfile En_Horse_Link_Child_Profile = {
     /**/ ACTOR_EN_HORSE_LINK_CHILD,
     /**/ ACTORCAT_BG,
     /**/ FLAGS,
@@ -62,11 +60,11 @@ static AnimationHeader* sAnimations[OOT_CHILD_EPONA_ANIM_MAX] = {
 static ColliderJntSphElementInit sJntSphElementsInit[] = {
     {
         {
-            ELEMTYPE_UNK0,
+            ELEM_MATERIAL_UNK0,
             { 0x00000000, 0x00, 0x00 },
             { 0x00000000, 0x00, 0x00 },
-            TOUCH_NONE | TOUCH_SFX_NORMAL,
-            BUMP_NONE,
+            ATELEM_NONE | ATELEM_SFX_NORMAL,
+            ACELEM_NONE,
             OCELEM_ON,
         },
         { 13, { { 0, 0, 0 }, 10 }, 100 },
@@ -75,7 +73,7 @@ static ColliderJntSphElementInit sJntSphElementsInit[] = {
 
 static ColliderJntSphInit sJntSphInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_ALL,
@@ -100,7 +98,7 @@ static f32 sAnimPlaySpeeds[OOT_CHILD_EPONA_ANIM_MAX] = {
 };
 
 static InitChainEntry sInitChain[] = {
-    ICHAIN_F32(uncullZoneScale, 1200, ICHAIN_STOP),
+    ICHAIN_F32(cullingVolumeScale, 1200, ICHAIN_STOP),
 };
 
 typedef enum {
@@ -173,7 +171,7 @@ f32 EnHorseLinkChild_GetAnimSpeed(EnHorseLinkChild* this) {
 }
 
 void EnHorseLinkChild_Init(Actor* thisx, PlayState* play) {
-    EnHorseLinkChild* this = THIS;
+    EnHorseLinkChild* this = (EnHorseLinkChild*)thisx;
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
     Actor_SetScale(&this->actor, 64.8f * 0.0001f);
@@ -211,7 +209,7 @@ void EnHorseLinkChild_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnHorseLinkChild_Destroy(Actor* thisx, PlayState* play) {
-    EnHorseLinkChild* this = THIS;
+    EnHorseLinkChild* this = (EnHorseLinkChild*)thisx;
 
     Skin_Free(&play->state, &this->skin);
     Collider_DestroyCylinder(play, &this->colldierCylinder);
@@ -362,7 +360,7 @@ void func_808DF088(EnHorseLinkChild* this, PlayState* play) {
         s32 newYawDir;
         s32 pad;
 
-        if (Math3D_Distance(&player->actor.world.pos, &this->actor.home.pos) < 250.0f) {
+        if (Math3D_Vec3f_DistXYZ(&player->actor.world.pos, &this->actor.home.pos) < 250.0f) {
             newYawDiff = player->actor.shape.rot.y;
             if (Actor_WorldYawTowardActor(&this->actor, &player->actor) > 0) {
                 newYawDir = 1;
@@ -407,10 +405,10 @@ void EnHorseLinkChild_LonLonIdle(EnHorseLinkChild* this, PlayState* play) {
         (this->animIndex == OOT_CHILD_EPONA_ANIM_IDLE)) {
         //! @bug: The carry-over of this flag from OoT was not done correctly
         if (CHECK_WEEKEVENTREG(WEEKEVENTREG_ENTERED_ZORA_HALL)) {
-            f32 distToHome = Math3D_Distance(&this->actor.world.pos, &this->actor.home.pos);
+            f32 distToHome = Math3D_Vec3f_DistXYZ(&this->actor.world.pos, &this->actor.home.pos);
             s32 pad;
 
-            if (Math3D_Distance(&player->actor.world.pos, &this->actor.home.pos) > 250.0f) {
+            if (Math3D_Vec3f_DistXYZ(&player->actor.world.pos, &this->actor.home.pos) > 250.0f) {
                 if (distToHome >= 300.0f) {
                     animIndex = OOT_CHILD_EPONA_ANIM_GALLOP;
                     this->actor.speed = 6.0f;
@@ -544,7 +542,7 @@ void EnHorseLinkChild_ActionFunc4(EnHorseLinkChild* this, PlayState* play) {
         if (!this->isReturningHome) {
             distToTargetPos = Actor_WorldDistXZToActor(&this->actor, &GET_PLAYER(play)->actor);
         } else {
-            distToTargetPos = Math3D_Distance(&this->actor.world.pos, &this->actor.home.pos);
+            distToTargetPos = Math3D_Vec3f_DistXYZ(&this->actor.world.pos, &this->actor.home.pos);
         }
 
         if (!this->isReturningHome) {
@@ -587,7 +585,7 @@ void EnHorseLinkChild_ActionFunc4(EnHorseLinkChild* this, PlayState* play) {
 
 void EnHorseLinkChild_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnHorseLinkChild* this = THIS;
+    EnHorseLinkChild* this = (EnHorseLinkChild*)thisx;
 
     sActionFuncs[this->action](this, play);
 
@@ -617,7 +615,7 @@ void EnHorseLinkChild_Update(Actor* thisx, PlayState* play) {
 void EnHorseLinkChild_PostSkinDraw(Actor* thisx, PlayState* play, Skin* skin) {
     Vec3f sp4C;
     Vec3f sp40;
-    EnHorseLinkChild* this = THIS;
+    EnHorseLinkChild* this = (EnHorseLinkChild*)thisx;
     s32 i;
 
     for (i = 0; i < this->colliderJntSph.count; i++) {
@@ -638,7 +636,7 @@ void EnHorseLinkChild_PostSkinDraw(Actor* thisx, PlayState* play, Skin* skin) {
 }
 
 s32 EnHorseLinkChild_OverrideSkinDraw(Actor* thisx, PlayState* play, s32 limbIndex, Skin* skin) {
-    EnHorseLinkChild* this = THIS;
+    EnHorseLinkChild* this = (EnHorseLinkChild*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 
@@ -654,7 +652,7 @@ s32 EnHorseLinkChild_OverrideSkinDraw(Actor* thisx, PlayState* play, s32 limbInd
 }
 
 void EnHorseLinkChild_Draw(Actor* thisx, PlayState* play) {
-    EnHorseLinkChild* this = THIS;
+    EnHorseLinkChild* this = (EnHorseLinkChild*)thisx;
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     func_80138258(&this->actor, play, &this->skin, EnHorseLinkChild_PostSkinDraw, EnHorseLinkChild_OverrideSkinDraw,

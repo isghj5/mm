@@ -5,12 +5,10 @@
  */
 
 #include "z_demo_kankyo.h"
-#include "objects/gameplay_keep/gameplay_keep.h"
-#include "objects/object_bubble/object_bubble.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/object_bubble/object_bubble.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((DemoKankyo*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 void DemoKankyo_Init(Actor* thisx, PlayState* play);
 void DemoKankyo_Destroy(Actor* thisx, PlayState* play);
@@ -22,7 +20,7 @@ void DemoKakyo_MoonSparklesActionFunc(DemoKankyo* this, PlayState* play);
 static u8 sLostWoodsSparklesMutex = false; // make sure only one can exist at once
 static s16 sLostWoodsSkyFishParticleNum = 0;
 
-ActorInit Demo_Kankyo_InitVars = {
+ActorProfile Demo_Kankyo_Profile = {
     /**/ ACTOR_DEMO_KANKYO,
     /**/ ACTORCAT_ITEMACTION,
     /**/ FLAGS,
@@ -97,7 +95,7 @@ void DemoKakyo_LostWoodsSparkleActionFunc(DemoKankyo* this, PlayState* play) {
                 this->effects[i].scale = 0.1f;
 
                 // speedClock is angles in radians,
-                // should have used Rand_ZeroOne() * 2 * M_PI
+                // should have used Rand_ZeroOne() * 2 * M_PIf
                 // however, due to properties of sine waves, this is effectively still random
                 this->effects[i].speedClock.x = Rand_ZeroOne() * 360.0f;
                 this->effects[i].speedClock.y = Rand_ZeroOne() * 360.0f;
@@ -335,7 +333,7 @@ void DemoKakyo_MoonSparklesActionFunc(DemoKankyo* this, PlayState* play) {
                 this->effects[i].scale = 0.2f;
 
                 // speedClock is angles in radians,
-                // should have used Rand_ZeroOne() * 2 * M_PI
+                // should have used Rand_ZeroOne() * 2 * M_PIf
                 // however, due to properties of sine waves, this is effectively still random
                 this->effects[i].speedClock.x = Rand_ZeroOne() * 360.0f;
                 this->effects[i].speedClock.y = Rand_ZeroOne() * 360.0f;
@@ -434,7 +432,7 @@ void DemoKakyo_MoonSparklesActionFunc(DemoKankyo* this, PlayState* play) {
 }
 
 void DemoKankyo_Init(Actor* thisx, PlayState* play) {
-    DemoKankyo* this = THIS;
+    DemoKankyo* this = (DemoKankyo*)thisx;
     s32 pad;
     s32 i;
     s32 objectSlot;
@@ -483,20 +481,20 @@ void DemoKankyo_Init(Actor* thisx, PlayState* play) {
 }
 
 void DemoKankyo_Destroy(Actor* thisx, PlayState* play) {
-    DemoKankyo* this = THIS;
+    DemoKankyo* this = (DemoKankyo*)thisx;
 
     Actor_Kill(&this->actor);
 }
 
 void DemoKankyo_Update(Actor* thisx, PlayState* play) {
-    DemoKankyo* this = THIS;
+    DemoKankyo* this = (DemoKankyo*)thisx;
 
     this->actionFunc(this, play);
 }
 
 void DemoKakyo_DrawLostWoodsSparkle(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    DemoKankyo* this = THIS;
+    DemoKankyo* this = (DemoKankyo*)thisx;
     s16 i;
     f32 scaleAlpha;
     Vec3f worldPos;
@@ -574,8 +572,7 @@ void DemoKakyo_DrawLostWoodsSparkle(Actor* thisx, PlayState* play2) {
                 Matrix_Mult(&play->billboardMtxF, MTXMODE_APPLY);
                 Matrix_RotateZF(DEG_TO_RAD(play->state.frames * 20.0f), MTXMODE_APPLY);
 
-                gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx),
-                          G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+                MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
                 gSPDisplayList(POLY_XLU_DISP++, gSunSparkleModelDL);
             }
         }
@@ -587,7 +584,7 @@ void DemoKakyo_DrawLostWoodsSparkle(Actor* thisx, PlayState* play2) {
 // draw, giants and moon
 void DemoKankyo_DrawMoonAndGiant(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    DemoKankyo* this = THIS;
+    DemoKankyo* this = (DemoKankyo*)thisx;
     s16 i;
     f32 alphaScale;
 
@@ -647,8 +644,7 @@ void DemoKankyo_DrawMoonAndGiant(Actor* thisx, PlayState* play2) {
 
                 Matrix_RotateZF(DEG_TO_RAD(play->state.frames * 20.0f), MTXMODE_APPLY);
 
-                gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx),
-                          G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+                MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
 
                 if (this->actor.params == DEMO_KANKYO_TYPE_GIANTS) {
                     gSPDisplayList(POLY_XLU_DISP++, gBubbleDL);
@@ -663,7 +659,7 @@ void DemoKankyo_DrawMoonAndGiant(Actor* thisx, PlayState* play2) {
 }
 
 void DemoKankyo_Draw(Actor* thisx, PlayState* play) {
-    DemoKankyo* this = THIS;
+    DemoKankyo* this = (DemoKankyo*)thisx;
 
     switch (this->actor.params) {
         case DEMO_KANKYO_TYPE_LOSTWOODS:

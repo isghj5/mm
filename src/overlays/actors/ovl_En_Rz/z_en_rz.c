@@ -7,9 +7,7 @@
 #include "z_en_rz.h"
 #include "assets/objects/gameplay_keep/gameplay_keep.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
-
-#define THIS ((EnRz*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY)
 
 void EnRz_Init(Actor* thisx, PlayState* play);
 void EnRz_Destroy(Actor* thisx, PlayState* play);
@@ -49,7 +47,7 @@ typedef enum {
     /* 2 */ EN_RZ_PATHSTATUS_END       //!< reached end of path
 } EnRzPathStatus;
 
-ActorInit En_Rz_InitVars = {
+ActorProfile En_Rz_Profile = {
     /**/ ACTOR_EN_RZ,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -67,7 +65,7 @@ static TexturePtr sEyeTextures[] = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AC_TYPE_ENEMY,
         OC1_ON | OC1_TYPE_ALL,
@@ -75,18 +73,18 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_ON,
     },
     { 20, 40, 0, { 0, 0, 0 } },
 };
 
 void EnRz_Init(Actor* thisx, PlayState* play) {
-    EnRz* this = THIS;
+    EnRz* this = (EnRz*)thisx;
     s16 csId = this->actor.csId;
     s32 i;
 
@@ -113,7 +111,7 @@ void EnRz_Init(Actor* thisx, PlayState* play) {
     this->actionFunc = func_80BFC058;
     EnRz_SetupPath(this, play);
     this->animIndex = EN_RZ_ANIM_MAX;
-    this->actor.targetMode = TARGET_MODE_0;
+    this->actor.attentionRangeType = ATTENTION_RANGE_0;
     this->actor.terminalVelocity = -9.0f;
     this->actor.gravity = -1.0f;
 
@@ -129,7 +127,7 @@ void EnRz_Init(Actor* thisx, PlayState* play) {
             break;
 
         case EN_RZ_TYPE_2:
-            this->actor.flags |= ACTOR_FLAG_10;
+            this->actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
             if (CHECK_WEEKEVENTREG(WEEKEVENTREG_77_04)) {
                 EnRz_ChangeAnim(play, this, EN_RZ_ANIM_LINK_DANCE, ANIMMODE_LOOP, 0.0f);
             } else {
@@ -137,7 +135,7 @@ void EnRz_Init(Actor* thisx, PlayState* play) {
             }
             this->actionFunc = func_80BFC3F8;
             this->sister = EnRz_FindSister(this, play);
-            this->actor.uncullZoneForward = 300.0f;
+            this->actor.cullingVolumeDistance = 300.0f;
             break;
 
         default: // EN_RZ_TYPE_0
@@ -170,7 +168,7 @@ void EnRz_Init(Actor* thisx, PlayState* play) {
  */
 void EnRz_ActorShadowFunc(Actor* thisx, Lights* mapper, PlayState* play) {
     Vec3f oldPos;
-    EnRz* this = THIS;
+    EnRz* this = (EnRz*)thisx;
 
     if (this->animIndex == EN_RZ_ANIM_LINK_DANCE) {
         f32 tempScale = (((27.0f - this->shadowPos.y) + this->actor.world.pos.y) * ((1 / 2.25f) * 0.001f)) + 0.01f;
@@ -356,14 +354,14 @@ EnRz* EnRz_FindSister(EnRz* this, PlayState* play) {
 }
 
 void func_80BFBDFC(PlayState* play) {
-    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_75_80)) {
+    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_RECEIVED_ROSA_SISTERS_HEART_PIECE)) {
         Message_BombersNotebookQueueEvent(play, BOMBERS_NOTEBOOK_EVENT_RECEIVED_ROSA_SISTERS_HP);
     }
     Message_BombersNotebookQueueEvent(play, BOMBERS_NOTEBOOK_EVENT_MET_ROSA_SISTERS);
 }
 
 void EnRz_Destroy(Actor* thisx, PlayState* play) {
-    EnRz* this = THIS;
+    EnRz* this = (EnRz*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -505,11 +503,11 @@ void func_80BFC36C(EnRz* this, PlayState* play) {
     EnRz_UpdateSkelAnime(this, play);
     if (func_80BFBFAC(this, play)) {
         SET_WEEKEVENTREG(WEEKEVENTREG_77_04);
-        if (CHECK_WEEKEVENTREG(WEEKEVENTREG_75_80)) {
+        if (CHECK_WEEKEVENTREG(WEEKEVENTREG_RECEIVED_ROSA_SISTERS_HEART_PIECE)) {
             this->actionFunc = func_80BFC214;
         } else {
             this->actionFunc = func_80BFC2F4;
-            SET_WEEKEVENTREG(WEEKEVENTREG_75_80);
+            SET_WEEKEVENTREG(WEEKEVENTREG_RECEIVED_ROSA_SISTERS_HEART_PIECE);
         }
         this->actor.csId = this->csIdList[1];
     }
@@ -529,10 +527,10 @@ void func_80BFC3F8(EnRz* this, PlayState* play) {
         if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
             this->actionFunc = func_80BFC078;
 
-            if (CHECK_FLAG_ALL(this->actor.flags, ACTOR_FLAG_10000)) {
+            if (CHECK_FLAG_ALL(this->actor.flags, ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED)) {
                 this->actionFunc = func_80BFC36C;
                 this->actor.csId = this->csIdList[0];
-                this->actor.flags &= ~ACTOR_FLAG_10000;
+                this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
             } else if (Player_GetMask(play) == PLAYER_MASK_KAMARO) {
                 if (CHECK_WEEKEVENTREG(WEEKEVENTREG_77_04)) {
                     Message_StartTextbox(play, 0x2925, &this->actor);
@@ -548,10 +546,10 @@ void func_80BFC3F8(EnRz* this, PlayState* play) {
 
         } else if (EnRz_CanTalk(this, play)) {
             if (func_80BFBCEC(this, play) && !CHECK_WEEKEVENTREG(WEEKEVENTREG_77_04) && this->sister != NULL) {
-                this->actor.flags |= ACTOR_FLAG_10000;
+                this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
                 Actor_OfferTalkExchange(&this->actor, play, 1000.0f, 1000.0f, PLAYER_IA_MINUS1);
             } else {
-                this->actor.flags &= ~ACTOR_FLAG_10000;
+                this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
                 Actor_OfferTalk(&this->actor, play, 120.0f);
             }
         }
@@ -663,7 +661,7 @@ void EnRz_Walk(EnRz* this, PlayState* play) {
 
 void EnRz_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnRz* this = THIS;
+    EnRz* this = (EnRz*)thisx;
 
     Collider_UpdateCylinder(&this->actor, &this->collider);
     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
@@ -684,7 +682,7 @@ void EnRz_Update(Actor* thisx, PlayState* play) {
 
 void EnRz_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
     static Vec3f sFocusOffsetPos = { 500.0f, -500.0f, 0.0f };
-    EnRz* this = THIS;
+    EnRz* this = (EnRz*)thisx;
 
     if (limbIndex == OBJECT_RZ_LIMB_0B) {
         Matrix_MultVec3f(&sFocusOffsetPos, &thisx->focus.pos);
@@ -695,7 +693,7 @@ void EnRz_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
 }
 
 void EnRz_Draw(Actor* thisx, PlayState* play) {
-    EnRz* this = THIS;
+    EnRz* this = (EnRz*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 

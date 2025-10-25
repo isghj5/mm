@@ -8,11 +8,11 @@
 #include "z64quake.h"
 #include "z64rumble.h"
 #include "overlays/actors/ovl_En_Pametfrog/z_en_pametfrog.h"
-#include "objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_UNFRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_20 | ACTOR_FLAG_400)
-
-#define THIS ((EnBigpamet*)thisx)
+#define FLAGS                                                                                 \
+    (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE | ACTOR_FLAG_UPDATE_CULLING_DISABLED | \
+     ACTOR_FLAG_DRAW_CULLING_DISABLED | ACTOR_FLAG_HOOKSHOT_PULLS_PLAYER)
 
 void EnBigpamet_Init(Actor* thisx, PlayState* play);
 void EnBigpamet_Destroy(Actor* thisx, PlayState* play);
@@ -46,7 +46,7 @@ void func_80A28A28(EnBigpamet* this);
 void func_80A28D80(EnBigpamet* this);
 void func_80A28ED4(EnBigpamet* this);
 
-ActorInit En_Bigpamet_InitVars = {
+ActorProfile En_Bigpamet_Profile = {
     /**/ ACTOR_EN_BIGPAMET,
     /**/ ACTORCAT_BOSS,
     /**/ FLAGS,
@@ -60,7 +60,7 @@ ActorInit En_Bigpamet_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_HARD,
+        COL_MATERIAL_HARD,
         AT_NONE | AT_TYPE_ENEMY,
         AC_ON | AC_HARD | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_ALL,
@@ -68,11 +68,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0xF7CFFFFF, 0x04, 0x04 },
         { 0xF7CF7FFF, 0x00, 0x00 },
-        TOUCH_ON | TOUCH_SFX_NORMAL,
-        BUMP_ON | BUMP_HOOKABLE,
+        ATELEM_ON | ATELEM_SFX_NORMAL,
+        ACELEM_ON | ACELEM_HOOKABLE,
         OCELEM_ON,
     },
     { 53, 50, 0, { 0, 0, 0 } },
@@ -126,8 +126,8 @@ static InitChainEntry sInitChain[] = {
     ICHAIN_S8(hintId, 1, ICHAIN_CONTINUE),
     ICHAIN_VEC3F_DIV1000(scale, 15, ICHAIN_CONTINUE),
     ICHAIN_F32(gravity, -2, ICHAIN_CONTINUE),
-    ICHAIN_F32(targetArrowOffset, 4333, ICHAIN_CONTINUE),
-    ICHAIN_U8(targetMode, TARGET_MODE_5, ICHAIN_STOP),
+    ICHAIN_F32(lockOnArrowOffset, 4333, ICHAIN_CONTINUE),
+    ICHAIN_U8(attentionRangeType, ATTENTION_RANGE_5, ICHAIN_STOP),
 };
 
 static s32 sTexturesDesegmented = false;
@@ -136,7 +136,7 @@ Color_RGBA8 D_80A29788 = { 250, 250, 250, 255 };
 Color_RGBA8 D_80A2978C = { 180, 180, 180, 255 };
 
 void EnBigpamet_Init(Actor* thisx, PlayState* play) {
-    EnBigpamet* this = THIS;
+    EnBigpamet* this = (EnBigpamet*)thisx;
     s32 i;
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
@@ -163,7 +163,7 @@ void EnBigpamet_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnBigpamet_Destroy(Actor* thisx, PlayState* play) {
-    EnBigpamet* this = THIS;
+    EnBigpamet* this = (EnBigpamet*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -227,7 +227,7 @@ void func_80A2778C(EnBigpamet* this) {
 void func_80A27970(EnBigpamet* this, PlayState* play2) {
     Vec3f sp9C;
     f32 temp_fs1 = this->actor.depthInWater + this->actor.world.pos.y;
-    s32 sp94;
+    s32 bgId;
     s32 i;
     s16 temp_s0;
     f32 temp_fs0;
@@ -242,7 +242,7 @@ void func_80A27970(EnBigpamet* this, PlayState* play2) {
         sp9C.y = Rand_ZeroFloat(10.0f) + this->actor.floorHeight + 8.0f;
         sp9C.z = (Math_CosS(temp_s0) * temp_fs0) + this->actor.world.pos.z;
 
-        if (BgCheck_EntityRaycastFloor5_2(play, &play->colCtx, &sp84, &sp94, &this->actor, &sp9C) < temp_fs1) {
+        if (BgCheck_EntityRaycastFloor5_2(play, &play->colCtx, &sp84, &bgId, &this->actor, &sp9C) < temp_fs1) {
             sp9C.y = temp_fs1;
             EffectSsGSplash_Spawn(play, &sp9C, NULL, NULL, 0, Rand_S16Offset(1000, 200));
         } else {
@@ -366,7 +366,7 @@ void func_80A2811C(EnBigpamet* this, PlayState* play) {
 
 void func_80A281B4(EnBigpamet* this) {
     this->actor.draw = NULL;
-    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+    this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
     this->actionFunc = func_80A281DC;
 }
 
@@ -484,7 +484,7 @@ void func_80A2866C(EnBigpamet* this, PlayState* play) {
 }
 
 void func_80A286C0(EnBigpamet* this) {
-    this->collider.info.bumper.dmgFlags = 0xF7CF7FFF;
+    this->collider.elem.acDmgInfo.dmgFlags = 0xF7CF7FFF;
     this->collider.base.atFlags |= AT_ON;
     this->actor.shape.rot.z = 0x680;
     this->unk_29E = 15;
@@ -563,7 +563,7 @@ void func_80A28970(EnBigpamet* this) {
     Actor_PlaySfx(&this->actor, NA_SE_EN_PAMET_CUTTER_OFF);
     this->actor.shape.rot.z = 0;
     this->collider.base.atFlags &= ~AT_ON;
-    this->collider.info.bumper.dmgFlags = 0xF7CFFFFF;
+    this->collider.elem.acDmgInfo.dmgFlags = 0xF7CFFFFF;
     this->actor.speed = 0.0f;
     this->actionFunc = func_80A289C8;
 }
@@ -616,7 +616,7 @@ void func_80A28B98(EnBigpamet* this, PlayState* play) {
     Animation_PlayLoop(&this->snapperSkelAnime, &gSnapperDeathAnim);
 
     this->collider.base.atFlags &= ~AT_ON;
-    this->collider.info.bumper.dmgFlags = 0xF7CFFFFF;
+    this->collider.elem.acDmgInfo.dmgFlags = 0xF7CFFFFF;
     this->collider.base.atFlags &= ~(AT_HIT | AT_BOUNCED);
     this->collider.base.acFlags &= ~AC_ON;
 
@@ -631,7 +631,7 @@ void func_80A28B98(EnBigpamet* this, PlayState* play) {
 
     this->actor.shape.rot.y = this->actor.world.rot.y;
     this->actor.bgCheckFlags &= ~BGCHECKFLAG_GROUND;
-    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+    this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
     this->actor.params = ENBIGPAMET_0;
 
     if ((this->actor.parent->params == GEKKO_ON_SNAPPER) || (this->actor.parent->params == GEKKO_REAR_ON_SNAPPER) ||
@@ -683,7 +683,7 @@ void func_80A28DC0(EnBigpamet* this, PlayState* play) {
 
 void func_80A28E40(EnBigpamet* this) {
     Animation_MorphToPlayOnce(&this->snapperSkelAnime, &gSnapperRearUpAnim, -2.0f);
-    this->actor.flags |= ACTOR_FLAG_TARGETABLE;
+    this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
     this->actor.speed = 0.0f;
     this->actionFunc = func_80A28E98;
 }
@@ -748,7 +748,7 @@ void func_80A29094(EnBigpamet* this) {
 
 void EnBigpamet_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnBigpamet* this = THIS;
+    EnBigpamet* this = (EnBigpamet*)thisx;
 
     func_80A2768C(this);
     func_80A29028(this, play);
@@ -802,7 +802,7 @@ void func_80A292A8(EnBigpamet* this, PlayState* play) {
             Matrix_SetTranslateRotateYXZ(ptr->unk_00.x, ptr->unk_00.y, ptr->unk_00.z, &ptr->unk_18);
             Matrix_Scale(ptr->unk_20, ptr->unk_20, ptr->unk_20, MTXMODE_APPLY);
 
-            gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+            MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
             gSPDisplayList(POLY_OPA_DISP++, gameplay_keep_DL_06AB30);
         }
 
@@ -811,7 +811,7 @@ void func_80A292A8(EnBigpamet* this, PlayState* play) {
 }
 
 s32 EnBigpamet_OverrideLimbDraw2(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnBigpamet* this = THIS;
+    EnBigpamet* this = (EnBigpamet*)thisx;
 
     if ((this->actionFunc == func_80A2855C) || (this->actionFunc == func_80A28A98)) {
         if (limbIndex == SNAPPER_LIMB_HEAD) {
@@ -825,7 +825,7 @@ s32 EnBigpamet_OverrideLimbDraw2(PlayState* play, s32 limbIndex, Gfx** dList, Ve
 }
 
 void EnBigpamet_PostLimbDraw2(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    EnBigpamet* this = THIS;
+    EnBigpamet* this = (EnBigpamet*)thisx;
 
     if (limbIndex == SNAPPER_LIMB_BODY) {
         this->unk_2AC = Matrix_GetCurrent()->yw;
@@ -833,7 +833,7 @@ void EnBigpamet_PostLimbDraw2(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s
 }
 
 void EnBigpamet_Draw(Actor* thisx, PlayState* play) {
-    EnBigpamet* this = THIS;
+    EnBigpamet* this = (EnBigpamet*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 
@@ -850,7 +850,7 @@ void EnBigpamet_Draw(Actor* thisx, PlayState* play) {
 }
 
 s32 EnBigpamet_OverrideLimbDraw1(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnBigpamet* this = THIS;
+    EnBigpamet* this = (EnBigpamet*)thisx;
 
     if (limbIndex == SPIKED_SNAPPER_LIMB_BODY) {
         if (this->actionFunc == func_80A28D0C) {
@@ -868,7 +868,7 @@ s32 EnBigpamet_OverrideLimbDraw1(PlayState* play, s32 limbIndex, Gfx** dList, Ve
 }
 
 void EnBigpamet_PostLimbDraw1(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    EnBigpamet* this = THIS;
+    EnBigpamet* this = (EnBigpamet*)thisx;
 
     if (limbIndex == SPIKED_SNAPPER_LIMB_BODY) {
         this->unk_2AC = Matrix_GetCurrent()->yw;
@@ -876,7 +876,7 @@ void EnBigpamet_PostLimbDraw1(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s
 }
 
 void func_80A2966C(Actor* thisx, PlayState* play) {
-    EnBigpamet* this = THIS;
+    EnBigpamet* this = (EnBigpamet*)thisx;
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawFlexOpa(play, this->spikedSnapperSkelAnime.skeleton, this->spikedSnapperSkelAnime.jointTable,

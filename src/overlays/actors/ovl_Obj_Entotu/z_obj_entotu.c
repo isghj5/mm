@@ -5,18 +5,16 @@
  */
 
 #include "z_obj_entotu.h"
-#include "objects/object_f53_obj/object_f53_obj.h"
+#include "assets/objects/object_f53_obj/object_f53_obj.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((ObjEntotu*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 void ObjEntotu_Init(Actor* thisx, PlayState* play);
 void ObjEntotu_Destroy(Actor* thisx, PlayState* play);
 void ObjEntotu_Update(Actor* thisx, PlayState* play);
 void ObjEntotu_Draw(Actor* thisx, PlayState* play);
 
-ActorInit Obj_Entotu_InitVars = {
+ActorProfile Obj_Entotu_Profile = {
     /**/ ACTOR_OBJ_ENTOTU,
     /**/ ACTORCAT_PROP,
     /**/ FLAGS,
@@ -28,7 +26,7 @@ ActorInit Obj_Entotu_InitVars = {
     /**/ ObjEntotu_Draw,
 };
 
-#include "overlays/ovl_Obj_Entotu/ovl_Obj_Entotu.c"
+#include "assets/overlays/ovl_Obj_Entotu/ovl_Obj_Entotu.c"
 
 s32 func_80A34700(s16 minutes) {
     s32 ret = 0;
@@ -106,7 +104,7 @@ void func_80A34A44(ObjEntotu* this, PlayState* play) {
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
-    gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
     gSPDisplayList(POLY_OPA_DISP++, object_f53_obj_DL_000158);
 
     CLOSE_DISPS(play->state.gfxCtx);
@@ -141,7 +139,7 @@ void func_80A34B28(ObjEntotu* this, PlayState* play) {
         gSPSegment(POLY_XLU_DISP++, 0x08,
                    Gfx_TwoTexScroll(play->state.gfxCtx, 0, 0, sp57, 0x20, 0x20, 1, 0, sp56, 0x20, 0x20));
         gSPSegment(POLY_XLU_DISP++, 0x09, Lib_SegmentedToVirtual(this->unk_148));
-        gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+        MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
         gSPDisplayList(POLY_XLU_DISP++, object_f53_obj_DL_001C00);
 
         CLOSE_DISPS(play->state.gfxCtx);
@@ -149,7 +147,7 @@ void func_80A34B28(ObjEntotu* this, PlayState* play) {
 }
 
 void ObjEntotu_Init(Actor* thisx, PlayState* play) {
-    ObjEntotu* this = THIS;
+    ObjEntotu* this = (ObjEntotu*)thisx;
 
     Lib_MemCpy(this->unk_148, ovl_Obj_Entotu_Vtx_000D10, sizeof(ovl_Obj_Entotu_Vtx_000D10));
     this->unk_1C6 = Rand_S16Offset(0, 59);
@@ -160,13 +158,13 @@ void ObjEntotu_Destroy(Actor* thisx, PlayState* play) {
 }
 
 void ObjEntotu_Update(Actor* thisx, PlayState* play) {
-    ObjEntotu* this = THIS;
+    ObjEntotu* this = (ObjEntotu*)thisx;
 
     func_80A349C0(this);
 }
 
 void ObjEntotu_Draw(Actor* thisx, PlayState* play) {
-    ObjEntotu* this = THIS;
+    ObjEntotu* this = (ObjEntotu*)thisx;
 
     func_80A34B28(this, play);
     func_80A34A44(this, play);

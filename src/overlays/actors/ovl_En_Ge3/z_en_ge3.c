@@ -5,10 +5,11 @@
  */
 
 #include "z_en_ge3.h"
+#include "attributes.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_80000000)
-
-#define THIS ((EnGe3*)thisx)
+#define FLAGS                                                                                  \
+    (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED | \
+     ACTOR_FLAG_MINIMAP_ICON_ENABLED)
 
 void EnGe3_Init(Actor* thisx, PlayState* play);
 void EnGe3_Destroy(Actor* thisx, PlayState* play);
@@ -35,7 +36,7 @@ typedef enum GerudoAveilAnimation {
     /*  9 */ GERUDO_AVEIL_ANIM_MAX
 } GerudoAveilAnimation;
 
-ActorInit En_Ge3_InitVars = {
+ActorProfile En_Ge3_Profile = {
     /**/ ACTOR_EN_GE3,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -49,7 +50,7 @@ ActorInit En_Ge3_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_ALL,
@@ -57,11 +58,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0x01000222, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_ON,
     },
     { 20, 50, 0, { 0, 0, 0 } },
@@ -69,7 +70,7 @@ static ColliderCylinderInit sCylinderInit = {
 
 void EnGe3_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnGe3* this = THIS;
+    EnGe3* this = (EnGe3*)thisx;
 
     ActorShape_Init(&this->picto.actor.shape, 0.0f, ActorShadow_DrawCircle, 20.0f);
     SkelAnime_InitFlex(play, &this->skelAnime, &gGerudoRedSkel, NULL, this->jointTable, this->morphTable,
@@ -99,14 +100,14 @@ void EnGe3_Init(Actor* thisx, PlayState* play) {
     }
 
     this->stateFlags = 0;
-    this->picto.actor.targetMode = 6;
+    this->picto.actor.attentionRangeType = 6;
     this->picto.actor.terminalVelocity = -4.0f;
     this->picto.actor.gravity = -1.0f;
     CLEAR_WEEKEVENTREG(WEEKEVENTREG_80_08);
 }
 
 void EnGe3_Destroy(Actor* thisx, PlayState* play) {
-    EnGe3* this = THIS;
+    EnGe3* this = (EnGe3*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -306,7 +307,7 @@ void EnGe3_AveilsChamberIdle(EnGe3* this, PlayState* play) {
 
 void EnGe3_UpdateColliderAndMove(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnGe3* this = THIS;
+    EnGe3* this = (EnGe3*)thisx;
 
     Collider_UpdateCylinder(&this->picto.actor, &this->collider);
     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
@@ -327,7 +328,7 @@ void EnGe3_Blink(EnGe3* this, PlayState* play) {
 }
 
 void EnGe3_Update(Actor* thisx, PlayState* play) {
-    EnGe3* this = THIS;
+    EnGe3* this = (EnGe3*)thisx;
 
     EnGe3_UpdateColliderAndMove(&this->picto.actor, play);
     this->actionFunc(this, play);
@@ -345,7 +346,7 @@ s32 EnGe3_ValidatePictograph(PlayState* play, Actor* thisx) {
 }
 
 s32 EnGe3_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnGe3* this = THIS;
+    EnGe3* this = (EnGe3*)thisx;
 
     switch (limbIndex) {
         case GERUDO_RED_LIMB_VEIL:
@@ -356,7 +357,7 @@ s32 EnGe3_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
 
         case GERUDO_RED_LIMB_HEAD:
             rot->x += this->headRot.y;
-            // fallthrough
+            FALLTHROUGH;
         default:
             // This is required since EnGe3 shares a skeleton with EnKaizoku; it avoids stale colours being used in the
             // displaylists.
@@ -403,7 +404,7 @@ s32 EnGe3_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
 }
 
 void EnGe3_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    EnGe3* this = THIS;
+    EnGe3* this = (EnGe3*)thisx;
     Vec3f sFocusOffset = { 600.0f, 700.0f, 0.0f };
 
     if (limbIndex == GERUDO_RED_LIMB_HEAD) {
@@ -418,7 +419,7 @@ void EnGe3_Draw(Actor* thisx, PlayState* play) {
         gGerudoRedEyeClosedTex,
     };
     s32 pad;
-    EnGe3* this = THIS;
+    EnGe3* this = (EnGe3*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 

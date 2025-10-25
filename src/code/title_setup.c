@@ -1,4 +1,6 @@
 #include "z_title_setup.h"
+#include "sys_flashrom.h"
+
 #include "overlays/gamestates/ovl_title/z_title.h"
 
 void Setup_InitRegs(void) {
@@ -10,7 +12,7 @@ void Setup_InitRegs(void) {
     R_A_BTN_Y_OFFSET = 0;
     R_MAGIC_CONSUME_TIMER_GIANTS_MASK = 80;
 
-    R_THREE_DAY_CLOCK_Y_POS = 64596;
+    R_THREE_DAY_CLOCK_Y_POS = -940;
     R_THREE_DAY_CLOCK_SUN_MOON_CUTOFF = 215;
     R_THREE_DAY_CLOCK_HOUR_DIGIT_CUTOFF = 218;
 
@@ -30,7 +32,7 @@ void Setup_InitRegs(void) {
     XREG(90) = 0x1C2;
 
     R_STORY_FILL_SCREEN_ALPHA = 0;
-    R_REVERSE_FLOOR_INDEX = 0;
+    R_PLAYER_FLOOR_REVERSE_INDEX = 0;
     R_MINIMAP_DISABLED = false;
 
     R_PICTO_FOCUS_BORDER_TOPLEFT_X = 80;

@@ -5,12 +5,10 @@
  */
 
 #include "z_en_trt.h"
-#include "objects/object_trt/object_trt.h"
-#include "objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/object_trt/object_trt.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
-
-#define THIS ((EnTrt*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY)
 
 #define ENTRT_FULLY_AWAKE (1 << 0)
 #define ENTRT_GIVEN_MUSHROOM (1 << 1)
@@ -64,33 +62,34 @@ void EnTrt_Blink(EnTrt* this);
 void EnTrt_OpenEyes2(EnTrt* this);
 void EnTrt_NodOff(EnTrt* this);
 
-typedef enum {
-    /* 0 */ TRT_ANIM_IDLE,
-    /* 1 */ TRT_ANIM_HALF_AWAKE,
-    /* 2 */ TRT_ANIM_SLEEPING,
-    /* 3 */ TRT_ANIM_WAKE_UP,
-    /* 4 */ TRT_ANIM_SURPRISED,
-    /* 5 */ TRT_ANIM_HANDS_ON_COUNTER,
-    /* 6 */ TRT_ANIM_HOVER,
-    /* 7 */ TRT_ANIM_FLY_LOOK_AROUND,
-    /* 8 */ TRT_ANIM_FLY_DOWN,
-    /* 9 */ TRT_ANIM_FLY
+typedef enum TrtAnimation {
+    /*  0 */ TRT_ANIM_IDLE,
+    /*  1 */ TRT_ANIM_HALF_AWAKE,
+    /*  2 */ TRT_ANIM_SLEEPING,
+    /*  3 */ TRT_ANIM_WAKE_UP,
+    /*  4 */ TRT_ANIM_SURPRISED,
+    /*  5 */ TRT_ANIM_HANDS_ON_COUNTER,
+    /*  6 */ TRT_ANIM_HOVER,
+    /*  7 */ TRT_ANIM_FLY_LOOK_AROUND,
+    /*  8 */ TRT_ANIM_FLY_DOWN,
+    /*  9 */ TRT_ANIM_FLY,
+    /* 10 */ TRT_ANIM_MAX
 } TrtAnimation;
 
-static AnimationInfoS sAnimationInfo[] = {
-    { &gKotakeIdleAnim, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },
-    { &gKotakeHalfAwakeAnim, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },
-    { &gKotakeSleepingAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },
-    { &gKotakeWakeUpAnim, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },
-    { &gKotakeSurprisedAnim, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },
-    { &gKotakeHandsOnCounterAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },
-    { &gKotakeHoverAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },
-    { &gKotakeFlyLookAroundAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },
-    { &gKotakeFlyDownAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },
-    { &gKotakeFlyAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },
+static AnimationInfoS sAnimationInfo[TRT_ANIM_MAX] = {
+    { &gKotakeIdleAnim, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },           // TRT_ANIM_IDLE
+    { &gKotakeHalfAwakeAnim, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },      // TRT_ANIM_HALF_AWAKE
+    { &gKotakeSleepingAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },       // TRT_ANIM_SLEEPING
+    { &gKotakeWakeUpAnim, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },         // TRT_ANIM_WAKE_UP
+    { &gKotakeSurprisedAnim, 1.0f, 0, -1, ANIMMODE_ONCE, 0 },      // TRT_ANIM_SURPRISED
+    { &gKotakeHandsOnCounterAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 }, // TRT_ANIM_HANDS_ON_COUNTER
+    { &gKotakeHoverAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },          // TRT_ANIM_HOVER
+    { &gKotakeFlyLookAroundAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },  // TRT_ANIM_FLY_LOOK_AROUND
+    { &gKotakeFlyDownAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },        // TRT_ANIM_FLY_DOWN
+    { &gKotakeFlyAnim, 1.0f, 0, -1, ANIMMODE_LOOP, 0 },            // TRT_ANIM_FLY
 };
 
-ActorInit En_Trt_InitVars = {
+ActorProfile En_Trt_Profile = {
     /**/ ACTOR_EN_TRT,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -111,16 +110,18 @@ static ShopItem sShop[] = {
 };
 
 void EnTrt_ChangeAnim(SkelAnime* skelAnime, AnimationInfoS* animationInfo, s32 animIndex) {
-    f32 frameCount;
+    f32 endFrame;
 
     animationInfo += animIndex;
+
     if (animationInfo->frameCount < 0) {
-        frameCount = Animation_GetLastFrame(animationInfo->animation);
+        endFrame = Animation_GetLastFrame(animationInfo->animation);
     } else {
-        frameCount = animationInfo->frameCount;
+        endFrame = animationInfo->frameCount;
     }
-    Animation_Change(skelAnime, animationInfo->animation, animationInfo->playSpeed, animationInfo->startFrame,
-                     frameCount, animationInfo->mode, animationInfo->morphFrames);
+
+    Animation_Change(skelAnime, animationInfo->animation, animationInfo->playSpeed, animationInfo->startFrame, endFrame,
+                     animationInfo->mode, animationInfo->morphFrames);
 }
 
 bool EnTrt_TestItemSelected(PlayState* play) {
@@ -225,8 +226,8 @@ void EnTrt_EndInteraction(PlayState* play, EnTrt* this) {
     this->stickLeftPrompt.isEnabled = false;
     this->stickRightPrompt.isEnabled = false;
     player->stateFlags2 &= ~PLAYER_STATE2_20000000;
-    play->interfaceCtx.unk_222 = 0;
-    play->interfaceCtx.unk_224 = 0;
+    play->interfaceCtx.bButtonInterfaceDoActionActive = false;
+    play->interfaceCtx.bButtonInterfaceDoAction = 0;
     this->textId = 0x834;
     this->timer = 80;
     this->flags |= ENTRT_FULLY_AWAKE;
@@ -254,7 +255,7 @@ s32 EnTrt_TestCancelOption(EnTrt* this, PlayState* play, Input* input) {
 }
 
 void EnTrt_SetupStartShopping(PlayState* play, EnTrt* this, u8 skipHello) {
-    func_8011552C(play, DO_ACTION_NEXT);
+    Interface_SetAButtonDoAction(play, DO_ACTION_NEXT);
     if (!skipHello) {
         this->actionFunc = EnTrt_Hello;
     } else {
@@ -264,7 +265,7 @@ void EnTrt_SetupStartShopping(PlayState* play, EnTrt* this, u8 skipHello) {
 
 void EnTrt_StartShopping(PlayState* play, EnTrt* this) {
     Message_ContinueTextbox(play, 0x83E);
-    func_8011552C(play, DO_ACTION_DECIDE);
+    Interface_SetAButtonDoAction(play, DO_ACTION_DECIDE);
     this->stickLeftPrompt.isEnabled = false;
     this->stickRightPrompt.isEnabled = true;
     this->actionFunc = EnTrt_FaceShopkeeper;
@@ -543,7 +544,7 @@ void EnTrt_FaceShopkeeper(EnTrt* this, PlayState* play) {
         CutsceneManager_Queue(this->csId);
         this->cutsceneState = ENTRT_CUTSCENESTATE_WAITING;
     } else if (talkState == TEXT_STATE_CHOICE) {
-        func_8011552C(play, DO_ACTION_DECIDE);
+        Interface_SetAButtonDoAction(play, DO_ACTION_DECIDE);
         if (!EnTrt_TestEndInteraction(this, play, CONTROLLER1(&play->state))) {
             if ((!Message_ShouldAdvance(play) || !EnTrt_FacingShopkeeperDialogResult(this, play)) &&
                 (this->stickAccumX > 0)) {
@@ -551,7 +552,7 @@ void EnTrt_FaceShopkeeper(EnTrt* this, PlayState* play) {
                 if (cursorIndex != CURSOR_INVALID) {
                     this->cursorIndex = cursorIndex;
                     this->actionFunc = EnTrt_LookToShelf;
-                    func_8011552C(play, DO_ACTION_DECIDE);
+                    Interface_SetAButtonDoAction(play, DO_ACTION_DECIDE);
                     this->stickRightPrompt.isEnabled = false;
                     Audio_PlaySfx(NA_SE_SY_CURSOR);
                 }
@@ -645,7 +646,7 @@ void EnTrt_BrowseShelf(EnTrt* this, PlayState* play) {
         this->stickLeftPrompt.isEnabled = true;
         EnTrt_UpdateCursorPos(play, this);
         if (talkState == TEXT_STATE_EVENT) {
-            func_8011552C(play, DO_ACTION_DECIDE);
+            Interface_SetAButtonDoAction(play, DO_ACTION_DECIDE);
             if (!EnTrt_HasPlayerSelectedItem(play, this, CONTROLLER1(&play->state))) {
                 EnTrt_CursorLeftRight(play, this);
                 if (this->cursorIndex != prevCursorIdx) {
@@ -738,7 +739,7 @@ void EnTrt_SelectItem(EnTrt* this, PlayState* play) {
 
     if (EnTrt_TakeItemOffShelf(this)) {
         if (talkState == TEXT_STATE_CHOICE) {
-            func_8011552C(play, DO_ACTION_DECIDE);
+            Interface_SetAButtonDoAction(play, DO_ACTION_DECIDE);
             if (!EnTrt_TestCancelOption(this, play, CONTROLLER1(&play->state)) && Message_ShouldAdvance(play)) {
                 switch (play->msgCtx.choiceIndex) {
                     case 0:
@@ -862,8 +863,8 @@ void EnTrt_IdleAwake(EnTrt* this, PlayState* play) {
         this->blinkFunc = EnTrt_EyesClosed;
         this->timer = 45;
         this->actionFunc = EnTrt_BeginInteraction;
-    } else if ((player->actor.world.pos.x >= -50.0f && player->actor.world.pos.x <= -25.0f) &&
-               (player->actor.world.pos.z >= -19.0f && player->actor.world.pos.z <= 30.0f)) {
+    } else if ((player->actor.world.pos.x >= -50.0f) && (player->actor.world.pos.x <= -25.0f) &&
+               (player->actor.world.pos.z >= -19.0f) && (player->actor.world.pos.z <= 30.0f)) {
         Actor_OfferTalk(&this->actor, play, 200.0f);
     }
     if (DECR(this->timer) == 0) {
@@ -879,7 +880,7 @@ void EnTrt_IdleAwake(EnTrt* this, PlayState* play) {
 
 void EnTrt_BeginInteraction(EnTrt* this, PlayState* play) {
     s16 curFrame = this->skelAnime.curFrame / this->skelAnime.playSpeed;
-    s16 animLastFrame = Animation_GetLastFrame(&gKotakeWakeUpAnim) / TRUNCF_BINANG(this->skelAnime.playSpeed);
+    s16 endFrame = Animation_GetLastFrame(&gKotakeWakeUpAnim) / TRUNCF_BINANG(this->skelAnime.playSpeed);
 
     if (this->cutsceneState == ENTRT_CUTSCENESTATE_WAITING) {
         if (CutsceneManager_IsNext(this->csId)) {
@@ -890,7 +891,7 @@ void EnTrt_BeginInteraction(EnTrt* this, PlayState* play) {
         }
     } else if (this->cutsceneState == ENTRT_CUTSCENESTATE_PLAYING_SPECIAL) {
         if (this->animIndex != TRT_ANIM_HANDS_ON_COUNTER) {
-            if (curFrame == animLastFrame) {
+            if (curFrame == endFrame) {
                 EnTrt_ChangeAnim(&this->skelAnime, sAnimationInfo, TRT_ANIM_WAKE_UP);
                 this->animIndex = TRT_ANIM_WAKE_UP;
                 this->blinkFunc = EnTrt_OpenEyesThenSetToBlink;
@@ -914,7 +915,7 @@ void EnTrt_BeginInteraction(EnTrt* this, PlayState* play) {
                     !CHECK_WEEKEVENTREG(WEEKEVENTREG_RECEIVED_RED_POTION_FOR_KOUME) &&
                     !CHECK_WEEKEVENTREG(WEEKEVENTREG_TALKED_KOUME_INJURED) &&
                     !CHECK_WEEKEVENTREG(WEEKEVENTREG_TALKED_KOUME_KIOSK_EMPTY)) {
-                    func_8011552C(play, DO_ACTION_DECIDE);
+                    Interface_SetAButtonDoAction(play, DO_ACTION_DECIDE);
                     this->stickLeftPrompt.isEnabled = false;
                     this->stickRightPrompt.isEnabled = true;
                     this->actionFunc = EnTrt_Hello;
@@ -924,7 +925,7 @@ void EnTrt_BeginInteraction(EnTrt* this, PlayState* play) {
                 break;
 
             case 0x83E:
-                func_8011552C(play, DO_ACTION_DECIDE);
+                Interface_SetAButtonDoAction(play, DO_ACTION_DECIDE);
                 this->stickLeftPrompt.isEnabled = false;
                 this->stickRightPrompt.isEnabled = true;
                 this->actionFunc = EnTrt_FaceShopkeeper;
@@ -1052,10 +1053,9 @@ void EnTrt_ItemGiven(EnTrt* this, PlayState* play) {
                 break;
 
             default:
-                //! FAKE:
-                if (1) {}
                 this->textId = 0x849;
-                break;
+                // note break is missing
+                // break;
         }
         Message_ContinueTextbox(play, this->textId);
     } else {
@@ -1142,7 +1142,7 @@ void EnTrt_ContinueShopping(EnTrt* this, PlayState* play) {
     EnGirlA* item;
 
     if (talkState == TEXT_STATE_CHOICE) {
-        func_8011552C(play, DO_ACTION_DECIDE);
+        Interface_SetAButtonDoAction(play, DO_ACTION_DECIDE);
         if (Message_ShouldAdvance(play)) {
             EnTrt_ResetItemPosition(this);
             item = this->items[this->cursorIndex];
@@ -1456,7 +1456,7 @@ void EnTrt_TalkToShopkeeper(EnTrt* this, PlayState* play) {
 void EnTrt_SetupTalkToShopkeeper(PlayState* play, EnTrt* this) {
     this->actionFunc = EnTrt_TalkToShopkeeper;
     Message_ContinueTextbox(play, this->talkOptionTextId);
-    func_8011552C(play, DO_ACTION_DECIDE);
+    Interface_SetAButtonDoAction(play, DO_ACTION_DECIDE);
     this->stickLeftPrompt.isEnabled = false;
     this->stickRightPrompt.isEnabled = false;
 }
@@ -1578,7 +1578,7 @@ void EnTrt_InitShop(EnTrt* this, PlayState* play) {
         this->flags |= ENTRT_GIVEN_MUSHROOM;
     }
 
-    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+    this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
 }
 
 void EnTrt_GetCutscenes(EnTrt* this, PlayState* play) {
@@ -1699,25 +1699,25 @@ void EnTrt_DrawStickDirectionPrompt(PlayState* play, EnTrt* this) {
 }
 
 static InitChainEntry sInitChain[] = {
-    ICHAIN_F32(targetArrowOffset, 500, ICHAIN_STOP),
+    ICHAIN_F32(lockOnArrowOffset, 500, ICHAIN_STOP),
 };
 
 void EnTrt_Init(Actor* thisx, PlayState* play) {
-    EnTrt* this = THIS;
+    EnTrt* this = (EnTrt*)thisx;
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
     EnTrt_InitShop(this, play);
 }
 
 void EnTrt_Destroy(Actor* thisx, PlayState* play) {
-    EnTrt* this = THIS;
+    EnTrt* this = (EnTrt*)thisx;
 
     SkelAnime_Free(&this->skelAnime, play);
     Collider_DestroyCylinder(play, &this->collider);
 }
 
 void EnTrt_Update(Actor* thisx, PlayState* play) {
-    EnTrt* this = THIS;
+    EnTrt* this = (EnTrt*)thisx;
 
     this->blinkFunc(this);
     EnTrt_UpdateJoystickInputState(play, this);
@@ -1770,7 +1770,7 @@ void EnTrt_UpdateLimb(s16 pitch, s16 yaw, Vec3f* pos, Vec3s* rot, s32 overrideRo
 }
 
 s32 EnTrt_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnTrt* this = THIS;
+    EnTrt* this = (EnTrt*)thisx;
     s32 i;
 
     for (i = 0; i < ARRAY_COUNT(this->items); i++) {
@@ -1786,7 +1786,7 @@ s32 EnTrt_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
 }
 
 void EnTrt_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    EnTrt* this = THIS;
+    EnTrt* this = (EnTrt*)thisx;
     s32 overrideRot;
 
     overrideRot = false;
@@ -1804,7 +1804,7 @@ void EnTrt_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
 }
 
 void EnTrt_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
-    EnTrt* this = THIS;
+    EnTrt* this = (EnTrt*)thisx;
 
     if (limbIndex == KOTAKE_LIMB_HEAD) {
         Matrix_Translate(this->headPos.x, this->headPos.y, this->headPos.z, MTXMODE_NEW);
@@ -1817,7 +1817,7 @@ void EnTrt_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
 
 void EnTrt_Draw(Actor* thisx, PlayState* play) {
     static TexturePtr sEyeTextures[] = { gKotakeEyeOpenTex, gKotakeEyeHalfTex, gKotakeEyeClosedTex };
-    EnTrt* this = THIS;
+    EnTrt* this = (EnTrt*)thisx;
     s32 pad;
 
     OPEN_DISPS(play->state.gfxCtx);

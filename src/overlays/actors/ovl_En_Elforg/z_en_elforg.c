@@ -6,9 +6,7 @@
 
 #include "z_en_elforg.h"
 
-#define FLAGS (ACTOR_FLAG_10)
-
-#define THIS ((EnElforg*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 void EnElforg_Init(Actor* thisx, PlayState* play);
 void EnElforg_Destroy(Actor* thisx, PlayState* play);
@@ -22,7 +20,7 @@ void EnElforg_FreeFloating(EnElforg* this, PlayState* play);
 void EnElforg_SetupTrappedByEnemy(EnElforg* this, PlayState* play);
 void EnElforg_HiddenByCollider(EnElforg* this, PlayState* play);
 
-ActorInit En_Elforg_InitVars = {
+ActorProfile En_Elforg_Profile = {
     /**/ ACTOR_EN_ELFORG,
     /**/ ACTORCAT_ITEMACTION,
     /**/ FLAGS,
@@ -36,7 +34,7 @@ ActorInit En_Elforg_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_PLAYER,
@@ -44,11 +42,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_NONE,
     },
     { 16, 32, 0, { 0, 0, 0 } },
@@ -67,7 +65,7 @@ void EnElforg_InitializeParams(EnElforg* this) {
 
 void EnElforg_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnElforg* this = THIS;
+    EnElforg* this = (EnElforg*)thisx;
 
     Actor_SetScale(thisx, 0.01f);
     this->strayFairyFlags = 0;
@@ -107,8 +105,8 @@ void EnElforg_Init(Actor* thisx, PlayState* play) {
             break;
     }
 
-    if (Map_IsInDungeonOrBossArea(play)) {
-        this->area = gSaveContext.dungeonIndex + STRAY_FAIRY_AREA_WOODFALL;
+    if (Map_IsInDungeonOrBossScene(play)) {
+        this->area = gSaveContext.dungeonSceneSharedIndex + STRAY_FAIRY_AREA_WOODFALL;
     } else {
         this->area = STRAY_FAIRY_GET_NON_DUNGEON_AREA(thisx);
     }
@@ -155,7 +153,7 @@ void EnElforg_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnElforg_Destroy(Actor* thisx, PlayState* play) {
-    EnElforg* this = THIS;
+    EnElforg* this = (EnElforg*)thisx;
 
     if (STRAY_FAIRY_TYPE(&this->actor) == STRAY_FAIRY_TYPE_COLLIDER) {
         Collider_DestroyCylinder(play, &this->collider);
@@ -497,11 +495,11 @@ void EnElforg_FreeFloating(EnElforg* this, PlayState* play) {
                 return;
             }
 
-            if (Map_IsInDungeonOrBossArea(play)) {
-                gSaveContext.save.saveInfo.inventory.strayFairies[gSaveContext.dungeonIndex]++;
+            if (Map_IsInDungeonOrBossScene(play)) {
+                gSaveContext.save.saveInfo.inventory.strayFairies[gSaveContext.dungeonSceneSharedIndex]++;
                 // You found a Stray Fairy!
                 Message_StartTextbox(play, 0x11, NULL);
-                if (gSaveContext.save.saveInfo.inventory.strayFairies[(void)0, gSaveContext.dungeonIndex] >=
+                if (gSaveContext.save.saveInfo.inventory.strayFairies[(void)0, gSaveContext.dungeonSceneSharedIndex] >=
                     STRAY_FAIRY_SCATTERED_TOTAL) {
                     Audio_PlayFanfare(NA_BGM_GET_ITEM | 0x900);
                 }
@@ -593,7 +591,7 @@ void EnElforg_HiddenByCollider(EnElforg* this, PlayState* play) {
 }
 
 void EnElforg_Update(Actor* thisx, PlayState* play) {
-    EnElforg* this = THIS;
+    EnElforg* this = (EnElforg*)thisx;
 
     this->actionFunc(this, play);
 
@@ -617,7 +615,7 @@ void EnElforg_Update(Actor* thisx, PlayState* play) {
 
 s32 EnElforg_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx,
                               Gfx** gfx) {
-    EnElforg* this = THIS;
+    EnElforg* this = (EnElforg*)thisx;
 
     if (this->direction < 0) {
         if (limbIndex == STRAY_FAIRY_LIMB_LEFT_FACING_HEAD) {
@@ -632,7 +630,7 @@ s32 EnElforg_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f
 
 void EnElforg_Draw(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnElforg* this = THIS;
+    EnElforg* this = (EnElforg*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 

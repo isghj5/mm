@@ -24,12 +24,13 @@
 
 #include "z_en_rd.h"
 #include "z64rumble.h"
-#include "objects/object_rd/object_rd.h"
+#include "attributes.h"
+#include "assets/objects/object_rd/object_rd.h"
 #include "overlays/actors/ovl_Obj_Ice_Poly/z_obj_ice_poly.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_UNFRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_400)
-
-#define THIS ((EnRd*)thisx)
+#define FLAGS                                                                                 \
+    (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE | ACTOR_FLAG_UPDATE_CULLING_DISABLED | \
+     ACTOR_FLAG_HOOKSHOT_PULLS_PLAYER)
 
 void EnRd_Init(Actor* thisx, PlayState* play);
 void EnRd_Destroy(Actor* thisx, PlayState* play);
@@ -98,7 +99,7 @@ typedef enum {
     /* 4 */ EN_RD_GRAB_END
 } EnRdGrabState;
 
-ActorInit En_Rd_InitVars = {
+ActorProfile En_Rd_Profile = {
     /**/ ACTOR_EN_RD,
     /**/ ACTORCAT_ENEMY,
     /**/ FLAGS,
@@ -112,7 +113,7 @@ ActorInit En_Rd_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_HIT0,
+        COL_MATERIAL_HIT0,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_ALL,
@@ -120,11 +121,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK1,
+        ELEM_MATERIAL_UNK1,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7EFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON | BUMP_HOOKABLE,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON | ACELEM_HOOKABLE,
         OCELEM_ON,
     },
     { 20, 70, 0, { 0, 0, 0 } },
@@ -179,17 +180,17 @@ static DamageTable sDamageTable = {
 };
 
 static InitChainEntry sInitChain[] = {
-    ICHAIN_F32(targetArrowOffset, 2000, ICHAIN_CONTINUE),
+    ICHAIN_F32(lockOnArrowOffset, 2000, ICHAIN_CONTINUE),
     ICHAIN_VEC3F_DIV1000(scale, 10, ICHAIN_CONTINUE),
     ICHAIN_F32_DIV1000(gravity, -3500, ICHAIN_STOP),
 };
 
 void EnRd_Init(Actor* thisx, PlayState* play) {
-    EnRd* this = THIS;
+    EnRd* this = (EnRd*)thisx;
     s32 pad;
 
     Actor_ProcessInitChain(&this->actor, sInitChain);
-    this->actor.targetMode = TARGET_MODE_0;
+    this->actor.attentionRangeType = ATTENTION_RANGE_0;
     this->actor.colChkInfo.damageTable = &sDamageTable;
     ActorShape_Init(&this->actor.shape, 0.0f, NULL, 0.0f);
     this->torsoRotY = this->headRotY = 0;
@@ -281,7 +282,7 @@ void EnRd_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnRd_Destroy(Actor* thisx, PlayState* play) {
-    EnRd* this = THIS;
+    EnRd* this = (EnRd*)thisx;
 
     if (gSaveContext.sunsSongState != SUNSSONG_INACTIVE) {
         gSaveContext.sunsSongState = SUNSSONG_INACTIVE;
@@ -655,14 +656,14 @@ void EnRd_WalkToPlayer(EnRd* this, PlayState* play) {
     }
 
     if ((ABS_ALT(yaw) < 0x1554) && (Actor_WorldDistXYZToActor(&this->actor, &player->actor) <= 150.0f)) {
-        if (!(player->stateFlags1 & (PLAYER_STATE1_80 | PLAYER_STATE1_2000 | PLAYER_STATE1_4000 | PLAYER_STATE1_40000 |
-                                     PLAYER_STATE1_80000 | PLAYER_STATE1_200000)) &&
+        if (!(player->stateFlags1 & (PLAYER_STATE1_DEAD | PLAYER_STATE1_2000 | PLAYER_STATE1_4000 |
+                                     PLAYER_STATE1_40000 | PLAYER_STATE1_80000 | PLAYER_STATE1_200000)) &&
             !(player->stateFlags2 & (PLAYER_STATE2_80 | PLAYER_STATE2_4000))) {
             if (this->playerStunWaitTimer == 0) {
                 if (!(this->flags & EN_RD_FLAG_CANNOT_FREEZE_PLAYER)) {
                     player->actor.freezeTimer = 40;
-                    func_80123E90(play, &this->actor);
-                    GET_PLAYER(play)->unk_A78 = &this->actor;
+                    Player_SetAutoLockOnActor(play, &this->actor);
+                    GET_PLAYER(play)->autoLockOnActor = &this->actor;
                     Rumble_Request(this->actor.xzDistToPlayer, 255, 20, 150);
                 }
                 this->playerStunWaitTimer = 60;
@@ -689,7 +690,7 @@ void EnRd_WalkToPlayer(EnRd* this, PlayState* play) {
                 EnRd_SetupWalkToHome(this, play);
             }
         } else if (play->grabPlayer(play, player)) {
-            this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+            this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
             EnRd_SetupGrab(this);
         }
     } else if (EN_RD_GET_TYPE(&this->actor) > EN_RD_TYPE_DOES_NOT_MOURN_IF_WALKING) {
@@ -737,12 +738,12 @@ void EnRd_WalkToHome(EnRd* this, PlayState* play) {
     this->actor.world.rot.y = this->actor.shape.rot.y;
     SkelAnime_Update(&this->skelAnime);
 
-    if (!(player->stateFlags1 & (PLAYER_STATE1_80 | PLAYER_STATE1_2000 | PLAYER_STATE1_4000 | PLAYER_STATE1_40000 |
+    if (!(player->stateFlags1 & (PLAYER_STATE1_DEAD | PLAYER_STATE1_2000 | PLAYER_STATE1_4000 | PLAYER_STATE1_40000 |
                                  PLAYER_STATE1_80000 | PLAYER_STATE1_200000)) &&
         !(player->stateFlags2 & (PLAYER_STATE2_80 | PLAYER_STATE2_4000)) &&
         (player->transformation != PLAYER_FORM_GORON) && (player->transformation != PLAYER_FORM_DEKU) &&
         (Actor_WorldDistXYZToPoint(&player->actor, &this->actor.home.pos) < 150.0f)) {
-        this->actor.targetMode = TARGET_MODE_0;
+        this->actor.attentionRangeType = ATTENTION_RANGE_0;
         EnRd_SetupWalkToPlayer(this, play);
     } else if (EN_RD_GET_TYPE(&this->actor) > EN_RD_TYPE_DOES_NOT_MOURN_IF_WALKING) {
         if (this->actor.parent != NULL) {
@@ -835,11 +836,11 @@ void EnRd_Grab(EnRd* this, PlayState* play) {
             play->damagePlayer(play, -8);
             Rumble_Request(this->actor.xzDistToPlayer, 255, 1, 12);
             this->grabDamageTimer = 20;
-
+            FALLTHROUGH;
         case EN_RD_GRAB_START:
             Math_SmoothStepToS(&this->headRotY, 0, 1, 0x5DC, 0);
             Math_SmoothStepToS(&this->torsoRotY, 0, 1, 0x5DC, 0);
-
+            FALLTHROUGH;
         case EN_RD_GRAB_ATTACK:
             if (!(player->stateFlags2 & PLAYER_STATE2_80) || (player->unk_B62 != 0)) {
                 if ((player->unk_B62 != 0) && (player->stateFlags2 & PLAYER_STATE2_80)) {
@@ -898,8 +899,8 @@ void EnRd_Grab(EnRd* this, PlayState* play) {
             if (player->transformation != PLAYER_FORM_FIERCE_DEITY) {
                 Math_SmoothStepToF(&this->actor.shape.yOffset, 0.0f, 1.0f, 400.0f, 0.0f);
             }
-            this->actor.targetMode = TARGET_MODE_0;
-            this->actor.flags |= ACTOR_FLAG_TARGETABLE;
+            this->actor.attentionRangeType = ATTENTION_RANGE_0;
+            this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
             this->playerStunWaitTimer = 10;
             this->grabWaitTimer = 15;
             EnRd_SetupWalkToPlayer(this, play);
@@ -925,7 +926,7 @@ void EnRd_AttemptPlayerFreeze(EnRd* this, PlayState* play) {
         if (!(this->flags & EN_RD_FLAG_CANNOT_FREEZE_PLAYER)) {
             player->actor.freezeTimer = 60;
             Rumble_Request(this->actor.xzDistToPlayer, 255, 20, 150);
-            func_80123E90(play, &this->actor);
+            Player_SetAutoLockOnActor(play, &this->actor);
         }
         Actor_PlaySfx(&this->actor, NA_SE_EN_REDEAD_AIM);
         EnRd_SetupWalkToPlayer(this, play);
@@ -1013,7 +1014,7 @@ void EnRd_SetupDamage(EnRd* this) {
         this->actor.speed = -2.0f;
     }
 
-    this->actor.flags |= ACTOR_FLAG_TARGETABLE;
+    this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
     Actor_PlaySfx(&this->actor, NA_SE_EN_REDEAD_DAMAGE);
     this->action = EN_RD_ACTION_DAMAGE;
     this->actionFunc = EnRd_Damage;
@@ -1047,7 +1048,7 @@ void EnRd_SetupDead(EnRd* this) {
     Animation_MorphToPlayOnce(&this->skelAnime, &gGibdoRedeadDeathAnim, -1.0f);
     this->action = EN_RD_ACTION_DEAD;
     this->deathTimer = 300;
-    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+    this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
     this->actor.speed = 0.0f;
     Actor_PlaySfx(&this->actor, NA_SE_EN_REDEAD_DEAD);
     this->actionFunc = EnRd_Dead;
@@ -1172,7 +1173,7 @@ void EnRd_UpdateDamage(EnRd* this, PlayState* play) {
             return;
         }
 
-        Actor_SetDropFlag(&this->actor, &this->collider.info);
+        Actor_SetDropFlag(&this->actor, &this->collider.elem);
 
         if (player->unk_ADC != 0) {
             this->unk_3F1 = player->unk_ADD;
@@ -1265,7 +1266,7 @@ void EnRd_UpdateEffect(EnRd* this, PlayState* play) {
 }
 
 void EnRd_Update(Actor* thisx, PlayState* play) {
-    EnRd* this = THIS;
+    EnRd* this = (EnRd*)thisx;
 
     EnRd_UpdateDamage(this, play);
     if ((gSaveContext.sunsSongState != SUNSSONG_INACTIVE) && (!this->stunnedBySunsSong)) {
@@ -1305,7 +1306,7 @@ void EnRd_Update(Actor* thisx, PlayState* play) {
 
 s32 EnRd_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx,
                           Gfx** gfx) {
-    EnRd* this = THIS;
+    EnRd* this = (EnRd*)thisx;
 
     if (limbIndex == REDEAD_LIMB_HEAD_ROOT) {
         rot->y += this->headRotY;
@@ -1316,7 +1317,7 @@ s32 EnRd_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
 }
 
 void EnRd_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx, Gfx** gfx) {
-    EnRd* this = THIS;
+    EnRd* this = (EnRd*)thisx;
 
     if ((this->drawDmgEffTimer != 0) &&
         ((limbIndex == REDEAD_LIMB_LEFT_THIGH) || (limbIndex == REDEAD_LIMB_LEFT_SHIN) ||
@@ -1335,7 +1336,7 @@ void EnRd_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
 void EnRd_Draw(Actor* thisx, PlayState* play) {
     static Vec3f sScale = { 0.25f, 0.25f, 0.25f };
     s32 pad;
-    EnRd* this = THIS;
+    EnRd* this = (EnRd*)thisx;
     Vec3f pos = this->actor.world.pos;
 
     OPEN_DISPS(play->state.gfxCtx);

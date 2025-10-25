@@ -4,13 +4,15 @@
  * Description: Pierre the Scarecorw
  */
 
-#include "prevent_bss_reordering.h"
 #include "z_en_kakasi.h"
-#include "objects/object_ka/object_ka.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_2000000)
+#include "z64olib.h"
 
-#define THIS ((EnKakasi*)thisx)
+#include "assets/objects/object_ka/object_ka.h"
+
+#define FLAGS                                                                                  \
+    (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED | \
+     ACTOR_FLAG_UPDATE_DURING_OCARINA)
 
 void EnKakasi_Init(Actor* thisx, PlayState* play);
 void EnKakasi_Destroy(Actor* thisx, PlayState* play);
@@ -49,7 +51,7 @@ void EnKakasi_SetupDialogue(EnKakasi* this);
 
 static ColliderCylinderInit D_80971D80 = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_ALL,
@@ -57,17 +59,17 @@ static ColliderCylinderInit D_80971D80 = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0xF7CFFFFF, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON | BUMP_HOOKABLE,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON | ACELEM_HOOKABLE,
         OCELEM_ON,
     },
     { 20, 70, 0, { 0, 0, 0 } },
 };
 
-ActorInit En_Kakasi_InitVars = {
+ActorProfile En_Kakasi_Profile = {
     /**/ ACTOR_EN_KAKASI,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -92,10 +94,10 @@ Vec3f D_80971E38[] = {
 };
 
 Vec3f D_80971EEC[] = {
-    { 12.0f, 1.0f, 2.0f },    { 12.0f, 1.0f, 2.0f },  { 2.0f, -6.0f, 0.0f },  { 12.0f, -6.0f, -10.0f },
-    { -88.0f, 14.0, -10.0f }, { 0.0f, 0.0f, 0.0f },   { 0.0f, 0.0f, 0.0f },   { 0.0f, 0.0f, 0.0f },
-    { 0.0f, -10.0f, 0.0f },   { 0.0f, -10.0f, 0.0f }, { 0.0f, -10.0f, 0.0f }, { 0.0f, -10.0f, 0.0f },
-    { 0.0f, -10.0f, 0.0f },   { 0.0f, 0.0f, 0.0f },   { 0.0f, 0.0f, 0.0f },
+    { 12.0f, 1.0f, 2.0f },     { 12.0f, 1.0f, 2.0f },  { 2.0f, -6.0f, 0.0f },  { 12.0f, -6.0f, -10.0f },
+    { -88.0f, 14.0f, -10.0f }, { 0.0f, 0.0f, 0.0f },   { 0.0f, 0.0f, 0.0f },   { 0.0f, 0.0f, 0.0f },
+    { 0.0f, -10.0f, 0.0f },    { 0.0f, -10.0f, 0.0f }, { 0.0f, -10.0f, 0.0f }, { 0.0f, -10.0f, 0.0f },
+    { 0.0f, -10.0f, 0.0f },    { 0.0f, 0.0f, 0.0f },   { 0.0f, 0.0f, 0.0f },
 };
 
 Vec3f D_80971FA0[] = {
@@ -150,13 +152,13 @@ static u8 sAnimationModes[ENKAKASI_ANIM_MAX] = {
 };
 
 void EnKakasi_Destroy(Actor* thisx, PlayState* play) {
-    EnKakasi* this = THIS;
+    EnKakasi* this = (EnKakasi*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
 
 void EnKakasi_Init(Actor* thisx, PlayState* play) {
-    EnKakasi* this = THIS;
+    EnKakasi* this = (EnKakasi*)thisx;
     s32 csId;
     s32 i;
 
@@ -170,23 +172,25 @@ void EnKakasi_Init(Actor* thisx, PlayState* play) {
 
     this->unkHeight = (this->picto.actor.world.rot.z * 20.0f) + 60.0f;
     this->picto.actor.world.rot.z = 0;
-    this->picto.actor.targetMode = TARGET_MODE_0;
+    this->picto.actor.attentionRangeType = ATTENTION_RANGE_0;
     if ((this->picto.actor.world.rot.x > 0) && (this->picto.actor.world.rot.x < 8)) {
-        this->picto.actor.targetMode = KAKASI_GET_TARGETMODE(thisx);
+        this->picto.actor.attentionRangeType = KAKASI_GET_ATTENTION_RANGE_TYPE(thisx);
     }
     this->picto.actor.shape.rot.y = this->picto.actor.world.rot.y;
 
     this->aboveGroundStatus = KAKASI_GET_ABOVE_GROUND(&this->picto.actor);
     this->picto.actor.world.rot.x = 0;
-    this->picto.actor.flags |= ACTOR_FLAG_400;
+    this->picto.actor.flags |= ACTOR_FLAG_HOOKSHOT_PULLS_PLAYER;
     this->picto.actor.colChkInfo.mass = MASS_IMMOVABLE;
     Actor_SetScale(&this->picto.actor, 0.01f);
 
     i = 0;
     csId = this->picto.actor.csId;
     while (csId != CS_ID_NONE) {
-        //! FAKE:
-        csId = CutsceneManager_GetAdditionalCsId(this->csIdList[i] = csId);
+        // clang-format off
+        this->csIdList[i] = csId; \
+        csId = CutsceneManager_GetAdditionalCsId(csId);
+        // clang-format on
         i++;
     }
 
@@ -323,13 +327,13 @@ void EnKakasi_TimeSkipDialogue(EnKakasi* this, PlayState* play) {
                 CLEAR_WEEKEVENTREG(WEEKEVENTREG_83_01);
                 this->talkState = TEXT_STATE_EVENT;
                 player->stateFlags1 |= PLAYER_STATE1_20;
-                this->picto.actor.flags |= ACTOR_FLAG_10000;
+                this->picto.actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
             }
 
             if (Actor_TalkOfferAccepted(&this->picto.actor, &play->state)) {
                 player->stateFlags1 &= ~PLAYER_STATE1_20;
                 this->unkState196 = 2;
-                this->picto.actor.flags &= ~ACTOR_FLAG_10000;
+                this->picto.actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
                 this->actionFunc = EnKakasi_RegularDialogue;
             } else {
                 Actor_OfferTalkExchange(&this->picto.actor, play, 9999.9f, 9999.9f, PLAYER_IA_MINUS1);
@@ -350,7 +354,7 @@ void EnKakasi_IdleStanding(EnKakasi* this, PlayState* play) {
 
     // first talk to scarecrow dialogue
     this->picto.actor.textId = 0x1644;
-    if (func_800B8718(&this->picto.actor, &play->state)) {
+    if (Actor_OcarinaInteractionAccepted(&this->picto.actor, &play->state)) {
         this->skelAnime.playSpeed = 1.0f;
         EnKakasi_SetupSongTeach(this, play);
         return;
@@ -383,7 +387,7 @@ void EnKakasi_IdleStanding(EnKakasi* this, PlayState* play) {
     }
     if (this->picto.actor.xzDistToPlayer < 120.0f) {
         Actor_OfferTalk(&this->picto.actor, play, 100.0f);
-        func_800B874C(&this->picto.actor, play, 100.0f, 80.0f);
+        Actor_OfferOcarinaInteraction(&this->picto.actor, play, 100.0f, 80.0f);
     }
 }
 
@@ -949,9 +953,9 @@ void EnKakasi_DancingNightAway(EnKakasi* this, PlayState* play) {
             if (this->unk204 == 0) {
                 player = GET_PLAYER(play);
 
-                Play_SetRespawnData(&play->state, RESPAWN_MODE_DOWN, Entrance_CreateFromSpawn(0), player->unk_3CE,
-                                    PLAYER_PARAMS(0xFF, PLAYER_INITMODE_B), &player->unk_3C0, player->unk_3CC);
-                func_80169EFC(&play->state);
+                Play_SetRespawnData(play, RESPAWN_MODE_DOWN, Entrance_CreateFromSpawn(0), player->unk_3CE,
+                                    PLAYER_PARAMS(0xFF, PLAYER_START_MODE_B), &player->unk_3C0, player->unk_3CC);
+                func_80169EFC(play);
 
                 if ((CURRENT_TIME > CLOCK_TIME(18, 0)) || (CURRENT_TIME < CLOCK_TIME(6, 0))) {
                     gSaveContext.save.time = CLOCK_TIME(6, 0);
@@ -1044,9 +1048,9 @@ void EnKakasi_DiggingAway(EnKakasi* this, PlayState* play) {
 }
 
 void EnKakasi_SetupIdleUnderground(EnKakasi* this) {
-    this->picto.actor.shape.yOffset = -7000.0;
+    this->picto.actor.shape.yOffset = -7000.0f;
     this->picto.actor.draw = NULL;
-    this->picto.actor.flags |= ACTOR_FLAG_CANT_LOCK_ON;
+    this->picto.actor.flags |= ACTOR_FLAG_LOCK_ON_DISABLED;
     this->unkState196 = 5;
     this->actionFunc = EnKakasi_IdleUnderground;
 }
@@ -1054,7 +1058,7 @@ void EnKakasi_SetupIdleUnderground(EnKakasi* this) {
 void EnKakasi_IdleUnderground(EnKakasi* this, PlayState* play) {
     if (CHECK_WEEKEVENTREG(WEEKEVENTREG_79_08) && (this->picto.actor.xzDistToPlayer < this->songSummonDist) &&
         ((BREG(1) != 0) || (play->msgCtx.ocarinaMode == OCARINA_MODE_PLAYED_SCARECROW_SPAWN))) {
-        this->picto.actor.flags &= ~ACTOR_FLAG_CANT_LOCK_ON;
+        this->picto.actor.flags &= ~ACTOR_FLAG_LOCK_ON_DISABLED;
         play->msgCtx.ocarinaMode = OCARINA_MODE_END;
         this->actionFunc = EnKakasi_SetupRiseOutOfGround;
     }
@@ -1127,7 +1131,7 @@ void EnKakasi_RisenDialogue(EnKakasi* this, PlayState* play) {
 }
 
 void EnKakasi_Update(Actor* thisx, PlayState* play) {
-    EnKakasi* this = THIS;
+    EnKakasi* this = (EnKakasi*)thisx;
     s32 pad;
 
     SkelAnime_Update(&this->skelAnime);
@@ -1165,7 +1169,7 @@ void EnKakasi_Update(Actor* thisx, PlayState* play) {
 }
 
 void EnKakasi_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    EnKakasi* this = THIS;
+    EnKakasi* this = (EnKakasi*)thisx;
 
     if (limbIndex == OBJECT_KA_LIMB_04) {
         Matrix_MultVec3f(&gZeroVec3f, &this->unk1BC);
@@ -1173,7 +1177,7 @@ void EnKakasi_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* r
 }
 
 void EnKakasi_Draw(Actor* thisx, PlayState* play) {
-    EnKakasi* this = THIS;
+    EnKakasi* this = (EnKakasi*)thisx;
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount, NULL,
                           EnKakasi_PostLimbDraw, &this->picto.actor);

@@ -6,9 +6,7 @@
 
 #include "z_en_gg2.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_REACT_TO_LENS)
-
-#define THIS ((EnGg2*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_REACT_TO_LENS)
 
 void EnGg2_Init(Actor* thisx, PlayState* play2);
 void EnGg2_Destroy(Actor* thisx, PlayState* play);
@@ -26,7 +24,7 @@ void func_80B3B5D4(EnGg2* this, PlayState* play);
 s32 EnGg2_HasReachedPoint(EnGg2* this, Path* path, s32 pointIndex);
 f32 func_80B3B7E4(Path* path, s32 arg1, Vec3f* arg2, Vec3s* arg3);
 
-ActorInit En_Gg2_InitVars = {
+ActorProfile En_Gg2_Profile = {
     /**/ ACTOR_EN_GG2,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -157,7 +155,7 @@ void func_80B3AE60(EnGg2* this, PlayState* play) {
             case ENGG2_ANIM_1:
             case ENGG2_ANIM_8:
                 this->animIndex = ENGG2_ANIM_5;
-                this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+                this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
                 Actor_ChangeAnimationByInfo(&this->skelAnime, sAnimationInfo, ENGG2_ANIM_5);
                 this->actionFunc = func_80B3B120;
                 break;
@@ -338,7 +336,7 @@ s32 EnGg2_HasReachedPoint(EnGg2* this, Path* path, s32 pointIndex) {
         diffZ = points[index + 1].z - points[index - 1].z;
     }
 
-    func_8017B7F8(&point, RAD_TO_BINANG(Math_FAtan2F(diffX, diffZ)), &px, &pz, &d);
+    Math3D_RotateXZPlane(&point, RAD_TO_BINANG(Math_FAtan2F(diffX, diffZ)), &px, &pz, &d);
 
     if (((px * this->actor.world.pos.x) + (pz * this->actor.world.pos.z) + d) > 0.0f) {
         reached = true;
@@ -382,7 +380,7 @@ void func_80B3B8A4(EnGg2* this) {
 
 void EnGg2_Init(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    EnGg2* this = THIS;
+    EnGg2* this = (EnGg2*)thisx;
 
     if (INV_CONTENT(ITEM_MASK_GORON) == ITEM_MASK_GORON) {
         Actor_Kill(&this->actor);
@@ -448,17 +446,17 @@ void EnGg2_Destroy(Actor* thisx, PlayState* play) {
 }
 
 void EnGg2_Update(Actor* thisx, PlayState* play) {
-    EnGg2* this = THIS;
+    EnGg2* this = (EnGg2*)thisx;
 
     if (play->actorCtx.lensMaskSize == LENS_MASK_ACTIVE_SIZE) {
         this->actor.flags |= ACTOR_FLAG_REACT_TO_LENS;
-        this->actor.flags |= ACTOR_FLAG_TARGETABLE;
+        this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
         if ((this->animIndex == ENGG2_ANIM_5) && (this->animIndex == ENGG2_ANIM_7)) {
-            this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+            this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
         }
     } else {
         this->actor.flags &= ~ACTOR_FLAG_REACT_TO_LENS;
-        this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+        this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
     }
 
     this->actionFunc(this, play);
@@ -482,7 +480,7 @@ void EnGg2_Update(Actor* thisx, PlayState* play) {
 
 s32 EnGg2_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx,
                            Gfx** gfx) {
-    EnGg2* this = THIS;
+    EnGg2* this = (EnGg2*)thisx;
 
     if ((this->animIndex != ENGG2_ANIM_5) && (this->animIndex != ENGG2_ANIM_7)) {
         if (limbIndex == OBJECT_GG_LIMB_01) {
@@ -497,7 +495,7 @@ s32 EnGg2_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
 }
 
 void EnGg2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx, Gfx** gfx) {
-    EnGg2* this = THIS;
+    EnGg2* this = (EnGg2*)thisx;
 
     if (limbIndex == OBJECT_GG_LIMB_04) {
         Matrix_MultVec3f(&D_80B3C0A0, &this->unk_304);
@@ -505,7 +503,7 @@ void EnGg2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
 }
 
 void EnGg2_Draw(Actor* thisx, PlayState* play) {
-    EnGg2* this = THIS;
+    EnGg2* this = (EnGg2*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 

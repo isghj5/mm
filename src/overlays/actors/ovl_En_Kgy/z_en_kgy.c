@@ -5,11 +5,10 @@
  */
 
 #include "z_en_kgy.h"
-#include "objects/gameplay_keep/gameplay_keep.h"
+#include "attributes.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
-
-#define THIS ((EnKgy*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY)
 
 void EnKgy_Init(Actor* thisx, PlayState* play);
 void EnKgy_Destroy(Actor* thisx, PlayState* play);
@@ -45,7 +44,7 @@ typedef enum EnKgyAnimation {
     /* 10 */ ENKGY_ANIM_MAX
 } EnKgyAnimation;
 
-ActorInit En_Kgy_InitVars = {
+ActorProfile En_Kgy_Profile = {
     /**/ ACTOR_EN_KGY,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -58,7 +57,7 @@ ActorInit En_Kgy_InitVars = {
 };
 
 void EnKgy_Init(Actor* thisx, PlayState* play) {
-    EnKgy* this = THIS;
+    EnKgy* this = (EnKgy*)thisx;
     s16 csId;
     s32 i;
 
@@ -114,11 +113,11 @@ void EnKgy_Init(Actor* thisx, PlayState* play) {
                               this->actor.world.pos.z, 255, 64, 64, -1);
     this->lightNode = LightContext_InsertLight(play, &play->lightCtx, &this->lightInfo);
     this->unk_300 = -1;
-    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+    this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
 }
 
 void EnKgy_Destroy(Actor* thisx, PlayState* play) {
-    EnKgy* this = THIS;
+    EnKgy* this = (EnKgy*)thisx;
 
     LightContext_RemoveLight(play, &play->lightCtx, this->lightNode);
 }
@@ -612,7 +611,7 @@ void func_80B41C54(EnKgy* this, PlayState* play) {
 void func_80B41CBC(EnKgy* this, PlayState* play) {
     SkelAnime_Update(&this->skelAnime);
     if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
-        this->actor.flags &= ~ACTOR_FLAG_10000;
+        this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
         func_80B40E18(this, this->actor.textId);
         this->actionFunc = func_80B41E18;
         func_80B411DC(this, play, 4);
@@ -625,7 +624,7 @@ void func_80B41D64(EnKgy* this, PlayState* play) {
     SkelAnime_Update(&this->skelAnime);
     if (Actor_HasParent(&this->actor, play)) {
         this->actionFunc = func_80B41CBC;
-        this->actor.flags |= ACTOR_FLAG_10000;
+        this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
         Actor_OfferTalkExchange(&this->actor, play, 1000.0f, 1000.0f, PLAYER_IA_MINUS1);
     } else {
         Actor_OfferGetItem(&this->actor, play, this->getItemId, 2000.0f, 1000.0f);
@@ -764,7 +763,7 @@ void func_80B41E18(EnKgy* this, PlayState* play) {
                         case 0xC4D:
                         case 0xC58:
                             this->unk_29C |= 0x10;
-
+                            FALLTHROUGH;
                         case 0xC45:
                             play->msgCtx.msgLength = 0;
                             func_80B41368(this, play, 3);
@@ -994,9 +993,9 @@ void func_80B4296C(EnKgy* this, PlayState* play) {
         }
         func_80B411DC(this, play, 0);
         func_80B40E18(this, this->actor.textId);
-        this->actor.flags &= ~ACTOR_FLAG_10000;
+        this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
     } else {
-        this->actor.flags |= ACTOR_FLAG_10000;
+        this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
         Actor_OfferTalkExchange(&this->actor, play, 1000.0f, 1000.0f, PLAYER_IA_NONE);
     }
 }
@@ -1131,7 +1130,7 @@ void func_80B42D28(EnKgy* this, PlayState* play) {
 }
 
 void EnKgy_Update(Actor* thisx, PlayState* play) {
-    EnKgy* this = THIS;
+    EnKgy* this = (EnKgy*)thisx;
     s32 pad;
     Vec3s torsoRot;
 
@@ -1148,7 +1147,7 @@ void EnKgy_Update(Actor* thisx, PlayState* play) {
 }
 
 s32 EnKgy_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnKgy* this = THIS;
+    EnKgy* this = (EnKgy*)thisx;
 
     if (!(this->unk_29C & 1)) {
         if (limbIndex == OBJECT_KGY_LIMB_11) {
@@ -1168,7 +1167,7 @@ s32 EnKgy_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
 void EnKgy_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
     static Vec3f D_80B432D8 = { 1000.0f, 2000.0f, 0.0f };
     static Vec3f D_80B432E4 = { 3000.0f, 4000.0f, 300.0f };
-    EnKgy* this = THIS;
+    EnKgy* this = (EnKgy*)thisx;
 
     if (limbIndex == OBJECT_KGY_LIMB_0B) {
         Matrix_MultVec3f(&D_80B432D8, &this->unk_2A8);
@@ -1198,7 +1197,7 @@ void func_80B43074(EnKgy* this, PlayState* play) {
     }
 
     gfx = POLY_OPA_DISP;
-    gSPMatrix(gfx, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(gfx, play->state.gfxCtx);
 
     if (func_80B40D8C(play)) {
         gSPDisplayList(&gfx[1], gRazorSwordHandleDL);
@@ -1215,7 +1214,7 @@ void func_80B43074(EnKgy* this, PlayState* play) {
 }
 
 void EnKgy_Draw(Actor* thisx, PlayState* play) {
-    EnKgy* this = THIS;
+    EnKgy* this = (EnKgy*)thisx;
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     if (this->unk_29C & 1) {

@@ -6,16 +6,14 @@
 
 #include "z_dm_ah.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
-
-#define THIS ((DmAh*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY)
 
 void DmAh_Init(Actor* thisx, PlayState* play);
 void DmAh_Destroy(Actor* thisx, PlayState* play);
 void DmAh_Update(Actor* thisx, PlayState* play);
 void DmAh_Draw(Actor* thisx, PlayState* play);
 
-ActorInit Dm_Ah_InitVars = {
+ActorProfile Dm_Ah_Profile = {
     /**/ ACTOR_DM_AH,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -163,14 +161,14 @@ void DmAh_DoNothing(DmAh* this, PlayState* play) {
 }
 
 void DmAh_Init(Actor* thisx, PlayState* play) {
-    DmAh* this = THIS;
+    DmAh* this = (DmAh*)thisx;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 20.0f);
     SkelAnime_InitFlex(play, &this->skelAnime, &object_ah_Skel_009E70, NULL, this->jointTable, this->morphTable,
                        OBJECT_AH_LIMB_MAX);
     this->animIndex = DMAH_ANIM_NONE;
     DmAh_ChangeAnim(this, DMAH_ANIM_0);
-    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+    this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
     Actor_SetScale(&this->actor, 0.01f);
     this->unk_27C |= 1;
     if ((play->sceneId == SCENE_YADOYA) && (play->curSpawn == 4)) {
@@ -186,7 +184,7 @@ void DmAh_Destroy(Actor* thisx, PlayState* play) {
 }
 
 void DmAh_Update(Actor* thisx, PlayState* play) {
-    DmAh* this = THIS;
+    DmAh* this = (DmAh*)thisx;
 
     this->actionFunc(this, play);
     func_80C1D6E0(this, play);
@@ -205,7 +203,7 @@ void DmAh_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
 }
 
 void DmAh_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
-    DmAh* this = THIS;
+    DmAh* this = (DmAh*)thisx;
     s32 stepRot;
     s32 overrideRot;
 
@@ -252,7 +250,7 @@ static TexturePtr D_80C1DE28[] = {
 };
 
 void DmAh_Draw(Actor* thisx, PlayState* play) {
-    DmAh* this = THIS;
+    DmAh* this = (DmAh*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 

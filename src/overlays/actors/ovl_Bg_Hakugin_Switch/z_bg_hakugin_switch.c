@@ -4,14 +4,11 @@
  * Description: Goron Link Switch
  */
 
-#include "prevent_bss_reordering.h"
 #include "z_bg_hakugin_switch.h"
 #include "z64rumble.h"
-#include "objects/object_goronswitch/object_goronswitch.h"
+#include "assets/objects/object_goronswitch/object_goronswitch.h"
 
-#define FLAGS (ACTOR_FLAG_10)
-
-#define THIS ((BgHakuginSwitch*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 void BgHakuginSwitch_Init(Actor* thisx, PlayState* play);
 void BgHakuginSwitch_Destroy(Actor* thisx, PlayState* play);
@@ -39,7 +36,7 @@ void func_80B165E0(BgHakuginSwitch* this, PlayState* play);
 
 u32 D_80B16AF0;
 
-ActorInit Bg_Hakugin_Switch_InitVars = {
+ActorProfile Bg_Hakugin_Switch_Profile = {
     /**/ ACTOR_BG_HAKUGIN_SWITCH,
     /**/ ACTORCAT_SWITCH,
     /**/ FLAGS,
@@ -53,7 +50,7 @@ ActorInit Bg_Hakugin_Switch_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_NONE,
@@ -61,11 +58,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0x00000400, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_NONE,
     },
     { 60, 10, 180, { 0, 0, 0 } },
@@ -89,16 +86,16 @@ BgHakuginSwitchStruct D_80B1688C[] = {
 };
 
 static InitChainEntry sInitChain1[] = {
-    ICHAIN_F32(uncullZoneForward, 4000, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneScale, 150, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneDownward, 130, ICHAIN_STOP),
+    ICHAIN_F32(cullingVolumeDistance, 4000, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeScale, 150, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeDownward, 130, ICHAIN_STOP),
 };
 
 static InitChainEntry sInitChain2[] = {
     ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneForward, 4000, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneScale, 260, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneDownward, 360, ICHAIN_STOP),
+    ICHAIN_F32(cullingVolumeDistance, 4000, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeScale, 260, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeDownward, 360, ICHAIN_STOP),
 };
 
 void func_80B15790(BgHakuginSwitch* this, u16 sfxId) {
@@ -115,7 +112,7 @@ void func_80B157C4(BgHakuginSwitch* this, u16 arg1) {
 
 void BgHakuginSwitch_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    BgHakuginSwitch* this = THIS;
+    BgHakuginSwitch* this = (BgHakuginSwitch*)thisx;
     s32 sp34 = BGHAKUGINSWITCH_GET_7(&this->dyna.actor);
     s32 sp30;
     s32 pad2;
@@ -181,7 +178,7 @@ void BgHakuginSwitch_Init(Actor* thisx, PlayState* play) {
 }
 
 void BgHakuginSwitch_Destroy(Actor* thisx, PlayState* play) {
-    BgHakuginSwitch* this = THIS;
+    BgHakuginSwitch* this = (BgHakuginSwitch*)thisx;
 
     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
     Collider_DestroyCylinder(play, &this->collider);
@@ -488,7 +485,7 @@ void func_80B165E0(BgHakuginSwitch* this, PlayState* play) {
 
 void BgHakuginSwitch_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    BgHakuginSwitch* this = THIS;
+    BgHakuginSwitch* this = (BgHakuginSwitch*)thisx;
     f32 sp24;
 
     if (this->unk_1B2 > 0) {
@@ -533,7 +530,7 @@ void BgHakuginSwitch_Update(Actor* thisx, PlayState* play) {
 }
 
 void BgHakuginSwitch_Draw(Actor* thisx, PlayState* play) {
-    BgHakuginSwitch* this = THIS;
+    BgHakuginSwitch* this = (BgHakuginSwitch*)thisx;
 
     Gfx_DrawDListOpa(play, this->unk_1A8);
 }

@@ -6,16 +6,16 @@
 
 #include "z_en_test3.h"
 
-#include "z64malloc.h"
+#include "zelda_arena.h"
 
-#include "objects/object_test3/object_test3.h"
+#include "assets/objects/object_test3/object_test3.h"
 #include "overlays/actors/ovl_En_Door/z_en_door.h"
-#include "objects/gameplay_keep/gameplay_keep.h"
-#include "objects/object_mask_ki_tan/object_mask_ki_tan.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/object_mask_ki_tan/object_mask_ki_tan.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20 | ACTOR_FLAG_CAN_PRESS_SWITCH)
+#pragma increment_block_number "n64-us:128"
 
-#define THIS ((EnTest3*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED | ACTOR_FLAG_CAN_PRESS_SWITCHES)
 
 typedef struct {
     /* 0x0 */ s8 unk_0;
@@ -36,7 +36,6 @@ typedef struct {
     /* 0x4 */ EnTest3ActionFunc actionFunc;
 } struct_80A4168C; // size = 0x8
 
-// Main functions
 void EnTest3_Init(Actor* thisx, PlayState* play2);
 void EnTest3_Destroy(Actor* thisx, PlayState* play2);
 void EnTest3_Update(Actor* thisx, PlayState* play2);
@@ -82,9 +81,9 @@ void func_80A4084C(EnTest3* this, PlayState* play);
 void func_80A40908(EnTest3* this, PlayState* play);
 void func_80A40A6C(EnTest3* this, PlayState* play);
 
-#include "build/src/overlays/actors/ovl_En_Test3/scheduleScripts.schl.inc"
+#include "src/overlays/actors/ovl_En_Test3/scheduleScripts.schl.inc"
 
-ActorInit En_Test3_InitVars = {
+ActorProfile En_Test3_Profile = {
     /**/ ACTOR_EN_TEST3,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -112,41 +111,85 @@ static EnTest3UnkFunc D_80A416C0[] = {
 };
 
 static PlayerAgeProperties sAgeProperties = {
+    // ceilingCheckHeight
     40.0f,
+    // shadowScale
     60.0f,
+    // unk_08
     11.0f / 17.0f,
+    // unk_0C
     71.0f,
+    // unk_10
     50.0f,
+    // unk_14
     49.0f,
+    // unk_18
     39.0f,
+    // unk_1C
     27.0f,
+    // unk_20
     19.0f,
+    // unk_24
     22.0f,
+    // unk_28
     32.4f,
+    // unk_2C
     32.0f,
+    // unk_30
     48.0f,
+    // unk_34
     11.0f / 17.0f * 70.0f,
+    // wallCheckRadius
     14.0f,
+    // unk_3C
     12.0f,
+    // unk_40
     55.0f,
+    // unk_44
     { 0xFFE8, 0x0DED, 0x036C },
     { { 0xFFE8, 0x0D92, 0x035E }, { 0xFFE8, 0x1371, 0x03A9 }, { 0x0008, 0x1256, 0x017C }, { 0x0009, 0x17EA, 0x0167 } },
     { { 0xFFE8, 0x1371, 0x03A9 }, { 0xFFE8, 0x195F, 0x03A9 }, { 0x0009, 0x17EA, 0x0167 }, { 0x0009, 0x1E0D, 0x017C } },
     { { 0x0008, 0x1256, 0x017C }, { 0x0009, 0x17EA, 0x0167 }, { 0xF9C8, 0x1256, 0x017C }, { 0xF9C9, 0x17EA, 0x0167 } },
-    0x0020,
-    0x0000,
+    // voiceSfxIdOffset
+    SFX_VOICE_BANK_SIZE * 1,
+    // surfaceSfxIdOffset
+    0,
+    // unk_98
     22.0f,
+    // unk_9C
     29.4343f,
+    // openChestAnim
     &gPlayerAnim_clink_demo_Tbox_open,
+    // timeTravelStartAnim
     &gPlayerAnim_clink_demo_goto_future,
+    // timeTravelEndAnim
     &gPlayerAnim_clink_demo_return_to_future,
+    // unk_AC
     &gPlayerAnim_clink_normal_climb_startA,
+    // unk_B0
     &gPlayerAnim_clink_normal_climb_startB,
-    { &gPlayerAnim_clink_normal_climb_upL, &gPlayerAnim_clink_normal_climb_upR, &gPlayerAnim_link_normal_Fclimb_upL,
-      &gPlayerAnim_link_normal_Fclimb_upR },
-    { &gPlayerAnim_link_normal_Fclimb_sideL, &gPlayerAnim_link_normal_Fclimb_sideR },
-    { &gPlayerAnim_clink_normal_climb_endAL, &gPlayerAnim_clink_normal_climb_endAR },
-    { &gPlayerAnim_clink_normal_climb_endBR, &gPlayerAnim_clink_normal_climb_endBL },
+    // unk_B4
+    {
+        &gPlayerAnim_clink_normal_climb_upL,
+        &gPlayerAnim_clink_normal_climb_upR,
+        &gPlayerAnim_link_normal_Fclimb_upL,
+        &gPlayerAnim_link_normal_Fclimb_upR,
+    },
+    // unk_C4
+    {
+        &gPlayerAnim_link_normal_Fclimb_sideL,
+        &gPlayerAnim_link_normal_Fclimb_sideR,
+    },
+    // unk_CC
+    {
+        &gPlayerAnim_clink_normal_climb_endAL,
+        &gPlayerAnim_clink_normal_climb_endAR,
+    },
+    // unk_D4
+    {
+        &gPlayerAnim_clink_normal_climb_endBR,
+        &gPlayerAnim_clink_normal_climb_endBL,
+    },
 };
 
 static EffectBlureInit2 sBlureInit = {
@@ -209,7 +252,7 @@ s32 func_80A3E7E0(EnTest3* this, EnTest3ActionFunc actionFunc) {
     } else {
         this->unk_D94 = actionFunc;
         this->unk_D8A = 0;
-        this->unk_D88 = 0;
+        this->scheduleResult = 0;
         return true;
     }
 }
@@ -218,6 +261,7 @@ s32 func_80A3E80C(EnTest3* this, PlayState* play, s32 arg2) {
     s32 pad;
 
     D_80A4168C[arg2].unk_0(this, play);
+
     if (D_80A4168C[arg2].actionFunc == NULL) {
         // D_80A4168C[arg2].actionFunc is always NULL
         return false;
@@ -243,7 +287,7 @@ s32 func_80A3E898(EnTest3* this, PlayState* play) {
     }
     if (textId == 0xFFFF) {
         Message_CloseTextbox(play);
-    } else if (textId) { // != 0
+    } else if ((u32)textId != 0) {
         Message_ContinueTextbox(play, textId);
     }
     if (textId == 0x296B) {
@@ -281,7 +325,7 @@ s32 func_80A3EA30(EnTest3* this, PlayState* play) {
         Actor* hideoutDoor = SubS_FindActor(play, NULL, ACTORCAT_BG, ACTOR_BG_IKNV_OBJ);
 
         if (hideoutDoor != NULL) {
-            this->player.lockOnActor = hideoutDoor;
+            this->player.focusActor = hideoutDoor;
         }
     }
     if (this->unk_D78->unk_1 != 0) {
@@ -305,7 +349,7 @@ s32 func_80A3EAF8(EnTest3* this, PlayState* play) {
             CutsceneManager_Stop(this->csId);
             this->csId = CS_ID_GLOBAL_TALK;
             CutsceneManager_Queue(this->csId);
-            this->player.lockOnActor = &GET_PLAYER(play)->actor;
+            this->player.focusActor = &GET_PLAYER(play)->actor;
         }
         return 1;
     }
@@ -317,7 +361,7 @@ s32 func_80A3EB8C(EnTest3* this, PlayState* play) {
         Actor* hideoutObject = SubS_FindActor(play, NULL, ACTORCAT_ITEMACTION, ACTOR_OBJ_NOZOKI);
 
         if (hideoutObject != NULL) {
-            this->player.lockOnActor = hideoutObject;
+            this->player.focusActor = hideoutObject;
         }
         play->msgCtx.msgMode = MSGMODE_PAUSED;
         return 1;
@@ -370,7 +414,7 @@ s32 func_80A3ED24(EnTest3* this, PlayState* play) {
 
 void EnTest3_Init(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    EnTest3* this = THIS;
+    EnTest3* this = (EnTest3*)thisx;
     Camera* subCam;
 
     if (D_80A41D24) {
@@ -386,7 +430,7 @@ void EnTest3_Init(Actor* thisx, PlayState* play2) {
     this->player.heldItemAction = PLAYER_IA_NONE;
     this->player.heldItemId = ITEM_OCARINA_OF_TIME;
 
-    Player_SetModelGroup(&this->player, 3);
+    Player_SetModelGroup(&this->player, PLAYER_MODELGROUP_DEFAULT);
     play->playerInit(&this->player, play, &gKafeiSkel);
 
     Effect_Add(play, &this->player.meleeWeaponEffectIndex[0], EFFECT_BLURE2, 0, 0, &sBlureInit);
@@ -398,6 +442,7 @@ void EnTest3_Init(Actor* thisx, PlayState* play2) {
     this->unk_D90 = GET_PLAYER(play);
     this->player.giObjectSegment = this->unk_D90->giObjectSegment;
     this->player.tatlActor = this->unk_D90->tatlActor;
+
     if ((CURRENT_DAY != 3) || CHECK_WEEKEVENTREG(WEEKEVENTREG_RECOVERED_STOLEN_BOMB_BAG) ||
         !CHECK_WEEKEVENTREG(WEEKEVENTREG_51_08)) {
         this->player.currentMask = PLAYER_MASK_KEATON;
@@ -425,7 +470,7 @@ void EnTest3_Init(Actor* thisx, PlayState* play2) {
 
 void EnTest3_Destroy(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    EnTest3* this = THIS;
+    EnTest3* this = (EnTest3*)thisx;
 
     Effect_Destroy(play, this->player.meleeWeaponEffectIndex[0]);
     Effect_Destroy(play, this->player.meleeWeaponEffectIndex[1]);
@@ -486,11 +531,11 @@ s32 func_80A3F15C(EnTest3* this, PlayState* play, struct_80A41828* arg2) {
             Math_Vec3f_Copy(&this->player.actor.world.pos, &curPathPos);
             Math_Vec3f_Copy(&this->player.actor.home.pos, &curPathPos);
             Math_Vec3f_Copy(&this->player.actor.prevPos, &curPathPos);
-            this->player.currentYaw = Math_Vec3f_Yaw(&this->player.actor.world.pos, &nextPathPos);
+            this->player.yaw = Math_Vec3f_Yaw(&this->player.actor.world.pos, &nextPathPos);
             if (arg2->unk_1_0 < 0) {
-                this->player.currentYaw += 0x8000;
+                this->player.yaw += 0x8000;
             }
-            this->player.actor.shape.rot.y = this->player.currentYaw;
+            this->player.actor.shape.rot.y = this->player.yaw;
             return true;
         }
     }
@@ -518,10 +563,10 @@ s32 func_80A3F384(EnTest3* this, PlayState* play) {
     EnDoor* door = (EnDoor*)func_80A3F2BC(play, this, ACTOR_EN_DOOR, ACTORCAT_DOOR, 55.0f, 20.0f);
     Vec3f offset;
 
-    if ((door != NULL) && !door->knobDoor.playOpenAnim &&
+    if ((door != NULL) && !door->knobDoor.requestOpen &&
         ((player->doorType == PLAYER_DOORTYPE_NONE) || (&door->knobDoor.dyna.actor != player->doorActor)) &&
         Actor_ActorAIsFacingActorB(&this->player.actor, &door->knobDoor.dyna.actor, 0x3000)) {
-        Actor_OffsetOfPointInActorCoords(&door->knobDoor.dyna.actor, &offset, &this->player.actor.world.pos);
+        Actor_WorldToActorCoords(&door->knobDoor.dyna.actor, &offset, &this->player.actor.world.pos);
         this->player.doorType = PLAYER_DOORTYPE_HANDLE;
         this->player.doorDirection = (offset.z >= 0.0f) ? 1.0f : -1.0f;
         this->player.doorActor = &door->knobDoor.dyna.actor;
@@ -565,7 +610,8 @@ s32 func_80A3F62C(EnTest3* this, PlayState* play, struct_80A41828* arg2, Schedul
         &D_80A41854[0], &D_80A41854[1], &D_80A41854[11], &D_80A41854[12], &D_80A41854[19],
     };
 
-    if (((func_80A3F15C(this, play, arg2) || (this->unk_D88 >= 8)) && ((arg2->unk_1_4 == 1) || (arg2->unk_1_4 == 2))) ||
+    if (((func_80A3F15C(this, play, arg2) || (this->scheduleResult >= 8)) &&
+         ((arg2->unk_1_4 == 1) || (arg2->unk_1_4 == 2))) ||
         (arg2->unk_1_4 == 4)) {
         if (arg2->unk_1_4 == 4) {
             this->player.actor.home.rot.y = 0x7FFF;
@@ -582,7 +628,7 @@ s32 func_80A3F62C(EnTest3* this, PlayState* play, struct_80A41828* arg2, Schedul
 s32 func_80A3F73C(EnTest3* this, PlayState* play) {
     if (Actor_TalkOfferAccepted(&this->player.actor, &play->state)) {
         func_80A3E7E0(this, func_80A4084C);
-        this->player.lockOnActor = &GET_PLAYER(play)->actor;
+        this->player.focusActor = &GET_PLAYER(play)->actor;
         this->player.stateFlags2 &= ~PLAYER_STATE2_40000;
         D_80A41D5C = true;
         if ((this->unk_D78->unk_0 == 4) && CHECK_WEEKEVENTREG(WEEKEVENTREG_51_08)) {
@@ -599,13 +645,13 @@ s32 func_80A3F73C(EnTest3* this, PlayState* play) {
             play->tryPlayerCsAction(play, &this->player, PLAYER_CSACTION_WAIT);
         }
         Actor_OfferTalkNearColChkInfoCylinder(&this->player.actor, play);
-        if (this->unk_D88 == 3) {
+        if (this->scheduleResult == 3) {
             func_80A3F534(this, play);
-        } else if (this->unk_D88 == 5) {
+        } else if (this->scheduleResult == 5) {
             func_80A3F5A4(this, play);
         }
         this->player.actor.textId = this->unk_D78->textId;
-        this->player.actor.flags |= (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY);
+        this->player.actor.flags |= (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
     }
     return false;
 }
@@ -624,12 +670,12 @@ s32 func_80A3F8D4(EnTest3* this, PlayState* play, struct_80A41828* arg2, Schedul
 
 s32 func_80A3F9A4(EnTest3* this, PlayState* play) {
     Math_ScaledStepToS(&this->player.actor.shape.rot.y, this->player.actor.home.rot.y, 0x320);
-    this->player.currentYaw = this->player.actor.shape.rot.y;
+    this->player.yaw = this->player.actor.shape.rot.y;
     return false;
 }
 
 s32 func_80A3F9E4(EnTest3* this, PlayState* play, struct_80A41828* arg2, ScheduleOutput* scheduleOutput) {
-    scheduleOutput->time0 = (u16)SCHEDULE_TIME_NOW;
+    scheduleOutput->time0 = (u16)SCRIPT_TIME_NOW;
     scheduleOutput->time1 = (u16)(scheduleOutput->time0 + 70);
     func_80A40098(this, play, arg2, scheduleOutput);
     if (this->player.actor.xzDistToPlayer < 300.0f) {
@@ -647,7 +693,7 @@ s32 func_80A3FA58(EnTest3* this, PlayState* play) {
     struct_80A41828 sp40;
     ScheduleOutput scheduleOutput;
 
-    if (player->stateFlags1 & PLAYER_STATE1_40) {
+    if (player->stateFlags1 & PLAYER_STATE1_TALKING) {
         return false;
     }
     cond = func_80A40230(this, play);
@@ -657,7 +703,7 @@ s32 func_80A3FA58(EnTest3* this, PlayState* play) {
         if (cond || this->unk_D8A <= 0) {
             func_80A3F114(this, play);
             sp40.unk_1_0 = 5;
-            scheduleOutput.time0 = (u16)SCHEDULE_TIME_NOW;
+            scheduleOutput.time0 = (u16)SCRIPT_TIME_NOW;
             scheduleOutput.time1 = (u16)(scheduleOutput.time0 + (cond ? 80 : 140));
 
             func_80A40098(this, play, &sp40, &scheduleOutput);
@@ -671,7 +717,7 @@ s32 func_80A3FA58(EnTest3* this, PlayState* play) {
         this->unk_D8A++;
         if (this->unk_D8A == 0) {
             CLEAR_WEEKEVENTREG(WEEKEVENTREG_51_04);
-            this->unk_D88 = 0;
+            this->scheduleResult = 0;
         }
     }
     return false;
@@ -690,7 +736,7 @@ s32 func_80A3FBE8(EnTest3* this, PlayState* play) {
             this->player.actor.textId = this->unk_D78->textId;
         }
     } else if (D_80A41D20 == 1) {
-        if (this->csId >= 0) {
+        if (this->csId > CS_ID_NONE) {
             if (func_80A3E9DC(this, play)) {
                 this->csId = CS_ID_NONE;
                 Environment_StopTime();
@@ -733,7 +779,7 @@ s32 func_80A3FE20(EnTest3* this, PlayState* play) {
     if (D_80A41D64 == 0) {
         if (func_80A3E9DC(this, play)) {
             sp2C.unk_1_0 = 2;
-            scheduleOutput.time0 = (u16)SCHEDULE_TIME_NOW;
+            scheduleOutput.time0 = (u16)SCRIPT_TIME_NOW;
             scheduleOutput.time1 = (u16)(scheduleOutput.time0 + 1000);
             func_80A40098(this, play, &sp2C, &scheduleOutput);
             D_80A41D64 = 1;
@@ -759,7 +805,7 @@ s32 func_80A3FF10(EnTest3* this, PlayState* play, struct_80A41828* arg2, Schedul
 
         this->player.actor.home.rot.y = -0x2AAB;
         this->player.actor.shape.rot.y = -0x2AAB;
-        this->player.currentYaw = -0x2AAB;
+        this->player.yaw = -0x2AAB;
         //! FAKE:
         if (1) {}
         return true;
@@ -792,13 +838,13 @@ s32 func_80A3FFD0(EnTest3* this, PlayState* play2) {
 }
 
 s32 func_80A40098(EnTest3* this, PlayState* play, struct_80A41828* arg2, ScheduleOutput* scheduleOutput) {
-    u16 now = SCHEDULE_TIME_NOW;
+    u16 now = SCRIPT_TIME_NOW;
     u16 startTime;
     u16 numWaypoints;
 
     func_80A3F15C(this, play, arg2);
     this->unk_D7C = SubS_GetAdditionalPath(play, KAFEI_GET_PATH_INDEX(&this->player.actor), ABS_ALT(arg2->unk_1_0) - 1);
-    if ((this->unk_D88 < 7) && (this->unk_D88 != 0) && (this->unk_D80 >= 0)) {
+    if ((this->scheduleResult < 7) && (this->scheduleResult != 0) && (this->unk_D80 >= 0)) {
         startTime = now;
     } else {
         startTime = scheduleOutput->time0;
@@ -852,10 +898,10 @@ s32 func_80A40230(EnTest3* this, PlayState* play) {
     this->unk_D98 = gZeroVec3f;
     if (SubS_TimePathing_Update(this->unk_D7C, &this->unk_DA4, &this->unk_DB4, this->unk_DAC, this->unk_DA8,
                                 &this->unk_DB0, knots, &this->unk_D98, this->unk_D80)) {
-        if (this->unk_D88 == 0x14) {
+        if (this->scheduleResult == 0x14) {
             CLEAR_WEEKEVENTREG(WEEKEVENTREG_58_80);
             this->player.actor.draw = NULL;
-        } else if (this->unk_D88 == 9) {
+        } else if (this->scheduleResult == 9) {
             D_80A41D64 = 2;
         }
         ret = true;
@@ -878,9 +924,9 @@ s32 func_80A40230(EnTest3* this, PlayState* play) {
     Math_Vec3f_Copy(&D_80A41D50, &this->player.actor.world.pos);
     dx = this->player.actor.world.pos.x - this->player.actor.prevPos.x;
     dy = this->player.actor.world.pos.z - this->player.actor.prevPos.z;
-    this->player.linearVelocity = sqrtf(SQ(dx) + SQ(dy));
-    this->player.linearVelocity *= 1.0f + (1.05f * fabsf(Math_SinS(this->player.floorPitch)));
-    sKafeiControlStickMagnitude = (this->player.linearVelocity * 10.0f) + 20.0f;
+    this->player.speedXZ = sqrtf(SQ(dx) + SQ(dy));
+    this->player.speedXZ *= 1.0f + (1.05f * fabsf(Math_SinS(this->player.floorPitch)));
+    sKafeiControlStickMagnitude = (this->player.speedXZ * 10.0f) + 20.0f;
     sKafeiControlStickMagnitude = CLAMP_MAX(sKafeiControlStickMagnitude, 60.0f);
     sKafeiControlStickAngle = this->player.actor.world.rot.y;
     this->player.actor.world.pos.x = this->player.actor.prevPos.x;
@@ -895,12 +941,12 @@ void func_80A40678(EnTest3* this, PlayState* play) {
     struct_80A41828* sp3C;
     ScheduleOutput scheduleOutput;
 
-    this->unk_D80 = ((this->unk_D88 == 20) || (this->unk_D88 == 10) || (this->unk_D88 == 9)) ? 3
-                    : Play_InCsMode(play)                                                    ? 0
+    this->unk_D80 = ((this->scheduleResult == 20) || (this->scheduleResult == 10) || (this->scheduleResult == 9)) ? 3
+                    : Play_InCsMode(play)                                                                         ? 0
                                           : R_TIME_SPEED + ((void)0, gSaveContext.save.timeSpeedOffset);
 
     if (Schedule_RunScript(play, sScheduleScript, &scheduleOutput)) {
-        if (this->unk_D88 != scheduleOutput.result) {
+        if (this->scheduleResult != scheduleOutput.result) {
             sp3C = &D_80A41828[scheduleOutput.result];
             func_80A3F114(this, play);
             if (sp3C->unk_0 != 4) {
@@ -918,8 +964,8 @@ void func_80A40678(EnTest3* this, PlayState* play) {
     } else {
         scheduleOutput.result = 0;
     }
-    this->unk_D88 = scheduleOutput.result;
-    sp3C = &D_80A41828[this->unk_D88];
+    this->scheduleResult = scheduleOutput.result;
+    sp3C = &D_80A41828[this->scheduleResult];
     D_80A417E8[sp3C->unk_0].unk_4(this, play);
 }
 
@@ -936,7 +982,7 @@ void func_80A4084C(EnTest3* this, PlayState* play) {
             } else {
                 func_80A3E7E0(this, func_80A40678);
             }
-            this->player.lockOnActor = NULL;
+            this->player.focusActor = NULL;
         }
     } else if (func_80A3ED24(this, play)) {
         func_80A3E7E0(this, func_80A40908);
@@ -946,7 +992,7 @@ void func_80A4084C(EnTest3* this, PlayState* play) {
 void func_80A40908(EnTest3* this, PlayState* play) {
     if (Actor_TalkOfferAccepted(&this->player.actor, &play->state)) {
         func_80A3E7E0(this, func_80A4084C);
-        this->player.lockOnActor = &GET_PLAYER(play)->actor;
+        this->player.focusActor = &GET_PLAYER(play)->actor;
         SET_WEEKEVENTREG(WEEKEVENTREG_51_08);
         Message_BombersNotebookQueueEvent(play, BOMBERS_NOTEBOOK_EVENT_RECEIVED_PENDANT_OF_MEMORIES);
         Message_BombersNotebookQueueEvent(play, BOMBERS_NOTEBOOK_EVENT_MET_KAFEI);
@@ -954,7 +1000,7 @@ void func_80A40908(EnTest3* this, PlayState* play) {
         Actor_OfferTalkExchange(&this->player.actor, play, 9999.9f, 9999.9f, PLAYER_IA_MINUS1);
         this->unk_D78 = &D_80A41854[6];
         this->player.actor.textId = this->unk_D78->textId;
-        this->player.actor.flags |= (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY);
+        this->player.actor.flags |= (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
     }
 }
 
@@ -974,7 +1020,7 @@ void func_80A40A6C(EnTest3* this, PlayState* play) {
 
 void EnTest3_Update(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    EnTest3* this = THIS;
+    EnTest3* this = (EnTest3*)thisx;
 
     sKafeiControlInput.rel.button = sKafeiControlInput.cur.button;
     sKafeiControlInput.cur.button = 0;
@@ -984,7 +1030,7 @@ void EnTest3_Update(Actor* thisx, PlayState* play2) {
     play->actorCtx.flags &= ~ACTORCTX_FLAG_7;
     this->player.actor.draw = EnTest3_Draw;
     D_80A41D48 = false;
-    this->player.actor.flags &= ~(ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY);
+    this->player.actor.flags &= ~(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
 
     if (Cutscene_IsCueInChannel(play, CS_CMD_ACTOR_CUE_506) &&
         !((this->player.actor.category == ACTORCAT_PLAYER) &&
@@ -996,7 +1042,7 @@ void EnTest3_Update(Actor* thisx, PlayState* play2) {
     } else if (this->player.actor.category == ACTORCAT_PLAYER) {
         func_80A409D4(this, play);
     } else if (play->tryPlayerCsAction(play, &this->player, PLAYER_CSACTION_NONE)) {
-        if (this->unk_D88 >= 7) {
+        if (this->scheduleResult >= 7) {
             Vec3f worldPos;
 
             Math_Vec3f_Copy(&worldPos, &this->player.actor.world.pos);
@@ -1021,23 +1067,24 @@ void EnTest3_Update(Actor* thisx, PlayState* play2) {
     if (D_80A41D48) {
         this->player.actor.world.pos.x = D_80A41D50.x;
         this->player.actor.world.pos.z = D_80A41D50.z;
-        this->player.linearVelocity = 0.0f;
+        this->player.speedXZ = 0.0f;
     }
 }
 
 s32 D_80A418C8 = false;
 
 s32 EnTest3_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnTest3* this = THIS;
+    EnTest3* this = (EnTest3*)thisx;
 
     if (limbIndex == KAFEI_LIMB_ROOT) {
         sKafeiCurBodyPartPos = &this->player.bodyPartsPos[0] - 1;
-        if (!(this->player.skelAnime.moveFlags & ANIM_FLAG_4) || (this->player.skelAnime.moveFlags & ANIM_FLAG_1)) {
+        if (!(this->player.skelAnime.movementFlags & ANIM_FLAG_4) ||
+            (this->player.skelAnime.movementFlags & ANIM_FLAG_1)) {
             pos->x *= this->player.ageProperties->unk_08;
             pos->z *= this->player.ageProperties->unk_08;
         }
-        if (!(this->player.skelAnime.moveFlags & ANIM_FLAG_4) ||
-            (this->player.skelAnime.moveFlags & ANIM_FLAG_UPDATE_Y)) {
+        if (!(this->player.skelAnime.movementFlags & ANIM_FLAG_4) ||
+            (this->player.skelAnime.movementFlags & ANIM_FLAG_UPDATE_Y)) {
             pos->y *= this->player.ageProperties->unk_08;
         }
         pos->y -= this->player.unk_AB8;
@@ -1063,9 +1110,9 @@ s32 EnTest3_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
         } else if (limbIndex == KAFEI_LIMB_UPPER_ROOT) {
             s32 requiredScopeTemp;
 
-            if (this->player.unk_AA8 != 0) {
+            if (this->player.upperLimbYawSecondary != 0) {
                 Matrix_RotateZS(0x44C, MTXMODE_APPLY);
-                Matrix_RotateYS(this->player.unk_AA8, MTXMODE_APPLY);
+                Matrix_RotateYS(this->player.upperLimbYawSecondary, MTXMODE_APPLY);
             }
             if (this->player.upperLimbRot.y != 0) {
                 Matrix_RotateYS(this->player.upperLimbRot.y, MTXMODE_APPLY);
@@ -1083,7 +1130,7 @@ s32 EnTest3_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
 
 void EnTest3_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList1, Gfx** dList2, Vec3s* rot, Actor* thisx) {
     s32 pad;
-    EnTest3* this = THIS;
+    EnTest3* this = (EnTest3*)thisx;
 
     if (*dList2 != NULL) {
         Matrix_MultZero(sKafeiCurBodyPartPos);
@@ -1104,7 +1151,7 @@ void EnTest3_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList1, Gfx** dL
             }
         }
         leftHandActor = this->player.heldActor;
-        if ((leftHandActor != NULL) && (this->player.stateFlags1 & PLAYER_STATE1_800)) {
+        if ((leftHandActor != NULL) && (this->player.stateFlags1 & PLAYER_STATE1_CARRYING_ACTOR)) {
             Vec3s curRot;
 
             Matrix_Get(&curMtxF);
@@ -1129,10 +1176,10 @@ void EnTest3_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList1, Gfx** dL
                 (this->player.bodyPartsPos[PLAYER_BODYPART_RIGHT_HAND].z + this->player.leftHandWorld.pos.z) / 2.0f;
         }
     } else if (limbIndex == KAFEI_LIMB_HEAD) {
-        Actor* actor730 = this->player.lockOnActor;
+        Actor* focusActor = this->player.focusActor;
 
-        if ((*dList1 != NULL) && this->player.currentMask && !(this->player.stateFlags2 & PLAYER_STATE2_1000000)) {
-            // this->player.currentMask != PLAYER_MASK_NONE
+        if ((*dList1 != NULL) && ((u32)this->player.currentMask != PLAYER_MASK_NONE) &&
+            !(this->player.stateFlags2 & PLAYER_STATE2_1000000)) {
             if ((this->player.skelAnime.animation != &gPlayerAnim_cl_maskoff) &&
                 ((this->player.skelAnime.animation != &gPlayerAnim_cl_setmask) ||
                  (this->player.skelAnime.curFrame >= 12.0f))) {
@@ -1145,8 +1192,8 @@ void EnTest3_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList1, Gfx** dL
                 }
             }
         }
-        if ((actor730 != NULL) && (actor730->id == ACTOR_BG_IKNV_OBJ)) {
-            Math_Vec3f_Copy(&this->player.actor.focus.pos, &actor730->focus.pos);
+        if ((focusActor != NULL) && (focusActor->id == ACTOR_BG_IKNV_OBJ)) {
+            Math_Vec3f_Copy(&this->player.actor.focus.pos, &focusActor->focus.pos);
         } else {
             static Vec3f D_80A418CC = { 1100.0f, -700.0f, 0.0f };
 
@@ -1169,33 +1216,56 @@ void EnTest3_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList1, Gfx** dL
     }
 }
 
-static TexturePtr sEyeTextures[] = {
-    gKafeiEyesOpenTex,     gKafeiEyesHalfTex,   gKafeiEyesClosedTex,   gKafeiEyesRollRightTex,
-    gKafeiEyesRollLeftTex, gKafeiEyesRollUpTex, gKafeiEyesRollDownTex, object_test3_Tex_006680,
+static TexturePtr sEyeTextures[PLAYER_EYES_MAX] = {
+    gKafeiEyesOpenTex,    // PLAYER_EYES_OPEN
+    gKafeiEyesHalfTex,    // PLAYER_EYES_HALF
+    gKafeiEyesClosedTex,  // PLAYER_EYES_CLOSED
+    gKafeiEyesRightTex,   // PLAYER_EYES_RIGHT
+    gKafeiEyesLeftTex,    // PLAYER_EYES_LEFT
+    gKafeiEyesUpTex,      // PLAYER_EYES_UP
+    gKafeiEyesDownTex,    // PLAYER_EYES_DOWN
+    gKafeiEyesWincingTex, // PLAYER_EYES_WINCING
 };
 
-static TexturePtr sMouthTextures[] = {
-    gKafeiMouthClosedTex,
-    gKafeiMouthTeethTex,
-    gKafeiMouthAngryTex,
-    gKafeiMouthHappyTex,
+static TexturePtr sMouthTextures[PLAYER_MOUTH_MAX] = {
+    gKafeiMouthClosedTex, // PLAYER_MOUTH_CLOSED
+    gKafeiMouthHalfTex,   // PLAYER_MOUTH_HALF
+    gKafeiMouthOpenTex,   // PLAYER_MOUTH_OPEN
+    gKafeiMouthSmileTex,  // PLAYER_MOUTH_SMILE
 };
 
-typedef struct {
-    /* 0x0 */ u8 eyeIndex;
-    /* 0x1 */ u8 mouthIndex;
-} KafeiFace; // size = 0x2
+static PlayerFaceIndices sKafeiFaces[PLAYER_FACE_MAX] = {
+    // The first 6 faces defined must be default blinking faces. See relevant code in `Player_UpdateCommon`.
+    { PLAYER_EYES_OPEN, PLAYER_MOUTH_CLOSED },   // PLAYER_FACE_NEUTRAL
+    { PLAYER_EYES_HALF, PLAYER_MOUTH_CLOSED },   // PLAYER_FACE_NEUTRAL_BLINKING_HALF
+    { PLAYER_EYES_CLOSED, PLAYER_MOUTH_CLOSED }, // PLAYER_FACE_NEUTRAL_BLINKING_CLOSED
 
-static KafeiFace sFaceExpressions[] = {
-    { 0, 0 }, { 1, 0 }, { 2, 0 }, { 0, 0 }, { 1, 0 }, { 2, 0 }, { 4, 0 }, { 5, 1 }, { 7, 2 }, { 0, 2 },
-    { 3, 0 }, { 4, 0 }, { 2, 2 }, { 1, 1 }, { 0, 2 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 },
+    // This duplicate set of blinking faces is defined because Player will choose between the first and second set
+    // based on gameplayFrames. See relevant code in `Player_UpdateCommon`.
+    // This, in theory, allows for psuedo-random variance in the faces used. But in practice, duplicate faces are used.
+    { PLAYER_EYES_OPEN, PLAYER_MOUTH_CLOSED },   // PLAYER_FACE_NEUTRAL_2
+    { PLAYER_EYES_HALF, PLAYER_MOUTH_CLOSED },   // PLAYER_FACE_NEUTRAL_BLINKING_HALF_2
+    { PLAYER_EYES_CLOSED, PLAYER_MOUTH_CLOSED }, // PLAYER_FACE_NEUTRAL_BLINKING_CLOSED_2
+
+    // Additional faces. Most faces are encoded within animations.
+    { PLAYER_EYES_LEFT, PLAYER_MOUTH_CLOSED },  // PLAYER_FACE_LOOK_LEFT
+    { PLAYER_EYES_UP, PLAYER_MOUTH_HALF },      // PLAYER_FACE_SURPRISED
+    { PLAYER_EYES_WINCING, PLAYER_MOUTH_OPEN }, // PLAYER_FACE_HURT
+    { PLAYER_EYES_OPEN, PLAYER_MOUTH_OPEN },    // PLAYER_FACE_GASP
+    { PLAYER_EYES_RIGHT, PLAYER_MOUTH_CLOSED }, // PLAYER_FACE_LOOK_RIGHT
+    { PLAYER_EYES_LEFT, PLAYER_MOUTH_CLOSED },  // PLAYER_FACE_LOOK_LEFT_2
+    { PLAYER_EYES_CLOSED, PLAYER_MOUTH_OPEN },  // PLAYER_FACE_EYES_CLOSED_MOUTH_OPEN
+    { PLAYER_EYES_HALF, PLAYER_MOUTH_HALF },    // PLAYER_FACE_OPENING
+    { PLAYER_EYES_OPEN, PLAYER_MOUTH_OPEN },    // PLAYER_FACE_EYES_AND_MOUTH_OPEN
+    // The mouth in this entry deviates from player. Similar to OoT's `sPlayerFaces`.
+    { PLAYER_EYES_OPEN, PLAYER_MOUTH_CLOSED }, // PLAYER_FACE_EYES_AND_MOUTH_OPEN
 };
 
 void EnTest3_Draw(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    EnTest3* this = THIS;
-    s32 eyeTexIndex = GET_EYE_INDEX_FROM_JOINT_TABLE(this->player.skelAnime.jointTable);
-    s32 mouthTexIndex = GET_MOUTH_INDEX_FROM_JOINT_TABLE(this->player.skelAnime.jointTable);
+    EnTest3* this = (EnTest3*)thisx;
+    s32 eyeIndex = GET_EYE_INDEX_FROM_JOINT_TABLE(this->player.skelAnime.jointTable);
+    s32 mouthIndex = GET_MOUTH_INDEX_FROM_JOINT_TABLE(this->player.skelAnime.jointTable);
     Gfx* gfx;
 
     OPEN_DISPS(play->state.gfxCtx);
@@ -1221,25 +1291,33 @@ void EnTest3_Draw(Actor* thisx, PlayState* play2) {
 
     gfx = POLY_OPA_DISP;
 
-    if (eyeTexIndex < 0) {
-        eyeTexIndex = sFaceExpressions[this->player.actor.shape.face].eyeIndex;
+    // If the eyes index provided by the animation is negative, use the value provided by the `face` argument instead
+    if (eyeIndex < 0) {
+        eyeIndex = sKafeiFaces[this->player.actor.shape.face].eyeIndex;
     }
-    gSPSegment(&gfx[0], 0x08, Lib_SegmentedToVirtual(sEyeTextures[eyeTexIndex]));
-    if (mouthTexIndex < 0) {
-        mouthTexIndex = sFaceExpressions[this->player.actor.shape.face].mouthIndex;
+
+    gSPSegment(&gfx[0], 0x08, Lib_SegmentedToVirtual(sEyeTextures[eyeIndex]));
+
+    // If the mouth index provided by the animation is negative, use the value provided by the `face` argument instead
+    if (mouthIndex < 0) {
+        mouthIndex = sKafeiFaces[this->player.actor.shape.face].mouthIndex;
     }
-    gSPSegment(&gfx[1], 0x09, Lib_SegmentedToVirtual(sMouthTextures[mouthTexIndex]));
+
+    gSPSegment(&gfx[1], 0x09, Lib_SegmentedToVirtual(sMouthTextures[mouthIndex]));
 
     POLY_OPA_DISP = &gfx[2];
 
     SkelAnime_DrawFlexLod(play, this->player.skelAnime.skeleton, this->player.skelAnime.jointTable,
                           this->player.skelAnime.dListCount, EnTest3_OverrideLimbDraw, EnTest3_PostLimbDraw,
                           &this->player.actor, 0);
+
     if (this->player.invincibilityTimer > 0) {
         POLY_OPA_DISP = Play_SetFog(play, POLY_OPA_DISP);
     }
+
     if ((this->player.getItemDrawIdPlusOne - 1) != GID_NONE) {
         Player_DrawGetItem(play, &this->player);
     }
+
     CLOSE_DISPS(play->state.gfxCtx);
 }

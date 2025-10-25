@@ -5,12 +5,10 @@
  */
 
 #include "z_en_estone.h"
-#include "objects/object_eg/object_eg.h"
-#include "objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/object_eg/object_eg.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((EnEstone*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 void EnEstone_Init(Actor* thisx, PlayState* play);
 void EnEstone_Destroy(Actor* thisx, PlayState* play);
@@ -23,7 +21,7 @@ void EnEstone_SpawnEffect(EnEstone* this, Vec3f* pos, Vec3f* velocity, Vec3f* ac
 void EnEstone_UpdateEffects(EnEstone* this, PlayState* play);
 void EnEstone_DrawEffects(EnEstone* this, PlayState* play);
 
-ActorInit En_Estone_InitVars = {
+ActorProfile En_Estone_Profile = {
     /**/ ACTOR_EN_ESTONE,
     /**/ ACTORCAT_PROP,
     /**/ FLAGS,
@@ -37,7 +35,7 @@ ActorInit En_Estone_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_HARD,
+        COL_MATERIAL_HARD,
         AT_ON | AT_TYPE_ENEMY,
         AC_ON | AC_TYPE_PLAYER,
         OC1_NONE,
@@ -45,18 +43,18 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0xF7CFFFFF, 0x00, 0x04 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_ON | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_ON | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_NONE,
     },
     { 30, 30, -10, { 0, 0, 0 } },
 };
 
 void EnEstone_Init(Actor* thisx, PlayState* play) {
-    EnEstone* this = THIS;
+    EnEstone* this = (EnEstone*)thisx;
     Vec3f accel;
     Vec3f velocity;
     f32 scale;
@@ -106,7 +104,7 @@ void EnEstone_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnEstone_Destroy(Actor* thisx, PlayState* play) {
-    EnEstone* this = THIS;
+    EnEstone* this = (EnEstone*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -162,7 +160,7 @@ void EnEstone_Inactive(EnEstone* this, PlayState* play) {
 
 void EnEstone_Update(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    EnEstone* this = THIS;
+    EnEstone* this = (EnEstone*)thisx;
 
     DECR(this->timer);
 
@@ -187,7 +185,7 @@ void EnEstone_Update(Actor* thisx, PlayState* play2) {
 
 void EnEstone_Draw(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    EnEstone* this = THIS;
+    EnEstone* this = (EnEstone*)thisx;
 
     if (this->inactive != true) {
         Matrix_Push();
@@ -202,7 +200,7 @@ void EnEstone_Draw(Actor* thisx, PlayState* play2) {
         Matrix_Translate(0.0f, 0.0f, 0.0f, MTXMODE_APPLY);
         gDPSetPrimColor(POLY_OPA_DISP++, 0, 0x80, 255, 255, 255, 255);
         gDPSetEnvColor(POLY_OPA_DISP++, 255, 255, 255, 255);
-        gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+        MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
         gSPDisplayList(POLY_OPA_DISP++, gEyegoreStoneDL);
 
         CLOSE_DISPS(play->state.gfxCtx);
@@ -275,7 +273,7 @@ void EnEstone_DrawEffects(EnEstone* this, PlayState* play) {
             Matrix_RotateZS(effect->rot.z, MTXMODE_APPLY);
             Matrix_Scale(effect->scale, effect->scale, effect->scale, MTXMODE_APPLY);
             Matrix_Translate(0.0f, 0.0f, 0.0f, MTXMODE_APPLY);
-            gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+            MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, gfxCtx);
             gDPSetPrimColor(POLY_OPA_DISP++, 0x00, 0x80, 255, 255, 255, 255);
             gDPSetEnvColor(POLY_OPA_DISP++, 255, 255, 255, 255);
             gSPDisplayList(POLY_OPA_DISP++, gameplay_keep_DL_06AB30);

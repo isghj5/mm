@@ -6,16 +6,14 @@
 
 #include "z_oceff_wipe4.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_2000000)
-
-#define THIS ((OceffWipe4*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_UPDATE_DURING_OCARINA)
 
 void OceffWipe4_Init(Actor* thisx, PlayState* play);
 void OceffWipe4_Destroy(Actor* thisx, PlayState* play);
 void OceffWipe4_Update(Actor* thisx, PlayState* play);
 void OceffWipe4_Draw(Actor* thisx, PlayState* play);
 
-ActorInit Oceff_Wipe4_InitVars = {
+ActorProfile Oceff_Wipe4_Profile = {
     /**/ ACTOR_OCEFF_WIPE4,
     /**/ ACTORCAT_ITEMACTION,
     /**/ FLAGS,
@@ -32,7 +30,7 @@ ActorInit Oceff_Wipe4_InitVars = {
 static s32 sBssPad;
 
 void OceffWipe4_Init(Actor* thisx, PlayState* play) {
-    OceffWipe4* this = THIS;
+    OceffWipe4* this = (OceffWipe4*)thisx;
 
     Actor_SetScale(&this->actor, 0.1f);
     this->counter = 0;
@@ -40,14 +38,14 @@ void OceffWipe4_Init(Actor* thisx, PlayState* play) {
 }
 
 void OceffWipe4_Destroy(Actor* thisx, PlayState* play) {
-    OceffWipe4* this = THIS;
+    OceffWipe4* this = (OceffWipe4*)thisx;
 
     Magic_Reset(play);
     play->msgCtx.ocarinaSongEffectActive = false;
 }
 
 void OceffWipe4_Update(Actor* thisx, PlayState* play) {
-    OceffWipe4* this = THIS;
+    OceffWipe4* this = (OceffWipe4*)thisx;
 
     this->actor.world.pos = GET_ACTIVE_CAM(play)->eye;
     if (this->counter < 50) {
@@ -59,7 +57,7 @@ void OceffWipe4_Update(Actor* thisx, PlayState* play) {
 
 void OceffWipe4_Draw(Actor* thisx, PlayState* play) {
     u32 scroll = play->state.frames & 0xFFF;
-    OceffWipe4* this = THIS;
+    OceffWipe4* this = (OceffWipe4*)thisx;
     f32 z;
     u8 alpha;
     s32 pad[2];
@@ -94,7 +92,7 @@ void OceffWipe4_Draw(Actor* thisx, PlayState* play) {
     Matrix_RotateXS(0x708, MTXMODE_APPLY);
     Matrix_Translate(0.0f, 0.0f, -z, MTXMODE_APPLY);
 
-    gSPMatrix(POLY_XLU_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx);
 
     if (this->actor.params == OCEFF_WIPE4_UNUSED) {
         gSPDisplayList(POLY_XLU_DISP++, sScarecrowSongUnusedMaterialDL);

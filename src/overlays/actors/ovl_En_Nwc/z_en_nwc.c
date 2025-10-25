@@ -9,11 +9,9 @@
 
 #include "z_en_nwc.h"
 #include "overlays/actors/ovl_En_Niw/z_en_niw.h"
-#include "objects/object_nwc/object_nwc.h"
+#include "assets/objects/object_nwc/object_nwc.h"
 
-#define FLAGS (ACTOR_FLAG_10)
-
-#define THIS ((EnNwc*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 void EnNwc_Init(Actor* thisx, PlayState* play);
 void EnNwc_Destroy(Actor* thisx, PlayState* play);
@@ -40,7 +38,7 @@ typedef enum EnNwcState {
     /*  4 */ NWC_STATE_RUNNING          // running from the player after failed breman march
 } EnNwcState;
 
-ActorInit En_Nwc_InitVars = {
+ActorProfile En_Nwc_Profile = {
     /**/ ACTOR_EN_NWC,
     /**/ ACTORCAT_PROP,
     /**/ FLAGS,
@@ -54,7 +52,7 @@ ActorInit En_Nwc_InitVars = {
 
 void EnNwc_Init(Actor* thisx, PlayState* play) {
     s32 niwObjectSlot;
-    EnNwc* this = THIS;
+    EnNwc* this = (EnNwc*)thisx;
 
     niwObjectSlot = Object_GetSlot(&play->objectCtx, OBJECT_NIW);
     if (niwObjectSlot <= OBJECT_SLOT_NONE) {
@@ -85,7 +83,7 @@ void EnNwc_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnNwc_Destroy(Actor* thisx, PlayState* play) {
-    EnNwc* this = THIS;
+    EnNwc* this = (EnNwc*)thisx;
 }
 
 void EnNwc_SpawnDust(EnNwc* this, PlayState* play) {
@@ -459,7 +457,7 @@ void EnNwc_CheckForBreman(EnNwc* this, PlayState* play) {
 }
 
 void EnNwc_Update(Actor* thisx, PlayState* play) {
-    EnNwc* this = THIS;
+    EnNwc* this = (EnNwc*)thisx;
 
     Actor_MoveWithGravity(&this->actor);
     Actor_UpdateBgCheckInfo(play, &this->actor, 10.0f, 10.0f, 10.0f, UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4);
@@ -488,7 +486,7 @@ void EnNwc_Update(Actor* thisx, PlayState* play) {
 
 void EnNwc_Draw(Actor* thisx, PlayState* play) {
     TexturePtr eyeTextures[] = { gNwcEyeOpenTex, gNwcEyeClosedTex };
-    EnNwc* this = THIS;
+    EnNwc* this = (EnNwc*)thisx;
     Gfx* gfx;
 
     OPEN_DISPS(play->state.gfxCtx);
@@ -499,7 +497,7 @@ void EnNwc_Draw(Actor* thisx, PlayState* play) {
 
     gSPSegment(&gfx[0], 0x08, Lib_SegmentedToVirtual(eyeTextures[this->blinkState]));
 
-    gSPMatrix(&gfx[1], Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(&gfx[1], play->state.gfxCtx);
 
     gSPDisplayList(&gfx[2], &gNwcBodyDL);
 
@@ -509,7 +507,7 @@ void EnNwc_Draw(Actor* thisx, PlayState* play) {
 }
 
 s32 EnNwc_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnNwc* this = THIS;
+    EnNwc* this = (EnNwc*)thisx;
 
     if (limbIndex == NIW_LIMB_UPPER_BODY) {
         rot->y += this->upperBodyRotY;
@@ -523,7 +521,7 @@ s32 EnNwc_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
 }
 
 void EnNwc_DrawAdultBody(Actor* thisx, PlayState* play) {
-    EnNwc* this = THIS;
+    EnNwc* this = (EnNwc*)thisx;
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawFlexOpa(play, this->niwSkeleton.skeleton, this->niwSkeleton.jointTable, this->niwSkeleton.dListCount,

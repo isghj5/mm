@@ -5,11 +5,9 @@
  */
 
 #include "z_bg_ingate.h"
-#include "objects/object_sichitai_obj/object_sichitai_obj.h"
+#include "assets/objects/object_sichitai_obj/object_sichitai_obj.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((BgIngate*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 void BgIngate_Init(Actor* thisx, PlayState* play2);
 void BgIngate_Destroy(Actor* thisx, PlayState* play);
@@ -26,7 +24,7 @@ void func_809542A0(BgIngate* this, PlayState* play);
 void func_80954340(BgIngate* this, PlayState* play);
 void func_809543D4(BgIngate* this, PlayState* play);
 
-ActorInit Bg_Ingate_InitVars = {
+ActorProfile Bg_Ingate_Profile = {
     /**/ ACTOR_BG_INGATE,
     /**/ ACTORCAT_BG,
     /**/ FLAGS,
@@ -133,7 +131,7 @@ s32 func_80953DA8(BgIngate* this, PlayState* play) {
         SET_EVENTINF(EVENTINF_41);
     }
     Camera_ChangeSetting(mainCam, CAM_SET_BOAT_CRUISE);
-    play->unk_1887C = 0x63;
+    play->bButtonAmmoPlusOne = 99;
 
     return false;
 }
@@ -145,7 +143,7 @@ void func_80953E38(PlayState* play) {
         CLEAR_EVENTINF(EVENTINF_41);
     }
 
-    play->unk_1887C = -1;
+    play->bButtonAmmoPlusOne = -1;
 }
 
 void func_80953EA4(BgIngate* this, PlayState* play) {
@@ -164,7 +162,7 @@ void func_80953F14(BgIngate* this, PlayState* play) {
 
     player->actor.shape.rot.y = this->dyna.actor.shape.rot.y;
     player->actor.world.rot.y = player->actor.shape.rot.y;
-    player->currentYaw = player->actor.shape.rot.y;
+    player->yaw = player->actor.shape.rot.y;
     player->actor.focus.rot.y = player->actor.shape.rot.y;
     this->unk160 |= 0x10;
     func_80953DA8(this, play);
@@ -280,6 +278,7 @@ void func_809543D4(BgIngate* this, PlayState* play) {
                 this->dyna.actor.textId = 0x9E5;
                 Message_ContinueTextbox(play, this->dyna.actor.textId);
                 break;
+
             case 0x9E5:
                 if (play->msgCtx.choiceIndex == 0) {
                     Player_SetCsActionWithHaltedActors(play, &this->dyna.actor, PLAYER_CSACTION_END);
@@ -297,6 +296,7 @@ void func_809543D4(BgIngate* this, PlayState* play) {
                 }
                 Message_CloseTextbox(play);
                 break;
+
             case 0x9E6:
                 if (play->msgCtx.choiceIndex == 0) {
                     func_80953EA4(this, play);
@@ -317,7 +317,7 @@ void func_809543D4(BgIngate* this, PlayState* play) {
 
 void BgIngate_Init(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    BgIngate* this = THIS;
+    BgIngate* this = (BgIngate*)thisx;
     s32 phi_a2;
     Vec3s* sp38;
     Vec3f sp2C;
@@ -370,7 +370,7 @@ void BgIngate_Init(Actor* thisx, PlayState* play2) {
 }
 
 void BgIngate_Destroy(Actor* thisx, PlayState* play) {
-    BgIngate* this = THIS;
+    BgIngate* this = (BgIngate*)thisx;
 
     if (this->unk160 & 8) {
         DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
@@ -378,7 +378,7 @@ void BgIngate_Destroy(Actor* thisx, PlayState* play) {
 }
 
 void BgIngate_Update(Actor* thisx, PlayState* play) {
-    BgIngate* this = THIS;
+    BgIngate* this = (BgIngate*)thisx;
 
     this->actionFunc(this, play);
 }
@@ -387,7 +387,7 @@ void BgIngate_Draw(Actor* thisx, PlayState* play) {
     OPEN_DISPS(play->state.gfxCtx);
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
-    gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
     gSPDisplayList(POLY_OPA_DISP++, gSichitaiBoatDL);
 
     CLOSE_DISPS(play->state.gfxCtx);

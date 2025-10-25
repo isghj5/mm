@@ -4,12 +4,11 @@
  * Description: Bombers - Jim
  */
 
-#include "overlays/actors/ovl_En_Bombal/z_en_bombal.h"
 #include "z_en_bomjima.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10)
+#include "overlays/effects/ovl_Effect_Ss_Hitmark/z_eff_ss_hitmark.h"
 
-#define THIS ((EnBomjima*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 void EnBomjima_Init(Actor* thisx, PlayState* play);
 void EnBomjima_Destroy(Actor* thisx, PlayState* play);
@@ -52,7 +51,7 @@ typedef enum EnBomjimaAction {
 static s32 D_80C009F0 = 0;
 static s32 D_80C009F4 = 0;
 
-ActorInit En_Bomjima_InitVars = {
+ActorProfile En_Bomjima_Profile = {
     /**/ ACTOR_EN_BOMJIMA,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -66,7 +65,7 @@ ActorInit En_Bomjima_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_NONE,
         OC1_ON | OC1_TYPE_PLAYER,
@@ -74,11 +73,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_NONE,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_NONE,
         OCELEM_ON,
     },
     { 10, 30, 0, { 0, 0, 0 } },
@@ -174,7 +173,7 @@ s16 D_80C00AF8[] = {
 };
 
 void EnBomjima_Init(Actor* thisx, PlayState* play) {
-    EnBomjima* this = THIS;
+    EnBomjima* this = (EnBomjima*)thisx;
     s32 csId;
     s32 i;
 
@@ -185,7 +184,7 @@ void EnBomjima_Init(Actor* thisx, PlayState* play) {
                        this->morphTable, OBJECT_CS_LIMB_MAX);
     Collider_InitAndSetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
     CLEAR_WEEKEVENTREG(WEEKEVENTREG_83_04);
-    this->actor.targetMode = TARGET_MODE_0;
+    this->actor.attentionRangeType = ATTENTION_RANGE_0;
     this->unk_2E6 = ENBOMJIMA_GET_F0(&this->actor);
     this->unk_2E4 = ENBOMJIMA_GET_F(&this->actor);
     Actor_SetScale(&this->actor, 0.01f);
@@ -213,7 +212,7 @@ void EnBomjima_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnBomjima_Destroy(Actor* thisx, PlayState* play) {
-    EnBomjima* this = THIS;
+    EnBomjima* this = (EnBomjima*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -315,7 +314,7 @@ void func_80BFE67C(EnBomjima* this, PlayState* play) {
     Vec3f sp60;
     Vec3f sp54;
     CollisionPoly* sp50;
-    s32 sp4C;
+    s32 bgId;
 
     this->unk_2DC = Math_Vec3f_Yaw(&this->actor.world.pos, &this->unk_2A4);
     Math_SmoothStepToS(&this->actor.world.rot.y, this->unk_2DC, 1, 0x1388, 0);
@@ -330,7 +329,7 @@ void func_80BFE67C(EnBomjima* this, PlayState* play) {
 
                 abs = ABS_ALT(BINANG_SUB(this->actor.world.rot.y, Math_Vec3f_Yaw(&this->actor.world.pos, &sp54)));
                 if ((abs < 0x4000) && !BgCheck_EntityLineTest1(&play->colCtx, &this->actor.world.pos, &sp54, &sp6C,
-                                                               &sp50, true, false, false, true, &sp4C)) {
+                                                               &sp50, true, false, false, true, &bgId)) {
                     EnBomjima_ChangeAnim(this, ENBOMJIMA_ANIM_5, 1.0f);
                     Math_Vec3f_Copy(&this->unk_2A4, &sp54);
                     this->unk_2BE = Rand_S16Offset(30, 50);
@@ -353,7 +352,7 @@ void func_80BFE67C(EnBomjima* this, PlayState* play) {
                 sp60.z += Math_CosS(this->actor.world.rot.y) * 60.0f;
 
                 if (BgCheck_EntityLineTest1(&play->colCtx, &this->actor.world.pos, &sp60, &sp6C, &sp50, true, false,
-                                            false, true, &sp4C)) {
+                                            false, true, &bgId)) {
                     this->unk_2C0 = 0;
                     if (Rand_ZeroOne() < 0.5f) {
                         EnBomjima_ChangeAnim(this, ENBOMJIMA_ANIM_19, 1.0f);
@@ -485,7 +484,7 @@ void func_80BFEB64(EnBomjima* this, PlayState* play) {
                 sp40.z = (Math_CosS(sp3E) * (Rand_ZeroFloat(20.0f) + 40.0f)) + this->bombal->actor.world.pos.z;
 
                 SoundSource_PlaySfxAtFixedWorldPos(play, &sp40, 50, NA_SE_EV_BOMBERS_SHOT_EXPLOSUIN);
-                EffectSsHitmark_SpawnFixedScale(play, 0, &sp40);
+                EffectSsHitmark_SpawnFixedScale(play, EFFECT_HITMARK_WHITE, &sp40);
                 this->unk_2BC++;
 
                 if ((TRUNCF_BINANG(Rand_ZeroFloat(2.0f)) + 3) < this->unk_2BC) {
@@ -1069,7 +1068,7 @@ void func_80C00284(EnBomjima* this, PlayState* play) {
 
 void EnBomjima_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnBomjima* this = THIS;
+    EnBomjima* this = (EnBomjima*)thisx;
 
     if (this->unk_2BE != 0) {
         this->unk_2BE--;
@@ -1112,13 +1111,13 @@ void EnBomjima_Update(Actor* thisx, PlayState* play) {
     Actor_UpdateBgCheckInfo(play, &this->actor, 20.0f, 20.0f, 50.0f,
                             UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4 | UPDBGCHECKINFO_FLAG_8 |
                                 UPDBGCHECKINFO_FLAG_10);
-    this->actor.uncullZoneForward = 500.0f;
+    this->actor.cullingVolumeDistance = 500.0f;
     Collider_UpdateCylinder(&this->actor, &this->collider);
     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
 }
 
 s32 EnBomjima_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnBomjima* this = THIS;
+    EnBomjima* this = (EnBomjima*)thisx;
 
     if (limbIndex == OBJECT_CS_LIMB_08) {
         rot->z += this->unk_294;
@@ -1144,7 +1143,7 @@ s32 EnBomjima_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3
     return false;
 }
 
-#include "overlays/ovl_En_Bomjima/ovl_En_Bomjima.c"
+#include "assets/overlays/ovl_En_Bomjima/ovl_En_Bomjima.c"
 
 void EnBomjima_Draw(Actor* thisx, PlayState* play) {
     static Gfx* D_80C00B28[] = {
@@ -1159,7 +1158,7 @@ void EnBomjima_Draw(Actor* thisx, PlayState* play) {
     static TexturePtr D_80C00B48[] = {
         object_cs_Tex_00E620, object_cs_Tex_00EA20, object_cs_Tex_00EE20, object_cs_Tex_00DD20, object_cs_Tex_00F220,
     };
-    EnBomjima* this = THIS;
+    EnBomjima* this = (EnBomjima*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 

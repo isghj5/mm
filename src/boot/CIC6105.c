@@ -1,8 +1,9 @@
-#include "prevent_bss_reordering.h"
 #include "CIC6105.h"
 
 #include "build.h"
 #include "fault.h"
+
+#pragma increment_block_number "n64-us:200"
 
 s32 gCICAddr1Val;
 s32 gCICAddr2Val;
@@ -16,7 +17,7 @@ void CIC6105_Noop2(void) {
 
 void CIC6105_PrintRomInfo(void) {
     FaultDrawer_DrawText(80, 200, "SP_STATUS %08x", IO_READ(SP_STATUS_REG));
-    FaultDrawer_DrawText(40, 184, "ROM_F [Creator:%s]", gBuildTeam);
+    FaultDrawer_DrawText(40, 184, "ROM_F [Creator:%s]", gBuildCreator);
     FaultDrawer_DrawText(56, 192, "[Date:%s]", gBuildDate);
 }
 

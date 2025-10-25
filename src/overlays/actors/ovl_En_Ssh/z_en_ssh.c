@@ -5,11 +5,11 @@
  */
 
 #include "z_en_ssh.h"
-#include "objects/object_st/object_st.h"
+#include "assets/objects/object_st/object_st.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_UNFRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((EnSsh*)thisx)
+#define FLAGS                                                                                 \
+    (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE | ACTOR_FLAG_UPDATE_CULLING_DISABLED | \
+     ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 void EnSsh_Init(Actor* thisx, PlayState* play);
 void EnSsh_Destroy(Actor* thisx, PlayState* play);
@@ -25,7 +25,7 @@ void EnSsh_Start(EnSsh* this, PlayState* play);
 
 extern AnimationHeader D_06000304;
 
-ActorInit En_Ssh_InitVars = {
+ActorProfile En_Ssh_Profile = {
     /**/ ACTOR_EN_SSH,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -39,7 +39,7 @@ ActorInit En_Ssh_InitVars = {
 
 static ColliderCylinderInit sCylinderInit1 = {
     {
-        COLTYPE_HIT6,
+        COL_MATERIAL_HIT6,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_NONE,
@@ -47,11 +47,11 @@ static ColliderCylinderInit sCylinderInit1 = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0x00000000, 0x00, 0x00 },
-        TOUCH_ON | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_ON | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_NONE,
     },
     { 32, 50, -24, { 0, 0, 0 } },
@@ -61,7 +61,7 @@ static CollisionCheckInfoInit2 sColChkInfoInit = { 1, 0, 0, 0, MASS_IMMOVABLE };
 
 static ColliderCylinderInit sCylinderInit2 = {
     {
-        COLTYPE_HIT6,
+        COL_MATERIAL_HIT6,
         AT_NONE,
         AC_NONE,
         OC1_ON | OC1_TYPE_ALL,
@@ -69,11 +69,11 @@ static ColliderCylinderInit sCylinderInit2 = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0x00000000, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_NONE,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_NONE,
         OCELEM_ON,
     },
     { 20, 60, -30, { 0, 0, 0 } },
@@ -82,11 +82,11 @@ static ColliderCylinderInit sCylinderInit2 = {
 static ColliderJntSphElementInit sJntSphElementsInit[1] = {
     {
         {
-            ELEMTYPE_UNK0,
+            ELEM_MATERIAL_UNK0,
             { 0xF7CFFFFF, 0x00, 0x04 },
             { 0x00000000, 0x00, 0x00 },
-            TOUCH_ON | TOUCH_SFX_NORMAL,
-            BUMP_NONE,
+            ATELEM_ON | ATELEM_SFX_NORMAL,
+            ACELEM_NONE,
             OCELEM_ON,
         },
         { 1, { { 0, -240, 0 }, 28 }, 100 },
@@ -95,7 +95,7 @@ static ColliderJntSphElementInit sJntSphElementsInit[1] = {
 
 static ColliderJntSphInit sJntSphInit = {
     {
-        COLTYPE_HIT6,
+        COL_MATERIAL_HIT6,
         AT_ON | AT_TYPE_ENEMY,
         AC_NONE,
         OC1_ON | OC1_TYPE_ALL,
@@ -194,12 +194,12 @@ void EnSsh_InitColliders(EnSsh* this, PlayState* play) {
         Collider_InitAndSetCylinder(play, &this->collider1[i], &this->actor, cylinders[i]);
     }
 
-    this->collider1[0].info.bumper.dmgFlags = 0x38A9;
-    this->collider1[1].info.bumper.dmgFlags = ~0x83038A9;
-    this->collider1[2].base.colType = COLTYPE_METAL;
-    this->collider1[2].info.bumperFlags = (BUMP_NO_AT_INFO | BUMP_HOOKABLE | BUMP_ON);
-    this->collider1[2].info.elemType = ELEMTYPE_UNK2;
-    this->collider1[2].info.bumper.dmgFlags = ~0x83038A9;
+    this->collider1[0].elem.acDmgInfo.dmgFlags = 0x38A9;
+    this->collider1[1].elem.acDmgInfo.dmgFlags = ~0x83038A9;
+    this->collider1[2].base.colMaterial = COL_MATERIAL_METAL;
+    this->collider1[2].elem.acElemFlags = (ACELEM_NO_AT_INFO | ACELEM_HOOKABLE | ACELEM_ON);
+    this->collider1[2].elem.elemMaterial = ELEM_MATERIAL_UNK2;
+    this->collider1[2].elem.acDmgInfo.dmgFlags = ~0x83038A9;
 
     CollisionCheck_SetInfo2(&this->actor.colChkInfo, DamageTable_Get(2), &sColChkInfoInit);
     Collider_InitJntSph(play, &this->collider2);
@@ -470,16 +470,16 @@ void EnSsh_Sway(EnSsh* this) {
 
 void EnSsh_CheckBodyStickHit(EnSsh* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
-    ColliderInfo* colliderInfo = &this->collider1[0].info;
+    ColliderElement* elem = &this->collider1[0].elem;
 
     if (player->unk_B28 != 0) {
-        colliderInfo->bumper.dmgFlags |= 2;
-        this->collider1[1].info.bumper.dmgFlags &= ~2;
-        this->collider1[2].info.bumper.dmgFlags &= ~2;
+        elem->acDmgInfo.dmgFlags |= 2;
+        this->collider1[1].elem.acDmgInfo.dmgFlags &= ~2;
+        this->collider1[2].elem.acDmgInfo.dmgFlags &= ~2;
     } else {
-        colliderInfo->bumper.dmgFlags &= ~2;
-        this->collider1[1].info.bumper.dmgFlags |= 2;
-        this->collider1[2].info.bumper.dmgFlags |= 2;
+        elem->acDmgInfo.dmgFlags &= ~2;
+        this->collider1[1].elem.acDmgInfo.dmgFlags |= 2;
+        this->collider1[2].elem.acDmgInfo.dmgFlags |= 2;
     }
 }
 
@@ -662,7 +662,7 @@ void EnSsh_Init(Actor* thisx, PlayState* play) {
     //! However since object_ssh is the one loaded, this ends up reading garbage data from within object_ssh_Tex_000190.
     f32 endFrame = Animation_GetLastFrame(&object_st_Anim_000304);
     s32 pad;
-    EnSsh* this = THIS;
+    EnSsh* this = (EnSsh*)thisx;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
     SkelAnime_Init(play, &this->skelAnime, &object_ssh_Skel_006470, NULL, this->jointTable, this->morphTable,
@@ -693,7 +693,7 @@ void EnSsh_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnSsh_Destroy(Actor* thisx, PlayState* play) {
-    EnSsh* this = THIS;
+    EnSsh* this = (EnSsh*)thisx;
     s32 i;
 
     Effect_Destroy(play, this->blureIdx);
@@ -869,7 +869,7 @@ void EnSsh_Start(EnSsh* this, PlayState* play) {
 }
 
 void EnSsh_Update(Actor* thisx, PlayState* play) {
-    EnSsh* this = THIS;
+    EnSsh* this = (EnSsh*)thisx;
 
     EnSsh_UpdateColliderScale(this);
 
@@ -902,7 +902,7 @@ void EnSsh_Update(Actor* thisx, PlayState* play) {
 }
 
 s32 EnSsh_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
-    EnSsh* this = THIS;
+    EnSsh* this = (EnSsh*)thisx;
 
     switch (limbIndex) {
         case OBJECT_SSH_LIMB_01:
@@ -940,7 +940,7 @@ s32 EnSsh_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
 }
 
 void EnSsh_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    EnSsh* this = THIS;
+    EnSsh* this = (EnSsh*)thisx;
 
     if ((limbIndex == OBJECT_SSH_LIMB_05) && (this->stateFlags & SSH_STATE_FATHER)) {
         OPEN_DISPS(play->state.gfxCtx);
@@ -955,7 +955,7 @@ void EnSsh_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
 void EnSsh_Draw(Actor* thisx, PlayState* play) {
     static TexturePtr D_80976178[] = { object_ssh_Tex_001970, object_ssh_Tex_001DF0, object_ssh_Tex_0021F0 };
     s32 pad;
-    EnSsh* this = THIS;
+    EnSsh* this = (EnSsh*)thisx;
 
     EnSsh_CheckBodyStickHit(this, play);
     EnSsh_Sway(this);

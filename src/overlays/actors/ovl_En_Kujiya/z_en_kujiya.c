@@ -7,11 +7,9 @@
  */
 
 #include "z_en_kujiya.h"
-#include "objects/object_kujiya/object_kujiya.h"
+#include "assets/objects/object_kujiya/object_kujiya.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_CANT_LOCK_ON)
-
-#define THIS ((EnKujiya*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_LOCK_ON_DISABLED)
 
 void EnKujiya_Init(Actor* thisx, PlayState* play);
 void EnKujiya_Destroy(Actor* thisx, PlayState* play);
@@ -34,7 +32,7 @@ void EnKujiya_TurnToOpen(EnKujiya* this, PlayState* play);
 void EnKujiya_SetupTurnToClosed(EnKujiya* this);
 void EnKujiya_TurnToClosed(EnKujiya* this, PlayState* play);
 
-ActorInit En_Kujiya_InitVars = {
+ActorProfile En_Kujiya_Profile = {
     /**/ ACTOR_EN_KUJIYA,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -55,12 +53,12 @@ ActorInit En_Kujiya_InitVars = {
       (HS_GET_LOTTERY_CODE_GUESS() & 0xF)))
 
 void EnKujiya_Init(Actor* thisx, PlayState* play) {
-    EnKujiya* this = THIS;
+    EnKujiya* this = (EnKujiya*)thisx;
 
     Actor_SetScale(&this->actor, 0.1f);
 
-    this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
-    this->actor.targetMode = TARGET_MODE_6;
+    this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+    this->actor.attentionRangeType = ATTENTION_RANGE_6;
 
     this->actor.focus.pos = this->actor.world.pos;
     this->actor.focus.pos.y += 30.0f;
@@ -360,13 +358,13 @@ void EnKujiya_TurnToClosed(EnKujiya* this, PlayState* play) {
 }
 
 void EnKujiya_Update(Actor* thisx, PlayState* play) {
-    EnKujiya* this = THIS;
+    EnKujiya* this = (EnKujiya*)thisx;
 
     this->actionFunc(this, play);
 }
 
 void EnKujiya_Draw(Actor* thisx, PlayState* play) {
-    EnKujiya* this = THIS;
+    EnKujiya* this = (EnKujiya*)thisx;
 
     AnimatedMat_Draw(play, Lib_SegmentedToVirtual(gLotteryShopTexAnim));
 
@@ -374,7 +372,7 @@ void EnKujiya_Draw(Actor* thisx, PlayState* play) {
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
-    gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
     gSPDisplayList(POLY_OPA_DISP++, gLotteryShopCylinderDL);
     gSPDisplayList(POLY_OPA_DISP++, gLotteryShopBackSignDL);
     gSPDisplayList(POLY_OPA_DISP++, gLotteryShopOpenBoxDL);

@@ -10,13 +10,11 @@
  */
 
 #include "z_obj_chan.h"
-#include "objects/gameplay_keep/gameplay_keep.h"
-#include "objects/object_obj_chan/object_obj_chan.h"
-#include "objects/object_tsubo/object_tsubo.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/object_obj_chan/object_obj_chan.h"
+#include "assets/objects/object_tsubo/object_tsubo.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((ObjChan*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 #define OBJCHAN_ROTATION_SPEED 364 // == (65536 * 2/360) i.e. 2 degrees per second
 
@@ -28,7 +26,7 @@ void ObjChan_Draw(Actor* thisx, PlayState* play);
 void ObjChan_ChandelierAction(ObjChan* this, PlayState* play);
 void ObjChan_PotAction(ObjChan* this, PlayState* play);
 
-ActorInit Obj_Chan_InitVars = {
+ActorProfile Obj_Chan_Profile = {
     /**/ ACTOR_OBJ_CHAN,
     /**/ ACTORCAT_BG,
     /**/ FLAGS,
@@ -42,7 +40,7 @@ ActorInit Obj_Chan_InitVars = {
 
 static ColliderCylinderInit sObjChanCylinderInit = {
     {
-        COLTYPE_HARD,
+        COL_MATERIAL_HARD,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_NONE,
@@ -50,11 +48,11 @@ static ColliderCylinderInit sObjChanCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK1,
+        ELEM_MATERIAL_UNK1,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_NONE,
     },
     { 48, 76, -60, { 0, 0, 0 } },
@@ -79,7 +77,7 @@ static s32 sObjChanLoaded;
 
 void ObjChan_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    ObjChan* this = THIS;
+    ObjChan* this = (ObjChan*)thisx;
 
     if (OBJCHAN_SUBTYPE(&this->actor) == OBJCHAN_SUBTYPE_CHANDELIER) {
         if (sObjChanLoaded) {
@@ -111,7 +109,7 @@ void ObjChan_Init(Actor* thisx, PlayState* play) {
 }
 
 void ObjChan_Destroy(Actor* thisx, PlayState* play) {
-    ObjChan* this = THIS;
+    ObjChan* this = (ObjChan*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -121,16 +119,16 @@ u32 func_80BB9A1C(ObjChan* this, f32 arg1) {
     f32 sp20;
 
     sp20 = Math_SinS(this->unk1D4) * this->unk1D0;
-    temp_f6 = (Math_CosS(this->unk1D4) * (400 * M_PI / 0x8000) * this->unk1D0) + arg1;
+    temp_f6 = (Math_CosS(this->unk1D4) * BINANG_TO_RAD_ALT2(400) * this->unk1D0) + arg1;
     if (temp_f6 != 0.0f) {
-        this->unk1D4 = RAD_TO_BINANG(Math_FAtan2F(sp20 * (400 * M_PI / 0x8000), temp_f6));
+        this->unk1D4 = RAD_TO_BINANG(Math_FAtan2F(sp20 * BINANG_TO_RAD_ALT2(400), temp_f6));
     } else if (sp20 >= 0.0f) {
         this->unk1D4 = 0x4000;
     } else {
         this->unk1D4 = -0x4000;
     }
     if (Math_CosS(this->unk1D4) != 0.0f) {
-        this->unk1D0 = (temp_f6 / (Math_CosS(this->unk1D4) * (400 * M_PI / 0x8000)));
+        this->unk1D0 = (temp_f6 / (Math_CosS(this->unk1D4) * BINANG_TO_RAD_ALT2(400)));
     } else {
         this->unk1D0 = sp20;
     }
@@ -161,15 +159,16 @@ void ObjChan_InitChandelier(ObjChan* this, PlayState* play) {
     Vec3f childPos;
     Vec3s childRot;
     CollisionPoly* sp94;
-    s32 sp90;
+    s32 bgId;
     Vec3f sp84;
 
     Math_Vec3f_Copy(&this->unk1C0, &thisx->world.pos);
 
     Math_Vec3f_Copy(&sp84, &thisx->world.pos);
     sp84.y += 1600.0f;
+
     if (BgCheck_EntityLineTest1(&play->colCtx, &thisx->world.pos, &sp84, &this->unk1C0, &sp94, false, false, true, true,
-                                &sp90)) {
+                                &bgId)) {
         this->unk1CC = thisx->world.pos.y - this->unk1C0.y;
     } else {
         Actor_Kill(thisx);
@@ -260,7 +259,7 @@ void ObjChan_ChandelierAction(ObjChan* this, PlayState* play) {
             Math_Vec3f_ToVec3s(&pot->collider.dim.pos, &pot->actor.world.pos);
         }
     }
-    if ((this->collider.base.acFlags & AC_HIT) && (this->collider.info.acHitInfo->toucher.dmgFlags & 0x800)) {
+    if ((this->collider.base.acFlags & AC_HIT) && (this->collider.elem.acHitElem->atDmgInfo.dmgFlags & 0x800)) {
         Flags_SetSwitch(play, OBJCHAN_GET_SWITCH_FLAG(thisx));
     }
     if (Flags_GetSwitch(play, OBJCHAN_GET_SWITCH_FLAG(thisx))) {
@@ -296,7 +295,7 @@ void ObjChan_PotAction(ObjChan* this, PlayState* play) {
     s32 phi_v1;
 
     potBreaks = false;
-    if ((this->collider.base.acFlags & AC_HIT) && (this->collider.info.acHitInfo->toucher.dmgFlags & 0x4004000)) {
+    if ((this->collider.base.acFlags & AC_HIT) && (this->collider.elem.acHitElem->atDmgInfo.dmgFlags & 0x4004000)) {
         potBreaks = true;
     }
     if (this->stateFlags & OBJCHAN_STATE_ON_FIRE) {
@@ -364,7 +363,7 @@ void ObjChan_CreateSmashEffects(ObjChan* this, PlayState* play) {
 }
 
 void ObjChan_Update(Actor* thisx, PlayState* play) {
-    ObjChan* this = THIS;
+    ObjChan* this = (ObjChan*)thisx;
 
     this->actionFunc(this, play);
     CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
@@ -372,7 +371,7 @@ void ObjChan_Update(Actor* thisx, PlayState* play) {
 
 void ObjChan_Draw(Actor* thisx, PlayState* play) {
     s32 pad;
-    ObjChan* this = THIS;
+    ObjChan* this = (ObjChan*)thisx;
     Gfx* gfxOpa;
     Gfx* gfxXlu;
 
@@ -381,12 +380,12 @@ void ObjChan_Draw(Actor* thisx, PlayState* play) {
     Matrix_RotateYS(this->rotation, MTXMODE_APPLY);
 
     gfxOpa = Gfx_SetupDL(POLY_OPA_DISP, SETUPDL_25);
-    gSPMatrix(&gfxOpa[0], Matrix_NewMtx(play->state.gfxCtx), G_MTX_LOAD);
+    MATRIX_FINALIZE_AND_LOAD(&gfxOpa[0], play->state.gfxCtx);
     gSPDisplayList(&gfxOpa[1], gChandelierCenterDL);
     POLY_OPA_DISP = &gfxOpa[2];
 
     gfxXlu = Gfx_SetupDL71(POLY_XLU_DISP);
-    gSPMatrix(&gfxXlu[0], Matrix_NewMtx(play->state.gfxCtx), G_MTX_LOAD);
+    MATRIX_FINALIZE_AND_LOAD(&gfxXlu[0], play->state.gfxCtx);
     gSPDisplayList(&gfxXlu[1], gChandelierPotHolderDL);
     POLY_XLU_DISP = &gfxXlu[2];
 
@@ -400,14 +399,14 @@ void ObjChan_Draw(Actor* thisx, PlayState* play) {
 }
 
 void ObjChan_DrawPot(Actor* thisx, PlayState* play) {
-    ObjChan* this = THIS;
+    ObjChan* this = (ObjChan*)thisx;
     s32 pad;
     Gfx* gfx;
 
     OPEN_DISPS(play->state.gfxCtx);
 
     gfx = Gfx_SetupDL(POLY_OPA_DISP, SETUPDL_25);
-    gSPMatrix(&gfx[0], Matrix_NewMtx(play->state.gfxCtx), G_MTX_LOAD);
+    MATRIX_FINALIZE_AND_LOAD(&gfx[0], play->state.gfxCtx);
     gSPDisplayList(&gfx[1], gChandelierPotDL);
     POLY_OPA_DISP = &gfx[2];
 
@@ -433,7 +432,7 @@ void ObjChan_DrawFire(ObjChan* this, PlayState* play) {
     Matrix_Translate(0.0f, sObjChanFlameYOffset[OBJCHAN_SUBTYPE(&this->actor)], 0.0f, MTXMODE_APPLY);
 
     gfx = Gfx_SetupDL71(POLY_XLU_DISP);
-    gSPMatrix(&gfx[0], Matrix_NewMtx(play->state.gfxCtx), G_MTX_LOAD);
+    MATRIX_FINALIZE_AND_LOAD(&gfx[0], play->state.gfxCtx);
     gSPSegment(&gfx[1], 0x08, Gfx_TwoTexScroll(play->state.gfxCtx, 0, 0, 0, 32, 64, 1, 0, -sp4C * 20, 32, 128));
     gDPSetPrimColor(&gfx[2], 128, 128, 255, 255, 0, 255);
     gDPSetEnvColor(&gfx[3], 255, 0, 0, 0);

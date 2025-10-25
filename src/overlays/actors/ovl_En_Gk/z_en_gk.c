@@ -6,9 +6,7 @@
 
 #include "z_en_gk.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
-
-#define THIS ((EnGk*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY)
 
 void EnGk_Init(Actor* thisx, PlayState* play);
 void EnGk_Destroy(Actor* thisx, PlayState* play);
@@ -32,7 +30,7 @@ void func_80B5253C(EnGk* this, PlayState* play);
 void func_80B525E0(EnGk* this, PlayState* play);
 void func_80B52654(EnGk* this, PlayState* play);
 
-ActorInit En_Gk_InitVars = {
+ActorProfile En_Gk_Profile = {
     /**/ ACTOR_EN_GK,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -46,7 +44,7 @@ ActorInit En_Gk_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_NONE,
         OC1_ON | OC1_TYPE_ALL,
@@ -54,11 +52,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_ON,
     },
     { 24, 32, 0, { 0, 0, 0 } },
@@ -202,7 +200,7 @@ u16 func_80B50410(EnGk* this, PlayState* play) {
         if (player->transformation == PLAYER_FORM_GORON) {
             if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_41_04)) {
                 if (this->unk_31C == 0xE88) {
-                    if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_41_08) || Inventory_HasEmptyBottle()) {
+                    if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_RECEIVED_GORON_RACE_BOTTLE) || Inventory_HasEmptyBottle()) {
                         return 0xE89;
                     }
                     SET_WEEKEVENTREG(WEEKEVENTREG_41_04);
@@ -213,7 +211,7 @@ u16 func_80B50410(EnGk* this, PlayState* play) {
             }
 
             if ((this->unk_31C == 0xE8D) || (this->unk_31C == 0xE98)) {
-                if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_41_08) || Inventory_HasEmptyBottle()) {
+                if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_RECEIVED_GORON_RACE_BOTTLE) || Inventory_HasEmptyBottle()) {
                     return 0xE89;
                 }
                 SET_WEEKEVENTREG(WEEKEVENTREG_41_04);
@@ -286,11 +284,11 @@ s32 func_80B50854(EnGk* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
 
     if (!(this->unk_1E4 & 0x40)) {
-        if (player->stateFlags2 & PLAYER_STATE2_8000000) {
+        if (player->stateFlags2 & PLAYER_STATE2_USING_OCARINA) {
             this->unk_1E4 |= 0x40;
             Audio_PlaySfx(NA_SE_SY_TRE_BOX_APPEAR);
         }
-    } else if (!(player->stateFlags2 & PLAYER_STATE2_8000000)) {
+    } else if (!(player->stateFlags2 & PLAYER_STATE2_USING_OCARINA)) {
         this->unk_1E4 &= ~0x40;
     }
 
@@ -414,7 +412,7 @@ s32 EnGk_HasReachedPoint(EnGk* this, Path* path, s32 pointIndex) {
         diffZ = points[index + 1].z - points[index - 1].z;
     }
 
-    func_8017B7F8(&point, RAD_TO_BINANG(Math_FAtan2F(diffX, diffZ)), &px, &pz, &d);
+    Math3D_RotateXZPlane(&point, RAD_TO_BINANG(Math_FAtan2F(diffX, diffZ)), &px, &pz, &d);
 
     if (((px * this->actor.world.pos.x) + (pz * this->actor.world.pos.z) + d) > 0.0f) {
         reached = true;
@@ -964,9 +962,9 @@ void func_80B52340(EnGk* this, PlayState* play) {
             this->actionFunc = func_80B52430;
         }
         Message_StartTextbox(play, this->unk_31C, &this->actor);
-        this->actor.flags &= ~ACTOR_FLAG_10000;
+        this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
     } else {
-        this->actor.flags |= ACTOR_FLAG_10000;
+        this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
         Actor_OfferTalk(&this->actor, play, 100.0f);
     }
     Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 5, 0x1000, 0x100);
@@ -1008,7 +1006,7 @@ void func_80B52430(EnGk* this, PlayState* play) {
 void func_80B5253C(EnGk* this, PlayState* play) {
     s32 getItemId;
 
-    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_41_08)) {
+    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_RECEIVED_GORON_RACE_BOTTLE)) {
         getItemId = GI_GOLD_DUST_2;
     } else {
         getItemId = GI_GOLD_DUST;
@@ -1017,7 +1015,7 @@ void func_80B5253C(EnGk* this, PlayState* play) {
     if (Actor_HasParent(&this->actor, play)) {
         this->actor.parent = NULL;
         if (getItemId == GI_GOLD_DUST) {
-            SET_WEEKEVENTREG(WEEKEVENTREG_41_08);
+            SET_WEEKEVENTREG(WEEKEVENTREG_RECEIVED_GORON_RACE_BOTTLE);
         }
         this->actionFunc = func_80B525E0;
     } else {
@@ -1052,7 +1050,7 @@ void func_80B52654(EnGk* this, PlayState* play) {
 
 void EnGk_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnGk* this = THIS;
+    EnGk* this = (EnGk*)thisx;
 
     SkelAnime_InitFlex(play, &this->skelAnime, &object_gk_Skel_0079C0, &object_gk_Anim_00787C, this->jointTable,
                        this->morphTable, OBJECT_GK_LIMB_MAX);
@@ -1098,16 +1096,16 @@ void EnGk_Init(Actor* thisx, PlayState* play) {
         if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_CALMED_GORON_ELDERS_SON)) {
             this->actionFunc = func_80B51FD0;
             this->actor.draw = NULL;
-            this->actor.flags |= ACTOR_FLAG_10;
-            this->actor.flags &= ~ACTOR_FLAG_TARGETABLE;
+            this->actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+            this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
         } else {
             Actor_Kill(&this->actor);
         }
     } else if (!CHECK_WEEKEVENTREG(WEEKEVENTREG_CALMED_GORON_ELDERS_SON)) {
         this->animIndex = ENGK_ANIM_0;
         this->csId = this->actor.csId;
-        this->actor.flags |= ACTOR_FLAG_10;
-        this->actor.flags |= ACTOR_FLAG_2000000;
+        this->actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+        this->actor.flags |= ACTOR_FLAG_UPDATE_DURING_OCARINA;
         Actor_ChangeAnimationByInfo(&this->skelAnime, sAnimationInfo, ENGK_ANIM_0);
         this->actionFunc = func_80B5202C;
     } else {
@@ -1116,13 +1114,13 @@ void EnGk_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnGk_Destroy(Actor* thisx, PlayState* play) {
-    EnGk* this = THIS;
+    EnGk* this = (EnGk*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
 
 void EnGk_Update(Actor* thisx, PlayState* play) {
-    EnGk* this = THIS;
+    EnGk* this = (EnGk*)thisx;
 
     this->actionFunc(this, play);
 
@@ -1147,7 +1145,7 @@ s32 EnGk_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
 }
 
 void EnGk_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
-    EnGk* this = THIS;
+    EnGk* this = (EnGk*)thisx;
     Vec3f sp58 = { 0.0f, 0.0f, 0.0f };
     Vec3f sp4C = { 0.0f, 0.0f, 0.0f };
     Vec3f sp40 = { 0.0f, 0.0f, 0.0f };
@@ -1210,7 +1208,7 @@ void EnGk_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
 }
 
 void EnGk_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
-    EnGk* this = THIS;
+    EnGk* this = (EnGk*)thisx;
     s32 phi_v0;
     s32 phi_v1;
 
@@ -1282,7 +1280,7 @@ TexturePtr D_80B533E4[] = {
 
 void EnGk_Draw(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnGk* this = THIS;
+    EnGk* this = (EnGk*)thisx;
     Vec3f pos;
     Vec3f scale;
 
@@ -1293,7 +1291,7 @@ void EnGk_Draw(Actor* thisx, PlayState* play) {
     if ((ENGK_GET_F(&this->actor) == ENGK_F_0) && CHECK_WEEKEVENTREG(WEEKEVENTREG_CALMED_GORON_ELDERS_SON)) {
         Matrix_RotateXS(-0x4000, MTXMODE_APPLY);
 
-        gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+        MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
         gSPDisplayList(POLY_OPA_DISP++, object_gk_DL_006688);
         gSPDisplayList(POLY_OPA_DISP++, object_gk_DL_006680);
 

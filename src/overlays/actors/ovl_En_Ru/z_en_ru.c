@@ -6,16 +6,14 @@
 
 #include "z_en_ru.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10)
-
-#define THIS ((EnRu*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 void EnRu_Init(Actor* thisx, PlayState* play);
 void EnRu_Destroy(Actor* thisx, PlayState* play);
 void EnRu_Update(Actor* thisx, PlayState* play);
 void EnRu_Draw(Actor* thisx, PlayState* play);
 
-ActorInit En_Ru_InitVars = {
+ActorProfile En_Ru_Profile = {
     /**/ ACTOR_EN_RU,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -29,7 +27,7 @@ ActorInit En_Ru_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_HIT0,
+        COL_MATERIAL_HIT0,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_ALL,
@@ -37,11 +35,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK1,
+        ELEM_MATERIAL_UNK1,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_ON,
     },
     { 18, 64, 0, { 0, 0, 0 } },
@@ -286,7 +284,7 @@ void EnRu_DoNothing(EnRu* this, PlayState* play) {
 
 void EnRu_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnRu* this = THIS;
+    EnRu* this = (EnRu*)thisx;
 
     ActorShape_Init(&this->actor.shape, 0.0f, NULL, 0.0f);
     SkelAnime_InitFlex(play, &this->skelAnime, &gAdultRutoSkel, NULL, this->jointTable, this->morphTable, RU2_LIMB_MAX);
@@ -302,13 +300,13 @@ void EnRu_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnRu_Destroy(Actor* thisx, PlayState* play) {
-    EnRu* this = THIS;
+    EnRu* this = (EnRu*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
 
 void EnRu_Update(Actor* thisx, PlayState* play) {
-    EnRu* this = THIS;
+    EnRu* this = (EnRu*)thisx;
 
     this->actionFunc(this, play);
 
@@ -319,7 +317,7 @@ void EnRu_Update(Actor* thisx, PlayState* play) {
 
 s32 EnRu_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx,
                           Gfx** gfx) {
-    EnRu* this = THIS;
+    EnRu* this = (EnRu*)thisx;
 
     if (limbIndex == RU2_LIMB_HEAD) {
         Matrix_Translate(1500.0f, 0.0f, 0.0f, MTXMODE_APPLY);
@@ -343,7 +341,7 @@ s32 EnRu_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
 }
 
 void EnRu_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx, Gfx** gfx) {
-    EnRu* this = THIS;
+    EnRu* this = (EnRu*)thisx;
     Vec3f headFocus = { 800.0f, 0, 0 };
     Vec3f bodyPartPos = { 0, 0, 0 };
 
@@ -373,7 +371,7 @@ static Gfx sTransparencyDlist[] = {
 };
 
 void EnRu_Draw(Actor* thisx, PlayState* play) {
-    EnRu* this = THIS;
+    EnRu* this = (EnRu*)thisx;
     u8* shadowTex = GRAPH_ALLOC(play->state.gfxCtx, SUBS_SHADOW_TEX_SIZE);
     u8* shadowTexIter;
     s32 i;

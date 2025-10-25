@@ -34,10 +34,9 @@ Week Event Flags:
 #include "z_en_s_goro.h"
 #include "overlays/actors/ovl_En_Gk/z_en_gk.h" // Goron Elder's Son
 #include "overlays/actors/ovl_En_Jg/z_en_jg.h" // Goron Elder
-#include "objects/object_taisou/object_taisou.h"
+#include "assets/objects/object_taisou/object_taisou.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10)
-#define THIS ((EnSGoro*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 #define EN_S_GORO_ROLLEDUP_YOFFSET 14.0f
 #define EN_S_GORO_OFTYPE_WSHRINE (EN_S_GORO_GET_MAIN_TYPE(&this->actor) < 3)
@@ -72,7 +71,7 @@ void EnSGoro_Destroy(Actor* thisx, PlayState* play);
 void EnSGoro_Update(Actor* thisx, PlayState* play);
 void EnSGoro_Draw(Actor* thisx, PlayState* play);
 
-ActorInit En_S_Goro_InitVars = {
+ActorProfile En_S_Goro_Profile = {
     /**/ ACTOR_EN_S_GORO,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -86,7 +85,7 @@ ActorInit En_S_Goro_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_HIT1,
+        COL_MATERIAL_HIT1,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_ALL,
@@ -94,11 +93,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK1,
+        ELEM_MATERIAL_UNK1,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_ON,
-        BUMP_ON,
+        ATELEM_ON,
+        ACELEM_ON,
         OCELEM_ON,
     },
     { 0, 0, 0, { 0, 0, 0 } },
@@ -884,18 +883,19 @@ void EnSGoro_UpdateToIdleAnimation(EnSGoro* this) {
 }
 
 void EnSGoro_UpdateCollider(EnSGoro* this, PlayState* play) {
-    Vec3f world_pos = this->actor.world.pos;
+    Vec3f worldPos = this->actor.world.pos;
     f32 radius = 24.0f;
     f32 height = 62.0f;
 
-    this->collider.dim.pos.x = world_pos.x;
-    this->collider.dim.pos.y = world_pos.y;
-    this->collider.dim.pos.z = world_pos.z;
+    this->collider.dim.pos.x = worldPos.x;
+    this->collider.dim.pos.y = worldPos.y;
+    this->collider.dim.pos.z = worldPos.z;
     this->collider.dim.radius = radius;
     this->collider.dim.height = height;
 
-    //! @bug: It is not clear what this is for.
-    if ((s32)this != -0x190) {
+    //! @bug: The check is useless. If &this->collider somehow was NULL the above code would have already dereferenced
+    //! it. Cast to `intptr_t` to suppress address comparision to NULL warning.
+    if ((intptr_t)(&this->collider) != (intptr_t)NULL) {
         CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
     }
 }
@@ -1026,9 +1026,9 @@ void EnSGoro_SetupAction(EnSGoro* this, PlayState* play) {
         this->scaleFactor = 0.01f;
         Actor_SetScale(&this->actor, 0.01f);
         this->actor.gravity = -1.0f;
-        this->actor.flags |= ACTOR_FLAG_10;
-        this->actor.flags |= ACTOR_FLAG_2000000;
-        this->actor.targetMode = TARGET_MODE_1;
+        this->actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+        this->actor.flags |= ACTOR_FLAG_UPDATE_DURING_OCARINA;
+        this->actor.attentionRangeType = ATTENTION_RANGE_1;
 
         switch (EN_S_GORO_GET_MAIN_TYPE(&this->actor)) {
             case EN_S_GORO_TYPE_SHRINE_WINTER_A:
@@ -1278,7 +1278,7 @@ void EnSGoro_SleepTalk(EnSGoro* this, PlayState* play) {
 
 void EnSGoro_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnSGoro* this = THIS;
+    EnSGoro* this = (EnSGoro*)thisx;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 20.0f);
     SkelAnime_InitFlex(play, &this->skelAnime, &gGoronSkel, &gGoronUnrollAnim, this->jointTable, this->morphTable,
@@ -1299,7 +1299,7 @@ void EnSGoro_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnSGoro_Destroy(Actor* thisx, PlayState* play) {
-    EnSGoro* this = THIS;
+    EnSGoro* this = (EnSGoro*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -1359,7 +1359,7 @@ s32 EnSGoro_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
 void EnSGoro_TransformLimbDraw(PlayState* play, s32 limbIndex, Actor* thisx) {
     s32 stepRot;
     s32 overrideRot;
-    EnSGoro* this = THIS;
+    EnSGoro* this = (EnSGoro*)thisx;
 
     switch (limbIndex) {
         case GORON_LIMB_HEAD:
@@ -1450,7 +1450,7 @@ void EnSGoro_DrawRolledUp(EnSGoro* this, PlayState* play) {
     Matrix_Translate(0.0f, this->actor.shape.yOffset, 0.0f, MTXMODE_APPLY);
     Matrix_Scale(this->actor.scale.x, this->actor.scale.y, this->actor.scale.z, MTXMODE_APPLY);
 
-    gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
     gSPDisplayList(POLY_OPA_DISP++, gGoronRolledUpDL);
 
     CLOSE_DISPS(play->state.gfxCtx);

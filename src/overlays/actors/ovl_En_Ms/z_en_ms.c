@@ -6,9 +6,7 @@
 
 #include "z_en_ms.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY)
-
-#define THIS ((EnMs*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY)
 
 void EnMs_Init(Actor* thisx, PlayState* play);
 void EnMs_Destroy(Actor* thisx, PlayState* play);
@@ -20,7 +18,7 @@ void EnMs_Talk(EnMs* this, PlayState* play);
 void EnMs_Sell(EnMs* this, PlayState* play);
 void EnMs_TalkAfterPurchase(EnMs* this, PlayState* play);
 
-ActorInit En_Ms_InitVars = {
+ActorProfile En_Ms_Profile = {
     /**/ ACTOR_EN_MS,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -34,30 +32,30 @@ ActorInit En_Ms_InitVars = {
 
 static ColliderCylinderInitType1 sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_ALL,
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_ON,
     },
     { 22, 37, 0, { 0, 0, 0 } },
 };
 
 static InitChainEntry sInitChain[] = {
-    ICHAIN_U8(targetMode, TARGET_MODE_2, ICHAIN_CONTINUE),
-    ICHAIN_F32(targetArrowOffset, 500, ICHAIN_STOP),
+    ICHAIN_U8(attentionRangeType, ATTENTION_RANGE_2, ICHAIN_CONTINUE),
+    ICHAIN_F32(lockOnArrowOffset, 500, ICHAIN_STOP),
 };
 
 void EnMs_Init(Actor* thisx, PlayState* play) {
-    EnMs* this = THIS;
+    EnMs* this = (EnMs*)thisx;
 
     Actor_ProcessInitChain(thisx, sInitChain);
     SkelAnime_InitFlex(play, &this->skelAnime, &gBeanSalesmanSkel, &gBeanSalesmanEatingAnim, this->jointTable,
@@ -74,7 +72,7 @@ void EnMs_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnMs_Destroy(Actor* thisx, PlayState* play) {
-    EnMs* this = THIS;
+    EnMs* this = (EnMs*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -168,10 +166,10 @@ void EnMs_TalkAfterPurchase(EnMs* this, PlayState* play) {
 
 void EnMs_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnMs* this = THIS;
+    EnMs* this = (EnMs*)thisx;
 
     Actor_SetFocus(&this->actor, 20.0f);
-    this->actor.targetArrowOffset = 500.0f;
+    this->actor.lockOnArrowOffset = 500.0f;
     Actor_SetScale(&this->actor, 0.015f);
     SkelAnime_Update(&this->skelAnime);
     this->actionFunc(this, play);
@@ -180,7 +178,7 @@ void EnMs_Update(Actor* thisx, PlayState* play) {
 }
 
 void EnMs_Draw(Actor* thisx, PlayState* play) {
-    EnMs* this = THIS;
+    EnMs* this = (EnMs*)thisx;
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount, NULL,

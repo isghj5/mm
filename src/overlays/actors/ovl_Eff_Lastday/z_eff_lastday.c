@@ -5,11 +5,9 @@
  */
 
 #include "z_eff_lastday.h"
-#include "objects/object_lastday/object_lastday.h"
+#include "assets/objects/object_lastday/object_lastday.h"
 
-#define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20)
-
-#define THIS ((EffLastday*)thisx)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED)
 
 void EffLastday_Init(Actor* thisx, PlayState* play2);
 void EffLastday_Destroy(Actor* thisx, PlayState* play);
@@ -28,7 +26,7 @@ typedef enum EffLastDayAction {
     /* 3 */ EFFLASTDAY_ACTION_3
 } EffLastDayAction;
 
-ActorInit Eff_Lastday_InitVars = {
+ActorProfile Eff_Lastday_Profile = {
     /**/ ACTOR_EFF_LASTDAY,
     /**/ ACTORCAT_ITEMACTION,
     /**/ FLAGS,
@@ -42,7 +40,7 @@ ActorInit Eff_Lastday_InitVars = {
 
 void EffLastday_Init(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    EffLastday* this = THIS;
+    EffLastday* this = (EffLastday*)thisx;
 
     Actor_SetScale(&this->actor, 0.1f);
     switch (EFFLASTDAY_GET_F(&this->actor)) {
@@ -100,12 +98,6 @@ void func_80BEBD0C(EffLastday* this, PlayState* play) {
         Cutscene_ActorTranslateAndYaw(&this->actor, play, Cutscene_GetCueChannel(play, this->cueType));
         cueId = play->csCtx.actorCues[Cutscene_GetCueChannel(play, this->cueType)]->id;
         switch (cueId) {
-            default:
-                this->actor.draw = NULL;
-                this->alpha = 0;
-                this->step = 0;
-                break;
-
             case EFFLASTDAY_ACTION_2:
                 this->actor.draw = NULL;
                 this->actor.draw = EffLastday_Draw;
@@ -121,6 +113,12 @@ void func_80BEBD0C(EffLastday* this, PlayState* play) {
             case EFFLASTDAY_ACTION_3:
                 this->actor.draw = EffLastday_Draw;
                 break;
+
+            default:
+                this->actor.draw = NULL;
+                this->alpha = 0;
+                this->step = 0;
+                break;
         }
     } else {
         this->actor.draw = NULL;
@@ -134,11 +132,6 @@ void func_80BEBDF8(EffLastday* this, PlayState* play) {
         Cutscene_ActorTranslateAndYaw(&this->actor, play, Cutscene_GetCueChannel(play, this->cueType));
         cueId = play->csCtx.actorCues[Cutscene_GetCueChannel(play, this->cueType)]->id;
         switch (cueId) {
-            default:
-                this->actor.draw = NULL;
-                this->step = 0;
-                break;
-
             case EFFLASTDAY_ACTION_2:
                 this->actor.draw = EffLastday_Draw;
                 this->step++;
@@ -146,6 +139,11 @@ void func_80BEBDF8(EffLastday* this, PlayState* play) {
 
             case EFFLASTDAY_ACTION_3:
                 this->actor.draw = EffLastday_Draw;
+                break;
+
+            default:
+                this->actor.draw = NULL;
+                this->step = 0;
                 break;
         }
     } else {
@@ -160,11 +158,6 @@ void func_80BEBEB8(EffLastday* this, PlayState* play) {
         Cutscene_ActorTranslateAndYaw(&this->actor, play, Cutscene_GetCueChannel(play, this->cueType));
         cueId = play->csCtx.actorCues[Cutscene_GetCueChannel(play, this->cueType)]->id;
         switch (cueId) {
-            default:
-                this->actor.draw = NULL;
-                this->step = 0;
-                break;
-
             case EFFLASTDAY_ACTION_2:
                 this->actor.draw = EffLastday_Draw;
                 this->step++;
@@ -172,6 +165,11 @@ void func_80BEBEB8(EffLastday* this, PlayState* play) {
 
             case EFFLASTDAY_ACTION_3:
                 this->actor.draw = EffLastday_Draw;
+                break;
+
+            default:
+                this->actor.draw = NULL;
+                this->step = 0;
                 break;
         }
     } else {
@@ -186,12 +184,6 @@ void func_80BEBF78(EffLastday* this, PlayState* play) {
         Cutscene_ActorTranslateAndYaw(&this->actor, play, Cutscene_GetCueChannel(play, this->cueType));
         cueId = play->csCtx.actorCues[Cutscene_GetCueChannel(play, this->cueType)]->id;
         switch (cueId) {
-            default:
-                this->actor.draw = NULL;
-                this->alpha = 0;
-                this->step = 0;
-                break;
-
             case EFFLASTDAY_ACTION_2:
                 if (!this->actor.home.rot.z) {
                     this->actor.home.rot.z = true;
@@ -208,8 +200,13 @@ void func_80BEBF78(EffLastday* this, PlayState* play) {
                 break;
 
             case EFFLASTDAY_ACTION_3:
-
                 this->actor.draw = EffLastday_Draw;
+                break;
+
+            default:
+                this->actor.draw = NULL;
+                this->alpha = 0;
+                this->step = 0;
                 break;
         }
     } else {
@@ -218,7 +215,7 @@ void func_80BEBF78(EffLastday* this, PlayState* play) {
 }
 
 void EffLastday_Update(Actor* thisx, PlayState* play) {
-    EffLastday* this = THIS;
+    EffLastday* this = (EffLastday*)thisx;
 
     this->actionFunc(this, play);
 }
@@ -233,7 +230,7 @@ void EffLastday_SetVtxAlpha(s16 alpha) {
 }
 
 void EffLastday_Draw(Actor* thisx, PlayState* play) {
-    EffLastday* this = THIS;
+    EffLastday* this = (EffLastday*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 
@@ -241,9 +238,11 @@ void EffLastday_Draw(Actor* thisx, PlayState* play) {
         case EFFLASTDAY_PARAM_1:
         case EFFLASTDAY_PARAM_2:
             break;
+
         case EFFLASTDAY_PARAM_3:
             EffLastday_SetVtxAlpha(this->alpha);
             break;
+
         default:
             gDPSetPrimColor(POLY_XLU_DISP++, 0, 0x80, 255, 255, 170, this->alpha);
             break;

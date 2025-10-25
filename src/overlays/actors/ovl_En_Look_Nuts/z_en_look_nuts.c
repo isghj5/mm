@@ -7,9 +7,7 @@
 #include "z_en_look_nuts.h"
 #include "overlays/effects/ovl_Effect_Ss_Solder_Srch_Ball/z_eff_ss_solder_srch_ball.h"
 
-#define FLAGS (ACTOR_FLAG_80000000)
-
-#define THIS ((EnLookNuts*)thisx)
+#define FLAGS (ACTOR_FLAG_MINIMAP_ICON_ENABLED)
 
 void EnLookNuts_Init(Actor* thisx, PlayState* play);
 void EnLookNuts_Destroy(Actor* thisx, PlayState* play);
@@ -24,7 +22,7 @@ void EnLookNuts_RunToPlayer(EnLookNuts* this, PlayState* play);
 void EnLookNuts_SetupSendPlayerToSpawn(EnLookNuts* this);
 void EnLookNuts_SendPlayerToSpawn(EnLookNuts* this, PlayState* play);
 
-ActorInit En_Look_Nuts_InitVars = {
+ActorProfile En_Look_Nuts_Profile = {
     /**/ ACTOR_EN_LOOK_NUTS,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -38,7 +36,7 @@ ActorInit En_Look_Nuts_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AC_TYPE_PLAYER,
         OC1_NONE,
@@ -46,11 +44,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0xF7CFFFFF, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_NONE,
     },
     { 20, 50, 0, { 0, 0, 0 } },
@@ -101,7 +99,7 @@ typedef enum {
 } PalaceGuardState;
 
 void EnLookNuts_Init(Actor* thisx, PlayState* play) {
-    EnLookNuts* this = THIS;
+    EnLookNuts* this = (EnLookNuts*)thisx;
 
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 20.0f);
     SkelAnime_Init(play, &this->skelAnime, &gDekuPalaceGuardSkel, &gDekuPalaceGuardDigAnim, this->jointTable,
@@ -109,9 +107,9 @@ void EnLookNuts_Init(Actor* thisx, PlayState* play) {
     Actor_SetScale(&this->actor, 0.01f);
     this->actor.colChkInfo.damageTable = &sDamageTable;
     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
-    this->actor.targetMode = TARGET_MODE_1;
+    this->actor.attentionRangeType = ATTENTION_RANGE_1;
     Collider_InitAndSetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
-    this->actor.flags |= ACTOR_FLAG_CANT_LOCK_ON;
+    this->actor.flags |= ACTOR_FLAG_LOCK_ON_DISABLED;
     this->pathIndex = LOOKNUTS_GET_PATH_INDEX(&this->actor);
     this->switchFlag = LOOKNUTS_GET_SWITCH_FLAG(&this->actor);
     this->spawnIndex = LOOKNUTS_GET_SPAWN_INDEX(&this->actor);
@@ -133,7 +131,7 @@ void EnLookNuts_Init(Actor* thisx, PlayState* play) {
 }
 
 void EnLookNuts_Destroy(Actor* thisx, PlayState* play) {
-    EnLookNuts* this = THIS;
+    EnLookNuts* this = (EnLookNuts*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 }
@@ -315,7 +313,7 @@ void EnLookNuts_SendPlayerToSpawn(EnLookNuts* this, PlayState* play) {
 
 void EnLookNuts_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnLookNuts* this = THIS;
+    EnLookNuts* this = (EnLookNuts*)thisx;
 
     if (this->blinkTimer == 0) {
         this->eyeState++;
@@ -368,7 +366,7 @@ void EnLookNuts_Update(Actor* thisx, PlayState* play) {
                     Audio_PlaySfx(NA_SE_SY_FOUND);
                     Player_SetCsActionWithHaltedActors(play, &this->actor, PLAYER_CSACTION_26);
                     D_80A6862C = true;
-                    this->actor.flags |= (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_10);
+                    this->actor.flags |= (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_UPDATE_CULLING_DISABLED);
                     this->actor.gravity = 0.0f;
                     EnLookNuts_DetectedPlayer(this, play);
                 } else {
@@ -392,7 +390,7 @@ static TexturePtr sEyeTextures[] = {
 };
 
 void EnLookNuts_Draw(Actor* thisx, PlayState* play) {
-    EnLookNuts* this = THIS;
+    EnLookNuts* this = (EnLookNuts*)thisx;
 
     OPEN_DISPS(play->state.gfxCtx);
 

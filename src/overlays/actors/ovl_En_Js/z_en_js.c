@@ -6,9 +6,7 @@
 
 #include "z_en_js.h"
 
-#define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10)
-
-#define THIS ((EnJs*)thisx)
+#define FLAGS (ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_UPDATE_CULLING_DISABLED)
 
 void EnJs_Init(Actor* thisx, PlayState* play);
 void EnJs_Destroy(Actor* thisx, PlayState* play);
@@ -27,7 +25,7 @@ void func_8096A104(EnJs* this, PlayState* play);
 void func_8096A38C(EnJs* this, PlayState* play);
 void func_8096A6F4(EnJs* this, PlayState* play);
 
-ActorInit En_Js_InitVars = {
+ActorProfile En_Js_Profile = {
     /**/ ACTOR_EN_JS,
     /**/ ACTORCAT_NPC,
     /**/ FLAGS,
@@ -41,7 +39,7 @@ ActorInit En_Js_InitVars = {
 
 static ColliderCylinderInit sCylinderInit = {
     {
-        COLTYPE_NONE,
+        COL_MATERIAL_NONE,
         AT_NONE,
         AC_ON | AC_TYPE_ENEMY,
         OC1_ON | OC1_TYPE_ALL,
@@ -49,11 +47,11 @@ static ColliderCylinderInit sCylinderInit = {
         COLSHAPE_CYLINDER,
     },
     {
-        ELEMTYPE_UNK0,
+        ELEM_MATERIAL_UNK0,
         { 0x00000000, 0x00, 0x00 },
         { 0xF7CFFFFF, 0x00, 0x00 },
-        TOUCH_NONE | TOUCH_SFX_NORMAL,
-        BUMP_ON,
+        ATELEM_NONE | ATELEM_SFX_NORMAL,
+        ACELEM_ON,
         OCELEM_ON,
     },
     { 20, 40, 0, { 0, 0, 0 } },
@@ -78,7 +76,7 @@ void EnJs_Init(Actor* thisx, PlayState* play) {
     s32 pad;
     s16 csId;
     s32 i;
-    EnJs* this = THIS;
+    EnJs* this = (EnJs*)thisx;
 
     Actor_SetScale(&this->actor, 0.01f);
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 20.0f);
@@ -147,7 +145,7 @@ void EnJs_Init(Actor* thisx, PlayState* play) {
 
 void EnJs_Destroy(Actor* thisx, PlayState* play) {
     u32 paramsF;
-    EnJs* this = THIS;
+    EnJs* this = (EnJs*)thisx;
 
     Collider_DestroyCylinder(play, &this->collider);
 
@@ -763,6 +761,7 @@ void func_80969DA4(EnJs* this, PlayState* play) {
                 }
             }
             break;
+
         case TEXT_STATE_EVENT:
             if (Message_ShouldAdvance(play)) {
                 switch (play->msgCtx.currentTextId) {
@@ -891,7 +890,7 @@ void func_8096A1E8(EnJs* this, PlayState* play) {
         Animation_MorphToLoop(&this->skelAnime, &gMoonChildStandingAnim, 0.0f);
     }
     if (Actor_TalkOfferAccepted(&this->actor, &play->state)) {
-        this->actor.flags &= ~ACTOR_FLAG_10000;
+        this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
         this->actionFunc = func_8096A38C;
         Message_StartTextbox(play, 0x2208, &this->actor);
         SET_WEEKEVENTREG(WEEKEVENTREG_84_20);
@@ -907,7 +906,7 @@ void func_8096A2C0(EnJs* this, PlayState* play) {
     }
     if (Actor_HasParent(&this->actor, play)) {
         this->actor.parent = NULL;
-        this->actor.flags |= ACTOR_FLAG_10000;
+        this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
         this->actionFunc = func_8096A1E8;
         Actor_OfferTalkExchange(&this->actor, play, 1000.0f, 1000.0f, PLAYER_IA_MINUS1);
     } else {
@@ -985,6 +984,7 @@ void func_8096A38C(EnJs* this, PlayState* play) {
                             default:
                                 break;
                         }
+                        break;
 
                     default:
                         break;
@@ -1069,7 +1069,7 @@ void func_8096A6F4(EnJs* this, PlayState* play) {
 
 void EnJs_Update(Actor* thisx, PlayState* play) {
     s32 pad;
-    EnJs* this = THIS;
+    EnJs* this = (EnJs*)thisx;
 
     Collider_UpdateCylinder(&this->actor, &this->collider);
     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
@@ -1093,7 +1093,7 @@ void EnJs_Update(Actor* thisx, PlayState* play) {
 
 void EnJs_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, Actor* thisx) {
     s32 pad;
-    EnJs* this = THIS;
+    EnJs* this = (EnJs*)thisx;
 
     if (limbIndex == MOONCHILD_LIMB_HEAD) {
         Matrix_MultVec3f(&D_8096AC30, &thisx->focus.pos);
@@ -1107,7 +1107,7 @@ void EnJs_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
             }
             Matrix_Translate(D_8096ABF4[this->maskType], D_8096AC08[this->maskType], D_8096AC1C[this->maskType],
                              MTXMODE_APPLY);
-            gSPMatrix(POLY_OPA_DISP++, Matrix_NewMtx(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+            MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
             gSPDisplayList(POLY_OPA_DISP++, D_8096ABCC[this->maskType]);
 
             CLOSE_DISPS(play->state.gfxCtx);
@@ -1116,7 +1116,7 @@ void EnJs_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, 
 }
 
 void EnJs_Draw(Actor* thisx, PlayState* play) {
-    EnJs* this = THIS;
+    EnJs* this = (EnJs*)thisx;
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
     SkelAnime_DrawFlexOpa(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount, NULL,

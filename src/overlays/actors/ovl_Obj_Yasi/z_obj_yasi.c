@@ -5,11 +5,9 @@
  */
 
 #include "z_obj_yasi.h"
-#include "objects/object_obj_yasi/object_obj_yasi.h"
+#include "assets/objects/object_obj_yasi/object_obj_yasi.h"
 
 #define FLAGS 0x00000000
-
-#define THIS ((ObjYasi*)thisx)
 
 #define CAN_DROP_NUT(thisx) (thisx->params < 0)
 
@@ -18,7 +16,7 @@ void ObjYasi_Destroy(Actor* thisx, PlayState* play);
 void ObjYasi_Update(Actor* thisx, PlayState* play);
 void ObjYasi_Draw(Actor* thisx, PlayState* play);
 
-ActorInit Obj_Yasi_InitVars = {
+ActorProfile Obj_Yasi_Profile = {
     /**/ ACTOR_OBJ_YASI,
     /**/ ACTORCAT_PROP,
     /**/ FLAGS,
@@ -32,13 +30,13 @@ ActorInit Obj_Yasi_InitVars = {
 
 static InitChainEntry sInitChain[] = {
     ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneForward, 4000, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneScale, 400, ICHAIN_CONTINUE),
-    ICHAIN_F32(uncullZoneDownward, 800, ICHAIN_STOP),
+    ICHAIN_F32(cullingVolumeDistance, 4000, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeScale, 400, ICHAIN_CONTINUE),
+    ICHAIN_F32(cullingVolumeDownward, 800, ICHAIN_STOP),
 };
 
 void ObjYasi_Init(Actor* thisx, PlayState* play) {
-    ObjYasi* this = THIS;
+    ObjYasi* this = (ObjYasi*)thisx;
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
     DynaPolyActor_Init(&this->dyna, 0);
@@ -53,13 +51,13 @@ void ObjYasi_Init(Actor* thisx, PlayState* play) {
 }
 
 void ObjYasi_Destroy(Actor* thisx, PlayState* play) {
-    ObjYasi* this = THIS;
+    ObjYasi* this = (ObjYasi*)thisx;
 
     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
 }
 
 void ObjYasi_Update(Actor* thisx, PlayState* play) {
-    ObjYasi* this = THIS;
+    ObjYasi* this = (ObjYasi*)thisx;
     s16 temp;
     Vec3f dropPos;
 
@@ -83,7 +81,7 @@ void ObjYasi_Update(Actor* thisx, PlayState* play) {
 }
 
 void ObjYasi_Draw(Actor* thisx, PlayState* play) {
-    ObjYasi* this = THIS;
+    ObjYasi* this = (ObjYasi*)thisx;
 
     Matrix_Translate(this->dyna.actor.world.pos.x, this->dyna.actor.world.pos.y, this->dyna.actor.world.pos.z,
                      MTXMODE_NEW);

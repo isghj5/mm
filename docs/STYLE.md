@@ -140,7 +140,7 @@ Damage flag enums are not being used at present: we want to wait until we have a
 
 Pre-C99, commas at the end of the last item in an enum will cause a compiler warning, so leave them off.
 
-All compound flag lists (e.g. `ACTOR_FLAG_UNFRIENDLY | ACTOR_FLAG_FRIENDLY`) should be listed in *ascending* order
+All compound flag lists (e.g. `ACTOR_FLAG_HOSTILE | ACTOR_FLAG_FRIENDLY`) should be listed in *ascending* order
 
 ## Arrays
 
@@ -150,19 +150,19 @@ All compound flag lists (e.g. `ACTOR_FLAG_UNFRIENDLY | ACTOR_FLAG_FRIENDLY`) sho
 
 ## Play2
 
-In some particular instances, IDO requires the function argument `play` to be cast to a second variable of the same type to match. In these particular instances, the function argument should be renamed to `play2` and than this `play2` just assigned to a stack variable called `play`. This cast should occur before the actor `THIS` cast is made. For example in `z_en_firefly.c`
+In some particular instances, IDO requires the function argument `play` to be cast to a second variable of the same type to match. In these particular instances, the function argument should be renamed to `play2` and than this `play2` just assigned to a stack variable called `play`. This cast should occur before the actor recast is made. For example in `z_en_firefly.c`
 ```c
 void EnFirefly_Update(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
-    EnFirefly* this = THIS;
+    EnFirefly* this = (EnFirefly*)thisx;
 ```
 
-In other places the cast is actually not explictly needed, but a stack `pad` variable is still needed. For this there should just be a stack variable called `pad` of type `s32` before the actor `THIS` cast. For example in `z_bg_goron_oyu`
+In other places the cast is actually not explictly needed, but a stack `pad` variable is still needed. For this there should just be a stack variable called `pad` of type `s32` before the actor recast. For example in `z_bg_goron_oyu`
 
 ```c
 void BgGoronOyu_Init(Actor* thisx, PlayState* play) {
     s32 pad;
-    BgGoronOyu* this = THIS;
+    BgGoronOyu* this = (BgGoronOyu*)thisx;
     CollisionHeader* colHeader = NULL;
 ```
 
