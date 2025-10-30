@@ -45,29 +45,31 @@ typedef struct DmGm {
     /* 0x1FC */ s32 timePathElapsedTime;
     /* 0x200 */ u8 scheduleResult;
     /* 0x204 */ MsgScript* msgScript;
-    /* 0x208 */ s8 an2ObjectSlot;
+
+    /* 0x208 */ s8 an2ObjectSlot; // TODO remove these for real, for now we might need to leave them while we build
     /* 0x209 */ s8 an3ObjectSlot;
     /* 0x20A */ s8 maskKerfayObjectSlot;
     /* 0x20B */ s8 an4ObjectSlot;
     /* 0x20C */ s8 msmoObjectSlot;
+
     /* 0x210 */ s32 msgScriptPos;
     /* 0x214 */ s8 roomNum;
-    /* 0x215 */ s8 doorOpenTimer;
+    ///* 0x215 */ s8 doorOpenTimer;
     /* 0x218 */ Actor* lookAtActor; // interactActor
-    /* 0x21C */ UNK_TYPE1 unk_21C[0xC];
+    ///* 0x21C */ UNK_TYPE1 unk_21C[0xC];
     /* 0x228 */ Vec3f doorEntrancePos; // Position of the point just before entering the door
     /* 0x234 */ Vec3f doorExitPos; // Position of the point just after passing through the door
     /* 0x240 */ Vec3f headComputedPos;
-    /* 0x24C */ UNK_TYPE1 unk_24C[0xC];
+    ///* 0x24C */ UNK_TYPE1 unk_24C[0xC];
     /* 0x258 */ Vec3s headComputedRot;
-    /* 0x25E */ UNK_TYPE1 unk_25E[0x6];
+    ///* 0x25E */ UNK_TYPE1 unk_25E[0x6];
     /* 0x264 */ Vec3s jointTable[ANJU1_LIMB_MAX];
     /* 0x2E2 */ Vec3s morphTable[ANJU1_LIMB_MAX];
     /* 0x360 */ u16 stateFlags;
     /* 0x362 */ u16 prevTextId;
     /* 0x364 */ u8 cueId;
     /* 0x368 */ f32 animPlaySpeed;
-    /* 0x36C */ UNK_TYPE1 unk_36C[0x8];
+    ///* 0x36C */ UNK_TYPE1 unk_36C[0x8];
     /* 0x374 */ f32 offerRange;
     /* 0x378 */ s16 doorTimeTotalDiff; // Time difference between the point before going through a door and after going through it
     /* 0x37A */ union {
@@ -77,7 +79,7 @@ typedef struct DmGm {
     } schState;
     /* 0x37C */ s16 headRotZ;
     /* 0x37E */ s16 headRotY;
-    /* 0x380 */ UNK_TYPE1 unk_380[0x4];
+    ///* 0x380 */ UNK_TYPE1 unk_380[0x4];
     /* 0x384 */ s16 timePathTimeSpeed;
     /* 0x386 */ s16 unk_386; // timer
     /* 0x388 */ s16 loseAttentionTimer;
@@ -90,7 +92,7 @@ typedef struct DmGm {
     /* 0x396 */ s16 dialogueFuncState;
     /* 0x398 */ MsgScriptCallback msgScriptCallback;
     /* 0x39C */ s32 animIndex; // DmGmAnimation enum
-    /* 0x3A0 */ UNK_TYPE1 unk_3A0[0x8];
+    ///* 0x3A0 */ UNK_TYPE1 unk_3A0[0x8];
     /* 0x3A8 */ u32 trayTexScrollTimer1; // TwoTexScroll
     /* 0x3AC */ u32 trayTexScrollTimer2; // TwoTexScroll
     /* 0x3B0 */ s32 forceDraw;
@@ -101,6 +103,6 @@ typedef struct DmGm {
     /* 0x3C4 */ s32 unk_3C4; // set but not read
 
 
-} DmGm; // size = 0x2D8
+} DmGm; // vanilla size = 0x2D8
 
 #endif // Z_DM_GM_H

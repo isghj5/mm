@@ -425,53 +425,55 @@ static AnimationInfoS sAnimationInfo[DMGM2_ANIM_MAX] = {
 };
 
 s32 DmGm2_UpdateSkelAnime(DmGm* this, PlayState* play) {
-    s8 originalObjectSlot = this->actor.objectSlot;
-    s8 otherObjectSlot = OBJECT_SLOT_NONE;
+    //s8 originalObjectSlot = this->actor.objectSlot;
+    //s8 otherObjectSlot = OBJECT_SLOT_NONE;
     s32 ret = false;
 
-    if ((this->animIndex >= DMGM2_ANIMOBJ_AN4) && (this->an4ObjectSlot > OBJECT_SLOT_NONE)) {
-        otherObjectSlot = this->an4ObjectSlot;
-    } else if ((this->animIndex >= DMGM2_ANIMOBJ_AN3) && (this->an3ObjectSlot > OBJECT_SLOT_NONE)) {
-        otherObjectSlot = this->an3ObjectSlot;
-    } else if ((this->animIndex >= DMGM2_ANIMOBJ_AN2) && (this->an2ObjectSlot > OBJECT_SLOT_NONE)) {
-        otherObjectSlot = this->an2ObjectSlot;
-    } else if (this->animIndex < DMGM2_ANIMOBJ_AN2) {
-        otherObjectSlot = originalObjectSlot;
-    }
+    // TODO rebuild this to use internal assets instead
+  
+    //if ((this->animIndex >= DMGM2_ANIMOBJ_AN4) && (this->an4ObjectSlot > OBJECT_SLOT_NONE)) {
+        //otherObjectSlot = this->an4ObjectSlot;
+    //} else if ((this->animIndex >= DMGM2_ANIMOBJ_AN3) && (this->an3ObjectSlot > OBJECT_SLOT_NONE)) {
+        //otherObjectSlot = this->an3ObjectSlot;
+    //} else if ((this->animIndex >= DMGM2_ANIMOBJ_AN2) && (this->an2ObjectSlot > OBJECT_SLOT_NONE)) {
+        //otherObjectSlot = this->an2ObjectSlot;
+    //} else if (this->animIndex < DMGM2_ANIMOBJ_AN2) {
+        //otherObjectSlot = originalObjectSlot;
+    //}
 
-    if (otherObjectSlot <= OBJECT_SLOT_NONE) {
-        return 0;
-    }
+    //if (otherObjectSlot <= OBJECT_SLOT_NONE) {
+        //return 0;
+    //}
 
-    if (otherObjectSlot > OBJECT_SLOT_NONE) {
-        gSegments[0x06] = OS_K0_TO_PHYSICAL(play->objectCtx.slots[otherObjectSlot].segment);
-        this->skelAnime.playSpeed = this->animPlaySpeed;
-        ret = SkelAnime_Update(&this->skelAnime);
-        gSegments[0x06] = OS_K0_TO_PHYSICAL(play->objectCtx.slots[originalObjectSlot].segment);
-    }
+    //if (otherObjectSlot > OBJECT_SLOT_NONE) {
+        //gSegments[0x06] = OS_K0_TO_PHYSICAL(play->objectCtx.slots[otherObjectSlot].segment);
+        //this->skelAnime.playSpeed = this->animPlaySpeed;
+        //gSegments[0x06] = OS_K0_TO_PHYSICAL(play->objectCtx.slots[originalObjectSlot].segment);
+    //}
 
-    return ret;
+    return SkelAnime_Update(&this->skelAnime);
 }
 
+// TODO change with internal assets
 s32 DmGm2_ChangeAnim(DmGm* this, PlayState* play, DmGm2Animation animIndex) {
-    s8 originalObjectSlot = this->actor.objectSlot;
-    s8 otherObjectSlot = OBJECT_SLOT_NONE;
+    //s8 originalObjectSlot = this->actor.objectSlot;
+    //s8 otherObjectSlot = OBJECT_SLOT_NONE;
     s32 changeAnim = false;
     s32 didAnimChange = false;
 
-    if ((animIndex >= DMGM2_ANIMOBJ_AN4) && (this->an4ObjectSlot > OBJECT_SLOT_NONE)) {
-        otherObjectSlot = this->an4ObjectSlot;
-    } else if ((animIndex >= DMGM2_ANIMOBJ_AN3) && (this->an3ObjectSlot > OBJECT_SLOT_NONE)) {
-        otherObjectSlot = this->an3ObjectSlot;
-    } else if ((animIndex >= DMGM2_ANIMOBJ_AN2) && (this->an2ObjectSlot > OBJECT_SLOT_NONE)) {
-        otherObjectSlot = this->an2ObjectSlot;
-    } else if (animIndex < DMGM2_ANIMOBJ_AN2) {
-        otherObjectSlot = originalObjectSlot;
-    }
+    //if ((animIndex >= DMGM2_ANIMOBJ_AN4) && (this->an4ObjectSlot > OBJECT_SLOT_NONE)) {
+        //otherObjectSlot = this->an4ObjectSlot;
+    //} else if ((animIndex >= DMGM2_ANIMOBJ_AN3) && (this->an3ObjectSlot > OBJECT_SLOT_NONE)) {
+        //otherObjectSlot = this->an3ObjectSlot;
+    //} else if ((animIndex >= DMGM2_ANIMOBJ_AN2) && (this->an2ObjectSlot > OBJECT_SLOT_NONE)) {
+        //otherObjectSlot = this->an2ObjectSlot;
+    //} else if (animIndex < DMGM2_ANIMOBJ_AN2) {
+        //otherObjectSlot = originalObjectSlot;
+    //}
 
-    if (otherObjectSlot <= OBJECT_SLOT_NONE) {
-        return false;
-    }
+    //if (otherObjectSlot <= OBJECT_SLOT_NONE) {
+        //return false;
+    //}
 
     switch (animIndex) {
         case DMGM2_ANIM_IDLE:
@@ -502,13 +504,14 @@ s32 DmGm2_ChangeAnim(DmGm* this, PlayState* play, DmGm2Animation animIndex) {
             break;
     }
 
-    if (changeAnim && (otherObjectSlot > OBJECT_SLOT_NONE)) {
-        gSegments[0x06] = OS_K0_TO_PHYSICAL(play->objectCtx.slots[otherObjectSlot].segment);
-        this->animIndex = animIndex;
-        didAnimChange = SubS_ChangeAnimationByInfoS(&this->skelAnime, sAnimationInfo, animIndex);
-        this->animPlaySpeed = this->skelAnime.playSpeed;
-        gSegments[0x06] = OS_K0_TO_PHYSICAL(play->objectCtx.slots[originalObjectSlot].segment);
-    }
+    //if (changeAnim && (otherObjectSlot > OBJECT_SLOT_NONE)) {
+        //gSegments[0x06] = OS_K0_TO_PHYSICAL(play->objectCtx.slots[otherObjectSlot].segment);
+        //this->animIndex = animIndex;
+        //didAnimChange = SubS_ChangeAnimationByInfoS(&this->skelAnime, sAnimationInfo, animIndex);
+        //this->animPlaySpeed = this->skelAnime.playSpeed;
+        //gSegments[0x06] = OS_K0_TO_PHYSICAL(play->objectCtx.slots[originalObjectSlot].segment);
+    //}
+    didAnimChange = SubS_ChangeAnimationByInfoS(&this->skelAnime, sAnimationInfo, animIndex);
 
     return didAnimChange;
 }
@@ -722,48 +725,11 @@ void DmGm2_DrawAccessory(DmGm* this, PlayState* play, DmGm2Accessory accessoryId
     CLOSE_DISPS(play->state.gfxCtx);
 }
 
-s32 DmGm2_ChangeCutscene(DmGm* this, s16 csId) {
-    s32 ret = false;
+// s32 DmGm2_ChangeCutscene(DmGm* this, s16 csId) {
 
-    if (CutsceneManager_GetCurrentCsId() == CS_ID_GLOBAL_TALK) {
-        CutsceneManager_Stop(CS_ID_GLOBAL_TALK);
-        CutsceneManager_Queue(csId);
-    } else if (CutsceneManager_IsNext(csId)) {
-        CutsceneManager_StartWithPlayerCs(csId, &this->actor);
-        ret = true;
-    } else {
-        CutsceneManager_Queue(csId);
-    }
+// s16 DmGm2_GetCsId(DmGm* this, s32 numCutscenes) {
 
-    return ret;
-}
-
-s16 DmGm2_GetCsId(DmGm* this, s32 numCutscenes) {
-    s16 csId = this->actor.csId;
-    s32 i;
-
-    for (i = 0; i < numCutscenes; i++) {
-        csId = CutsceneManager_GetAdditionalCsId(csId);
-    }
-
-    return csId;
-}
-
-s16 DmGm2_GetChildCsId(DmGm* this, s32 numCutscenes) {
-    Actor* child = this->actor.child;
-    s16 csId = CS_ID_NONE;
-    s32 i;
-
-    if ((child != NULL) && (child->update != NULL)) {
-        csId = child->csId;
-
-        for (i = 0; i < numCutscenes; i++) {
-            csId = CutsceneManager_GetAdditionalCsId(csId);
-        }
-    }
-
-    return csId;
-}
+// s16 DmGm2_GetChildCsId(DmGm* this, s32 numCutscenes) {
 
 // s32 DmGm2_MsgEvent_ReceiveLetterFromPostman(Actor* thisx, PlayState* play) {
 
