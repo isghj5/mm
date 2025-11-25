@@ -27,20 +27,18 @@ typedef struct EnDnk {
     /* 0x000 */ Actor actor;
     /* 0x144 */ SkelAnime skelAnime;
     /* 0x188 */ EnDnkActionFunc actionFunc;
-    /* 0x18C */ UNK_TYPE1 unk_18C[0x4];
     /* 0x190 */ ColliderCylinder collider;
     /* 0x1DC */ Vec3s jointTable[DNK_LIMB_MAX];
     /* 0x21E */ Vec3s morphTable[DNK_LIMB_MAX];
     /* 0x260 */ Gfx* limbGfx[DEKU_PALACE_GUARD_LIMB_MAX];
     /* 0x28C */ u16 flags; // head rotation only
-    /* 0x28E */ s8 objectSlot;
+    ///* 0x28E */ s8 objectSlot;
     /* 0x290 */ Vec3s currentHeadRot;
-    /* 0x296 */ s16 unk_296; // unused X for some part of head rotation
-    /* 0x298 */ s16 unk_298; // unused Y for some part of head rotation
-    /* 0x29A */ UNK_TYPE1 unk_29A[0x4];
+    ///* 0x296 */ s16 unk_296; // unused X for some part of head rotation
+    ///* 0x298 */ s16 unk_298; // unused Y for some part of head rotation
     /* 0x29E */ s16 blinkTimer;
     /* 0x2A0 */ s16 eyeTexIndex;
-    /* 0x2A2 */ s16 scrubId; // in order of spawning
+    ///* 0x2A2 */ s16 scrubId; // in order of spawning
 } EnDnk; // size = 0x2A4
 
 #endif // Z_EN_DNK_H
