@@ -37,11 +37,67 @@ f32 D_809C46DC[] = {
     200.0f, 200.0f, 100.0f, 0.0f, 100.0f,
 };
 
+void EnEncount4_Wait(EnEncount4* this, PlayState* play){
+    Player* player = GET_PLAYER(play);
+    //EnBsb* captainKeeta = this->captainKeeta;
+    Vec3f pos;
+    f32 yIntersect;
+    s16 yRot;
+    CollisionPoly* colPoly;
+    s32 bgId;
+
+    if ((this->actor.xzDistToPlayer > 240.0f)) {
+        return;
+    }
+
+    pos.x = (Math_SinS(this->actor.world.rot.y) * 30.0f) + this->actor.world.pos.x;
+    pos.y = player->actor.floorHeight + 120.0f;
+    pos.z = (Math_CosS(this->actor.world.rot.y) * 30.0f) + this->actor.world.pos.z;
+    yIntersect = BgCheck_EntityRaycastFloor5(&play->colCtx, &colPoly, &bgId, &this->actor, &pos);
+    // what do you mean water??
+    if ((yIntersect <= BGCHECK_Y_MIN) || ((player->actor.depthInWater != BGCHECK_Y_MIN) &&
+                                          (yIntersect < (player->actor.world.pos.y - player->actor.depthInWater)))) {
+        return;
+    }
+
+    pos.y = yIntersect;
+    yRot = (s32)Rand_ZeroFloat(0x200) + this->actor.world.rot.y + 0x3800;
+    if (this->skullCount != 0) {
+        yRot += 0x8000;
+    }
+    pos.x += Math_SinS(yRot) * (40.0f + Rand_CenteredFloat(40.0f));
+    pos.z += Math_CosS(yRot) * (40.0f + Rand_CenteredFloat(40.0f));
+    if (Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_EN_SKB, pos.x, pos.y, pos.z, 0, 0, 0,
+                           ENSKB_PARAM_0) != NULL) {
+        this->skullCount++;
+        if (this->skullCount >= 2) {
+            this->actionFunc = func_809C4598;
+        }
+    }
+}
+
+void EnEncount4_SetupWait(EnEncount4* this, PlayState* play){
+    Vec3f pos = this->actor.world.pos;
+    this->actionFunc = EnEncount4_Wait;
+    // debug exact location
+    //Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_EN_LIGHT,
+      //pos.x, pos.y, pos.z, 0, 0, 0,
+      //0x83F0); // should be the little candle
+}
+
 void EnEncount4_Init(Actor* thisx, PlayState* play) {
     s32 pad;
     EnEncount4* this = (EnEncount4*)thisx;
 
-    this->unk_148 = ENCOUNT4_GET_F000(thisx);
+    this->type = ENCOUNT4_GET_F000(thisx);
+
+    // new
+    if (this->type == 2){
+      EnEncount4_SetupWait(this, play);
+      return;
+    }
+
+    // I don't even think this is used
     this->switchFlag = ENCOUNT4_GET_SWITCH_FLAG(thisx);
     if (this->switchFlag == ENCOUNT4_SWITCH_FLAG_NONE) {
         this->switchFlag = SWITCH_FLAG_NONE;
@@ -96,16 +152,16 @@ void func_809C4078(EnEncount4* this, PlayState* play) {
             return;
         }
 
-        if ((this->unk_148 != 0) || (this->actor.xzDistToPlayer < 240.0f)) {
-            if ((this->unk_148 == 0) && captainKeeta->unk_02DC) {
+        if ((this->type != 0) || (this->actor.xzDistToPlayer < 240.0f)) {
+            if ((this->type == 0) && captainKeeta->unk_02DC) {
                 Actor_Kill(&this->actor);
                 return;
             }
 
             fireWallParams = BGFIREWALL_PARAM_0;
-            if ((this->unk_148 == 0) || captainKeeta->unk_02DC) {
+            if ((this->type == 0) || captainKeeta->unk_02DC) {
                 i = 0;
-                if (this->unk_148 != 0) {
+                if (this->type != 0) {
                     fireWallParams = BGFIREWALL_PARAM_1;
                     i = 2;
                 }
@@ -125,7 +181,7 @@ void func_809C4078(EnEncount4* this, PlayState* play) {
 }
 
 void func_809C42A8(EnEncount4* this, PlayState* play) {
-    Player* actor = GET_PLAYER(play);
+    Player* player = GET_PLAYER(play);
     EnBsb* captainKeeta = this->captainKeeta;
     Vec3f pos;
     f32 yIntersect;
@@ -140,7 +196,7 @@ void func_809C42A8(EnEncount4* this, PlayState* play) {
         return;
     }
 
-    if (this->unk_148 == 1) {
+    if (this->type == 1) {
         if ((this->captainKeeta->actor.id != ACTOR_EN_BSB) || (captainKeeta->actor.update == NULL)) {
             Actor_Kill(&this->actor);
         }
@@ -153,35 +209,36 @@ void func_809C42A8(EnEncount4* this, PlayState* play) {
         return;
     }
 
-    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_85_40) || (this->unk_14C >= 2) || (this->actor.xzDistToPlayer > 240.0f)) {
+    if (CHECK_WEEKEVENTREG(WEEKEVENTREG_85_40) || (this->skullCount >= 2) || (this->actor.xzDistToPlayer > 240.0f)) {
         return;
     }
 
     pos.x = (Math_SinS(this->actor.world.rot.y) * 30.0f) + this->actor.world.pos.x;
-    pos.y = actor->actor.floorHeight + 120.0f;
+    pos.y = player->actor.floorHeight + 120.0f;
     pos.z = (Math_CosS(this->actor.world.rot.y) * 30.0f) + this->actor.world.pos.z;
     yIntersect = BgCheck_EntityRaycastFloor5(&play->colCtx, &colPoly, &bgId, &this->actor, &pos);
-    if ((yIntersect <= BGCHECK_Y_MIN) || ((actor->actor.depthInWater != BGCHECK_Y_MIN) &&
-                                          (yIntersect < (actor->actor.world.pos.y - actor->actor.depthInWater)))) {
+    if ((yIntersect <= BGCHECK_Y_MIN) || ((player->actor.depthInWater != BGCHECK_Y_MIN) &&
+                                          (yIntersect < (player->actor.world.pos.y - player->actor.depthInWater)))) {
         return;
     }
 
     pos.y = yIntersect;
     yRot = (s32)Rand_ZeroFloat(0x200) + this->actor.world.rot.y + 0x3800;
-    if (this->unk_14C != 0) {
+    if (this->skullCount != 0) {
         yRot += 0x8000;
     }
     pos.x += Math_SinS(yRot) * (40.0f + Rand_CenteredFloat(40.0f));
     pos.z += Math_CosS(yRot) * (40.0f + Rand_CenteredFloat(40.0f));
     if (Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_EN_SKB, pos.x, pos.y, pos.z, 0, 0, 0,
                            ENSKB_PARAM_0) != NULL) {
-        this->unk_14C++;
-        if (this->unk_14C >= 2) {
+        this->skullCount++;
+        if (this->skullCount >= 2) {
             this->actionFunc = func_809C4598;
         }
     }
 }
 
+// choose if we want to die after two enemies
 void func_809C4598(EnEncount4* this, PlayState* play) {
     if ((this->switchFlag > SWITCH_FLAG_NONE) && Flags_GetSwitch(play, this->switchFlag)) {
         this->timer = 100;
@@ -192,7 +249,7 @@ void func_809C4598(EnEncount4* this, PlayState* play) {
             Flags_SetSwitch(play, this->switchFlag);
         }
         this->actionFunc = func_809C464C;
-    } else if (this->unk_14C == 0) {
+    } else if (this->skullCount == 0) {
         this->actionFunc = func_809C42A8;
     }
 }

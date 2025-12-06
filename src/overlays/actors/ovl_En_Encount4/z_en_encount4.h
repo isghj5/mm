@@ -18,9 +18,9 @@ typedef void (*EnEncount4ActionFunc)(struct EnEncount4*, PlayState*);
 typedef struct EnEncount4 {
     /* 0x000 */ Actor actor;
     /* 0x144 */ EnEncount4ActionFunc actionFunc;
-    /* 0x148 */ s16 unk_148;
+    /* 0x148 */ s16 type;
     /* 0x14A */ s16 switchFlag;
-    /* 0x14C */ s16 unk_14C;
+    /* 0x14C */ s16 skullCount;
     /* 0x14E */ s16 unk_14E;
     /* 0x150 */ s16 timer;
     /* 0x154 */ EnBsb* captainKeeta;
