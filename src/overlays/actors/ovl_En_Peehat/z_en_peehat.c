@@ -152,7 +152,7 @@ static DamageTable sDamageTable = {
     /* Thrown object  */ DMG_ENTRY(1, 0x0),
     /* Zora punch     */ DMG_ENTRY(1, 0x0),
     /* Spin attack    */ DMG_ENTRY(1, 0x0),
-    /* Sword beam     */ DMG_ENTRY(0, 0x0),
+    /* Sword beam     */ DMG_ENTRY(2, 0x0),
     /* Normal Roll    */ DMG_ENTRY(0, 0x0),
     /* UNK_DMG_0x1B   */ DMG_ENTRY(0, 0x0),
     /* UNK_DMG_0x1C   */ DMG_ENTRY(0, 0x0),
@@ -294,7 +294,8 @@ void func_80897498(EnPeehat* this) {
 }
 
 void func_80897520(EnPeehat* this, PlayState* play) {
-    if (!gSaveContext.save.isNight) {
+    
+    if (!gSaveContext.save.isNight || play->roomCtx.curRoom.type == ROOM_TYPE_DUNGEON || play->roomCtx.curRoom.type == ROOM_TYPE_BOSS) {
         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
         this->colliderSphere.base.acFlags |= AC_ON;
         if (this->actor.xzDistToPlayer < 740.0f) {
@@ -402,7 +403,7 @@ void func_80897A34(EnPeehat* this) {
 }
 
 void func_80897A94(EnPeehat* this, PlayState* play) {
-    s32 pad;
+    //s32 pad;
 
     if ((this->actor.parent != NULL) && (this->actor.parent->update == NULL)) {
         this->actor.parent = NULL;
@@ -499,7 +500,7 @@ void func_80897EAC(EnPeehat* this) {
 }
 
 void func_80897F44(EnPeehat* this, PlayState* play) {
-    s32 pad;
+    //s32 pad;
     f32 cos;
     Player* player = GET_PLAYER(play);
 
@@ -835,7 +836,7 @@ void EnPeehat_Update(Actor* thisx, PlayState* play2) {
 
 s32 EnPeehat_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, Actor* thisx) {
     EnPeehat* this = (EnPeehat*)thisx;
-    s32 pad;
+    //s32 pad;
 
     if (limbIndex == OBJECT_PH_LIMB_04) {
         rot->x = -this->unk_2B4;
