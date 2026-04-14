@@ -168,10 +168,9 @@ void EnBbfall_Init(Actor* thisx, PlayState* play) {
 
     if (this->actor.params > 0){
         this->actor.child = Actor_Spawn(&play->actorCtx, play, ACTOR_EN_LIGHT, 
-                                        this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z, 
+                                        this->actor.world.pos.x, this->actor.world.pos.y + 85, this->actor.world.pos.z, 
                                         0, 0, 0,
-                                        0x7F3); // smaller regular fire
-                                        //0x7F4); // regular fire color and size
+                                        0x7F4); // regular fire color and size
     }
 }
 
@@ -331,7 +330,9 @@ void EnBbfall_Fly(EnBbfall* this, PlayState* play) {
         WaterBox* waterBox; // new
         f32 waterSurface; // new
 
-        if (EnBbfall_IsTouchingLava(this, play)) {
+        if (EnBbfall_IsTouchingLava(this, play) ||
+            (this->actor.params > 0 && Actor_WorldDistXZToPoint(&this->actor, &this->actor.home.pos) < 50)) {
+            // new case: if we spawned a fire, he can dissapear back into the fire
             EnBbfall_SetupSinkIntoLava(this);
         // new case: hitting water causes extinguish
         } else if (WaterBox_GetSurface1(play, &play->colCtx, this->actor.world.pos.x, this->actor.world.pos.z, &waterSurface, &waterBox) &&
