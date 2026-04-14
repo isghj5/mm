@@ -165,6 +165,14 @@ void EnBbfall_Init(Actor* thisx, PlayState* play) {
     for (i = 0; i < ARRAY_COUNT(this->colliderElements); i++) {
         this->collider.elements[i].dim.worldSphere.radius = this->collider.elements[i].dim.modelSphere.radius;
     }
+
+    if (this->actor.params > 0){
+        this->actor.child = Actor_Spawn(&play->actorCtx, play, ACTOR_EN_LIGHT, 
+                                        this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z, 
+                                        0, 0, 0,
+                                        0x7F3); // smaller regular fire
+                                        //0x7F4); // regular fire color and size
+    }
 }
 
 void EnBbfall_Destroy(Actor* thisx, PlayState* play) {
