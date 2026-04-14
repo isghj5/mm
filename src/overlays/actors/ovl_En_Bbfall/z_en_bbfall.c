@@ -26,6 +26,7 @@ void EnBbfall_Fly(EnBbfall* this, PlayState* play);
 void EnBbfall_SetupSinkIntoLava(EnBbfall* this);
 void EnBbfall_SinkIntoLava(EnBbfall* this, PlayState* play);
 void EnBbfall_Down(EnBbfall* this, PlayState* play);
+void EnBbfall_SetupDead(EnBbfall* this, PlayState* play);
 void EnBbfall_Dead(EnBbfall* this, PlayState* play);
 void EnBbfall_Damage(EnBbfall* this, PlayState* play);
 void EnBbfall_Frozen(EnBbfall* this, PlayState* play);
@@ -319,8 +320,15 @@ void EnBbfall_Fly(EnBbfall* this, PlayState* play) {
     Math_StepToF(&this->flameScaleX, 1.0f, 0.1f);
     EnBbfall_CheckForWall(this);
     if (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) {
+        WaterBox* waterBox; // new
+        f32 waterSurface; // new
+
         if (EnBbfall_IsTouchingLava(this, play)) {
             EnBbfall_SetupSinkIntoLava(this);
+        // new case: hitting water causes extinguish
+        } else if (WaterBox_GetSurface1(play, &play->colCtx, this->actor.world.pos.x, this->actor.world.pos.z, &waterSurface, &waterBox) &&
+            (this->actor.world.pos.y < waterSurface)){
+            EnBbfall_SetupDead(this, play);
         } else {
             // Bounce upwards off the ground
             this->actor.velocity.y *= -1.2f;
@@ -412,7 +420,19 @@ void EnBbfall_SetupDead(EnBbfall* this, PlayState* play) {
     f32 magnitude;
     s32 i;
 
-    func_800BE5CC(&this->actor, &this->collider, 0);
+    //func_800BE5CC(&this->actor, &this->collider, 0);
+    // new replacement code
+    if (this->collider.base.ac != NULL){
+      // new bug: this actor always assumes its hit by something, for water this is not true
+      func_800BE5CC(&this->actor, &this->collider, 0); // index: 0
+    } else { // water
+      Vec3f splashPos;
+
+      Math_Vec3f_Copy(&splashPos, &this->actor.world.pos);
+      EffectSsGSplash_Spawn(play, &splashPos, NULL, NULL, 0, (Rand_ZeroOne() * 100.0f) + 400.0f);
+      SoundSource_PlaySfxAtFixedWorldPos(play, &this->actor.world.pos, 50, NA_SE_EV_BOMB_DROP_WATER);
+    }
+
     this->timer = 15;
     this->actor.shape.rot.x += 0x4E20;
     this->actor.speed = 0.0f;

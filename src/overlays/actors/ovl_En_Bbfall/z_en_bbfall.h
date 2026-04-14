@@ -29,7 +29,7 @@ typedef struct EnBbfall {
     /* 0x2B0 */ Vec3f bodyPartsPos[BUBBLE_BODYPART_MAX];
     /* 0x2EC */ Vec3f bodyPartsVelocity[BUBBLE_BODYPART_MAX];
     /* 0x328 */ Gfx* limbDList;
-    /* 0x32C */ UNK_TYPE1 unk_32C[0x58];
+    ///* 0x32C */ UNK_TYPE1 unk_32C[0x58];
     /* 0x384 */ ColliderJntSph collider;
     /* 0x3A4 */ ColliderJntSphElement colliderElements[3];
 } EnBbfall; // size = 0x464
