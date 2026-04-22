@@ -5,6 +5,7 @@ shopt -s globstar
 FUNCTIONS_FILES="tools/disasm/**/functions.txt"
 VARIABLES_FILES="tools/disasm/**/variables.txt"
 ASM_FILES="extracted/**/asm/**/*s"
+RSP_FILES="rsp/*s"
 
 if [ "$#" -ne "2" ];
 then
@@ -18,3 +19,5 @@ grep -rl "$1" src/**/*.{c,h} include/**/*.h assets/xml/* $FUNCTIONS_FILES $VARIA
 # so many files it overloads xargs, and takes much longer
 echo "Replacing symbol in asm files ..."
 grep -rl "$1" $ASM_FILES | xargs sed -i "s/\b$1\b/$2/g"
+echo "Replacing symbol in asm files ..."
+grep -rl "$1" $RSP_FILES | xargs sed -i "s/\b$1\b/$2/g"
