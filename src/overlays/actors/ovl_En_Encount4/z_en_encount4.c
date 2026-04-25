@@ -30,6 +30,10 @@ ActorProfile En_Encount4_Profile = {
     /**/ NULL,
 };
 
+static u8  sSpawnCount = 0;
+
+
+
 s16 D_809C46D0[] = {
     0x4000, 0xC000, 0x4000, 0, 0xC000,
 };
@@ -45,6 +49,7 @@ void EnEncount4_Wait(EnEncount4* this, PlayState* play){
     s16 yRot;
     CollisionPoly* colPoly;
     s32 bgId;
+    Actor* spawn;
 
     if ((this->actor.xzDistToPlayer > 240.0f)) {
         return;
@@ -67,10 +72,20 @@ void EnEncount4_Wait(EnEncount4* this, PlayState* play){
     }
     pos.x += Math_SinS(yRot) * (40.0f + Rand_CenteredFloat(40.0f));
     pos.z += Math_CosS(yRot) * (40.0f + Rand_CenteredFloat(40.0f));
-    if (Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_EN_SKB, pos.x, pos.y, pos.z, 0, 0, 0,
-                           ENSKB_PARAM_0) != NULL) {
+    spawn = Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_EN_SKB, pos.x, pos.y, pos.z, 0, 0, 0,
+                           ENSKB_PARAM_0);
+    if (spawn != NULL) {
+        sSpawnCount++;
         this->skullCount++;
-        if (this->skullCount >= 2) {
+        if (sSpawnCount == 10 && this->skullCount >= 1) {
+            
+            sSpawnCount = 0;
+            Actor_SetScale(spawn, 0.02f);
+            //spawn-> wish I could double their damage
+            this->actionFunc = func_809C4598;
+
+        } else if (this->skullCount >= 2) {
+
             this->actionFunc = func_809C4598;
         }
     }
