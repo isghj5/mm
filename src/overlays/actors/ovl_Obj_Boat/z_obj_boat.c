@@ -53,7 +53,7 @@ s16 ObjBoat_GetNextPoint(ObjBoat* this, Vec3f* nextPoint) {
 }
 
 void ObjBoat_Init(Actor* thisx, PlayState* play) {
-    s32 pad[2];
+    //s32 pad[2];
     Path* path;
     ObjBoat* this = (ObjBoat*)thisx;
     Vec3f sp24;
@@ -61,6 +61,12 @@ void ObjBoat_Init(Actor* thisx, PlayState* play) {
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
     DynaPolyActor_Init(&this->dyna, DYNA_TRANSFORM_POS | DYNA_TRANSFORM_ROT_Y);
     DynaPolyActor_LoadMesh(play, &this->dyna, &object_kaizoku_obj_Colheader_009A88);
+
+    if (OBJBOAT_GET_STANDING(this)) {
+      this->dyna.actor.update = Actor_Noop; // no actionfunc needed if no update func
+      return;
+    }
+
     if (thisx->params < 0) {
         this->dyna.actor.update = ObjBoat_UpdateCutscene;
     } else {
@@ -90,7 +96,7 @@ void ObjBoat_SetRotations(ObjBoat* this) {
 }
 
 void ObjBoat_Update(Actor* thisx, PlayState* play) {
-    s32 pad;
+    //s32 pad;
     ObjBoat* this = (ObjBoat*)thisx;
     Player* player = GET_PLAYER(play);
     s32 isPlayerOnTop = DynaPolyActor_IsPlayerOnTop(&this->dyna);
