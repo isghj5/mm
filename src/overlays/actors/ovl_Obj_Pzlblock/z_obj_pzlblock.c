@@ -1,7 +1,7 @@
 /*
  * File: z_obj_pzlblock.c
  * Overlay: ovl_Obj_Pzlblock
- * Description: Puzzle Block
+ * Description: Puzzle Block, used in Sakon's Hideout (Kafei side)
  */
 
 #include "z_obj_pzlblock.h"
@@ -40,11 +40,13 @@ s16 D_809A4058[] = { 0, 0, 1, -1 };
 
 typedef struct {
     /* 0x0 */ s16 objectId;
-    /* 0x4 */ CollisionHeader* unk_04;
-    /* 0x8 */ Gfx* unk_08;
+    /* 0x4 */ CollisionHeader* collider;
+    /* 0x8 */ Gfx* displayList;
 } ObjPzlblockStruct; // size = 0xC
 
-ObjPzlblockStruct D_809A4060[] = {
+// two differnet objects can deliver this actor
+// weirdly, SECOM used in sakon hidout, but the hideout also has dangeon keep
+ObjPzlblockStruct sTypeData[] = {
     { GAMEPLAY_DANGEON_KEEP, &gameplay_dangeon_keep_Colheader_01D488, gameplay_dangeon_keep_DL_01C228 },
     { OBJECT_SECOM_OBJ, &object_secom_obj_Colheader_002CB8, object_secom_obj_DL_001A58 },
 };
@@ -56,7 +58,7 @@ static InitChainEntry sInitChain[] = {
     ICHAIN_F32(cullingVolumeDownward, 200, ICHAIN_STOP),
 };
 
-Color_RGB8 D_809A4088[] = {
+Color_RGB8 sColors[] = {
     { 180, 150, 250 }, { 100, 180, 150 }, { 0, 0, 255 }, { 255, 255, 0 },
     { 0, 255, 255 },   { 255, 0, 255 },   { 0, 0, 0 },   { 255, 255, 255 },
 };
@@ -66,6 +68,8 @@ bool func_809A33E0(ObjPzlblock* this, PlayState* play, s16 arg2) {
            !DynaPolyActor_ValidateMove(play, &this->dyna, 30, arg2, 28);
 }
 
+// get something from angle?
+// returns an index to unk_16E
 s32 func_809A3448(ObjPzlblock* this) {
     s16 temp_v0;
 
@@ -93,33 +97,33 @@ s32 func_809A3448(ObjPzlblock* this) {
 }
 
 bool func_809A34E0(ObjPzlblock* this, s32 arg1) {
-    s32 temp_v0 = OBJPZLBLOCK_GET_ROTZ(&this->dyna.actor);
+    s32 rotZ = OBJPZLBLOCK_GET_ROTZ(&this->dyna.actor);
 
-    if (temp_v0 == 0) {
+    if (rotZ == 0) {
         return arg1 == 0;
     }
 
-    if (temp_v0 == 1) {
+    if (rotZ == 1) {
         return arg1 == 1;
     }
 
-    if (temp_v0 == 2) {
+    if (rotZ == 2) {
         return arg1 == 2;
     }
 
-    if (temp_v0 == 3) {
+    if (rotZ == 3) {
         return arg1 == 3;
     }
 
-    if (temp_v0 == 4) {
+    if (rotZ == 4) {
         return (arg1 == 0) || (arg1 == 1);
     }
 
-    if (temp_v0 == 5) {
+    if (rotZ == 5) {
         return (arg1 == 2) || (arg1 == 3);
     }
 
-    if (temp_v0 == 6) {
+    if (rotZ == 6) {
         if (this->unk_176 != 0) {
             return (arg1 == 0) || (arg1 == 1);
         }
@@ -133,44 +137,44 @@ bool func_809A34E0(ObjPzlblock* this, s32 arg1) {
 }
 
 bool func_809A35EC(ObjPzlblock* this, s32 arg1) {
-    s32 temp_v0 = OBJPZLBLOCK_GET_ROTZ(&this->dyna.actor);
-    s32 temp_v1 = this->dyna.actor.home.rot.x & 0xF;
+    s32 rotZ = OBJPZLBLOCK_GET_ROTZ(&this->dyna.actor);
+    s32 rotX = this->dyna.actor.home.rot.x & 0xF;
     s32 temp;
 
-    if (temp_v0 == 0) {
-        return this->unk_176 < temp_v1;
+    if (rotZ == 0) {
+        return this->unk_176 < rotX;
     }
 
-    if (temp_v0 == 1) {
-        return -temp_v1 < this->unk_176;
+    if (rotZ == 1) {
+        return -rotX < this->unk_176;
     }
 
-    if (temp_v0 == 2) {
-        return this->unk_178 < temp_v1;
+    if (rotZ == 2) {
+        return this->unk_178 < rotX;
     }
 
-    if (temp_v0 == 3) {
-        return -temp_v1 < this->unk_178;
+    if (rotZ == 3) {
+        return -rotX < this->unk_178;
     }
 
-    if (temp_v0 == 4) {
+    if (rotZ == 4) {
         temp = D_809A4050[arg1] + this->unk_176;
-        return (temp_v1 >= temp) && (-temp_v1 <= temp);
+        return (rotX >= temp) && (-rotX <= temp);
     }
 
-    if (temp_v0 == 5) {
+    if (rotZ == 5) {
         temp = D_809A4058[arg1] + this->unk_178;
-        return (temp_v1 >= temp) && (-temp_v1 <= temp);
+        return (rotX >= temp) && (-rotX <= temp);
     }
 
-    if (temp_v0 == 6) {
+    if (rotZ == 6) {
         if ((arg1 == 0) || (arg1 == 1)) {
             temp = D_809A4050[arg1] + this->unk_176;
-            return (temp_v1 >= temp) && (-temp_v1 <= temp);
+            return (rotX >= temp) && (-rotX <= temp);
         }
 
         temp = D_809A4058[arg1] + this->unk_178;
-        return (temp_v1 >= temp) && (-temp_v1 <= temp);
+        return (rotX >= temp) && (-rotX <= temp);
     }
 
     return false;
@@ -192,9 +196,9 @@ void func_809A376C(ObjPzlblock* this, s32 arg1) {
 void ObjPzlblock_Init(Actor* thisx, PlayState* play) {
     s32 pad;
     ObjPzlblock* this = (ObjPzlblock*)thisx;
-    s32 sp2C = OBJPZLBLOCK_GET_ROTZ(&this->dyna.actor);
-    s32 sp28 = this->dyna.actor.home.rot.x & 0xF;
-    ObjPzlblockStruct* sp24 = &D_809A4060[OBJPZLBLOCK_GET_1000(&this->dyna.actor)];
+    s32 rotZ = OBJPZLBLOCK_GET_ROTZ(&this->dyna.actor);
+    s32 rotX = OBJPZLBLOCK_GET_ROTX(&this->dyna.actor);
+    ObjPzlblockStruct* sp24 = &sTypeData[OBJPZLBLOCK_GET_ALT_OBJ(&this->dyna.actor)];
 
     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
     Actor_SetScale(&this->dyna.actor, 0.1f);
@@ -207,25 +211,26 @@ void ObjPzlblock_Init(Actor* thisx, PlayState* play) {
 
     this->objectSlot = Object_GetSlot(&play->objectCtx, sp24->objectId);
 
-    if (sp28 == 0) {
+    // in-game, the switch flag is always set to 0x7F
+    if (rotX == 0) { // locked down?
         func_809A3D1C(this);
     } else if (Flags_GetSwitch(play, OBJPZLBLOCK_GET_SWITCH_FLAG(&this->dyna.actor))) {
-        if (sp2C == 0) {
-            this->dyna.actor.world.pos.x = this->dyna.actor.home.pos.x + (sp28 * 60);
+        if (rotZ == 0) {
+            this->dyna.actor.world.pos.x = this->dyna.actor.home.pos.x + (rotX * 60);
             func_809A3D1C(this);
-        } else if (sp2C == 1) {
-            this->dyna.actor.world.pos.x = this->dyna.actor.home.pos.x - (sp28 * 60);
+        } else if (rotZ == 1) {
+            this->dyna.actor.world.pos.x = this->dyna.actor.home.pos.x - (rotX * 60);
             func_809A3D1C(this);
-        } else if (sp2C == 2) {
-            this->dyna.actor.world.pos.z = this->dyna.actor.home.pos.z + (sp28 * 60);
+        } else if (rotZ == 2) {
+            this->dyna.actor.world.pos.z = this->dyna.actor.home.pos.z + (rotX * 60);
             func_809A3D1C(this);
-        } else if (sp2C == 3) {
-            this->dyna.actor.world.pos.z = this->dyna.actor.home.pos.z - (sp28 * 60);
+        } else if (rotZ == 3) {
+            this->dyna.actor.world.pos.z = this->dyna.actor.home.pos.z - (rotX * 60);
             func_809A3D1C(this);
         } else {
             func_809A3A48(this);
         }
-    } else {
+    } else { // rotation > 0, and switch flag is off
         func_809A3A48(this);
     }
 }
@@ -236,6 +241,8 @@ void ObjPzlblock_Destroy(Actor* thisx, PlayState* play) {
     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
 }
 
+
+// called from init for non switch flags and non-z types
 void func_809A3A48(ObjPzlblock* this) {
     this->actionFunc = func_809A3A74;
     this->unk_16E[1] = 0;
@@ -309,6 +316,7 @@ void func_809A3BC0(ObjPzlblock* this, PlayState* play) {
     }
 }
 
+// locked down unpushable
 void func_809A3D1C(ObjPzlblock* this) {
     this->actionFunc = func_809A3D38;
     this->updBgCheckInfoFlags = UPDBGCHECKINFO_FLAG_4;
@@ -329,11 +337,11 @@ void ObjPzlblock_Update(Actor* thisx, PlayState* play) {
     Actor_UpdateBgCheckInfo(play, &this->dyna.actor, 15.0f, 30.0f, 0.0f, UPDBGCHECKINFO_FLAG_4);
 
     if (Object_IsLoaded(&play->objectCtx, this->objectSlot)) {
-        ObjPzlblockStruct* sp2C = &D_809A4060[OBJPZLBLOCK_GET_1000(&this->dyna.actor)];
+        ObjPzlblockStruct* thisType = &sTypeData[OBJPZLBLOCK_GET_ALT_OBJ(&this->dyna.actor)];
 
         this->dyna.actor.objectSlot = this->objectSlot;
         Actor_SetObjectDependency(play, &this->dyna.actor);
-        DynaPolyActor_LoadMesh(play, &this->dyna, sp2C->unk_04);
+        DynaPolyActor_LoadMesh(play, &this->dyna, thisType->collider);
         this->dyna.actor.update = func_809A3E58;
         this->dyna.actor.draw = func_809A3F0C;
     }
@@ -357,16 +365,16 @@ void func_809A3E58(Actor* thisx, PlayState* play) {
 }
 
 void func_809A3F0C(Actor* thisx, PlayState* play) {
-    ObjPzlblockStruct* sp2C = &D_809A4060[OBJPZLBLOCK_GET_1000(thisx)];
-    Color_RGB8* sp28 = &D_809A4088[OBJPZLBLOCK_GET_700(thisx)];
+    ObjPzlblockStruct* thisType = &sTypeData[OBJPZLBLOCK_GET_ALT_OBJ(thisx)];
+    Color_RGB8* color = &sColors[OBJPZLBLOCK_GET_COLOR(thisx)];
 
     OPEN_DISPS(play->state.gfxCtx);
 
     Gfx_SetupDL25_Opa(play->state.gfxCtx);
 
     MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx);
-    gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, sp28->r, sp28->g, sp28->b, 255);
-    gSPDisplayList(POLY_OPA_DISP++, sp2C->unk_08);
+    gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, color->r, color->g, color->b, 255);
+    gSPDisplayList(POLY_OPA_DISP++, thisType->displayList);
 
     CLOSE_DISPS(play->state.gfxCtx);
 }
