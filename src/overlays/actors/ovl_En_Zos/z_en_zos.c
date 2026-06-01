@@ -340,8 +340,9 @@ void func_80BBB574(EnZos* this, PlayState* play) {
 
             case 0x124C:
                 play->msgCtx.msgLength = 0;
-                this->actionFunc = func_80BBB4CC;
-                EnZos_ChangeAnim(this, EN_ZOS_ANIM_SLOW_PLAY, ANIMMODE_LOOP);
+                this->actionFunc = func_80BBB574;
+                EnZos_ChangeAnim(this, EN_ZOS_ANIM_TALK_HANDS_ON_HIPS, ANIMMODE_LOOP);
+                Message_ContinueTextbox(play, 0x124D);
                 break;
 
             case 0x124D:
