@@ -2,6 +2,7 @@
 #define Z_EN_CNE_01_H
 
 #include "global.h"
+#include "z_en_hy_code.h"
 #include "assets/objects/object_cne/object_cne.h"
 
 struct EnCne01;
@@ -22,11 +23,11 @@ typedef struct EnCne01 {
     /* 0x148 */ EnCne01ActionFunc prevActionFunc;
     /* 0x14C */ ColliderCylinder collider;
     /* 0x198 */ SkelAnime skelAnime;
-    /* 0x1D8 */ s16 limbRotTableY[CNE_LIMB_MAX];
-    /* 0x1F8 */ s16 limbRotTableZ[CNE_LIMB_MAX];
-    /* 0x218 */ Vec3s jointTable[CNE_LIMB_MAX];
-    /* 0x278 */ Vec3s morphTable[CNE_LIMB_MAX];
-    /* 0x2D8 */ Vec3f bodyPartsPos[CNE_LIMB_MAX];
+    /* 0x1D8 */ s16 limbRotTableY[HYLIAN_YOUNG_WOMAN_LIMB_MAX];
+    /* 0x1F8 */ s16 limbRotTableZ[HYLIAN_YOUNG_WOMAN_LIMB_MAX];
+    /* 0x218 */ Vec3s jointTable[HYLIAN_YOUNG_WOMAN_LIMB_MAX];
+    /* 0x278 */ Vec3s morphTable[HYLIAN_YOUNG_WOMAN_LIMB_MAX];
+    /* 0x2D8 */ Vec3f bodyPartsPos[HYLIAN_YOUNG_WOMAN_LIMB_MAX];
     /* 0x394 */ Vec3s trackTarget;
     /* 0x39A */ Vec3s headRot;
     /* 0x3A0 */ Vec3s torsoRot;

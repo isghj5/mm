@@ -19,6 +19,7 @@ void EnCne01_Draw(Actor* thisx, PlayState* play);
 void EnCne01_Walk(EnCne01* this, PlayState* play);
 void EnCne01_FaceForward(EnCne01* this, PlayState* play);
 void EnCne01_Talk(EnCne01* this, PlayState* play);
+s32 EnCne01_TestIsTalking(EnCne01* this, PlayState* play);
 
 ActorProfile En_Cne_01_Profile = {
     /**/ ACTOR_EN_CNE_01,
@@ -104,7 +105,7 @@ s32 EnCne01_AttemptItemRecieve(EnCne01* this, PlayState* play) {
 
     Actor_GetScreenPos(play, &this->actor, &x, &y);
     if (((x >= 0) && (x < SCREEN_WIDTH)) && ((y >= 0) && (y < SCREEN_HEIGHT))) {
-        Actor_OfferTalkExchangeEquiCylinder(&this->actor, play, 30.0f, PLAYER_IA_MOON_TEAR);
+        Actor_OfferTalkExchangeEquiCylinder(&this->actor, play, 30.0f, PLAYER_IA_MOONS_TEAR);
     }
     return true;
 }
@@ -115,7 +116,7 @@ void EnCne02_TestGiftItem(EnCne01* this, PlayState* play){
     PlayerItemAction itemAction = func_80123810(play);
 
     if (itemAction > PLAYER_IA_NONE && playerType == CNE_TYPE_VENESA) {
-        if (itemAction == PLAYER_IA_PICTO_BOX) {
+        if (itemAction == PLAYER_IA_PICTOGRAPH_BOX) {
             player->exchangeItemAction = itemAction;
             this->textId = 0x221B;
         }
@@ -123,7 +124,7 @@ void EnCne02_TestGiftItem(EnCne01* this, PlayState* play){
             this->textId = 0x2220;
         }
     } else  if (itemAction > PLAYER_IA_NONE && playerType == CNE_TYPE_ORANGE) {
-        if (itemAction == PLAYER_IA_PICTO_BOX) {
+        if (itemAction == PLAYER_IA_PICTOGRAPH_BOX) {
             player->exchangeItemAction = itemAction;
             this->textId = 0x221B;
         }
@@ -179,7 +180,7 @@ void EnCne01_UpdateModel(EnCne01* this, PlayState* play) {
     if ((this->stateFlags & 2) && this->curAnim != &gCneAnjuMyChickenHaveEscapedAnim){
         EnCne02_SetAnimation(this,  &gCneAnjuMyChickenHaveEscapedAnim);
     } else if (!(this->stateFlags & 2) && this->curAnim == &gCneAnjuMyChickenHaveEscapedAnim){
-        EnCne02_SetAnimation(this,  &this->defaultAnim);
+        EnCne02_SetAnimation(this,  this->defaultAnim);
     }
 
     SubS_UpdateFidgetTables(play, this->limbRotTableY, this->limbRotTableZ, ARRAY_COUNT(this->limbRotTableY));
@@ -293,7 +294,7 @@ void EnCne01_Init(Actor* thisx, PlayState* play) {
     this->moonPtr = SubS_FindActor(play, 0, ACTORCAT_ITEMACTION, ACTOR_EN_FALL);
 
     if (this->moonPtr != NULL){
-        this->actor.world.rot.y = Actor_YawBetweenActors(&this->actor, this->moonPtr);
+        this->actor.world.rot.y = Math_Vec3f_Yaw(&this->actor.world.pos, &this->moonPtr->world.pos);
         this->actor.shape.rot.y = this->actor.world.rot.y;
     }
 
@@ -319,8 +320,8 @@ void EnCne01_Init(Actor* thisx, PlayState* play) {
     this->defaultAnim = this->curAnim;
 
     SkelAnime_InitFlex(play, &this->skelAnime,
-        &gCneSkel, this->curAnim,
-        this->jointTable, this->morphTable, CNE_LIMB_MAX);
+        &gHylianYoungWomanSkel, this->curAnim,
+        this->jointTable, this->morphTable, HYLIAN_YOUNG_WOMAN_LIMB_MAX);
 
     Collider_InitCylinder(play, &this->collider);
     Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
@@ -328,7 +329,7 @@ void EnCne01_Init(Actor* thisx, PlayState* play) {
     this->path = SubS_GetPathByIndex(play, ENCNE01_GET_PATH_INDEX(&this->actor), ENCNE01_PATH_INDEX_NONE);
     Actor_SetScale(&this->actor, 0.01f);
 
-    this->actor.targetMode = 6;
+    this->actor.attentionRangeType = ATTENTION_RANGE_6;
 
     if (ENCNE01_GET_PATH_INDEX(&this->actor) == ENCNE01_PATH_INDEX_NONE) {
         this->actionFunc = EnCne01_FaceForward;
@@ -361,29 +362,29 @@ s32 EnCne01_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
         Matrix_MultVec3f(&zeroVec, &this->bodyPartsPos[bodyPart]);
     }
 
-    if (limbIndex == CNE_LIMB_HEAD && CNE_GET_TYPE(&this->actor) == CNE_TYPE_ORANGE) {
+    if (limbIndex == HYLIAN_YOUNG_WOMAN_LIMB_HEAD && CNE_GET_TYPE(&this->actor) == CNE_TYPE_ORANGE) {
         OPEN_DISPS(play->state.gfxCtx);
-        *dList = gCneHeadOrangeHairDL;
+        *dList = gHylianYoungWomanHeadOrangeHairDL;
         CLOSE_DISPS(play->state.gfxCtx);
     }
-    if (limbIndex == CNE_LIMB_HEAD) {
+    if (limbIndex == HYLIAN_YOUNG_WOMAN_LIMB_HEAD) {
         Matrix_Translate(1500.0f, 0.0f, 0.0f, MTXMODE_APPLY);
         Matrix_RotateXS(this->headRot.y, MTXMODE_APPLY);
         Matrix_RotateZS(-this->headRot.x, MTXMODE_APPLY);
         Matrix_Translate(-1500.0f, 0.0f, 0.0f, MTXMODE_APPLY);
     }
 
-    if (limbIndex == CNE_LIMB_TORSO) {
+    if (limbIndex == HYLIAN_YOUNG_WOMAN_LIMB_TORSO) {
         Matrix_RotateXS(-this->torsoRot.y, MTXMODE_APPLY);
         Matrix_RotateZS(-this->torsoRot.x, MTXMODE_APPLY);
     }
 
-    if ((limbIndex == CNE_LIMB_HEAD) && this->inMsgState3 && ((play->state.frames % 2) == 0)) {
+    if ((limbIndex == HYLIAN_YOUNG_WOMAN_LIMB_HEAD) && this->inMsgState3 && ((play->state.frames % 2) == 0)) {
         Matrix_Translate(20.0f, 0.0f, 0.0f, MTXMODE_APPLY);
     }
 
-    if ((limbIndex == CNE_LIMB_TORSO) || (limbIndex == CNE_LIMB_LEFT_UPPER_ARM) ||
-        (limbIndex == CNE_LIMB_RIGHT_UPPER_ARM)) {
+    if ((limbIndex == HYLIAN_YOUNG_WOMAN_LIMB_TORSO) || (limbIndex == HYLIAN_YOUNG_WOMAN_LIMB_LEFT_UPPER_ARM) ||
+        (limbIndex == HYLIAN_YOUNG_WOMAN_LIMB_RIGHT_UPPER_ARM)) {
         rot->y += TRUNCF_BINANG(Math_SinS(this->limbRotTableY[limbIndex]) * 200.0f);
         rot->z += TRUNCF_BINANG(Math_CosS(this->limbRotTableZ[limbIndex]) * 200.0f);
     }
@@ -395,7 +396,7 @@ void EnCne01_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* ro
     EnCne01* this = (EnCne01*)thisx;
     Vec3f zeroVec = { 0.0f, 0.0f, 0.0f };
 
-    if (limbIndex == CNE_LIMB_HEAD) {
+    if (limbIndex == HYLIAN_YOUNG_WOMAN_LIMB_HEAD) {
         Matrix_MultVec3f(&zeroVec, &this->actor.focus.pos);
     }
 }

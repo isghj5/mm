@@ -2,7 +2,7 @@
 #include "z64.h"
 #include "macros.h"
 #include "assets/misc/link_animetion/link_animetion.h"
-#include "objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/gameplay_keep/gameplay_keep.h"
 
 // one arm slightly forward, head slightly up, like a walking animation but only one frame?
 /*
