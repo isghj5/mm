@@ -31,7 +31,7 @@ typedef struct EnCne01 {
     /* 0x394 */ Vec3s trackTarget;
     /* 0x39A */ Vec3s headRot;
     /* 0x3A0 */ Vec3s torsoRot;
-    /* 0x3A6 */ Path* path;
+    ///* 0x3A6 */ Path* path;
     /* 0x3AA */ s16 inMsgState3;
     /* 0x3AC */ s16 headObjIndex;
     /* 0x3AE */ s16 textId;
@@ -40,7 +40,7 @@ typedef struct EnCne01 {
     /* 0x3B4 */ Actor* moonPtr;
     /* 0x3B8 */ AnimationHeader* defaultAnim;
     /* 0x3BC */ AnimationHeader* curAnim;
-    /* 0x3C0 */ UNK_TYPE1 unk_3C0[0x25C];
+    ///* 0x3C0 */ UNK_TYPE1 unk_3C0[0x25C];
 } EnCne01; // size = 0x61C
 
 #endif // Z_EN_CNE_01_H

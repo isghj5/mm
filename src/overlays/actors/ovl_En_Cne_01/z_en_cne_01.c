@@ -326,7 +326,7 @@ void EnCne01_Init(Actor* thisx, PlayState* play) {
     Collider_InitCylinder(play, &this->collider);
     Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
     CollisionCheck_SetInfo2(&this->actor.colChkInfo, &sDamageTable, &sColChkInfoInit);
-    this->path = SubS_GetPathByIndex(play, ENCNE01_GET_PATH_INDEX(&this->actor), ENCNE01_PATH_INDEX_NONE);
+    //this->path = SubS_GetPathByIndex(play, ENCNE01_GET_PATH_INDEX(&this->actor), ENCNE01_PATH_INDEX_NONE);
     Actor_SetScale(&this->actor, 0.01f);
 
     this->actor.attentionRangeType = ATTENTION_RANGE_6;
